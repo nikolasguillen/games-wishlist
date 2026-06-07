@@ -1,17 +1,39 @@
+# Build and tool generated files
+build/
+.gradle/
+.agent/
+.navigation/
+captures/
+.externalNativeBuild/
+.cxx/
+*.log
+
+# IntelliJ IDEA / Android Studio
+.idea/
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-/.idea/*
-.idea/*
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+*.ipr
+*.iws
+out/
+
+# Local configuration files
 local.properties
+google-services.json
+
+# Signing files (Never commit these!)
+*.jks
+*.keystore
+*.p12
+*.properties.sensitive
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# KSP / Kapt generated (usually inside build/, but just in case)
+generated/
+
+# Python (if any scripts are used)
+__pycache__/
+*.py[cod]
+*$py.class

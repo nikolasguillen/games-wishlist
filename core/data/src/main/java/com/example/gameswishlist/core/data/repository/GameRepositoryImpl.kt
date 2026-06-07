@@ -9,23 +9,29 @@ import com.example.gameswishlist.core.database.entity.ListEntity
 import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.WishlistList
-import com.example.gameswishlist.core.network.RawgApiService
+import com.example.gameswishlist.core.network.IgdbApiService
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
-import javax.inject.Named
 
 class GameRepositoryImpl @Inject constructor(
-    private val apiService: RawgApiService,
+    private val apiService: IgdbApiService,
     private val gameDao: GameDao,
-    private val listDao: ListDao,
-    @Named("RAWG_API_KEY") private val apiKey: String
+    private val listDao: ListDao
 ) : GameRepository {
 
     override suspend fun searchGames(query: String): AppResult<List<Game>> {
         return try {
-            val response = apiService.searchGames(apiKey, query)
-            AppResult.success(response.results.map { it.toGame() })
+            val queryText = """
+                search "$query";
+                fields name, summary, first_release_date, cover.url, total_rating, platforms.name, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                limit 20;
+            """.trimIndent()
+            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+            val response = apiService.searchGames(body)
+            AppResult.success(response.map { it.toGame() })
         } catch (e: Exception) {
             AppResult.failure(e.toRepositoryError())
         }
@@ -35,10 +41,14 @@ class GameRepositoryImpl @Inject constructor(
         // Try local first
         val localGame = gameDao.getGameById(id)
         if (localGame != null) return localGame.toGame()
-        
         // Fetch from network
         return try {
-            val networkGame = apiService.getGameDetail(id, apiKey)
+            val queryText = """
+                fields name, summary, first_release_date, cover.url, total_rating, platforms.name, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                where id = $id;
+            """.trimIndent()
+            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+            val networkGame = apiService.getGameDetail(body).first()
             networkGame.toGame()
         } catch (e: Exception) {
             throw e

@@ -1,9 +1,0 @@
-com.example.gameswishlist.feature.gamedetail.game-detail-pngs-0 /Users/nikolas/AndroidStudioProjects/GamesWishlist/feature/game-detail/build/generated/res/pngs/debug
-com.example.gameswishlist.feature.gamedetail.game-detail-updated_navigation_xml-1 /Users/nikolas/AndroidStudioProjects/GamesWishlist/feature/game-detail/build/generated/updated_navigation_xml/debug
-com.example.gameswishlist.feature.gamedetail.game-detail-mergeDebugResources-2 /Users/nikolas/AndroidStudioProjects/GamesWishlist/feature/game-detail/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
-com.example.gameswishlist.feature.gamedetail.game-detail-mergeDebugResources-3 /Users/nikolas/AndroidStudioProjects/GamesWishlist/feature/game-detail/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
-com.example.gameswishlist.feature.gamedetail.game-detail-debug-4 /Users/nikolas/AndroidStudioProjects/GamesWishlist/feature/game-detail/build/intermediates/merged_res/debug/mergeDebugResources
-com.example.gameswishlist.feature.gamedetail.game-detail-debug-5 /Users/nikolas/AndroidStudioProjects/GamesWishlist/feature/game-detail/build/intermediates/packaged_res/debug/packageDebugResources
-com.example.gameswishlist.feature.gamedetail.game-detail-debug-6 /Users/nikolas/AndroidStudioProjects/GamesWishlist/feature/game-detail/src/debug/res
-com.example.gameswishlist.feature.gamedetail.game-detail-main-7 /Users/nikolas/AndroidStudioProjects/GamesWishlist/feature/game-detail/src/main/res
-gradleHome-0 /Users/nikolas/.gradle

@@ -3,35 +3,33 @@ package com.example.gameswishlist.core.data.mapper
 import com.example.gameswishlist.core.database.entity.GameEntity
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.Priority
-import com.example.gameswishlist.core.network.model.NetworkGame
-import com.example.gameswishlist.core.network.model.NetworkGameDetail
+import com.example.gameswishlist.core.network.model.IgdbGame
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-fun NetworkGame.toGame(): Game {
+fun IgdbGame.toGame(): Game {
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val releasedDate = firstReleaseDate?.let { dateFormat.format(Date(it * 1000)) }
+
+    // IGDB cover URLs start with //, so we add https:
+    val imageUrl = cover?.url?.let {
+        if (it.startsWith("//")) "https:$it" else it
+    }?.replace("t_thumb", "t_720p") // Better quality
+
     return Game(
         id = id,
         name = name,
-        released = released,
-        backgroundImage = backgroundImage,
-        rating = rating ?: 0.0,
-        metaCritic = metacritic,
-        platforms = platforms?.map { it.platform.name } ?: emptyList(),
-        genres = genres?.map { it.name } ?: emptyList()
-    )
-}
-
-fun NetworkGameDetail.toGame(): Game {
-    return Game(
-        id = id,
-        name = name,
-        description = description ?: "",
-        released = released,
-        backgroundImage = backgroundImage,
-        rating = rating ?: 0.0,
-        metaCritic = metacritic,
-        platforms = platforms?.map { it.platform.name } ?: emptyList(),
+        description = summary ?: "",
+        released = releasedDate,
+        backgroundImage = imageUrl,
+        rating = totalRating ?: 0.0,
+        platforms = platforms?.map { it.name } ?: emptyList(),
         genres = genres?.map { it.name } ?: emptyList(),
-        publishers = publishers?.map { it.name } ?: emptyList(),
-        developers = developers?.map { it.name } ?: emptyList()
+        publishers = involvedCompanies?.filter { it.publisher }?.map { it.company.name }
+            ?: emptyList(),
+        developers = involvedCompanies?.filter { it.developer }?.map { it.company.name }
+            ?: emptyList()
     )
 }
 

@@ -19,9 +19,9 @@ android {
     defaultConfig {
         minSdk = 29
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        
-        val rawgApiKey = localProps.getProperty("RAWG_API_KEY") ?: ""
-        buildConfigField("String", "RAWG_API_KEY", "\"$rawgApiKey\"")
+
+        buildConfigField("String", "IGDB_CLIENT_ID", "\"${localProps.getProperty("IGDB_CLIENT_ID") ?: ""}\"")
+        buildConfigField("String", "IGDB_CLIENT_SECRET", "\"${localProps.getProperty("IGDB_CLIENT_SECRET") ?: ""}\"")
     }
 
     compileOptions {

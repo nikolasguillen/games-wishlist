@@ -1,18 +1,22 @@
 package com.example.gameswishlist.core.network.di
 
 import com.example.gameswishlist.core.network.BuildConfig
-import com.example.gameswishlist.core.network.RawgApiService
+import com.example.gameswishlist.core.network.IgdbApiService
+import com.example.gameswishlist.core.network.IgdbAuthManager
+import com.example.gameswishlist.core.network.IgdbAuthService
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.runBlocking
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
-import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -37,9 +41,30 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
+    fun provideAuthInterceptor(authManager: Lazy<IgdbAuthManager>): Interceptor {
+        return Interceptor { chain ->
+            val token = runBlocking { authManager.get().getAccessToken() }
+            val request = chain.request().newBuilder()
+                .addHeader("Client-ID", BuildConfig.IGDB_CLIENT_ID)
+                .apply {
+                    if (token != null) {
+                        addHeader("Authorization", "Bearer $token")
+                    }
+                }
+                .build()
+            chain.proceed(request)
+        }
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(
+        loggingInterceptor: HttpLoggingInterceptor,
+        authInterceptor: Interceptor
+    ): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
+            .addInterceptor(authInterceptor)
             .build()
     }
 
@@ -47,7 +72,7 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://api.rawg.io/api/")
+            .baseUrl("https://api.igdb.com/v4/")
             .client(okHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
@@ -55,14 +80,17 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideRawgApiService(retrofit: Retrofit): RawgApiService {
-        return retrofit.create(RawgApiService::class.java)
+    fun provideIgdbAuthService(moshi: Moshi): IgdbAuthService {
+        return Retrofit.Builder()
+            .baseUrl("https://id.twitch.tv/")
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(IgdbAuthService::class.java)
     }
 
     @Provides
     @Singleton
-    @Named("RAWG_API_KEY")
-    fun provideRawgApiKey(): String {
-        return BuildConfig.RAWG_API_KEY
+    fun provideIgdbApiService(retrofit: Retrofit): IgdbApiService {
+        return retrofit.create(IgdbApiService::class.java)
     }
 }

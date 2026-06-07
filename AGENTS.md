@@ -28,7 +28,6 @@
 ## Dependency injection and external services
 - Hilt is used everywhere; app entry point is `GamesWishlistApp` with `@HiltAndroidApp`.
 - Singleton bindings are in `core/network/di/NetworkModule.kt`, `core/database/di/DatabaseModule.kt`, and `core/data/di/DataModule.kt`.
-- RAWG integration requires `RAWG_API_KEY` in root `local.properties`; `core/network/build.gradle.kts` injects it into `BuildConfig`, then Hilt exposes it as `@Named("RAWG_API_KEY")`.
 - Network base URL is hardcoded to `https://api.rawg.io/api/` in `NetworkModule.kt`.
 - HTTP logging is set to `BODY`, so avoid adding noisy polling/network loops without considering log volume.
 

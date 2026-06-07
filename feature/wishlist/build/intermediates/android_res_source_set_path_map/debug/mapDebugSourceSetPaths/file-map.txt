@@ -1,9 +1,0 @@
-com.example.gameswishlist.feature.wishlist-pngs-0 /Users/nikolas/AndroidStudioProjects/GamesWishlist/feature/wishlist/build/generated/res/pngs/debug
-com.example.gameswishlist.feature.wishlist-updated_navigation_xml-1 /Users/nikolas/AndroidStudioProjects/GamesWishlist/feature/wishlist/build/generated/updated_navigation_xml/debug
-com.example.gameswishlist.feature.wishlist-mergeDebugResources-2 /Users/nikolas/AndroidStudioProjects/GamesWishlist/feature/wishlist/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
-com.example.gameswishlist.feature.wishlist-mergeDebugResources-3 /Users/nikolas/AndroidStudioProjects/GamesWishlist/feature/wishlist/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
-com.example.gameswishlist.feature.wishlist-debug-4 /Users/nikolas/AndroidStudioProjects/GamesWishlist/feature/wishlist/build/intermediates/merged_res/debug/mergeDebugResources
-com.example.gameswishlist.feature.wishlist-debug-5 /Users/nikolas/AndroidStudioProjects/GamesWishlist/feature/wishlist/build/intermediates/packaged_res/debug/packageDebugResources
-com.example.gameswishlist.feature.wishlist-debug-6 /Users/nikolas/AndroidStudioProjects/GamesWishlist/feature/wishlist/src/debug/res
-com.example.gameswishlist.feature.wishlist-main-7 /Users/nikolas/AndroidStudioProjects/GamesWishlist/feature/wishlist/src/main/res
-gradleHome-0 /Users/nikolas/.gradle

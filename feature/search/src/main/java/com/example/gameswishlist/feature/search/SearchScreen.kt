@@ -3,6 +3,7 @@ package com.example.gameswishlist.feature.search
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,9 +14,12 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -49,6 +53,7 @@ fun SearchScreen(
         uiState = uiState,
         onQueryChange = viewModel::onQueryChange,
         onSearch = viewModel::onSearch,
+        onClearQuery = viewModel::onClearQuery,
         onGameClick = onGameClick,
         modifier = modifier
     )
@@ -59,6 +64,7 @@ fun SearchScreen(
 fun SearchScreenContent(
     uiState: SearchUiState,
     onQueryChange: (String) -> Unit,
+    onClearQuery: () -> Unit,
     onSearch: () -> Unit,
     onGameClick: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -80,30 +86,40 @@ fun SearchScreenContent(
                 .padding(bottom = 16.dp)
                 .padding(horizontal = 16.dp)
         ) {
-            SearchBar(
-                inputField = {
-                    SearchBarDefaults.InputField(
-                        query = uiState.query,
-                        onQueryChange = onQueryChange,
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text(stringResource(R.string.search_placeholder)) },
-                        trailingIcon = {
-                            IconButton(onClick = onSearch) {
-                                Icon(Icons.Default.Search, contentDescription = "Search")
-                            }
-                        },
-                        onSearch = {
-                            onSearch()
-                            keyboardController?.hide()
-                        },
-                        expanded = false,
-                        onExpandedChange = {}
-                    )
-                },
-                expanded = false,
-                onExpandedChange = {},
-                content = { /* No dropdown content needed */ }
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                SearchBar(
+                    inputField = {
+                        SearchBarDefaults.InputField(
+                            query = uiState.query,
+                            onQueryChange = onQueryChange,
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text(stringResource(R.string.search_placeholder)) },
+                            trailingIcon = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    if (uiState.query.isNotEmpty()) {
+                                        IconButton(onClick = onClearQuery) {
+                                            Icon(Icons.Default.Close, contentDescription = "Clear query")
+                                        }
+                                    }
+                                    IconButton(onClick = onSearch) {
+                                        Icon(Icons.Default.Search, contentDescription = "Search")
+                                    }
+                                }
+                            },
+                            onSearch = {
+                                onSearch()
+                                keyboardController?.hide()
+                            },
+                            expanded = false,
+                            onExpandedChange = {}
+                        )
+                    },
+                    expanded = false,
+                    onExpandedChange = {},
+                    content = { /* No dropdown content needed */ },
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -155,6 +171,7 @@ fun SearchScreenPreview() {
             ),
             onQueryChange = {},
             onSearch = {},
+            onClearQuery = {},
             onGameClick = {}
         )
     }
@@ -171,6 +188,7 @@ fun SearchScreenLoadingPreview() {
             ),
             onQueryChange = {},
             onSearch = {},
+            onClearQuery = {},
             onGameClick = {}
         )
     }

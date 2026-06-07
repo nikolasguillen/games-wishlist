@@ -1,9 +1,0 @@
-com.example.gameswishlist.core.designsystem-pngs-0 /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/designsystem/build/generated/res/pngs/debug
-com.example.gameswishlist.core.designsystem-updated_navigation_xml-1 /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/designsystem/build/generated/updated_navigation_xml/debug
-com.example.gameswishlist.core.designsystem-mergeDebugResources-2 /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/designsystem/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
-com.example.gameswishlist.core.designsystem-mergeDebugResources-3 /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/designsystem/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
-com.example.gameswishlist.core.designsystem-debug-4 /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/designsystem/build/intermediates/merged_res/debug/mergeDebugResources
-com.example.gameswishlist.core.designsystem-debug-5 /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/designsystem/build/intermediates/packaged_res/debug/packageDebugResources
-com.example.gameswishlist.core.designsystem-debug-6 /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/designsystem/src/debug/res
-com.example.gameswishlist.core.designsystem-main-7 /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/designsystem/src/main/res
-gradleHome-0 /Users/nikolas/.gradle

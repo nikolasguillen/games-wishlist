@@ -51,6 +51,10 @@ class SearchViewModel @Inject constructor(
                 }
         }
     }
+
+    fun onClearQuery() {
+        _uiState.update { it.copy(query = "") }
+    }
 }
 
 private fun RepositoryError.toSearchMessage(): String {
