@@ -1,0 +1,2 @@
+-keep,allowobfuscation,allowshrinking class com.example.gameswishlist.feature.search.SearchViewModel
+-keep,allowobfuscation,allowshrinking class com.example.gameswishlist.feature.search.SearchViewModel

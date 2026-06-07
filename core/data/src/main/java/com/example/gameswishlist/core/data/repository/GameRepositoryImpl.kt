@@ -6,6 +6,7 @@ import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
 import com.example.gameswishlist.core.database.entity.GameListCrossRef
 import com.example.gameswishlist.core.database.entity.ListEntity
+import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.network.RawgApiService
@@ -21,12 +22,12 @@ class GameRepositoryImpl @Inject constructor(
     @Named("RAWG_API_KEY") private val apiKey: String
 ) : GameRepository {
 
-    override suspend fun searchGames(query: String): List<Game> {
+    override suspend fun searchGames(query: String): AppResult<List<Game>> {
         return try {
             val response = apiService.searchGames(apiKey, query)
-            response.results.map { it.toGame() }
+            AppResult.success(response.results.map { it.toGame() })
         } catch (e: Exception) {
-            emptyList()
+            AppResult.failure(e.toRepositoryError())
         }
     }
 

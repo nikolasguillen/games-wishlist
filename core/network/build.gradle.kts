@@ -1,11 +1,11 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
 }
-
-import java.util.Properties
 
 val localProps = Properties().also { props ->
     val f = rootProject.file("local.properties")
@@ -31,6 +31,12 @@ android {
     
     buildFeatures {
         buildConfig = true
+    }
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xannotation-default-target=param-property")
     }
 }
 

@@ -1,0 +1,1 @@
+int string search_placeholder 0x0

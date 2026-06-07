@@ -1,24 +1,42 @@
 package com.example.gameswishlist.feature.search
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
+import com.example.gameswishlist.core.model.Game
+import com.example.gameswishlist.core.ui.component.ErrorPage
 import com.example.gameswishlist.core.ui.component.GameCard
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel,
@@ -26,6 +44,25 @@ fun SearchScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    SearchScreenContent(
+        uiState = uiState,
+        onQueryChange = viewModel::onQueryChange,
+        onSearch = viewModel::onSearch,
+        onGameClick = onGameClick,
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchScreenContent(
+    uiState: SearchUiState,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    onGameClick: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Scaffold(
@@ -39,24 +76,33 @@ fun SearchScreen(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(top = 8.dp)
+                .padding(bottom = 16.dp)
+                .padding(horizontal = 16.dp)
         ) {
-            OutlinedTextField(
-                value = uiState.query,
-                onValueChange = viewModel::onQueryChange,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Search for games...") },
-                trailingIcon = {
-                    IconButton(onClick = viewModel::onSearch) {
-                        Icon(Icons.Default.Search, contentDescription = "Search")
-                    }
+            SearchBar(
+                inputField = {
+                    SearchBarDefaults.InputField(
+                        query = uiState.query,
+                        onQueryChange = onQueryChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text(stringResource(R.string.search_placeholder)) },
+                        trailingIcon = {
+                            IconButton(onClick = onSearch) {
+                                Icon(Icons.Default.Search, contentDescription = "Search")
+                            }
+                        },
+                        onSearch = {
+                            onSearch()
+                            keyboardController?.hide()
+                        },
+                        expanded = false,
+                        onExpandedChange = {}
+                    )
                 },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = {
-                    viewModel.onSearch()
-                    keyboardController?.hide()
-                }),
-                singleLine = true
+                expanded = false,
+                onExpandedChange = {},
+                content = { /* No dropdown content needed */ }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -66,9 +112,7 @@ fun SearchScreen(
                     CircularProgressIndicator()
                 }
             } else if (uiState.error != null) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = uiState.error!!, color = MaterialTheme.colorScheme.error)
-                }
+                ErrorPage(message = uiState.error)
             } else {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -82,5 +126,52 @@ fun SearchScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SearchScreenPreview() {
+    GamesWishlistTheme {
+        SearchScreenContent(
+            uiState = SearchUiState(
+                query = "The Witcher",
+                games = listOf(
+                    Game(
+                        id = 1,
+                        name = "The Witcher 3: Wild Hunt",
+                        backgroundImage = null,
+                        rating = 4.7,
+                        released = "2015-05-19"
+                    ),
+                    Game(
+                        id = 2,
+                        name = "The Witcher 2: Assassins of Kings",
+                        backgroundImage = null,
+                        rating = 4.4,
+                        released = "2011-05-17"
+                    )
+                )
+            ),
+            onQueryChange = {},
+            onSearch = {},
+            onGameClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SearchScreenLoadingPreview() {
+    GamesWishlistTheme {
+        SearchScreenContent(
+            uiState = SearchUiState(
+                query = "The Witcher",
+                isLoading = true
+            ),
+            onQueryChange = {},
+            onSearch = {},
+            onGameClick = {}
+        )
     }
 }

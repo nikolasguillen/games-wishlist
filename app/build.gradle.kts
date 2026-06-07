@@ -51,8 +51,11 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":feature:search"))
     implementation(project(":feature:game-detail"))
+    implementation(project(":feature:lists"))
+    implementation(project(":feature:wishlist"))
 
     implementation(libs.hilt.android)
+    implementation(libs.hiltNavCompose)
     ksp(libs.hilt.compiler)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.accompanist.permissions)

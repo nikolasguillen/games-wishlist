@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.domain.usecase.SearchGamesUseCase
 import com.example.gameswishlist.core.model.Game
+import com.example.gameswishlist.core.model.RepositoryError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,15 +30,35 @@ class SearchViewModel @Inject constructor(
         if (query.isBlank()) return
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, error = null) }
             searchGamesUseCase(query)
                 .onSuccess { games ->
-                    _uiState.update { it.copy(games = games, isLoading = false) }
+                    _uiState.update {
+                        it.copy(
+                            games = games,
+                            isLoading = false,
+                            error = null
+                        )
+                    }
                 }
                 .onFailure { error ->
-                    _uiState.update { it.copy(isLoading = false, error = error.message) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = error.toSearchMessage()
+                        )
+                    }
                 }
         }
+    }
+}
+
+private fun RepositoryError.toSearchMessage(): String {
+    return when (this) {
+        RepositoryError.NoNetwork -> "No internet connection.\nCheck your network and try again."
+        RepositoryError.RequestTimeout -> "The request took too long.\nPlease try again."
+        is RepositoryError.Http -> "The server returned an error (${code}).\nPlease try again later."
+        is RepositoryError.Unknown -> "Something went wrong while searching.\nPlease try again."
     }
 }
 

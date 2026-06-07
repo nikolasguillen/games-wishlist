@@ -9,7 +9,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.gameswishlist.core.model.GameStatus
+import com.example.gameswishlist.core.model.Priority
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -113,16 +113,16 @@ fun GameDetailScreen(
                                 // Priority
                                 Text("Priority:", style = MaterialTheme.typography.bodyMedium)
                                 Slider(
-                                    value = game.priority.toFloat(),
-                                    onValueChange = { viewModel.updatePriority(it.toInt()) },
+                                    value = game.priority.ordinal.toFloat(),
+                                    onValueChange = { viewModel.updatePriority(Priority.entries[it.toInt()]) },
                                     valueRange = 0f..2f,
                                     steps = 1
                                 )
                                 Text(
                                     when(game.priority) {
-                                        0 -> "Low"
-                                        1 -> "Medium"
-                                        else -> "High"
+                                        Priority.LOW -> "Low"
+                                        Priority.MEDIUM -> "Medium"
+                                        Priority.HIGH -> "High"
                                     },
                                     style = MaterialTheme.typography.bodySmall
                                 )
@@ -142,7 +142,7 @@ fun GameDetailScreen(
                         
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text(text = "Rating: ${game.rating}", style = MaterialTheme.typography.bodyLarge)
-                            game.metacritic?.let {
+                            game.metaCritic?.let {
                                 Text(text = "Metacritic: $it", style = MaterialTheme.typography.bodyLarge)
                             }
                         }
@@ -204,5 +204,3 @@ fun ListSelectorDialog(
         }
     )
 }
-
-fun String.capitalize() = replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }

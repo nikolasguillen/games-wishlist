@@ -1,11 +1,12 @@
 package com.example.gameswishlist.core.data.repository
 
+import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.WishlistList
 import kotlinx.coroutines.flow.Flow
 
 interface GameRepository {
-    suspend fun searchGames(query: String): List<Game>
+    suspend fun searchGames(query: String): AppResult<List<Game>>
     suspend fun getGameDetail(id: Int): Game
     fun getWishlistedGames(): Flow<List<Game>>
     suspend fun toggleWishlist(game: Game)

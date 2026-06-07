@@ -9,6 +9,7 @@ import com.example.gameswishlist.core.domain.usecase.list.GetListsUseCase
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.WishlistList
+import com.example.gameswishlist.core.model.Priority
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -50,7 +51,7 @@ class GameDetailViewModel @Inject constructor(
         }
     }
 
-    fun updatePriority(priority: Int) {
+    fun updatePriority(priority: Priority) {
         val currentGame = _uiState.value.game ?: return
         val updatedGame = currentGame.copy(priority = priority)
         _uiState.update { it.copy(game = updatedGame) }

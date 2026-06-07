@@ -1,16 +1,16 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest11641432634097979183.xml:2:13-83
-INJECTED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest11641432634097979183.xml:2:13-83
+ADDED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4705830801149804078.xml:2:13-83
+INJECTED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4705830801149804078.xml:2:13-83
 	package
-		INJECTED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest11641432634097979183.xml
+		INJECTED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4705830801149804078.xml
 	xmlns:android
-		ADDED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest11641432634097979183.xml:2:23-81
+		ADDED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4705830801149804078.xml:2:23-81
 uses-sdk
-INJECTED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest11641432634097979183.xml reason: use-sdk injection requested
-INJECTED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest11641432634097979183.xml
-INJECTED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest11641432634097979183.xml
+INJECTED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4705830801149804078.xml reason: use-sdk injection requested
+INJECTED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4705830801149804078.xml
+INJECTED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4705830801149804078.xml
 	android:targetSdkVersion
-		INJECTED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest11641432634097979183.xml
+		INJECTED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4705830801149804078.xml
 	android:minSdkVersion
-		INJECTED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest11641432634097979183.xml
+		INJECTED from /Users/nikolas/AndroidStudioProjects/GamesWishlist/core/network/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4705830801149804078.xml

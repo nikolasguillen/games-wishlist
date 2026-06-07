@@ -4,22 +4,36 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
-import com.example.gameswishlist.core.navigation.*
-import com.example.gameswishlist.feature.search.*
-import com.example.gameswishlist.feature.gamedetail.*
+import com.example.gameswishlist.core.navigation.GameDetailRoute
+import com.example.gameswishlist.core.navigation.ListsRoute
+import com.example.gameswishlist.core.navigation.SearchRoute
+import com.example.gameswishlist.core.navigation.WishlistRoute
+import com.example.gameswishlist.feature.gamedetail.GameDetailScreen
+import com.example.gameswishlist.feature.gamedetail.GameDetailViewModel
+import com.example.gameswishlist.feature.lists.ListsScreen
+import com.example.gameswishlist.feature.lists.ListsViewModel
+import com.example.gameswishlist.feature.search.SearchScreen
+import com.example.gameswishlist.feature.search.SearchViewModel
+import com.example.gameswishlist.feature.wishlist.WishlistScreen
+import com.example.gameswishlist.feature.wishlist.WishlistViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -43,7 +57,7 @@ fun MainContent() {
             NavigationBar {
                 NavigationBarItem(
                     selected = backStack.last() is SearchRoute,
-                    onClick = { 
+                    onClick = {
                         if (backStack.last() !is SearchRoute) {
                             backStack.add(SearchRoute)
                         }
@@ -53,7 +67,7 @@ fun MainContent() {
                 )
                 NavigationBarItem(
                     selected = backStack.last() is ListsRoute || backStack.last() is WishlistRoute,
-                    onClick = { 
+                    onClick = {
                         if (backStack.last() !is ListsRoute) {
                             backStack.add(ListsRoute)
                         }
@@ -66,16 +80,18 @@ fun MainContent() {
     ) { innerPadding ->
         NavDisplay(
             backStack = backStack,
-            onBack = { 
+            onBack = {
                 if (backStack.size > 1) {
                     backStack.removeAt(backStack.size - 1)
                 }
             },
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding),
             entryProvider = { key ->
                 when (key) {
                     is SearchRoute -> NavEntry(key) {
-                        val vm: SearchViewModel = viewModel()
+                        val vm: SearchViewModel = hiltViewModel()
                         SearchScreen(
                             viewModel = vm,
                             onGameClick = { gameId: Int ->
@@ -83,8 +99,9 @@ fun MainContent() {
                             }
                         )
                     }
+
                     is ListsRoute -> NavEntry(key) {
-                        val vm: ListsViewModel = viewModel()
+                        val vm: ListsViewModel = hiltViewModel()
                         ListsScreen(
                             viewModel = vm,
                             onListClick = { listId: Long, listName: String ->
@@ -92,8 +109,9 @@ fun MainContent() {
                             }
                         )
                     }
+
                     is WishlistRoute -> NavEntry(key) {
-                        val vm: WishlistViewModel = viewModel()
+                        val vm: WishlistViewModel = hiltViewModel()
                         WishlistScreen(
                             listId = key.listId,
                             listName = key.listName,
@@ -106,8 +124,9 @@ fun MainContent() {
                             }
                         )
                     }
+
                     is GameDetailRoute -> NavEntry(key) {
-                        val vm: GameDetailViewModel = viewModel()
+                        val vm: GameDetailViewModel = hiltViewModel()
                         GameDetailScreen(
                             gameId = key.gameId,
                             viewModel = vm,
@@ -118,6 +137,7 @@ fun MainContent() {
                             }
                         )
                     }
+
                     else -> NavEntry(key) { }
                 }
             }
