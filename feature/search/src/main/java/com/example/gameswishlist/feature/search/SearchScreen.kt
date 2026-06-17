@@ -1,5 +1,6 @@
 package com.example.gameswishlist.feature.search
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,6 +42,7 @@ import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.component.ErrorPage
 import com.example.gameswishlist.core.ui.component.GameCard
 import com.example.gameswishlist.core.ui.model.GameItem
+import com.example.gameswishlist.feature.search.R as SearchR
 
 @Composable
 fun SearchScreen(
@@ -69,10 +73,21 @@ fun SearchScreenContent(
     modifier: Modifier = Modifier
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
+    fun clearFocus() {
+        keyboardController?.hide()
+        focusManager.clearFocus()
+    }
+
+    fun searchAndClear() {
+        onSearch()
+        clearFocus()
+    }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Search Games") })
+            TopAppBar(title = { Text(stringResource(SearchR.string.discovery_title)) })
         },
         contentWindowInsets = WindowInsets.systemBars,
         modifier = modifier
@@ -81,9 +96,13 @@ fun SearchScreenContent(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(top = 8.dp)
                 .padding(bottom = 16.dp)
                 .padding(horizontal = 16.dp)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = { clearFocus() }
+                    )
+                },
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 SearchBar(
@@ -103,23 +122,19 @@ fun SearchScreenContent(
                                             )
                                         }
                                     }
-                                    IconButton(onClick = onSearch) {
+                                    IconButton(onClick = { searchAndClear() }) {
                                         Icon(Icons.Default.Search, contentDescription = "Search")
                                     }
                                 }
                             },
-                            onSearch = {
-                                onSearch()
-                                keyboardController?.hide()
-                            },
+                            onSearch = { searchAndClear() },
                             expanded = false,
                             onExpandedChange = {}
                         )
                     },
                     expanded = false,
                     onExpandedChange = {},
-                    content = { /* No dropdown content needed */ },
-                    modifier = Modifier.weight(1f)
+                    content = { /* No dropdown content needed */ }
                 )
             }
 
@@ -133,7 +148,7 @@ fun SearchScreenContent(
                 ErrorPage(message = uiState.error)
             } else {
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(uiState.games) { game ->
                         GameCard(
