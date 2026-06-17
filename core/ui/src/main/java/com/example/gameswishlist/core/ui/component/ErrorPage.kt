@@ -16,10 +16,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.gameswishlist.core.ui.model.UiText
 
 @Composable
 fun ErrorPage(
-    message: String,
+    message: UiText,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -35,7 +36,7 @@ fun ErrorPage(
             )
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = message,
+                text = message.asString(),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center

@@ -1,10 +1,25 @@
 <resources>
-    <string name="rating_format">Voto: %1$.1f/100</string>
-    <string name="release_date_format">Rilasciato il: %1$s</string>
-    <string name="unknown_release_date">Data di rilascio sconosciuta</string>
-    <string name="search_placeholder">Cerca un gioco…</string>
-    <string name="developer_format">Sviluppato da: %1s</string>
-    <string name="publisher_format">Pubblicato da: %1s</string>
-    <string name="platforms_format">Piattaforme: %1s</string>
-    <string name="rating_not_defined">Voto: N/D</string>
+    <string name="rating_format">Rating: %1$.1f/100</string>
+    <string name="release_date_format">Released on: %1$s</string>
+    <string name="unknown_release_date">Unknown release date</string>
+    <string name="search_placeholder">Search for a game…</string>
+    <string name="developer_format">Developed by: %1s</string>
+    <string name="publisher_format">Published by: %1s</string>
+    <string name="platforms_format">Platforms: %1s</string>
+    <string name="rating_not_defined">Rating: N/A</string>
+
+    <!-- Date Suffixes -->
+    <string name="suffix_st">st</string>
+    <string name="suffix_nd">nd</string>
+    <string name="suffix_rd">rd</string>
+    <string name="suffix_th">th</string>
+
+    <!-- Ordinal Date Format: Month DaySuffix, Year (e.g. May 20th, 2026) -->
+    <string name="date_ordinal_format">%1$s %2$d%3$s, %4$d</string>
+
+    <!-- Error Messages -->
+    <string name="error_no_network">No internet connection.\nCheck your network and try again.</string>
+    <string name="error_request_timeout">The request took too long.\nPlease try again.</string>
+    <string name="error_http">The server returned an error (%1$d).\nPlease try again later.</string>
+    <string name="error_unknown">An unexpected error occurred.\nPlease try again.</string>
 </resources>

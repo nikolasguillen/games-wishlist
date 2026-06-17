@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -92,6 +93,7 @@ fun MainContent() {
                 when (key) {
                     is SearchRoute -> NavEntry(key) {
                         val vm: SearchViewModel = hiltViewModel()
+
                         SearchScreen(
                             viewModel = vm,
                             onGameClick = { gameId: Int ->

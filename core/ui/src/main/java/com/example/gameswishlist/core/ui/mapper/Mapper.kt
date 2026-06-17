@@ -6,20 +6,40 @@ import com.example.gameswishlist.core.ui.model.GameItem
 import com.example.gameswishlist.core.ui.model.UiText
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 fun List<Game>.toGameItemList(): List<GameItem> {
     return this.map { it.toGameItem() }
 }
 
-private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+private fun getOrdinalSuffixRes(day: Int): Int {
+    if (day in 11..13) return R.string.suffix_th
+    return when (day % 10) {
+        1 -> R.string.suffix_st
+        2 -> R.string.suffix_nd
+        3 -> R.string.suffix_rd
+        else -> R.string.suffix_th
+    }
+}
 
 fun Game.toGameItem(): GameItem {
     val formattedReleaseDate = releaseDate?.let { dateString ->
         try {
-            val date = LocalDate.parse(dateString) // RAWG format is YYYY-MM-DD
-            date.format(dateFormatter)
+            val date = LocalDate.parse(dateString)
+            val month = date.format(DateTimeFormatter.ofPattern("MMM", Locale.ENGLISH))
+            val day = date.dayOfMonth
+            val year = date.year
+            val suffixRes = getOrdinalSuffixRes(day)
+            
+            UiText.StringResource(
+                R.string.date_ordinal_format,
+                month,
+                day,
+                UiText.StringResource(suffixRes),
+                year
+            )
         } catch (_: Exception) {
-            dateString
+            UiText.DynamicString(dateString)
         }
     }
 

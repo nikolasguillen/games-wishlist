@@ -4,8 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.domain.usecase.SearchGamesUseCase
 import com.example.gameswishlist.core.model.RepositoryError
+import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
-import com.example.gameswishlist.core.ui.model.GameItem
+import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.feature.search.model.SearchContentState
+import com.example.gameswishlist.feature.search.model.SearchUiEvent
+import com.example.gameswishlist.feature.search.model.SearchUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,54 +26,57 @@ class SearchViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
-    fun onQueryChange(query: String) {
-        _uiState.update { it.copy(query = query) }
+    fun onEvent(event: SearchUiEvent) {
+        when (event) {
+            is SearchUiEvent.OnQueryChange -> {
+                _uiState.update { it.copy(query = event.query) }
+            }
+
+            SearchUiEvent.OnSearchTriggered -> {
+                performSearch()
+            }
+
+            SearchUiEvent.OnClearQuery -> {
+                _uiState.update {
+                    it.copy(query = "", contentState = SearchContentState.Initial)
+                }
+            }
+        }
     }
 
-    fun onSearch() {
+    private fun performSearch() {
         val query = _uiState.value.query
         if (query.isBlank()) return
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update { it.copy(contentState = SearchContentState.Loading) }
             searchGamesUseCase(query)
                 .onSuccess { games ->
-                    _uiState.update {
-                        it.copy(
-                            games = games.toGameItemList(),
-                            isLoading = false,
-                            error = null
-                        )
+                    val newState = if (games.isEmpty()) {
+                        SearchContentState.Empty
+                    } else {
+                        SearchContentState.Success(games.toGameItemList())
                     }
+                    _uiState.update { it.copy(contentState = newState) }
                 }
                 .onFailure { error ->
                     _uiState.update {
                         it.copy(
-                            isLoading = false,
-                            error = error.toSearchMessage()
+                            contentState = SearchContentState.Error(
+                                message = error.toSearchMessage()
+                            )
                         )
                     }
                 }
         }
     }
-
-    fun onClearQuery() {
-        _uiState.update { it.copy(query = "") }
-    }
 }
 
-private fun RepositoryError.toSearchMessage(): String {
+private fun RepositoryError.toSearchMessage(): UiText {
     return when (this) {
-        RepositoryError.NoNetwork -> "No internet connection.\nCheck your network and try again."
-        RepositoryError.RequestTimeout -> "The request took too long.\nPlease try again."
-        is RepositoryError.Http -> "The server returned an error (${code}).\nPlease try again later."
-        is RepositoryError.Unknown -> "Something went wrong while searching.\nPlease try again."
+        RepositoryError.NoNetwork -> UiText.StringResource(R.string.error_no_network)
+        RepositoryError.RequestTimeout -> UiText.StringResource(R.string.error_request_timeout)
+        is RepositoryError.Http -> UiText.StringResource(R.string.error_http, code)
+        is RepositoryError.Unknown -> UiText.StringResource(R.string.error_unknown)
     }
 }
-
-data class SearchUiState(
-    val query: String = "",
-    val games: List<GameItem> = emptyList(),
-    val isLoading: Boolean = false,
-    val error: String? = null
-)

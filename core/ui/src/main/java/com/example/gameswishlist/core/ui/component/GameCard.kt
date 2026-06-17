@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.model.GameItem
 
 @Composable
@@ -35,6 +36,7 @@ fun GameCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(MaterialTheme.spacing.large))
             .clickable(onClick = onClick)
     ) {
         Row(
@@ -49,18 +51,18 @@ fun GameCard(
                     .fillMaxHeight()
                     .clip(
                         RoundedCornerShape(
-                            topStart = 8.dp,
-                            bottomStart = 8.dp
+                            topStart = MaterialTheme.spacing.medium,
+                            bottomStart = MaterialTheme.spacing.medium
                         )
                     ),
                 contentScale = ContentScale.Crop
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(MaterialTheme.spacing.large))
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .padding(vertical = 8.dp)
-                    .padding(end = 8.dp),
+                    .padding(vertical = MaterialTheme.spacing.medium)
+                    .padding(end = MaterialTheme.spacing.medium),
                 verticalArrangement = Arrangement.Top
             ) {
                 Text(
