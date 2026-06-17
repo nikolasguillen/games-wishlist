@@ -3,8 +3,9 @@ package com.example.gameswishlist.feature.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.domain.usecase.SearchGamesUseCase
-import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.RepositoryError
+import com.example.gameswishlist.core.ui.mapper.toGameItemList
+import com.example.gameswishlist.core.ui.model.GameItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,7 +36,7 @@ class SearchViewModel @Inject constructor(
                 .onSuccess { games ->
                     _uiState.update {
                         it.copy(
-                            games = games,
+                            games = games.toGameItemList(),
                             isLoading = false,
                             error = null
                         )
@@ -68,7 +69,7 @@ private fun RepositoryError.toSearchMessage(): String {
 
 data class SearchUiState(
     val query: String = "",
-    val games: List<Game> = emptyList(),
+    val games: List<GameItem> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null
 )

@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
+
 android {
     namespace = "com.example.gameswishlist.core.ui"
     compileSdk = 37
@@ -23,6 +24,12 @@ android {
     }
 }
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
+    }
+}
+
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:model"))
@@ -33,6 +40,8 @@ dependencies {
     api(libs.androidx.compose.material.icons.core)
     api(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.ui.tooling.preview)
+    // Required for Compose Previews in Android Studio
+    debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(libs.coil.compose)
     
     implementation(libs.hilt.android)

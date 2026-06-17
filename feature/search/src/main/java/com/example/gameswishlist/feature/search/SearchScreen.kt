@@ -16,10 +16,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -37,9 +35,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
-import com.example.gameswishlist.core.model.Game
+import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.component.ErrorPage
 import com.example.gameswishlist.core.ui.component.GameCard
+import com.example.gameswishlist.core.ui.model.GameItem
 
 @Composable
 fun SearchScreen(
@@ -98,7 +97,10 @@ fun SearchScreenContent(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     if (uiState.query.isNotEmpty()) {
                                         IconButton(onClick = onClearQuery) {
-                                            Icon(Icons.Default.Close, contentDescription = "Clear query")
+                                            Icon(
+                                                Icons.Default.Close,
+                                                contentDescription = "Clear query"
+                                            )
                                         }
                                     }
                                     IconButton(onClick = onSearch) {
@@ -153,20 +155,8 @@ fun SearchScreenPreview() {
             uiState = SearchUiState(
                 query = "The Witcher",
                 games = listOf(
-                    Game(
-                        id = 1,
-                        name = "The Witcher 3: Wild Hunt",
-                        backgroundImage = null,
-                        rating = 4.7,
-                        released = "2015-05-19"
-                    ),
-                    Game(
-                        id = 2,
-                        name = "The Witcher 2: Assassins of Kings",
-                        backgroundImage = null,
-                        rating = 4.4,
-                        released = "2011-05-17"
-                    )
+                    GameItem.getDummy(),
+                    GameItem.getDummy().copy(id = 2, name = "The Witcher 2")
                 )
             ),
             onQueryChange = {},

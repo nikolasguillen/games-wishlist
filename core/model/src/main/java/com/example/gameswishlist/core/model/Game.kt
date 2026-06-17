@@ -4,7 +4,7 @@ data class Game(
     val id: Int,
     val name: String,
     val description: String = "",
-    val released: String? = null,
+    val releaseDate: String? = null,
     val backgroundImage: String? = null,
     val rating: Double = 0.0,
     val metaCritic: Int? = null,

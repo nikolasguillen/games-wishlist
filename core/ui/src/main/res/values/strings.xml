@@ -1,0 +1,6 @@
+<resources>
+    <string name="rating_format">Voto: %1$.1f</string>
+    <string name="release_date_format">Rilasciato il: %1$s</string>
+    <string name="unknown_release_date">Data di rilascio sconosciuta</string>
+    <string name="search_placeholder">Cerca un gioco…</string>
+</resources>
