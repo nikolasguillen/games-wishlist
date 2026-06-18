@@ -1,6 +1,5 @@
 package com.example.gameswishlist.feature.search
 
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -8,35 +7,33 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.SmartToy
 import androidx.compose.material.icons.outlined.SportsEsports
+import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
@@ -47,11 +44,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.component.ErrorPage
 import com.example.gameswishlist.core.ui.component.GameCard
 import com.example.gameswishlist.core.ui.model.GameItem
-import com.example.gameswishlist.core.ui.util.fadingEdge
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
@@ -83,6 +78,7 @@ fun SearchScreenContent(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+    val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
 
     fun clearFocus() {
         keyboardController?.hide()
@@ -91,97 +87,87 @@ fun SearchScreenContent(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(SearchR.string.discovery_title)) })
+            AppBarWithSearch(
+                state = rememberSearchBarState(),
+                inputField = {
+                    SearchBarDefaults.InputField(
+                        query = uiState.query,
+                        onQueryChange = { onEvent(SearchUiEvent.OnQueryChange(it)) },
+                        placeholder = { Text(stringResource(SearchR.string.search_placeholder)) },
+                        trailingIcon = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (uiState.query.isNotEmpty()) {
+                                    IconButton(onClick = { onEvent(SearchUiEvent.OnClearQuery) }) {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = "Clear query"
+                                        )
+                                    }
+                                }
+                                IconButton(
+                                    onClick = {
+                                        onEvent(SearchUiEvent.OnSearchTriggered)
+                                        clearFocus()
+                                    }
+                                ) {
+                                    Icon(
+                                        Icons.Default.Search,
+                                        contentDescription = "Search"
+                                    )
+                                }
+                            }
+                        },
+                        onSearch = {
+                            onEvent(SearchUiEvent.OnSearchTriggered)
+                            clearFocus()
+                        },
+                        expanded = false,
+                        onExpandedChange = {},
+                    )
+                },
+                scrollBehavior = scrollBehavior,
+                contentPadding = PaddingValues(bottom = MaterialTheme.spacing.large)
+            )
         },
-        contentWindowInsets = WindowInsets.systemBars,
-        modifier = modifier
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
-                .padding(innerPadding)
                 .fillMaxSize()
+                .padding(innerPadding)
                 .padding(horizontal = MaterialTheme.spacing.large)
                 .pointerInput(Unit) {
                     detectTapGestures(onTap = { clearFocus() })
                 },
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                SearchBar(
-                    inputField = {
-                        SearchBarDefaults.InputField(
-                            query = uiState.query,
-                            onQueryChange = { onEvent(SearchUiEvent.OnQueryChange(it)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text(stringResource(R.string.search_placeholder)) },
-                            trailingIcon = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    if (uiState.query.isNotEmpty()) {
-                                        IconButton(onClick = { onEvent(SearchUiEvent.OnClearQuery) }) {
-                                            Icon(
-                                                Icons.Default.Close,
-                                                contentDescription = "Clear query"
-                                            )
-                                        }
-                                    }
-                                    IconButton(
-                                        onClick = {
-                                            onEvent(SearchUiEvent.OnSearchTriggered)
-                                            clearFocus()
-                                        }
-                                    ) {
-                                        Icon(Icons.Default.Search, contentDescription = "Search")
-                                    }
-                                }
-                            },
-                            onSearch = {
-                                onEvent(SearchUiEvent.OnSearchTriggered)
-                                clearFocus()
-                            },
-                            expanded = false,
-                            onExpandedChange = {}
-                        )
-                    },
-                    expanded = false,
-                    onExpandedChange = {},
-                    content = { /* No dropdown content needed */ }
-                )
-            }
-
             when (val state = uiState.contentState) {
                 is SearchContentState.Loading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         CircularProgressIndicator()
                     }
                 }
 
                 is SearchContentState.Error -> {
-                    ErrorPage(message = state.message)
+                    Box { ErrorPage(message = state.message) }
                 }
 
                 is SearchContentState.Initial -> {
-                    InitialSearchPlaceholder()
+                    Box { InitialSearchPlaceholder() }
                 }
 
                 is SearchContentState.Empty -> {
-                    EmptySearchPlaceholder()
+                    Box { EmptySearchPlaceholder() }
                 }
 
                 is SearchContentState.Success -> {
-                    val scrollState = rememberLazyListState()
-                    val topFadeAlpha by animateFloatAsState(
-                        targetValue = if (scrollState.canScrollBackward) 1f else 0f,
-                        label = "topFadeAlpha"
-                    )
-
                     LazyColumn(
-                        state = scrollState,
-                        contentPadding = PaddingValues(vertical = MaterialTheme.spacing.large),
-                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large),
-                        modifier = Modifier.fadingEdge(
-                            topAlpha = topFadeAlpha,
-                            topSolidHeight = MaterialTheme.spacing.large,
-                            fadeSize = MaterialTheme.spacing.large
-                        )
+                        contentPadding = PaddingValues(
+                            bottom = MaterialTheme.spacing.large
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large)
                     ) {
                         items(state.games) { game ->
                             GameCard(

@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Games Wishlist</string>
+    <string name="search_nav_bar_item">Search</string>
+    <string name="lists_nav_bar_item">Lists</string>
 </resources>

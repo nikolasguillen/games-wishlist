@@ -12,6 +12,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.platform.LocalContext
 
+
 @Composable
 fun GamesWishlistTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -24,6 +25,7 @@ fun GamesWishlistTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
+
         darkTheme -> darkColorScheme(
             primary = PrimaryDark,
             onPrimary = OnPrimaryDark,
@@ -46,6 +48,7 @@ fun GamesWishlistTheme(
             surface = SurfaceDark,
             onSurface = OnSurfaceDark,
         )
+
         else -> lightColorScheme(
             primary = PrimaryLight,
             onPrimary = OnPrimaryLight,
@@ -70,8 +73,21 @@ fun GamesWishlistTheme(
         )
     }
 
+    val appColors = if (darkTheme) {
+        AppColors(
+            navBarItemIndicatorColor = colorScheme.secondaryFixedDim,
+            navBarItemSelectedIconColor = colorScheme.onSecondaryFixed
+        )
+    } else {
+        AppColors(
+            navBarItemIndicatorColor = colorScheme.secondaryFixedDim,
+            navBarItemSelectedIconColor = colorScheme.onSecondaryFixed
+        )
+    }
+
     CompositionLocalProvider(
-        LocalSpacing provides Spacing()
+        LocalSpacing provides Spacing(),
+        LocalAppColors provides appColors
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
