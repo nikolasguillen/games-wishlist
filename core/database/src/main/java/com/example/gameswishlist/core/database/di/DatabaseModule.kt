@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.example.gameswishlist.core.database.GamesWishlistDatabase
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
+import com.example.gameswishlist.core.database.dao.SearchHistoryDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,7 +24,7 @@ object DatabaseModule {
             context,
             GamesWishlistDatabase::class.java,
             "games_wishlist_database"
-        ).fallbackToDestructiveMigration().build()
+        ).fallbackToDestructiveMigration(false).build()
     }
 
     @Provides
@@ -34,5 +35,10 @@ object DatabaseModule {
     @Provides
     fun provideListDao(database: GamesWishlistDatabase): ListDao {
         return database.listDao()
+    }
+
+    @Provides
+    fun provideSearchHistoryDao(database: GamesWishlistDatabase): SearchHistoryDao {
+        return database.searchHistoryDao()
     }
 }

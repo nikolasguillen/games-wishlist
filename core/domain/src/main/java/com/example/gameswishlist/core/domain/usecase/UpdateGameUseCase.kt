@@ -1,6 +1,6 @@
 package com.example.gameswishlist.core.domain.usecase
 
-import com.example.gameswishlist.core.data.repository.GameRepository
+import com.example.gameswishlist.core.domain.repository.GameRepository
 import com.example.gameswishlist.core.model.Game
 import javax.inject.Inject
 

@@ -2,24 +2,29 @@ package com.example.gameswishlist.core.data.repository
 
 import com.example.gameswishlist.core.data.mapper.toEntity
 import com.example.gameswishlist.core.data.mapper.toGame
+import com.example.gameswishlist.core.data.mapper.toSearchHistoryItems
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
+import com.example.gameswishlist.core.database.dao.SearchHistoryDao
 import com.example.gameswishlist.core.database.entity.GameListCrossRef
 import com.example.gameswishlist.core.database.entity.ListEntity
+import com.example.gameswishlist.core.domain.repository.GameRepository
 import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.Game
+import com.example.gameswishlist.core.model.SearchHistoryItem
 import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.network.IgdbApiService
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
 class GameRepositoryImpl @Inject constructor(
     private val apiService: IgdbApiService,
     private val gameDao: GameDao,
-    private val listDao: ListDao
+    private val listDao: ListDao,
+    private val searchHistoryDao: SearchHistoryDao
 ) : GameRepository {
 
     override suspend fun searchGames(query: String): AppResult<List<Game>> {
@@ -35,6 +40,18 @@ class GameRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             AppResult.failure(e.toRepositoryError())
         }
+    }
+
+    override suspend fun getSearchHistory(): Flow<List<SearchHistoryItem>> {
+        return searchHistoryDao.getRecentSearches().map { it.toSearchHistoryItems() }
+    }
+
+    override suspend fun deleteSearchHistoryItem(query: String) {
+        searchHistoryDao.delete(query)
+    }
+
+    override suspend fun clearSearchHistory() {
+        searchHistoryDao.deleteAll()
     }
 
     override suspend fun getGameDetail(id: Int): Game {

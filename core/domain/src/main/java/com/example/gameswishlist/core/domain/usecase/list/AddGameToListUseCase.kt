@@ -1,6 +1,6 @@
 package com.example.gameswishlist.core.domain.usecase.list
 
-import com.example.gameswishlist.core.data.repository.GameRepository
+import com.example.gameswishlist.core.domain.repository.GameRepository
 import javax.inject.Inject
 
 class AddGameToListUseCase @Inject constructor(

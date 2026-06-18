@@ -2,7 +2,7 @@ package com.example.gameswishlist.feature.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gameswishlist.core.domain.usecase.SearchGamesUseCase
+import com.example.gameswishlist.core.domain.usecase.search.SearchGamesUseCase
 import com.example.gameswishlist.core.model.RepositoryError
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
