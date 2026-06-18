@@ -19,7 +19,7 @@ import javax.inject.Inject
 class GameDetailViewModel @Inject constructor(
     private val getGameDetailUseCase: GetGameDetailUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
-    private val getListsUseCase: GetListsUseCase,
+    getListsUseCase: GetListsUseCase,
     private val addGameToListUseCase: AddGameToListUseCase
 ) : ViewModel() {
 
@@ -72,6 +72,7 @@ class GameDetailViewModel @Inject constructor(
     fun addGameToList(listId: Long) {
         val currentGame = _uiState.value.game ?: return
         viewModelScope.launch {
+            updateGameUseCase(currentGame.copy(status = GameStatus.WANT_TO_BUY))
             addGameToListUseCase(currentGame.id, listId)
         }
     }

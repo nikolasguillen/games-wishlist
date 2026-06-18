@@ -1,18 +1,20 @@
 package com.example.gameswishlist.feature.search
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -34,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -79,6 +80,7 @@ fun SearchScreenContent(
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+    val searchBarState = rememberSearchBarState()
 
     fun clearFocus() {
         keyboardController?.hide()
@@ -88,11 +90,11 @@ fun SearchScreenContent(
     Scaffold(
         topBar = {
             AppBarWithSearch(
-                state = rememberSearchBarState(),
+                state = searchBarState,
                 inputField = {
                     SearchBarDefaults.InputField(
-                        query = uiState.query,
-                        onQueryChange = { onEvent(SearchUiEvent.OnQueryChange(it)) },
+                        textFieldState = rememberTextFieldState(initialText = uiState.query),
+                        searchBarState = searchBarState,
                         placeholder = { Text(stringResource(SearchR.string.search_placeholder)) },
                         trailingIcon = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -118,15 +120,17 @@ fun SearchScreenContent(
                             }
                         },
                         onSearch = {
+                            onEvent(SearchUiEvent.OnQueryChange(it))
                             onEvent(SearchUiEvent.OnSearchTriggered)
                             clearFocus()
-                        },
-                        expanded = false,
-                        onExpandedChange = {},
+                        }
                     )
                 },
                 scrollBehavior = scrollBehavior,
-                contentPadding = PaddingValues(bottom = MaterialTheme.spacing.large)
+                contentPadding = PaddingValues(
+                    bottom = MaterialTheme.spacing.large,
+                    top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+                )
             )
         },
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
@@ -135,10 +139,7 @@ fun SearchScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = MaterialTheme.spacing.large)
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = { clearFocus() })
-                },
+                .padding(horizontal = MaterialTheme.spacing.large),
         ) {
             when (val state = uiState.contentState) {
                 is SearchContentState.Loading -> {

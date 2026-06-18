@@ -5,31 +5,28 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
@@ -58,6 +55,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             GamesWishlistTheme {
                 MainContent()
+
+                StatusBarProtection()
             }
         }
     }
@@ -65,127 +64,130 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainContent() {
-    val statusBarShadowColor = if (isSystemInDarkTheme()) {
-        Color.Black.copy(alpha = 0.8f)
-    } else {
-        Color.White.copy(alpha = 0.8f)
-    }
     val backStack = rememberNavBackStack(SearchRoute as NavKey)
-    Box {
-        Scaffold(
-            bottomBar = {
-                NavigationBar {
-                    NavigationBarItem(
-                        selected = backStack.last() is SearchRoute,
-                        onClick = {
-                            if (backStack.last() !is SearchRoute) {
-                                backStack.add(SearchRoute)
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                Icons.Default.Search,
-                                contentDescription = stringResource(R.string.search_nav_bar_item)
-                            )
-                        },
-                        label = { Text(stringResource(R.string.search_nav_bar_item)) }
-                    )
-                    NavigationBarItem(
-                        selected = backStack.last() is ListsRoute || backStack.last() is WishlistRoute,
-                        onClick = {
-                            if (backStack.last() !is ListsRoute) {
-                                backStack.add(ListsRoute)
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                Icons.AutoMirrored.Filled.List,
-                                contentDescription = stringResource(R.string.lists_nav_bar_item)
-                            )
-                        },
-                        label = { Text(stringResource(R.string.lists_nav_bar_item)) }
-                    )
-                }
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    selected = backStack.last() is SearchRoute,
+                    onClick = {
+                        if (backStack.last() !is SearchRoute) {
+                            backStack.add(SearchRoute)
+                        }
+                    },
+                    icon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = stringResource(R.string.search_nav_bar_item)
+                        )
+                    },
+                    label = { Text(stringResource(R.string.search_nav_bar_item)) }
+                )
+                NavigationBarItem(
+                    selected = backStack.last() is ListsRoute || backStack.last() is WishlistRoute,
+                    onClick = {
+                        if (backStack.last() !is ListsRoute) {
+                            backStack.add(ListsRoute)
+                        }
+                    },
+                    icon = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.List,
+                            contentDescription = stringResource(R.string.lists_nav_bar_item)
+                        )
+                    },
+                    label = { Text(stringResource(R.string.lists_nav_bar_item)) }
+                )
             }
-        ) { innerPadding ->
-            NavDisplay(
-                backStack = backStack,
-                onBack = {
-                    if (backStack.size > 1) {
-                        backStack.removeAt(backStack.size - 1)
+        }
+    ) { innerPadding ->
+        NavDisplay(
+            backStack = backStack,
+            onBack = {
+                if (backStack.size > 1) {
+                    backStack.removeAt(backStack.size - 1)
+                }
+            },
+            modifier = Modifier
+                .padding(bottom = innerPadding.calculateBottomPadding())
+                .consumeWindowInsets(innerPadding),
+            entryProvider = { key ->
+                when (key) {
+                    is SearchRoute -> NavEntry(key) {
+                        val vm: SearchViewModel = hiltViewModel()
+                        SearchScreen(
+                            viewModel = vm,
+                            onGameClick = { gameId: Int ->
+                                backStack.add(GameDetailRoute(gameId))
+                            }
+                        )
                     }
-                },
-                modifier = Modifier,
-                entryProvider = { key ->
-                    when (key) {
-                        is SearchRoute -> NavEntry(key) {
-                            val vm: SearchViewModel = hiltViewModel()
-                            SearchScreen(
-                                viewModel = vm,
-                                onGameClick = { gameId: Int ->
-                                    backStack.add(GameDetailRoute(gameId))
-                                }
-                            )
-                        }
 
-                        is ListsRoute -> NavEntry(key) {
-                            val vm: ListsViewModel = hiltViewModel()
-                            ListsScreen(
-                                viewModel = vm,
-                                onListClick = { listId: Long, listName: String ->
-                                    backStack.add(WishlistRoute(listId, listName))
-                                }
-                            )
-                        }
+                    is ListsRoute -> NavEntry(key) {
+                        val vm: ListsViewModel = hiltViewModel()
+                        ListsScreen(
+                            viewModel = vm,
+                            onListClick = { listId: Long, listName: String ->
+                                backStack.add(WishlistRoute(listId, listName))
+                            }
+                        )
+                    }
 
-                        is WishlistRoute -> NavEntry(key) {
-                            val vm: WishlistViewModel = hiltViewModel()
-                            WishlistScreen(
-                                listId = key.listId,
-                                listName = key.listName,
-                                viewModel = vm,
-                                onGameClick = { gameId: Int ->
-                                    backStack.add(GameDetailRoute(gameId))
-                                },
-                                onBackClick = {
+                    is WishlistRoute -> NavEntry(key) {
+                        val vm: WishlistViewModel = hiltViewModel()
+                        WishlistScreen(
+                            listId = key.listId,
+                            listName = key.listName,
+                            viewModel = vm,
+                            onGameClick = { gameId: Int ->
+                                backStack.add(GameDetailRoute(gameId))
+                            },
+                            onBackClick = {
+                                backStack.removeAt(backStack.size - 1)
+                            }
+                        )
+                    }
+
+                    is GameDetailRoute -> NavEntry(key) {
+                        val vm: GameDetailViewModel = hiltViewModel()
+                        GameDetailScreen(
+                            gameId = key.gameId,
+                            viewModel = vm,
+                            onBackClick = {
+                                if (backStack.size > 1) {
                                     backStack.removeAt(backStack.size - 1)
                                 }
-                            )
-                        }
-
-                        is GameDetailRoute -> NavEntry(key) {
-                            val vm: GameDetailViewModel = hiltViewModel()
-                            GameDetailScreen(
-                                gameId = key.gameId,
-                                viewModel = vm,
-                                onBackClick = {
-                                    if (backStack.size > 1) {
-                                        backStack.removeAt(backStack.size - 1)
-                                    }
-                                }
-                            )
-                        }
-
-                        else -> NavEntry(key) { }
+                            }
+                        )
                     }
-                }
-            )
-        }
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.TopCenter)
-                .height(WindowInsets.statusBars.getTop(density = LocalDensity.current).dp)
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            statusBarShadowColor,
-                            Color.Transparent
-                        ),
-                        endY = WindowInsets.statusBars.getTop(density = LocalDensity.current).dp.value
-                    )
-                )
+                    else -> NavEntry(key) { }
+                }
+            }
         )
     }
+}
+
+@Composable
+private fun StatusBarProtection(
+    color: Color = MaterialTheme.colorScheme.surfaceContainer,
+) {
+    Spacer(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(
+                with(LocalDensity.current) {
+                    (WindowInsets.statusBars.getTop(this) * 1.2f).toDp()
+                }
+            )
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        color.copy(alpha = 1f),
+                        color.copy(alpha = 0.8f),
+                        Color.Transparent
+                    )
+                )
+            )
+    )
 }
