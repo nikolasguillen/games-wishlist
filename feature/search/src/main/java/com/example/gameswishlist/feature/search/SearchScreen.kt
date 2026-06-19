@@ -18,9 +18,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
@@ -67,7 +69,7 @@ import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomAlertDialog
 import com.example.gameswishlist.core.ui.component.ErrorPage
-import com.example.gameswishlist.core.ui.component.GameCard
+import com.example.gameswishlist.core.ui.component.VerticalGameCard
 import com.example.gameswishlist.core.ui.model.GameItem
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
@@ -204,14 +206,14 @@ fun SearchScreenContent(
                 }
 
                 is SearchContentState.Success -> {
-                    LazyColumn(
-                        contentPadding = PaddingValues(
-                            bottom = MaterialTheme.spacing.large
-                        ), verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large)
+                    LazyVerticalStaggeredGrid(
+                        columns = StaggeredGridCells.Fixed(2),
+                        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraLarge),
+                        verticalItemSpacing = MaterialTheme.spacing.extraLarge,
+                        contentPadding = PaddingValues(vertical = MaterialTheme.spacing.large)
                     ) {
                         items(state.games) { game ->
-                            GameCard(
-                                game = game, onClick = { onGameClick(game.id) })
+                            VerticalGameCard(game = game, onClick = { onGameClick(game.id) })
                         }
                     }
                 }
@@ -273,14 +275,15 @@ private fun ExpandedSearchBar(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    horizontal = MaterialTheme.spacing.large,
                     vertical = MaterialTheme.spacing.medium
                 )
         ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = MaterialTheme.spacing.large)
             ) {
                 Text(
                     text = stringResource(SearchR.string.recent_searches),
@@ -297,7 +300,10 @@ private fun ExpandedSearchBar(
                     )
                 }
             }
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
+                contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large)
+            ) {
                 items(items = recentSearches, key = { it }) { recentSearch ->
                     val inputChipInteractionSource = remember { MutableInteractionSource() }
                     Box {

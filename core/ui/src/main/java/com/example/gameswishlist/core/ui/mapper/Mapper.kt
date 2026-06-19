@@ -30,7 +30,7 @@ fun Game.toGameItem(): GameItem {
             val day = date.dayOfMonth
             val year = date.year
             val suffixRes = getOrdinalSuffixRes(day)
-            
+
             UiText.StringResource(
                 R.string.date_ordinal_format,
                 month,
@@ -49,12 +49,6 @@ fun Game.toGameItem(): GameItem {
         UiText.StringResource(R.string.rating_format, rating)
     }
 
-    val developersText = if (developers.isNotEmpty()) {
-        UiText.StringResource(R.string.developer_format, developers.joinToString())
-    } else {
-        null
-    }
-
     val cleanedPlatforms = platforms.map { it.replace(Regex("\\s\\(.*\\)"), "") }
 
     val platformsText = if (cleanedPlatforms.isNotEmpty()) {
@@ -71,7 +65,7 @@ fun Game.toGameItem(): GameItem {
         releaseDateText = formattedReleaseDate?.let {
             UiText.StringResource(R.string.release_date_format, it)
         } ?: UiText.StringResource(R.string.unknown_release_date),
-        developer = developersText,
+        developer = UiText.DynamicString(developers.joinToString()),
         platforms = platformsText
     )
 }

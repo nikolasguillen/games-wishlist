@@ -75,7 +75,7 @@ fun GamesWishlistTheme(
 
     val appColors = if (darkTheme) {
         AppColors(
-            appBackground = colorScheme.onSurface,
+            appBackground = colorScheme.surfaceContainer,
             onAppBackground = colorScheme.onBackground,
             searchBarScrolledContainerColor = colorScheme.surfaceContainerLowest,
             searchBarInputFieldColor = colorScheme.surfaceBright,
