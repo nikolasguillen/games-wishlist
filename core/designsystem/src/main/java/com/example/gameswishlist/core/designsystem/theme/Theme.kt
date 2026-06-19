@@ -75,11 +75,23 @@ fun GamesWishlistTheme(
 
     val appColors = if (darkTheme) {
         AppColors(
+            appBackground = colorScheme.onSurface,
+            onAppBackground = colorScheme.onBackground,
+            searchBarScrolledContainerColor = colorScheme.surfaceContainerLowest,
+            searchBarInputFieldColor = colorScheme.surfaceBright,
+            expandedSearchBarColor = colorScheme.surfaceContainer,
+            navBarContainerColor = colorScheme.surfaceContainerHigh,
             navBarItemIndicatorColor = colorScheme.secondaryFixedDim,
             navBarItemSelectedIconColor = colorScheme.onSecondaryFixed
         )
     } else {
         AppColors(
+            appBackground = colorScheme.surfaceContainerLow,
+            onAppBackground = colorScheme.onSurface,
+            searchBarScrolledContainerColor = colorScheme.surfaceContainerHighest,
+            searchBarInputFieldColor = colorScheme.surfaceContainerLowest,
+            expandedSearchBarColor = colorScheme.surfaceContainerLow,
+            navBarContainerColor = colorScheme.surfaceContainerHigh,
             navBarItemIndicatorColor = colorScheme.secondaryFixedDim,
             navBarItemSelectedIconColor = colorScheme.onSecondaryFixed
         )

@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.example.gameswishlist.feature.search
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,55 +13,71 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.SmartToy
 import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.material3.AppBarWithSearch
+import androidx.compose.material3.AppBarWithSearchColors
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBarScrollBehavior
+import androidx.compose.material3.SearchBarState
+import androidx.compose.material3.SearchBarValue
+import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSearchBarState
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
+import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
+import com.example.gameswishlist.core.ui.component.CustomAlertDialog
 import com.example.gameswishlist.core.ui.component.ErrorPage
 import com.example.gameswishlist.core.ui.component.GameCard
 import com.example.gameswishlist.core.ui.model.GameItem
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
+import kotlinx.coroutines.launch
 import com.example.gameswishlist.feature.search.R as SearchR
 
 @Composable
 fun SearchScreen(
-    viewModel: SearchViewModel,
-    onGameClick: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    viewModel: SearchViewModel, onGameClick: (Int) -> Unit, modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -69,7 +89,6 @@ fun SearchScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreenContent(
     uiState: SearchUiState,
@@ -77,63 +96,84 @@ fun SearchScreenContent(
     onGameClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
+    val textFieldState = rememberTextFieldState()
+    val searchBarState = rememberContainedSearchBarState()
+    val scope = rememberCoroutineScope()
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
-    val searchBarState = rememberSearchBarState()
-
-    fun clearFocus() {
-        keyboardController?.hide()
-        focusManager.clearFocus()
+    val searchInputFieldColor = if (searchBarState.currentValue == SearchBarValue.Collapsed) {
+        MaterialTheme.appColors.searchBarInputFieldColor
+    } else {
+        MaterialTheme.appColors.expandedSearchBarColor
     }
 
-    Scaffold(
-        topBar = {
-            AppBarWithSearch(
-                state = searchBarState,
-                inputField = {
-                    SearchBarDefaults.InputField(
-                        textFieldState = rememberTextFieldState(initialText = uiState.query),
-                        searchBarState = searchBarState,
-                        placeholder = { Text(stringResource(SearchR.string.search_placeholder)) },
-                        trailingIcon = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                if (uiState.query.isNotEmpty()) {
-                                    IconButton(onClick = { onEvent(SearchUiEvent.OnClearQuery) }) {
-                                        Icon(
-                                            Icons.Default.Close,
-                                            contentDescription = "Clear query"
-                                        )
-                                    }
-                                }
-                                IconButton(
-                                    onClick = {
-                                        onEvent(SearchUiEvent.OnSearchTriggered)
-                                        clearFocus()
-                                    }
-                                ) {
-                                    Icon(
-                                        Icons.Default.Search,
-                                        contentDescription = "Search"
-                                    )
-                                }
-                            }
-                        },
-                        onSearch = {
-                            onEvent(SearchUiEvent.OnQueryChange(it))
-                            onEvent(SearchUiEvent.OnSearchTriggered)
-                            clearFocus()
-                        }
+    val appBarWithSearchColors =
+        SearchBarDefaults.appBarWithSearchColors(
+            searchBarColors = SearchBarDefaults.containedColors(state = searchBarState).copy(
+                inputFieldColors = TextFieldDefaults.colors(
+                    focusedContainerColor = searchInputFieldColor,
+                    unfocusedContainerColor = searchInputFieldColor
+                ),
+                dividerColor = SearchBarDefaults.colors().dividerColor.copy(alpha = 0.5f)
+            ),
+            appBarContainerColor = MaterialTheme.appColors.appBackground,
+            scrolledAppBarContainerColor = MaterialTheme.appColors.searchBarScrolledContainerColor,
+        )
+
+    fun onSearch(query: String = textFieldState.text.toString()) {
+        scope.launch {
+            searchBarState.animateToCollapsed()
+        }
+        if (textFieldState.text.toString() != query) {
+            textFieldState.setTextAndPlaceCursorAtEnd(query)
+        }
+        onEvent(SearchUiEvent.OnSearchTriggered(query))
+    }
+
+    val inputField =
+        @Composable {
+            SearchBarDefaults.InputField(
+                textFieldState = textFieldState,
+                searchBarState = searchBarState,
+                colors = appBarWithSearchColors.searchBarColors.inputFieldColors,
+                onSearch = { onSearch() },
+                readOnly = searchBarState.currentValue == SearchBarValue.Collapsed,
+                placeholder = {
+                    Text(
+                        modifier = Modifier.clearAndSetSemantics {},
+                        text = stringResource(SearchR.string.search_placeholder)
                     )
                 },
-                scrollBehavior = scrollBehavior,
-                contentPadding = PaddingValues(
-                    bottom = MaterialTheme.spacing.large,
-                    top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-                )
+                trailingIcon = {
+                    IconButton(onClick = { onSearch() }) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null
+                        )
+                    }
+                }
             )
-        },
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+        }
+
+    Scaffold(
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.appColors.appBackground,
+        topBar = {
+            CollapsedSearchBar(
+                searchBarState = searchBarState,
+                scrollBehavior = scrollBehavior,
+                appBarWithSearchColors = appBarWithSearchColors,
+                inputField = inputField
+            )
+            ExpandedSearchBar(
+                searchBarState = searchBarState,
+                inputField = inputField,
+                recentSearches = uiState.recentSearches,
+                appBarWithSearchColors = appBarWithSearchColors,
+                onHistoryItemClicked = { onSearch(it) },
+                onClearRecentSearches = { onEvent(SearchUiEvent.OnClearHistory) },
+                onRemoveRecentSearchItem = { onEvent(SearchUiEvent.OnHistoryItemRemoved(it)) }
+            )
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -144,10 +184,10 @@ fun SearchScreenContent(
             when (val state = uiState.contentState) {
                 is SearchContentState.Loading -> {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(modifier = Modifier.size(70.dp))
                     }
                 }
 
@@ -167,18 +207,144 @@ fun SearchScreenContent(
                     LazyColumn(
                         contentPadding = PaddingValues(
                             bottom = MaterialTheme.spacing.large
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large)
+                        ), verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large)
                     ) {
                         items(state.games) { game ->
                             GameCard(
-                                game = game,
-                                onClick = { onGameClick(game.id) }
-                            )
+                                game = game, onClick = { onGameClick(game.id) })
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun CollapsedSearchBar(
+    searchBarState: SearchBarState,
+    scrollBehavior: SearchBarScrollBehavior,
+    appBarWithSearchColors: AppBarWithSearchColors,
+    inputField: @Composable () -> Unit
+) {
+    AppBarWithSearch(
+        scrollBehavior = scrollBehavior,
+        state = searchBarState,
+        colors = appBarWithSearchColors,
+        inputField = inputField,
+        contentPadding = PaddingValues(
+            bottom = MaterialTheme.spacing.large,
+            top = WindowInsets.statusBars.asPaddingValues()
+                .calculateTopPadding() + MaterialTheme.spacing.large,
+            start = MaterialTheme.spacing.medium,
+            end = MaterialTheme.spacing.medium
+        )
+    )
+}
+
+@Composable
+private fun ExpandedSearchBar(
+    searchBarState: SearchBarState,
+    inputField: @Composable () -> Unit,
+    recentSearches: List<String>,
+    appBarWithSearchColors: AppBarWithSearchColors,
+    onHistoryItemClicked: (query: String) -> Unit,
+    onClearRecentSearches: () -> Unit,
+    onRemoveRecentSearchItem: (query: String) -> Unit
+) {
+    var showHistoryItemRemovalDialog by remember { mutableStateOf(false) }
+
+    ExpandedFullScreenSearchBar(
+        state = searchBarState,
+        inputField = inputField,
+        colors = appBarWithSearchColors.searchBarColors.copy(
+            containerColor = MaterialTheme.appColors.expandedSearchBarColor
+        )
+    ) {
+        if (recentSearches.isEmpty()) return@ExpandedFullScreenSearchBar
+        var recentSearchToBeRemoved by remember { mutableStateOf("") }
+
+        fun showRecentSearchRemovalDialog(itemToRemove: String) {
+            recentSearchToBeRemoved = itemToRemove
+            showHistoryItemRemovalDialog = true
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    horizontal = MaterialTheme.spacing.large,
+                    vertical = MaterialTheme.spacing.medium
+                )
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = stringResource(SearchR.string.recent_searches),
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                TextButton(
+                    onClick = onClearRecentSearches
+                ) {
+                    Text(
+                        text = stringResource(SearchR.string.clear_all),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.appColors.onAppBackground
+                    )
+                }
+            }
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
+                items(items = recentSearches, key = { it }) { recentSearch ->
+                    val inputChipInteractionSource = remember { MutableInteractionSource() }
+                    Box {
+                        SuggestionChip(
+                            onClick = { onHistoryItemClicked(recentSearch) },
+                            label = {
+                                Text(
+                                    text = recentSearch,
+                                    maxLines = 1
+                                )
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.History,
+                                    contentDescription = null
+                                )
+                            },
+                            contentPadding = PaddingValues(all = MaterialTheme.spacing.small),
+                            interactionSource = inputChipInteractionSource
+                        )
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .combinedClickable(
+                                    onLongClick = { showRecentSearchRemovalDialog(recentSearch) },
+                                    onClick = { onHistoryItemClicked(recentSearch) },
+                                    interactionSource = inputChipInteractionSource,
+                                    indication = null,
+                                )
+                        )
+                    }
+                }
+            }
+        }
+
+        if (showHistoryItemRemovalDialog) {
+            CustomAlertDialog(
+                title = stringResource(SearchR.string.remove_history_item),
+                message = stringResource(
+                    SearchR.string.remove_history_item_message,
+                    recentSearchToBeRemoved
+                ),
+                confirmButtonText = stringResource(SearchR.string.proceed_label),
+                onConfirm = { onRemoveRecentSearchItem(recentSearchToBeRemoved) },
+                dismissButtonText = stringResource(SearchR.string.cancel),
+                onDismiss = { showHistoryItemRemovalDialog = false }
+            )
         }
     }
 }
@@ -233,7 +399,6 @@ fun SearchScreenPreview() {
     GamesWishlistTheme {
         SearchScreenContent(
             uiState = SearchUiState(
-                query = "The Witcher",
                 contentState = SearchContentState.Success(
                     games = listOf(
                         GameItem.getDummy(),
@@ -251,11 +416,7 @@ fun SearchScreenPreview() {
 @Composable
 fun SearchScreenInitialPreview() {
     GamesWishlistTheme {
-        SearchScreenContent(
-            uiState = SearchUiState(),
-            onEvent = {},
-            onGameClick = {}
-        )
+        SearchScreenContent(uiState = SearchUiState(), onEvent = {}, onGameClick = {})
     }
 }
 
@@ -265,7 +426,6 @@ fun SearchScreenEmptyPreview() {
     GamesWishlistTheme {
         SearchScreenContent(
             uiState = SearchUiState(
-                query = "Unknown Game",
                 contentState = SearchContentState.Empty
             ),
             onEvent = {},

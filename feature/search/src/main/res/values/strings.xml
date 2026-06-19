@@ -4,4 +4,10 @@
     <string name="search_placeholder">Search for a game…</string>
     <string name="search_initial_message">Search for your favorite games</string>
     <string name="search_no_results">No games found for this search</string>
+    <string name="recent_searches">Recent searches</string>
+    <string name="clear_all">Clear all</string>
+    <string name="remove_history_item">Remove history item</string>
+    <string name="remove_history_item_message">Are you sure you want to remove <b>%1s</b> from your recent searches?</string>
+    <string name="proceed_label">Proceed</string>
+    <string name="cancel">Cancel</string>
 </resources>

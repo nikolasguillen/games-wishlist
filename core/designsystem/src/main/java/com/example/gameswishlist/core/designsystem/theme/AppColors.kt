@@ -9,12 +9,24 @@ import androidx.compose.ui.graphics.Color
 
 @Immutable
 data class AppColors(
+    val appBackground: Color,
+    val onAppBackground: Color,
+    val searchBarScrolledContainerColor: Color,
+    val searchBarInputFieldColor: Color,
+    val expandedSearchBarColor: Color,
+    val navBarContainerColor: Color,
     val navBarItemIndicatorColor: Color,
     val navBarItemSelectedIconColor: Color
 )
 
 internal val LocalAppColors = staticCompositionLocalOf {
     AppColors(
+        appBackground = Color.Unspecified,
+        onAppBackground = Color.Unspecified,
+        searchBarScrolledContainerColor = Color.Unspecified,
+        searchBarInputFieldColor = Color.Unspecified,
+        expandedSearchBarColor = Color.Unspecified,
+        navBarContainerColor = Color.Unspecified,
         navBarItemIndicatorColor = Color.Unspecified,
         navBarItemSelectedIconColor = Color.Unspecified
     )

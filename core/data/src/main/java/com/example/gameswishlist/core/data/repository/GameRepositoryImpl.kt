@@ -2,16 +2,15 @@ package com.example.gameswishlist.core.data.repository
 
 import com.example.gameswishlist.core.data.mapper.toEntity
 import com.example.gameswishlist.core.data.mapper.toGame
-import com.example.gameswishlist.core.data.mapper.toSearchHistoryItems
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
 import com.example.gameswishlist.core.database.dao.SearchHistoryDao
 import com.example.gameswishlist.core.database.entity.GameListCrossRef
 import com.example.gameswishlist.core.database.entity.ListEntity
+import com.example.gameswishlist.core.database.entity.SearchHistoryEntity
 import com.example.gameswishlist.core.domain.repository.GameRepository
 import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.Game
-import com.example.gameswishlist.core.model.SearchHistoryItem
 import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.network.IgdbApiService
 import kotlinx.coroutines.flow.Flow
@@ -42,8 +41,17 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getSearchHistory(): Flow<List<SearchHistoryItem>> {
-        return searchHistoryDao.getRecentSearches().map { it.toSearchHistoryItems() }
+    override suspend fun addSearchToHistory(query: String) {
+        searchHistoryDao.insert(
+            SearchHistoryEntity(
+                query = query,
+                timestamp = System.currentTimeMillis()
+            )
+        )
+    }
+
+    override suspend fun getSearchHistory(): Flow<List<String>> {
+        return searchHistoryDao.getRecentSearches().map { it.map { entity -> entity.query } }
     }
 
     override suspend fun deleteSearchHistoryItem(query: String) {

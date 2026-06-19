@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,7 +33,9 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
+import com.example.gameswishlist.core.designsystem.theme.AppComponentsColors
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
+import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.navigation.GameDetailRoute
 import com.example.gameswishlist.core.navigation.ListsRoute
 import com.example.gameswishlist.core.navigation.SearchRoute
@@ -66,8 +69,11 @@ class MainActivity : ComponentActivity() {
 fun MainContent() {
     val backStack = rememberNavBackStack(SearchRoute as NavKey)
     Scaffold(
+        containerColor = MaterialTheme.appColors.appBackground,
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = MaterialTheme.appColors.navBarContainerColor
+            ) {
                 NavigationBarItem(
                     selected = backStack.last() is SearchRoute,
                     onClick = {
@@ -81,7 +87,8 @@ fun MainContent() {
                             contentDescription = stringResource(R.string.search_nav_bar_item)
                         )
                     },
-                    label = { Text(stringResource(R.string.search_nav_bar_item)) }
+                    label = { Text(stringResource(R.string.search_nav_bar_item)) },
+                    colors = AppComponentsColors.navBarItemColors
                 )
                 NavigationBarItem(
                     selected = backStack.last() is ListsRoute || backStack.last() is WishlistRoute,
@@ -96,7 +103,8 @@ fun MainContent() {
                             contentDescription = stringResource(R.string.lists_nav_bar_item)
                         )
                     },
-                    label = { Text(stringResource(R.string.lists_nav_bar_item)) }
+                    label = { Text(stringResource(R.string.lists_nav_bar_item)) },
+                    colors = AppComponentsColors.navBarItemColors
                 )
             }
         }

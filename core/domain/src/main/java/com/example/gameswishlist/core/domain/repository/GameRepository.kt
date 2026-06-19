@@ -2,13 +2,13 @@ package com.example.gameswishlist.core.domain.repository
 
 import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.Game
-import com.example.gameswishlist.core.model.SearchHistoryItem
 import com.example.gameswishlist.core.model.WishlistList
 import kotlinx.coroutines.flow.Flow
 
 interface GameRepository {
     suspend fun searchGames(query: String): AppResult<List<Game>>
-    suspend fun getSearchHistory(): Flow<List<SearchHistoryItem>>
+    suspend fun addSearchToHistory(query: String)
+    suspend fun getSearchHistory(): Flow<List<String>>
     suspend fun deleteSearchHistoryItem(query: String)
     suspend fun clearSearchHistory()
     suspend fun getGameDetail(id: Int): Game

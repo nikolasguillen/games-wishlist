@@ -1,7 +1,7 @@
 package com.example.gameswishlist.core.data.di
 
-import com.example.gameswishlist.core.data.repository.GameRepository
 import com.example.gameswishlist.core.data.repository.GameRepositoryImpl
+import com.example.gameswishlist.core.domain.repository.GameRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

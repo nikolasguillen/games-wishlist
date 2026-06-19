@@ -14,10 +14,10 @@ import com.example.gameswishlist.core.database.util.Converters
 
 @Database(
     entities = [
+        SearchHistoryEntity::class,
         GameEntity::class,
         ListEntity::class,
-        GameListCrossRef::class,
-        SearchHistoryEntity::class
+        GameListCrossRef::class
     ],
     version = 1,
     exportSchema = false
