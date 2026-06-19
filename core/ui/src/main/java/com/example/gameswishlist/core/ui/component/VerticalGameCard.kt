@@ -3,6 +3,7 @@ package com.example.gameswishlist.core.ui.component
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,6 +26,7 @@ import coil.compose.AsyncImage
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.model.GameItem
 import com.example.gameswishlist.core.ui.util.fadingEdge
+import com.example.gameswishlist.core.ui.util.shimmerEffect
 
 @Composable
 fun VerticalGameCard(
@@ -34,7 +36,7 @@ fun VerticalGameCard(
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0f)),
         modifier = modifier
             .clip(RoundedCornerShape(MaterialTheme.spacing.mediumLarge))
             .clickable(onClick = onClick)
@@ -58,13 +60,14 @@ fun VerticalGameCard(
                     .padding(vertical = MaterialTheme.spacing.medium)
                     .padding(horizontal = MaterialTheme.spacing.medium)
                     .fillMaxWidth(),
-                verticalArrangement = Arrangement.Top
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
             ) {
                 Text(
                     text = game.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 2
+                    maxLines = 2,
+                    lineHeight = MaterialTheme.typography.titleSmall.lineHeight,
                 )
                 game.developer?.let {
                     Text(
@@ -74,6 +77,52 @@ fun VerticalGameCard(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun VerticalGameCardSkeleton(
+    modifier: Modifier = Modifier
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0f)),
+        modifier = modifier
+            .clip(RoundedCornerShape(MaterialTheme.spacing.mediumLarge))
+    ) {
+        Column(
+            modifier = Modifier.width(180.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .height(180.dp)
+                    .fillMaxWidth()
+                    .shimmerEffect()
+            )
+
+            Column(
+                modifier = Modifier
+                    .padding(vertical = MaterialTheme.spacing.medium)
+                    .padding(horizontal = MaterialTheme.spacing.medium)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(20.dp)
+                        .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
+                        .shimmerEffect()
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f)
+                        .height(14.dp)
+                        .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
+                        .shimmerEffect()
+                )
             }
         }
     }
