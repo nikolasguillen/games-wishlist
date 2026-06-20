@@ -2,5 +2,6 @@ package com.example.gameswishlist.core.model
 
 data class SearchResult(
     val games: List<Game>,
-    val platforms: List<Platform>
+    val platforms: List<Platform>,
+    val genres: List<Genre>
 )

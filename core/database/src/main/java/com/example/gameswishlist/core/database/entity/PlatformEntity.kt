@@ -7,7 +7,10 @@ import androidx.room.PrimaryKey
 data class PlatformEntity(
     @PrimaryKey val id: Int,
     val name: String,
-    val abbreviation: String?
+    val abbreviation: String?,
+    val generation: Int?,
+    val category: Int?,
+    val platformFamily: Int?
 )
 
 @Entity(

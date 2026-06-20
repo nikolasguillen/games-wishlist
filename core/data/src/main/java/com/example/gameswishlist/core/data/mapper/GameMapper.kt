@@ -67,7 +67,10 @@ fun IgdbPlatform.toPlatform(): Platform {
     return Platform(
         id = id,
         name = name,
-        abbreviation = abbreviation
+        abbreviation = abbreviation,
+        generation = generation,
+        category = category,
+        platformFamily = platformFamily
     )
 }
 
@@ -75,7 +78,10 @@ fun Platform.toEntity(): PlatformEntity {
     return PlatformEntity(
         id = id,
         name = name,
-        abbreviation = abbreviation
+        abbreviation = abbreviation,
+        generation = generation,
+        category = category,
+        platformFamily = platformFamily
     )
 }
 
@@ -83,7 +89,10 @@ fun PlatformEntity.toPlatform(): Platform {
     return Platform(
         id = id,
         name = name,
-        abbreviation = abbreviation
+        abbreviation = abbreviation,
+        generation = generation,
+        category = category,
+        platformFamily = platformFamily
     )
 }
 

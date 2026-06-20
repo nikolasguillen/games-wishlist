@@ -19,7 +19,9 @@
     - Use `sealed interface` for UI states and filter types to leverage exhaustive `when` and smart casting.
     - Prefer `alpha(0f)` over removing elements (like selection icons) to avoid layout shifts.
     - Use `animateContentSize()` for smooth transitions if elements must change size.
+    - **Modularization**: Extract sub-composables into separate files whenever they represent a logical unit or to prevent main feature files from becoming too large (avoid "God UI" files).
     - Collect flows with `collectAsStateWithLifecycle()`.
+    - **Previews**: Always provide a `@Preview` for every new Composable to allow rapid UI iteration and testing. For complex states, provide multiple previews (Loading, Success, Empty, etc.).
 
 ## Persistence and Model Conventions
 - Room schema in `core/database` is normalized using Many-to-Many relationships for Platforms, Genres, and Involved Companies.

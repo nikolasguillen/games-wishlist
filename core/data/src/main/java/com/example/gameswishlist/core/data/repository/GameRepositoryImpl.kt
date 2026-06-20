@@ -38,7 +38,7 @@ class GameRepositoryImpl @Inject constructor(
             val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
             val queryText = """
                 search "$query";
-                fields name, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, hypes, platforms.name, platforms.abbreviation, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                fields name, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
                 where game_type != ($excludedIds);
                 limit 200;
             """.trimIndent()
@@ -78,7 +78,7 @@ class GameRepositoryImpl @Inject constructor(
         // Fetch from network
         return try {
             val queryText = """
-                fields name, game_type, summary, first_release_date, cover.url, total_rating, platforms.name, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                fields name, game_type, summary, first_release_date, cover.url, total_rating, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
                 where id = $id;
             """.trimIndent()
             val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())

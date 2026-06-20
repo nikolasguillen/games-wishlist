@@ -27,19 +27,20 @@ class SearchGamesUseCase @Inject constructor(
         return repository.searchGames(query).map { games ->
             // Extract all unique platforms present in the search results
             val platforms = games.flatMap { it.platforms }.distinctBy { it.id }
+            val genres = games.flatMap { it.genres }.distinctBy { it.id }
             
             // Count occurrences to determine which platforms are most "relevant" for this specific search
-            val platformCounts = platforms
-                .groupingBy { it.id }
-                .eachCount()
+            val platformCounts = games.flatMap { it.platforms }.groupingBy { it.id }.eachCount()
+            val genreCounts = games.flatMap { it.genres }.groupingBy { it.id }.eachCount()
 
             SearchResult(
                 games = games,
-                platforms = platformCounts.keys
-                    .sortedByDescending { platformCounts[it] }
-                    .map { platformId ->
-                        platforms.first { it.id == platformId }
-                    }
+                platforms = platforms
+                    .sortedByDescending { platformCounts[it.id] ?: 0 }
+                    .map { it },
+                genres = genres
+                    .sortedByDescending { genreCounts[it.id] ?: 0 }
+                    .map { it }
             )
         }
     }

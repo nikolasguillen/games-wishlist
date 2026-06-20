@@ -12,7 +12,10 @@ import com.example.gameswishlist.core.model.RepositoryError
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
 import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.feature.search.mapper.getInitialGameTypeFilters
+import com.example.gameswishlist.feature.search.mapper.toGenreFilters
 import com.example.gameswishlist.feature.search.mapper.toPlatformFilters
+import com.example.gameswishlist.feature.search.model.FilterBottomSheetState
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
@@ -66,70 +69,144 @@ class SearchViewModel @Inject constructor(
             }
 
             is SearchUiEvent.OnFilterClick -> {
+                handleFilterClick(event.filter)
+            }
+
+            SearchUiEvent.OnOpenFilters -> {
                 val contentState = _uiState.value.contentState
                 if (contentState !is SearchContentState.Success) return
 
-                val newFilters = contentState.filters.map { filter ->
-                    when (filter) {
-                        is GameFilterUiModel.Platform -> {
-                            if (event.filter is GameFilterUiModel.Platform && filter.id == event.filter.id) {
-                                filter.copy(selected = !filter.selected)
-                            } else filter
-                        }
-
-                        is GameFilterUiModel.Genre -> {
-                            if (event.filter is GameFilterUiModel.Genre && filter.id == event.filter.id) {
-                                filter.copy(selected = !filter.selected)
-                            } else filter
-                        }
-
-                        is GameFilterUiModel.GameType -> {
-                            if (event.filter is GameFilterUiModel.GameType && filter.id == event.filter.id) {
-                                filter.copy(selected = !filter.selected)
-                            } else filter
-                        }
-                    }
-                }
-
-                val selectedPlatformIds = newFilters
-                    .filterIsInstance<GameFilterUiModel.Platform>()
-                    .filter { it.selected }
-                    .map { it.id }
-
-                val selectedGenreIds = newFilters
-                    .filterIsInstance<GameFilterUiModel.Genre>()
-                    .filter { it.selected }
-                    .map { it.id }
-
-                val selectedGameTypeIds = newFilters
-                    .filterIsInstance<GameFilterUiModel.GameType>()
-                    .filter { it.selected }
-                    .map { it.id }
-
-                val filteredGames = contentState.allGames.filter { game ->
-                    val gamePlatformIds = game.platforms.map { it.id }
-                    val matchesPlatform = selectedPlatformIds.isEmpty() ||
-                            selectedPlatformIds.all { it in gamePlatformIds }
-
-                    val gameGenreIds = game.genres.map { it.id }
-                    val matchesGenre = selectedGenreIds.isEmpty() ||
-                            selectedGenreIds.all { it in gameGenreIds }
-
-                    val matchesGameType = selectedGameTypeIds.isEmpty() ||
-                            game.gameType.id in selectedGameTypeIds
-
-                    matchesPlatform && matchesGenre && matchesGameType
-                }
-
                 _uiState.update {
                     it.copy(
-                        contentState = contentState.copy(
-                            games = filteredGames.toGameItemList(),
-                            filters = newFilters
+                        bottomSheetState = FilterBottomSheetState(
+                            isVisible = true,
+                            filters = contentState.filters,
+                            matchCount = contentState.games.size
                         )
                     )
                 }
             }
+
+            SearchUiEvent.OnDismissFilters -> {
+                _uiState.update { it.copy(bottomSheetState = it.bottomSheetState.copy(isVisible = false)) }
+            }
+
+            is SearchUiEvent.OnBottomSheetFilterClick -> {
+                handleBottomSheetFilterClick(event.filter)
+            }
+
+            SearchUiEvent.OnApplyFilters -> {
+                applyBottomSheetFilters()
+            }
+        }
+    }
+
+    private fun handleFilterClick(eventFilter: GameFilterUiModel) {
+        val contentState = _uiState.value.contentState
+        if (contentState !is SearchContentState.Success) return
+
+        val newFilters = contentState.filters.map { filter ->
+            when (filter) {
+                is GameFilterUiModel.Platform -> {
+                    if (eventFilter is GameFilterUiModel.Platform && filter.id == eventFilter.id) {
+                        filter.copy(selected = !filter.selected)
+                    } else filter
+                }
+
+                is GameFilterUiModel.Genre -> {
+                    if (eventFilter is GameFilterUiModel.Genre && filter.id == eventFilter.id) {
+                        filter.copy(selected = !filter.selected)
+                    } else filter
+                }
+
+                is GameFilterUiModel.GameType -> {
+                    if (eventFilter is GameFilterUiModel.GameType && filter.id == eventFilter.id) {
+                        filter.copy(selected = !filter.selected)
+                    } else filter
+                }
+            }
+        }
+        updateSearchContent(contentState, newFilters)
+    }
+
+    private fun handleBottomSheetFilterClick(eventFilter: GameFilterUiModel) {
+        val bsState = _uiState.value.bottomSheetState
+        val contentState = _uiState.value.contentState
+        if (contentState !is SearchContentState.Success) return
+
+        val newFilters = bsState.filters.map { filter ->
+            when (filter) {
+                is GameFilterUiModel.Platform -> {
+                    if (eventFilter is GameFilterUiModel.Platform && filter.id == eventFilter.id) {
+                        filter.copy(selected = !filter.selected)
+                    } else filter
+                }
+
+                is GameFilterUiModel.Genre -> {
+                    if (eventFilter is GameFilterUiModel.Genre && filter.id == eventFilter.id) {
+                        filter.copy(selected = !filter.selected)
+                    } else filter
+                }
+
+                is GameFilterUiModel.GameType -> {
+                    if (eventFilter is GameFilterUiModel.GameType && filter.id == eventFilter.id) {
+                        filter.copy(selected = !filter.selected)
+                    } else filter
+                }
+            }
+        }
+
+        val matchCount = calculateMatchCount(contentState.allGames, newFilters)
+        _uiState.update {
+            it.copy(bottomSheetState = bsState.copy(filters = newFilters, matchCount = matchCount))
+        }
+    }
+
+    private fun applyBottomSheetFilters() {
+        val bsState = _uiState.value.bottomSheetState
+        val contentState = _uiState.value.contentState
+        if (contentState !is SearchContentState.Success) return
+
+        _uiState.update { it.copy(bottomSheetState = bsState.copy(isVisible = false)) }
+        updateSearchContent(contentState, bsState.filters)
+    }
+
+    private fun calculateMatchCount(allGames: List<com.example.gameswishlist.core.model.Game>, filters: List<GameFilterUiModel>): Int {
+        val selectedPlatformIds = filters.filterIsInstance<GameFilterUiModel.Platform>().filter { it.selected }.map { it.id }
+        val selectedGenreIds = filters.filterIsInstance<GameFilterUiModel.Genre>().filter { it.selected }.map { it.id }
+        val selectedGameTypeIds = filters.filterIsInstance<GameFilterUiModel.GameType>().filter { it.selected }.map { it.id }
+
+        return allGames.count { game ->
+            val gamePlatformIds = game.platforms.map { it.id }
+            val matchesPlatform = selectedPlatformIds.isEmpty() || selectedPlatformIds.all { it in gamePlatformIds }
+            val gameGenreIds = game.genres.map { it.id }
+            val matchesGenre = selectedGenreIds.isEmpty() || selectedGenreIds.all { it in gameGenreIds }
+            val matchesGameType = selectedGameTypeIds.isEmpty() || game.gameType.id in selectedGameTypeIds
+            matchesPlatform && matchesGenre && matchesGameType
+        }
+    }
+
+    private fun updateSearchContent(contentState: SearchContentState.Success, newFilters: List<GameFilterUiModel>) {
+        val selectedPlatformIds = newFilters.filterIsInstance<GameFilterUiModel.Platform>().filter { it.selected }.map { it.id }
+        val selectedGenreIds = newFilters.filterIsInstance<GameFilterUiModel.Genre>().filter { it.selected }.map { it.id }
+        val selectedGameTypeIds = newFilters.filterIsInstance<GameFilterUiModel.GameType>().filter { it.selected }.map { it.id }
+
+        val filteredGames = contentState.allGames.filter { game ->
+            val gamePlatformIds = game.platforms.map { it.id }
+            val matchesPlatform = selectedPlatformIds.isEmpty() || selectedPlatformIds.all { it in gamePlatformIds }
+            val gameGenreIds = game.genres.map { it.id }
+            val matchesGenre = selectedGenreIds.isEmpty() || selectedGenreIds.all { it in gameGenreIds }
+            val matchesGameType = selectedGameTypeIds.isEmpty() || game.gameType.id in selectedGameTypeIds
+            matchesPlatform && matchesGenre && matchesGameType
+        }
+
+        _uiState.update {
+            it.copy(
+                contentState = contentState.copy(
+                    games = filteredGames.toGameItemList(),
+                    filters = newFilters
+                )
+            )
         }
     }
 
@@ -149,9 +226,13 @@ class SearchViewModel @Inject constructor(
                     val newState = if (sortedGames.isEmpty()) {
                         SearchContentState.Empty
                     } else {
+                        val filters = searchResult.platforms.toPlatformFilters() +
+                                     searchResult.genres.toGenreFilters() + 
+                                     getInitialGameTypeFilters()
+                        
                         SearchContentState.Success(
                             games = sortedGames.toGameItemList(),
-                            filters = searchResult.platforms.toPlatformFilters(),
+                            filters = filters,
                             allGames = sortedGames
                         )
                     }

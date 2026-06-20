@@ -24,7 +24,7 @@ object DatabaseModule {
             context,
             GamesWishlistDatabase::class.java,
             "games_wishlist_database"
-        ).fallbackToDestructiveMigration(false).build()
+        ).fallbackToDestructiveMigration(true).build()
     }
 
     @Provides

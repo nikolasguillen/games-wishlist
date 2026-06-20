@@ -22,6 +22,7 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.feature.search.components.SearchFilterBottomSheet
 import com.example.gameswishlist.feature.search.components.SearchInputField
 import com.example.gameswishlist.feature.search.components.SearchMainContent
 import com.example.gameswishlist.feature.search.components.SearchTopBar
@@ -52,25 +53,13 @@ fun SearchScreenContent(
     onGameClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val textFieldState = rememberTextFieldState()
     val searchBarState = rememberContainedSearchBarState()
     val scope = rememberCoroutineScope()
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
 
     val onSearch: (String) -> Unit = { query ->
         scope.launch { searchBarState.animateToCollapsed() }
-        if (textFieldState.text.toString() != query) {
-            textFieldState.setTextAndPlaceCursorAtEnd(query)
-        }
         onEvent(SearchUiEvent.OnSearchTriggered(query))
-    }
-
-    val inputField = @Composable {
-        SearchInputField(
-            textFieldState = textFieldState,
-            searchBarState = searchBarState,
-            onSearch = { onSearch(textFieldState.text.toString()) }
-        )
     }
 
     Scaffold(
@@ -81,7 +70,6 @@ fun SearchScreenContent(
                 uiState = uiState,
                 searchBarState = searchBarState,
                 scrollBehavior = scrollBehavior,
-                inputField = inputField,
                 onSearch = onSearch,
                 onEvent = onEvent
             )
@@ -93,6 +81,11 @@ fun SearchScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+        )
+
+        SearchFilterBottomSheet(
+            state = uiState.bottomSheetState,
+            onEvent = onEvent
         )
     }
 }

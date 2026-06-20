@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.FilterChip
@@ -17,6 +18,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.VerticalGameCard
@@ -29,8 +32,15 @@ fun SearchResultGrid(
     onGameClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val state = rememberLazyStaggeredGridState()
+
+    LaunchedEffect(games) {
+        state.scrollToItem(0)
+    }
+
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
+        state = state,
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraLarge),
         verticalItemSpacing = MaterialTheme.spacing.extraLarge,
         contentPadding = PaddingValues(vertical = MaterialTheme.spacing.medium),
@@ -46,15 +56,20 @@ fun SearchResultGrid(
 fun FilterChipsRow(
     filters: List<GameFilterUiModel>,
     onFilterClick: (GameFilterUiModel) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    leadingContent: @Composable () -> Unit = {}
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
+        verticalAlignment = Alignment.CenterVertically,
         contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large),
         modifier = modifier
     ) {
+        item {
+            leadingContent()
+        }
         items(
-            items = filters,
+            items = filters.filter { it.selected }, // Show only selected filters as requested
             key = { filter -> "${filter::class.simpleName}:${filter.id}" }
         ) { gameFilter ->
             FilterChip(

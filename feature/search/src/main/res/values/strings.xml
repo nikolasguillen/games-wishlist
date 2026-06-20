@@ -10,4 +10,13 @@
     <string name="remove_history_item_message">Are you sure you want to remove &lt;b&gt;%1s&lt;/b&gt; from your recent searches?</string>
     <string name="proceed_label">Proceed</string>
     <string name="cancel">Cancel</string>
+
+    <!-- Filters Bottom Sheet -->
+    <string name="filters_title">Filters</string>
+    <string name="filter_section_game_type">Content Type</string>
+    <string name="filter_section_genres">Genres</string>
+    <string name="filter_section_platforms">Platforms</string>
+    <string name="apply_filters_count">Show %1$d results</string>
+    <string name="show_more">Show more</string>
+    <string name="show_less">Show less</string>
 </resources>
