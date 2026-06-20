@@ -35,9 +35,11 @@
 - **Filtering**: Perform filtering and logic in the `ViewModel` or `UseCase` using IDs (not names) for robustness.
 - **Business Logic**: Keep logic (like the "12 characters label rule") in Mappers or UseCases, not in the Composables.
 - **Persistence**: When saving a game, use the `GameDao.saveGame` transactional method to ensure all related entities (Platforms, Genres, etc.) are persisted.
+- **Game Types**: We use the IGDB `game_type` field (formerly `category`) to classify games. By default, we exclude "noisy" types like Bundles, Packs, Forks, and Updates.
 - **Documentation & Language**: 
     - Always use **English** for comments, KDoc, and any form of internal documentation.
     - **Models**: Mandatory class-level KDoc using `@property` tags for all models in `core:model` (Domain) and `core:network` (Network). Avoid inline comments for fields.
+    - **Localization**: NEVER hardcode user-facing strings in models or logic. Use Android String Resources (`strings.xml`). Domain models should only contain raw data or Enums; UI-specific display labels must be handled in the UI layer (e.g., using `UiText` or Mappers).
     - **Business Logic**: Document Use Cases and complex algorithms (like sorting or filtering) explaining the *rationale* and parameters.
 
 ## Build, test, and iteration workflow

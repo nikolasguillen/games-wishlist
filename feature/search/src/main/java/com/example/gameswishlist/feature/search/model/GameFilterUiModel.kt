@@ -18,4 +18,10 @@ sealed interface GameFilterUiModel {
         override val label: UiText,
         override val selected: Boolean
     ) : GameFilterUiModel
+
+    data class GameType(
+        override val id: Int,
+        override val label: UiText,
+        override val selected: Boolean
+    ) : GameFilterUiModel
 }

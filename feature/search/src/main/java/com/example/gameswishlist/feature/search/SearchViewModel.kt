@@ -82,6 +82,12 @@ class SearchViewModel @Inject constructor(
                                 filter.copy(selected = !filter.selected)
                             } else filter
                         }
+
+                        is GameFilterUiModel.GameType -> {
+                            if (event.filter is GameFilterUiModel.GameType && filter.id == event.filter.id) {
+                                filter.copy(selected = !filter.selected)
+                            } else filter
+                        }
                     }
                 }
 
@@ -95,6 +101,11 @@ class SearchViewModel @Inject constructor(
                     .filter { it.selected }
                     .map { it.id }
 
+                val selectedGameTypeIds = newFilters
+                    .filterIsInstance<GameFilterUiModel.GameType>()
+                    .filter { it.selected }
+                    .map { it.id }
+
                 val filteredGames = contentState.allGames.filter { game ->
                     val gamePlatformIds = game.platforms.map { it.id }
                     val matchesPlatform = selectedPlatformIds.isEmpty() ||
@@ -104,7 +115,10 @@ class SearchViewModel @Inject constructor(
                     val matchesGenre = selectedGenreIds.isEmpty() ||
                             selectedGenreIds.all { it in gameGenreIds }
 
-                    matchesPlatform && matchesGenre
+                    val matchesGameType = selectedGameTypeIds.isEmpty() ||
+                            game.gameType.id in selectedGameTypeIds
+
+                    matchesPlatform && matchesGenre && matchesGameType
                 }
 
                 _uiState.update {

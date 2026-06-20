@@ -17,6 +17,7 @@ import com.example.gameswishlist.core.database.entity.SearchHistoryEntity
 import com.example.gameswishlist.core.domain.repository.GameRepository
 import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.Game
+import com.example.gameswishlist.core.model.GameType
 import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.network.IgdbApiService
 import kotlinx.coroutines.flow.Flow
@@ -34,10 +35,12 @@ class GameRepositoryImpl @Inject constructor(
 
     override suspend fun searchGames(query: String): AppResult<List<Game>> {
         return try {
+            val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
             val queryText = """
                 search "$query";
-                fields name, summary, first_release_date, cover.url, total_rating, total_rating_count, hypes, platforms.name, platforms.abbreviation, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
-                limit 50;
+                fields name, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, hypes, platforms.name, platforms.abbreviation, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                where game_type != ($excludedIds);
+                limit 200;
             """.trimIndent()
             val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
             val response = apiService.searchGames(body)
@@ -75,7 +78,7 @@ class GameRepositoryImpl @Inject constructor(
         // Fetch from network
         return try {
             val queryText = """
-                fields name, summary, first_release_date, cover.url, total_rating, platforms.name, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                fields name, game_type, summary, first_release_date, cover.url, total_rating, platforms.name, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
                 where id = $id;
             """.trimIndent()
             val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())

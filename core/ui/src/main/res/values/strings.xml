@@ -22,4 +22,21 @@
     <string name="error_request_timeout">The request took too long.\nPlease try again.</string>
     <string name="error_http">The server returned an error (%1$d).\nPlease try again later.</string>
     <string name="error_unknown">An unexpected error occurred.\nPlease try again.</string>
+
+    <!-- Game Types -->
+    <string name="gametype_main_game">Main Game</string>
+    <string name="gametype_dlc_addon">DLC/Add-on</string>
+    <string name="gametype_expansion">Expansion</string>
+    <string name="gametype_bundle">Bundle</string>
+    <string name="gametype_standalone_expansion">Standalone Expansion</string>
+    <string name="gametype_mod">Mod</string>
+    <string name="gametype_episode">Episode</string>
+    <string name="gametype_season">Season</string>
+    <string name="gametype_remake">Remake</string>
+    <string name="gametype_remaster">Remaster</string>
+    <string name="gametype_expanded_game">Expanded Game</string>
+    <string name="gametype_port">Port</string>
+    <string name="gametype_fork">Fork</string>
+    <string name="gametype_pack">Pack / Addon</string>
+    <string name="gametype_update">Update</string>
 </resources>

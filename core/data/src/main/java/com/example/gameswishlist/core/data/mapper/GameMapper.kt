@@ -10,6 +10,7 @@ import com.example.gameswishlist.core.database.entity.GenreEntity
 import com.example.gameswishlist.core.database.entity.PlatformEntity
 import com.example.gameswishlist.core.model.Company
 import com.example.gameswishlist.core.model.Game
+import com.example.gameswishlist.core.model.GameType
 import com.example.gameswishlist.core.model.Genre
 import com.example.gameswishlist.core.model.Platform
 import com.example.gameswishlist.core.model.Priority
@@ -43,7 +44,8 @@ fun IgdbGame.toGame(): Game {
         publishers = involvedCompanies?.filter { it.publisher }?.map { it.company.toCompany() }
             ?: emptyList(),
         developers = involvedCompanies?.filter { it.developer }?.map { it.company.toCompany() }
-            ?: emptyList()
+            ?: emptyList(),
+        gameType = GameType.fromId(gameType)
     )
 }
 
@@ -127,6 +129,7 @@ fun GameWithAllDetails.toGame(): Game {
         developers = companyRefs.filter { it.crossRef.isDeveloper }.map { it.company.toCompany() },
         publishers = companyRefs.filter { it.crossRef.isPublisher }.map { it.company.toCompany() },
         isWishlisted = game.isWishlisted,
+        gameType = GameType.fromId(game.gameTypeId),
         notes = game.notes,
         priority = game.priority.toPriority(),
         status = game.status
@@ -143,6 +146,7 @@ fun Game.toEntity(): GameEntity {
         rating = rating,
         metacritic = metaCritic,
         isWishlisted = isWishlisted,
+        gameTypeId = gameType.id,
         notes = notes,
         priority = priority.toInt(),
         status = status

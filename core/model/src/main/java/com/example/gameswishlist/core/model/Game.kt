@@ -20,6 +20,7 @@ package com.example.gameswishlist.core.model
  * @property publishers Companies responsible for publishing the title.
  * @property developers Studio(s) that developed the game.
  * @property isWishlisted Whether the game is currently in the user's local wishlist.
+ * @property gameType The classification of the game (e.g., Main Game, DLC, Remake).
  * @property notes User-provided personal notes about the game.
  * @property priority User-defined priority for acquiring or playing the game.
  * @property status Current status of the game in the user's collection (e.g., Want to Buy).
@@ -39,6 +40,7 @@ data class Game(
     val publishers: List<Company> = emptyList(),
     val developers: List<Company> = emptyList(),
     val isWishlisted: Boolean = false,
+    val gameType: GameType = GameType.MAIN_GAME,
     val notes: String = "",
     val priority: Priority = Priority.LOW,
     val status: GameStatus = GameStatus.WANT_TO_BUY

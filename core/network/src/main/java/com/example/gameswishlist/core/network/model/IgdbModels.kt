@@ -13,6 +13,7 @@ import com.squareup.moshi.JsonClass
  * @property summary A brief overview or description of the game's plot and mechanics.
  * @property firstReleaseDate Unix timestamp (seconds) of the game's first official release date.
  * @property cover Reference to the game's main cover image.
+ * @property gameType The numerical ID representing the game's type (e.g., 0 for Main Game).
  * @property totalRating Average rating based on both external critics and IGDB users (0-100).
  * @property totalRatingCount Total number of ratings across all platforms. Used as a proxy for popularity.
  * @property hypes Number of users who added this to their "want to play" list. Useful for identifying trending games.
@@ -25,6 +26,7 @@ data class IgdbGame(
     val id: Int,
     val name: String,
     val summary: String?,
+    @Json(name = "game_type") val gameType: Int?,
     @Json(name = "first_release_date") val firstReleaseDate: Long?,
     val cover: IgdbCover?,
     @Json(name = "total_rating") val totalRating: Double?,
