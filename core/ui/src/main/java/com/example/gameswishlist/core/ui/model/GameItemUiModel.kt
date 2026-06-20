@@ -1,6 +1,6 @@
 package com.example.gameswishlist.core.ui.model
 
-data class GameItem(
+data class GameItemUiModel(
     val id: Int,
     val name: String,
     val coverImage: String?,
@@ -10,7 +10,7 @@ data class GameItem(
     val platforms: UiText?
 ) {
     companion object {
-        fun getDummy() = GameItem(
+        fun getDummy() = GameItemUiModel(
             id = 1,
             name = "The Witcher 3: Wild Hunt",
             coverImage = "https://media.rawg.io/media/games/618/618c49a64e2f469d6107ba9357d812d6.jpg",

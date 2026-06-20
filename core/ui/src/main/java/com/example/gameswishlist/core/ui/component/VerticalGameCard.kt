@@ -24,13 +24,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.model.GameItem
+import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.util.fadingEdge
 import com.example.gameswishlist.core.ui.util.shimmerEffect
 
 @Composable
 fun VerticalGameCard(
-    game: GameItem,
+    game: GameItemUiModel,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -40,8 +40,9 @@ fun VerticalGameCard(
         modifier = modifier
             .clip(RoundedCornerShape(MaterialTheme.spacing.mediumLarge))
             .clickable(onClick = onClick)
+            .width(180.dp)
     ) {
-        Column(modifier = Modifier.width(180.dp)) {
+        Column {
             AsyncImage(
                 model = game.coverImage,
                 contentDescription = null,
@@ -132,7 +133,7 @@ fun VerticalGameCardSkeleton(
 @Composable
 private fun GameCardPreview() {
     VerticalGameCard(
-        game = GameItem.getDummy(),
+        game = GameItemUiModel.getDummy(),
         onClick = {}
     )
 }

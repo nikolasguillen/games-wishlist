@@ -14,6 +14,13 @@ sealed class AppResult<out T> {
         return this
     }
 
+    inline fun <R> map(transform: (T) -> R): AppResult<R> {
+        return when (this) {
+            is Success -> Success(transform(data))
+            is Failure -> Failure(error)
+        }
+    }
+
     companion object {
         fun <T> success(data: T): AppResult<T> = Success(data)
         fun failure(error: RepositoryError): AppResult<Nothing> = Failure(error)

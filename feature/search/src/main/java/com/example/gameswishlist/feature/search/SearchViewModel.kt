@@ -11,6 +11,8 @@ import com.example.gameswishlist.core.model.RepositoryError
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
 import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.feature.search.mapper.toPlatformFilters
+import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
@@ -61,6 +63,48 @@ class SearchViewModel @Inject constructor(
                     deleteSearchHistoryItemUseCase(event.query)
                 }
             }
+
+            is SearchUiEvent.OnFilterClick -> {
+                val contentState = _uiState.value.contentState
+                if (contentState !is SearchContentState.Success) return
+
+                val newFilters = contentState.filters.map { filter ->
+                    when (filter) {
+                        is GameFilterUiModel.Platform if filter.id == event.filter.id -> {
+                            filter.copy(selected = !filter.selected)
+                        }
+
+                        is GameFilterUiModel.Genre if filter.id == event.filter.id -> {
+                            filter.copy(selected = !filter.selected)
+                        }
+
+                        else -> filter
+                    }
+                }
+
+                val selectedPlatformIds = newFilters
+                    .filterIsInstance<GameFilterUiModel.Platform>()
+                    .filter { it.selected }
+                    .map { it.id }
+                    .toSet()
+
+                val filteredGames = if (selectedPlatformIds.isEmpty()) {
+                    contentState.allGames
+                } else {
+                    contentState.allGames.filter { game ->
+                        game.platforms.asSequence().map { it.id }.all { it in selectedPlatformIds }
+                    }
+                }
+
+                _uiState.update {
+                    it.copy(
+                        contentState = contentState.copy(
+                            games = filteredGames.toGameItemList(),
+                            filters = newFilters
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -72,11 +116,15 @@ class SearchViewModel @Inject constructor(
 
             _uiState.update { it.copy(contentState = SearchContentState.Loading) }
             searchGamesUseCase(query)
-                .onSuccess { games ->
-                    val newState = if (games.isEmpty()) {
+                .onSuccess { searchResult ->
+                    val newState = if (searchResult.games.isEmpty()) {
                         SearchContentState.Empty
                     } else {
-                        SearchContentState.Success(games.toGameItemList())
+                        SearchContentState.Success(
+                            games = searchResult.games.toGameItemList(),
+                            filters = searchResult.platforms.toPlatformFilters(),
+                            allGames = searchResult.games
+                        )
                     }
                     _uiState.update { it.copy(contentState = newState) }
                 }

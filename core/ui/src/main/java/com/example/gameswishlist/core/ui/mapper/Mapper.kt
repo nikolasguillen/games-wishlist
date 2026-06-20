@@ -2,13 +2,13 @@ package com.example.gameswishlist.core.ui.mapper
 
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.ui.R
-import com.example.gameswishlist.core.ui.model.GameItem
+import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-fun List<Game>.toGameItemList(): List<GameItem> {
+fun List<Game>.toGameItemList(): List<GameItemUiModel> {
     return this.map { it.toGameItem() }
 }
 
@@ -22,7 +22,7 @@ private fun getOrdinalSuffixRes(day: Int): Int {
     }
 }
 
-fun Game.toGameItem(): GameItem {
+fun Game.toGameItem(): GameItemUiModel {
     val formattedReleaseDate = releaseDate?.let { dateString ->
         try {
             val date = LocalDate.parse(dateString)
@@ -49,7 +49,9 @@ fun Game.toGameItem(): GameItem {
         UiText.StringResource(R.string.rating_format, rating)
     }
 
-    val cleanedPlatforms = platforms.map { it.replace(Regex("\\s\\(.*\\)"), "") }
+    val cleanedPlatforms = platforms.map { 
+        (it.abbreviation ?: it.name).replace(Regex("\\s\\(.*\\)"), "") 
+    }
 
     val platformsText = if (cleanedPlatforms.isNotEmpty()) {
         UiText.StringResource(R.string.platforms_format, cleanedPlatforms.joinToString())
@@ -57,7 +59,7 @@ fun Game.toGameItem(): GameItem {
         null
     }
 
-    return GameItem(
+    return GameItemUiModel(
         id = id,
         name = name,
         coverImage = backgroundImage,

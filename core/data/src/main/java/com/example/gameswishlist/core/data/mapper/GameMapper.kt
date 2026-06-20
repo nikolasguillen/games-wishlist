@@ -1,9 +1,21 @@
 package com.example.gameswishlist.core.data.mapper
 
+import com.example.gameswishlist.core.database.entity.CompanyEntity
+import com.example.gameswishlist.core.database.entity.GameCompanyCrossRef
 import com.example.gameswishlist.core.database.entity.GameEntity
+import com.example.gameswishlist.core.database.entity.GameGenreCrossRef
+import com.example.gameswishlist.core.database.entity.GamePlatformCrossRef
+import com.example.gameswishlist.core.database.entity.GameWithAllDetails
+import com.example.gameswishlist.core.database.entity.GenreEntity
+import com.example.gameswishlist.core.database.entity.PlatformEntity
+import com.example.gameswishlist.core.model.Company
 import com.example.gameswishlist.core.model.Game
+import com.example.gameswishlist.core.model.Genre
+import com.example.gameswishlist.core.model.Platform
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.network.model.IgdbGame
+import com.example.gameswishlist.core.network.model.IgdbGenre
+import com.example.gameswishlist.core.network.model.IgdbPlatform
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -24,32 +36,98 @@ fun IgdbGame.toGame(): Game {
         releaseDate = releasedDate,
         backgroundImage = imageUrl,
         rating = totalRating ?: 0.0,
-        platforms = platforms?.map { it.name } ?: emptyList(),
-        genres = genres?.map { it.name } ?: emptyList(),
-        publishers = involvedCompanies?.filter { it.publisher }?.map { it.company.name }
+        platforms = platforms?.map { it.toPlatform() } ?: emptyList(),
+        genres = genres?.map { it.toGenre() } ?: emptyList(),
+        publishers = involvedCompanies?.filter { it.publisher }?.map { it.company.toCompany() }
             ?: emptyList(),
-        developers = involvedCompanies?.filter { it.developer }?.map { it.company.name }
+        developers = involvedCompanies?.filter { it.developer }?.map { it.company.toCompany() }
             ?: emptyList()
     )
 }
 
-fun GameEntity.toGame(): Game {
-    return Game(
+fun IgdbGenre.toGenre(): Genre {
+    return Genre(
+        id = id,
+        name = name
+    )
+}
+
+fun com.example.gameswishlist.core.network.model.IgdbCompany.toCompany(): Company {
+    return Company(
+        id = id,
+        name = name
+    )
+}
+
+fun IgdbPlatform.toPlatform(): Platform {
+    return Platform(
         id = id,
         name = name,
-        description = description,
-        releaseDate = released,
-        backgroundImage = backgroundImage,
-        rating = rating,
-        metaCritic = metacritic,
-        platforms = if (platforms.isEmpty()) emptyList() else platforms.split(","),
-        genres = if (genres.isEmpty()) emptyList() else genres.split(","),
-        publishers = if (publishers.isEmpty()) emptyList() else publishers.split(","),
-        developers = if (developers.isEmpty()) emptyList() else developers.split(","),
-        isWishlisted = isWishlisted,
-        notes = notes,
-        priority = priority.toPriority(),
-        status = status
+        abbreviation = abbreviation
+    )
+}
+
+fun Platform.toEntity(): PlatformEntity {
+    return PlatformEntity(
+        id = id,
+        name = name,
+        abbreviation = abbreviation
+    )
+}
+
+fun PlatformEntity.toPlatform(): Platform {
+    return Platform(
+        id = id,
+        name = name,
+        abbreviation = abbreviation
+    )
+}
+
+fun Genre.toEntity(): GenreEntity {
+    return GenreEntity(
+        id = id,
+        name = name
+    )
+}
+
+fun GenreEntity.toGenre(): Genre {
+    return Genre(
+        id = id,
+        name = name
+    )
+}
+
+fun Company.toEntity(): CompanyEntity {
+    return CompanyEntity(
+        id = id,
+        name = name
+    )
+}
+
+fun CompanyEntity.toCompany(): Company {
+    return Company(
+        id = id,
+        name = name
+    )
+}
+
+fun GameWithAllDetails.toGame(): Game {
+    return Game(
+        id = game.id,
+        name = game.name,
+        description = game.description,
+        releaseDate = game.released,
+        backgroundImage = game.backgroundImage,
+        rating = game.rating,
+        metaCritic = game.metacritic,
+        platforms = platforms.map { it.toPlatform() },
+        genres = genres.map { it.toGenre() },
+        developers = companyRefs.filter { it.crossRef.isDeveloper }.map { it.company.toCompany() },
+        publishers = companyRefs.filter { it.crossRef.isPublisher }.map { it.company.toCompany() },
+        isWishlisted = game.isWishlisted,
+        notes = game.notes,
+        priority = game.priority.toPriority(),
+        status = game.status
     )
 }
 
@@ -62,15 +140,49 @@ fun Game.toEntity(): GameEntity {
         backgroundImage = backgroundImage,
         rating = rating,
         metacritic = metaCritic,
-        platforms = platforms.joinToString(","),
-        genres = genres.joinToString(","),
-        publishers = publishers.joinToString(","),
-        developers = developers.joinToString(","),
         isWishlisted = isWishlisted,
         notes = notes,
         priority = priority.toInt(),
         status = status
     )
+}
+
+fun Game.toPlatformEntities(): List<PlatformEntity> {
+    return platforms.map { it.toEntity() }
+}
+
+fun Game.toGamePlatformCrossRefs(): List<GamePlatformCrossRef> {
+    return platforms.map {
+        GamePlatformCrossRef(
+            gameId = id,
+            platformId = it.id
+        )
+    }
+}
+
+fun Game.toGenreEntities(): List<GenreEntity> {
+    return genres.map { it.toEntity() }
+}
+
+fun Game.toGameGenreCrossRefs(): List<GameGenreCrossRef> {
+    return genres.map { GameGenreCrossRef(gameId = id, genreId = it.id) }
+}
+
+fun Game.toCompanyEntities(): List<CompanyEntity> {
+    val allCompanies = (developers + publishers).distinctBy { it.id }
+    return allCompanies.map { it.toEntity() }
+}
+
+fun Game.toGameCompanyCrossRefs(): List<GameCompanyCrossRef> {
+    val companyIds = (developers + publishers).map { it.id }.distinct()
+    return companyIds.map { companyId ->
+        GameCompanyCrossRef(
+            gameId = id,
+            companyId = companyId,
+            isDeveloper = developers.any { it.id == companyId },
+            isPublisher = publishers.any { it.id == companyId }
+        )
+    }
 }
 
 fun Priority.toInt(): Int {

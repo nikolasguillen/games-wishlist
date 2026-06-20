@@ -25,6 +25,7 @@ data class IgdbCover(
 @JsonClass(generateAdapter = true)
 data class IgdbPlatform(
     val id: Int,
+    val abbreviation: String?,
     val name: String
 )
 

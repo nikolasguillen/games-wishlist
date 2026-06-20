@@ -6,9 +6,15 @@ import androidx.room.TypeConverters
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
 import com.example.gameswishlist.core.database.dao.SearchHistoryDao
+import com.example.gameswishlist.core.database.entity.CompanyEntity
+import com.example.gameswishlist.core.database.entity.GameCompanyCrossRef
 import com.example.gameswishlist.core.database.entity.GameEntity
+import com.example.gameswishlist.core.database.entity.GameGenreCrossRef
 import com.example.gameswishlist.core.database.entity.GameListCrossRef
+import com.example.gameswishlist.core.database.entity.GamePlatformCrossRef
+import com.example.gameswishlist.core.database.entity.GenreEntity
 import com.example.gameswishlist.core.database.entity.ListEntity
+import com.example.gameswishlist.core.database.entity.PlatformEntity
 import com.example.gameswishlist.core.database.entity.SearchHistoryEntity
 import com.example.gameswishlist.core.database.util.Converters
 
@@ -17,7 +23,13 @@ import com.example.gameswishlist.core.database.util.Converters
         SearchHistoryEntity::class,
         GameEntity::class,
         ListEntity::class,
-        GameListCrossRef::class
+        GameListCrossRef::class,
+        PlatformEntity::class,
+        GamePlatformCrossRef::class,
+        GenreEntity::class,
+        GameGenreCrossRef::class,
+        CompanyEntity::class,
+        GameCompanyCrossRef::class
     ],
     version = 1,
     exportSchema = false

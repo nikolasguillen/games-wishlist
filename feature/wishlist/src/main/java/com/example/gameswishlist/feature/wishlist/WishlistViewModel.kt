@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.domain.usecase.list.GetGamesByListUseCase
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
-import com.example.gameswishlist.core.ui.model.GameItem
+import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,8 +18,8 @@ class WishlistViewModel @Inject constructor(
     private val getGamesByListUseCase: GetGamesByListUseCase
 ) : ViewModel() {
 
-    private val _games = MutableStateFlow<List<GameItem>>(emptyList())
-    val games: StateFlow<List<GameItem>> = _games.asStateFlow()
+    private val _games = MutableStateFlow<List<GameItemUiModel>>(emptyList())
+    val games: StateFlow<List<GameItemUiModel>> = _games.asStateFlow()
 
     fun loadGames(listId: Long) {
         viewModelScope.launch {

@@ -1,7 +1,13 @@
 package com.example.gameswishlist.core.data.repository
 
+import com.example.gameswishlist.core.data.mapper.toCompanyEntities
 import com.example.gameswishlist.core.data.mapper.toEntity
 import com.example.gameswishlist.core.data.mapper.toGame
+import com.example.gameswishlist.core.data.mapper.toGameCompanyCrossRefs
+import com.example.gameswishlist.core.data.mapper.toGameGenreCrossRefs
+import com.example.gameswishlist.core.data.mapper.toGamePlatformCrossRefs
+import com.example.gameswishlist.core.data.mapper.toGenreEntities
+import com.example.gameswishlist.core.data.mapper.toPlatformEntities
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
 import com.example.gameswishlist.core.database.dao.SearchHistoryDao
@@ -30,7 +36,7 @@ class GameRepositoryImpl @Inject constructor(
         return try {
             val queryText = """
                 search "$query";
-                fields name, summary, first_release_date, cover.url, total_rating, platforms.name, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                fields name, summary, first_release_date, cover.url, total_rating, platforms.name, platforms.abbreviation, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
                 limit 20;
             """.trimIndent()
             val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -88,11 +94,23 @@ class GameRepositoryImpl @Inject constructor(
 
     override suspend fun toggleWishlist(game: Game) {
         val updatedGame = game.copy(isWishlisted = !game.isWishlisted)
-        gameDao.insertGame(updatedGame.toEntity())
+        saveGameLocal(updatedGame)
     }
 
     override suspend fun updateGameDetails(game: Game) {
-        gameDao.insertGame(game.toEntity())
+        saveGameLocal(game)
+    }
+
+    private suspend fun saveGameLocal(game: Game) {
+        gameDao.saveGame(
+            game = game.toEntity(),
+            platforms = game.toPlatformEntities(),
+            platformCrossRefs = game.toGamePlatformCrossRefs(),
+            genres = game.toGenreEntities(),
+            genreCrossRefs = game.toGameGenreCrossRefs(),
+            companies = game.toCompanyEntities(),
+            companyCrossRefs = game.toGameCompanyCrossRefs()
+        )
     }
 
     override fun getAllLists(): Flow<List<WishlistList>> {

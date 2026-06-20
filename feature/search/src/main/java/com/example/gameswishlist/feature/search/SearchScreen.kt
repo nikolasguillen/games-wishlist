@@ -32,13 +32,15 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.ErrorPage
-import com.example.gameswishlist.core.ui.model.GameItem
+import com.example.gameswishlist.core.ui.model.GameItemUiModel
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.components.CollapsedSearchBar
 import com.example.gameswishlist.feature.search.components.EmptySearchPlaceholder
 import com.example.gameswishlist.feature.search.components.ExpandedSearchBar
 import com.example.gameswishlist.feature.search.components.InitialSearchPlaceholder
 import com.example.gameswishlist.feature.search.components.SearchResultGrid
 import com.example.gameswishlist.feature.search.components.SearchSkeletonGrid
+import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
@@ -139,21 +141,28 @@ fun SearchScreenContent(
             )
         }
     ) { innerPadding ->
+        val paddingModifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = MaterialTheme.spacing.large),
         ) {
             when (val state = uiState.contentState) {
-                is SearchContentState.Loading -> SearchSkeletonGrid()
+                is SearchContentState.Loading -> SearchSkeletonGrid(modifier = paddingModifier)
+                is SearchContentState.Error -> ErrorPage(
+                    message = state.message,
+                    modifier = paddingModifier
+                )
 
-                is SearchContentState.Error -> ErrorPage(message = state.message)
-                is SearchContentState.Initial -> InitialSearchPlaceholder()
-                is SearchContentState.Empty -> EmptySearchPlaceholder()
+                is SearchContentState.Initial -> InitialSearchPlaceholder(modifier = paddingModifier)
+                is SearchContentState.Empty -> EmptySearchPlaceholder(modifier = paddingModifier)
                 is SearchContentState.Success -> SearchResultGrid(
                     games = state.games,
-                    onGameClick = onGameClick
+                    filters = state.filters,
+                    onGameClick = onGameClick,
+                    onFilterClick = { onEvent(SearchUiEvent.OnFilterClick(it)) },
+                    modifier = paddingModifier
                 )
             }
         }
@@ -168,8 +177,26 @@ fun SearchScreenPreview() {
             uiState = SearchUiState(
                 contentState = SearchContentState.Success(
                     games = listOf(
-                        GameItem.getDummy(),
-                        GameItem.getDummy().copy(id = 2, name = "The Witcher 2")
+                        GameItemUiModel.getDummy(),
+                        GameItemUiModel.getDummy().copy(id = 2, name = "The Witcher 2")
+                    ),
+                    filters = listOf(
+                        GameFilterUiModel.Platform(
+                            id = 0,
+                            label = UiText.DynamicString("PC"),
+                            selected = true
+                        ),
+                        GameFilterUiModel.Platform(
+                            id = 1,
+                            label = UiText.DynamicString("PlayStation 4"),
+                            selected = false
+
+                        ),
+                        GameFilterUiModel.Platform(
+                            id = 2,
+                            label = UiText.DynamicString("Xbox One"),
+                            selected = false
+                        )
                     )
                 )
             ),

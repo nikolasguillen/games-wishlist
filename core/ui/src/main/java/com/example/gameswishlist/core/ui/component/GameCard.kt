@@ -25,11 +25,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.model.GameItem
+import com.example.gameswishlist.core.ui.model.GameItemUiModel
 
 @Composable
 fun GameCard(
-    game: GameItem,
+    game: GameItemUiModel,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -107,7 +107,7 @@ fun GameCard(
 @Composable
 private fun GameCardPreview() {
     GameCard(
-        game = GameItem.getDummy(),
+        game = GameItemUiModel.getDummy(),
         onClick = {}
     )
 }
