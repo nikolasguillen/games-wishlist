@@ -23,12 +23,20 @@ private fun getOrdinalSuffixRes(day: Int): Int {
 }
 
 fun Game.toGameItem(): GameItemUiModel {
+    val year = releaseDate?.let {
+        try {
+            LocalDate.parse(it).year.toString()
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     val formattedReleaseDate = releaseDate?.let { dateString ->
         try {
             val date = LocalDate.parse(dateString)
             val month = date.format(DateTimeFormatter.ofPattern("MMM", Locale.ENGLISH))
             val day = date.dayOfMonth
-            val year = date.year
+            val yearVal = date.year
             val suffixRes = getOrdinalSuffixRes(day)
 
             UiText.StringResource(
@@ -36,7 +44,7 @@ fun Game.toGameItem(): GameItemUiModel {
                 month,
                 day,
                 UiText.StringResource(suffixRes),
-                year
+                yearVal
             )
         } catch (_: Exception) {
             UiText.DynamicString(dateString)
@@ -64,10 +72,12 @@ fun Game.toGameItem(): GameItemUiModel {
         name = name,
         coverImage = backgroundImage,
         ratingText = cleanedRating,
+        rawRating = rating,
         releaseDateText = formattedReleaseDate?.let {
             UiText.StringResource(R.string.release_date_format, it)
         } ?: UiText.StringResource(R.string.unknown_release_date),
-        developer = UiText.DynamicString(developers.joinToString()),
+        releaseYear = year,
+        developer = if (developers.isNotEmpty()) UiText.DynamicString(developers.joinToString { it.name }) else null,
         platforms = platformsText
     )
 }

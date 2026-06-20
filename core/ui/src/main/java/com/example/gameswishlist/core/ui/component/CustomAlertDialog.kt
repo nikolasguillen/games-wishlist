@@ -7,11 +7,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.buildAnnotatedString
 
 @Composable
 fun CustomAlertDialog(
     title: String,
-    message: String,
+    message: AnnotatedString,
     confirmButtonText: String,
     onConfirm: () -> Unit,
     dismissButtonText: String,
@@ -38,5 +40,24 @@ fun CustomAlertDialog(
             }
         },
         modifier = Modifier.width(dialogWidth)
+    )
+}
+
+@Composable
+fun CustomAlertDialog(
+    title: String,
+    message: String,
+    confirmButtonText: String,
+    onConfirm: () -> Unit,
+    dismissButtonText: String,
+    onDismiss: () -> Unit
+) {
+    CustomAlertDialog(
+        title = title,
+        message = buildAnnotatedString { append(message) },
+        confirmButtonText = confirmButtonText,
+        onConfirm = onConfirm,
+        dismissButtonText = dismissButtonText,
+        onDismiss = onDismiss
     )
 }

@@ -7,7 +7,7 @@
     <string name="recent_searches">Recent searches</string>
     <string name="clear_all">Clear all</string>
     <string name="remove_history_item">Remove history item</string>
-    <string name="remove_history_item_message">Are you sure you want to remove <b>%1s</b> from your recent searches?</string>
+    <string name="remove_history_item_message">Are you sure you want to remove &lt;b&gt;%1s&lt;/b&gt; from your recent searches?</string>
     <string name="proceed_label">Proceed</string>
     <string name="cancel">Cancel</string>
 </resources>

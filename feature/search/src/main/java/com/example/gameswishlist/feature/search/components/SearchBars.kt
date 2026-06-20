@@ -59,6 +59,8 @@ import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import com.example.gameswishlist.feature.search.R as SearchR
 
+import com.example.gameswishlist.core.ui.util.annotatedStringResource
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SearchTopBar(
@@ -302,7 +304,7 @@ fun ExpandedSearchBar(
         if (showHistoryItemRemovalDialog) {
             CustomAlertDialog(
                 title = stringResource(SearchR.string.remove_history_item),
-                message = stringResource(
+                message = annotatedStringResource(
                     SearchR.string.remove_history_item_message,
                     recentSearchToBeRemoved
                 ),
