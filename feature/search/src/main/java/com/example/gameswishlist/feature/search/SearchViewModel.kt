@@ -2,6 +2,7 @@ package com.example.gameswishlist.feature.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.gameswishlist.core.common.calculateGameRelevanceScore
 import com.example.gameswishlist.core.domain.usecase.search.AddSearchToHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.ClearAllHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.DeleteSearchHistoryItemUseCase
@@ -127,13 +128,17 @@ class SearchViewModel @Inject constructor(
             _uiState.update { it.copy(contentState = SearchContentState.Loading) }
             searchGamesUseCase(query)
                 .onSuccess { searchResult ->
-                    val newState = if (searchResult.games.isEmpty()) {
+                    val sortedGames = searchResult.games.sortedByDescending { game ->
+                        calculateGameRelevanceScore(game)
+                    }
+
+                    val newState = if (sortedGames.isEmpty()) {
                         SearchContentState.Empty
                     } else {
                         SearchContentState.Success(
-                            games = searchResult.games.toGameItemList(),
+                            games = sortedGames.toGameItemList(),
                             filters = searchResult.platforms.toPlatformFilters(),
-                            allGames = searchResult.games
+                            allGames = sortedGames
                         )
                     }
                     _uiState.update { it.copy(contentState = newState) }

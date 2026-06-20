@@ -36,6 +36,8 @@ fun IgdbGame.toGame(): Game {
         releaseDate = releasedDate,
         backgroundImage = imageUrl,
         rating = totalRating ?: 0.0,
+        ratingCount = totalRatingCount ?: 0,
+        hypes = hypes ?: 0,
         platforms = platforms?.map { it.toPlatform() } ?: emptyList(),
         genres = genres?.map { it.toGenre() } ?: emptyList(),
         publishers = involvedCompanies?.filter { it.publisher }?.map { it.company.toCompany() }

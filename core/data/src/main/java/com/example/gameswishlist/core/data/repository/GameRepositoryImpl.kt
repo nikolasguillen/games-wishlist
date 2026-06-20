@@ -36,8 +36,8 @@ class GameRepositoryImpl @Inject constructor(
         return try {
             val queryText = """
                 search "$query";
-                fields name, summary, first_release_date, cover.url, total_rating, platforms.name, platforms.abbreviation, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
-                limit 20;
+                fields name, summary, first_release_date, cover.url, total_rating, total_rating_count, hypes, platforms.name, platforms.abbreviation, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                limit 50;
             """.trimIndent()
             val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
             val response = apiService.searchGames(body)

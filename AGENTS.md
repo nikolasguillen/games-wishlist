@@ -35,6 +35,10 @@
 - **Filtering**: Perform filtering and logic in the `ViewModel` or `UseCase` using IDs (not names) for robustness.
 - **Business Logic**: Keep logic (like the "12 characters label rule") in Mappers or UseCases, not in the Composables.
 - **Persistence**: When saving a game, use the `GameDao.saveGame` transactional method to ensure all related entities (Platforms, Genres, etc.) are persisted.
+- **Documentation & Language**: 
+    - Always use **English** for comments, KDoc, and any form of internal documentation.
+    - **Models**: Mandatory class-level KDoc using `@property` tags for all models in `core:model` (Domain) and `core:network` (Network). Avoid inline comments for fields.
+    - **Business Logic**: Document Use Cases and complex algorithms (like sorting or filtering) explaining the *rationale* and parameters.
 
 ## Build, test, and iteration workflow
 - Use the Gradle wrapper: `./gradlew :app:assembleDebug`.
