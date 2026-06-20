@@ -17,12 +17,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.TextFieldState
-import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
@@ -31,7 +29,6 @@ import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.AppBarWithSearchColors
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -58,12 +55,11 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomAlertDialog
+import com.example.gameswishlist.core.ui.util.annotatedStringResource
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import com.example.gameswishlist.feature.search.R as SearchR
-
-import com.example.gameswishlist.core.ui.util.annotatedStringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,10 +74,11 @@ internal fun SearchTopBar(
     val isScrolled by remember(scrollBehavior) {
         derivedStateOf {
             if (scrollBehavior.scrollOffsetLimit != 0f) {
-                val fraction = 1 - ((scrollBehavior.scrollOffsetLimit - scrollBehavior.contentOffset).coerceIn(
-                    scrollBehavior.scrollOffsetLimit,
-                    0f
-                ) / scrollBehavior.scrollOffsetLimit)
+                val fraction =
+                    1 - ((scrollBehavior.scrollOffsetLimit - scrollBehavior.contentOffset).coerceIn(
+                        scrollBehavior.scrollOffsetLimit,
+                        0f
+                    ) / scrollBehavior.scrollOffsetLimit)
                 fraction > 0.01f
             } else false
         }
