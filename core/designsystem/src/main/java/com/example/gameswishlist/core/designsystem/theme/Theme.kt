@@ -77,7 +77,7 @@ fun GamesWishlistTheme(
         AppColors(
             appBackground = colorScheme.surfaceContainer,
             onAppBackground = colorScheme.onBackground,
-            searchBarScrolledContainerColor = colorScheme.surfaceContainerLowest,
+            searchBarScrolledContainerColor = colorScheme.surfaceContainerHighest,
             searchBarInputFieldColor = colorScheme.surfaceBright,
             expandedSearchBarColor = colorScheme.surfaceContainer,
             navBarContainerColor = colorScheme.surfaceContainerHigh,

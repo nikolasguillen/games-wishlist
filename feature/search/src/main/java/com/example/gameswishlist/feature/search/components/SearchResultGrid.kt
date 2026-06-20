@@ -33,7 +33,7 @@ fun SearchResultGrid(
         columns = StaggeredGridCells.Fixed(2),
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraLarge),
         verticalItemSpacing = MaterialTheme.spacing.extraLarge,
-        contentPadding = PaddingValues(vertical = MaterialTheme.spacing.large),
+        contentPadding = PaddingValues(vertical = MaterialTheme.spacing.medium),
         modifier = modifier
     ) {
         items(items = games, key = { it.id }) { game ->

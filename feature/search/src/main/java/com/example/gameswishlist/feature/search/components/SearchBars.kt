@@ -96,11 +96,22 @@ internal fun SearchTopBar(
         scrolledAppBarContainerColor = Color.Transparent,
     )
 
-    Surface(color = backgroundColor) {
+    // Creiamo un proxy per far sì che la SearchBar interna veda lo stato dello scroll (per i colori)
+    // ma non applichi il modificatore di scroll, poiché lo applichiamo noi alla Surface esterna.
+    val proxyScrollBehavior = remember(scrollBehavior) {
+        object : SearchBarScrollBehavior by scrollBehavior {
+            override fun Modifier.searchBarScrollBehavior(): Modifier = this
+        }
+    }
+
+    Surface(
+        color = backgroundColor,
+        modifier = with(scrollBehavior) { Modifier.searchBarScrollBehavior() }
+    ) {
         Column {
             CollapsedSearchBar(
                 searchBarState = searchBarState,
-                scrollBehavior = scrollBehavior,
+                scrollBehavior = proxyScrollBehavior,
                 appBarWithSearchColors = appBarWithSearchColors,
                 inputField = inputField
             )

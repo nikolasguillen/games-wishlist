@@ -70,15 +70,17 @@ class SearchViewModel @Inject constructor(
 
                 val newFilters = contentState.filters.map { filter ->
                     when (filter) {
-                        is GameFilterUiModel.Platform if filter.id == event.filter.id -> {
-                            filter.copy(selected = !filter.selected)
+                        is GameFilterUiModel.Platform -> {
+                            if (event.filter is GameFilterUiModel.Platform && filter.id == event.filter.id) {
+                                filter.copy(selected = !filter.selected)
+                            } else filter
                         }
 
-                        is GameFilterUiModel.Genre if filter.id == event.filter.id -> {
-                            filter.copy(selected = !filter.selected)
+                        is GameFilterUiModel.Genre -> {
+                            if (event.filter is GameFilterUiModel.Genre && filter.id == event.filter.id) {
+                                filter.copy(selected = !filter.selected)
+                            } else filter
                         }
-
-                        else -> filter
                     }
                 }
 
@@ -86,14 +88,22 @@ class SearchViewModel @Inject constructor(
                     .filterIsInstance<GameFilterUiModel.Platform>()
                     .filter { it.selected }
                     .map { it.id }
-                    .toSet()
 
-                val filteredGames = if (selectedPlatformIds.isEmpty()) {
-                    contentState.allGames
-                } else {
-                    contentState.allGames.filter { game ->
-                        game.platforms.asSequence().map { it.id }.all { it in selectedPlatformIds }
-                    }
+                val selectedGenreIds = newFilters
+                    .filterIsInstance<GameFilterUiModel.Genre>()
+                    .filter { it.selected }
+                    .map { it.id }
+
+                val filteredGames = contentState.allGames.filter { game ->
+                    val gamePlatformIds = game.platforms.map { it.id }
+                    val matchesPlatform = selectedPlatformIds.isEmpty() ||
+                            selectedPlatformIds.all { it in gamePlatformIds }
+
+                    val gameGenreIds = game.genres.map { it.id }
+                    val matchesGenre = selectedGenreIds.isEmpty() ||
+                            selectedGenreIds.all { it in gameGenreIds }
+
+                    matchesPlatform && matchesGenre
                 }
 
                 _uiState.update {
