@@ -92,10 +92,9 @@ fun VerticalGameCardSkeleton(
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0f)),
         modifier = modifier
             .clip(RoundedCornerShape(MaterialTheme.spacing.mediumLarge))
+            .width(180.dp)
     ) {
-        Column(
-            modifier = Modifier.width(180.dp)
-        ) {
+        Column {
             Box(
                 modifier = Modifier
                     .height(180.dp)

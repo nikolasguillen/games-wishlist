@@ -45,6 +45,7 @@ data class GameWithAllDetails(
     )
     val genres: List<GenreEntity>,
     @Relation(
+        entity = GameCompanyCrossRef::class,
         parentColumn = "id",
         entityColumn = "gameId"
     )

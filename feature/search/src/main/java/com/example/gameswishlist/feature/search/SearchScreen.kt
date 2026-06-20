@@ -3,8 +3,11 @@
 package com.example.gameswishlist.feature.search
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
@@ -27,6 +30,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
@@ -149,7 +153,7 @@ fun SearchScreenContent(
                 .padding(innerPadding)
         ) {
             when (val state = uiState.contentState) {
-                is SearchContentState.Loading -> SearchSkeletonGrid(modifier = paddingModifier)
+                is SearchContentState.Loading -> SearchSkeletonGrid()
                 is SearchContentState.Error -> ErrorPage(
                     message = state.message,
                     modifier = paddingModifier
