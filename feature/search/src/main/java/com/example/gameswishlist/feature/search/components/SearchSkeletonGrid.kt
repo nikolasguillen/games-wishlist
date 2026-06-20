@@ -2,10 +2,8 @@ package com.example.gameswishlist.feature.search.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
@@ -24,30 +22,30 @@ import com.example.gameswishlist.core.ui.util.shimmerEffect
 fun SearchSkeletonGrid(
     modifier: Modifier = Modifier
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
-        modifier = modifier.statusBarsPadding()
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(2),
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraLarge),
+        verticalItemSpacing = MaterialTheme.spacing.extraLarge,
+        contentPadding = PaddingValues(all = MaterialTheme.spacing.large),
+        userScrollEnabled = false,
+        modifier = modifier
     ) {
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
-            contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large),
-            userScrollEnabled = false
-        ) {
-            items(5) {
-                FilterChipSkeleton()
-            }
+        items(6) {
+            VerticalGameCardSkeleton()
         }
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(2),
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraLarge),
-            verticalItemSpacing = MaterialTheme.spacing.extraLarge,
-            contentPadding = PaddingValues(all = MaterialTheme.spacing.large),
-            userScrollEnabled = false,
-            modifier = Modifier.weight(1f)
-        ) {
-            items(6) {
-                VerticalGameCardSkeleton()
-            }
+    }
+}
+
+@Composable
+fun FilterChipsSkeletonRow(modifier: Modifier = Modifier) {
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
+        contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large),
+        userScrollEnabled = false,
+        modifier = modifier
+    ) {
+        items(5) {
+            FilterChipSkeleton()
         }
     }
 }

@@ -2,54 +2,34 @@
 
 package com.example.gameswishlist.feature.search
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.SearchBarValue
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
-import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.component.ErrorPage
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
-import com.example.gameswishlist.feature.search.components.CollapsedSearchBar
-import com.example.gameswishlist.feature.search.components.EmptySearchPlaceholder
-import com.example.gameswishlist.feature.search.components.ExpandedSearchBar
-import com.example.gameswishlist.feature.search.components.InitialSearchPlaceholder
-import com.example.gameswishlist.feature.search.components.SearchResultGrid
-import com.example.gameswishlist.feature.search.components.SearchSkeletonGrid
+import com.example.gameswishlist.feature.search.components.SearchInputField
+import com.example.gameswishlist.feature.search.components.SearchMainContent
+import com.example.gameswishlist.feature.search.components.SearchTopBar
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import kotlinx.coroutines.launch
-import com.example.gameswishlist.feature.search.R as SearchR
 
 @Composable
 fun SearchScreen(
@@ -77,25 +57,7 @@ fun SearchScreenContent(
     val scope = rememberCoroutineScope()
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
 
-    val searchInputFieldColor = if (searchBarState.currentValue == SearchBarValue.Collapsed) {
-        MaterialTheme.appColors.searchBarInputFieldColor
-    } else {
-        MaterialTheme.appColors.expandedSearchBarColor
-    }
-
-    val appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(
-        searchBarColors = SearchBarDefaults.containedColors(state = searchBarState).copy(
-            inputFieldColors = TextFieldDefaults.colors(
-                focusedContainerColor = searchInputFieldColor,
-                unfocusedContainerColor = searchInputFieldColor
-            ),
-            dividerColor = SearchBarDefaults.colors().dividerColor.copy(alpha = 0.5f)
-        ),
-        appBarContainerColor = MaterialTheme.appColors.appBackground,
-        scrolledAppBarContainerColor = MaterialTheme.appColors.searchBarScrolledContainerColor,
-    )
-
-    fun onSearch(query: String = textFieldState.text.toString()) {
+    val onSearch: (String) -> Unit = { query ->
         scope.launch { searchBarState.animateToCollapsed() }
         if (textFieldState.text.toString() != query) {
             textFieldState.setTextAndPlaceCursorAtEnd(query)
@@ -104,23 +66,10 @@ fun SearchScreenContent(
     }
 
     val inputField = @Composable {
-        SearchBarDefaults.InputField(
+        SearchInputField(
             textFieldState = textFieldState,
             searchBarState = searchBarState,
-            colors = appBarWithSearchColors.searchBarColors.inputFieldColors,
-            onSearch = { onSearch() },
-            readOnly = searchBarState.currentValue == SearchBarValue.Collapsed,
-            placeholder = {
-                Text(
-                    modifier = Modifier.clearAndSetSemantics {},
-                    text = stringResource(SearchR.string.search_placeholder)
-                )
-            },
-            trailingIcon = {
-                IconButton(onClick = { onSearch() }) {
-                    Icon(imageVector = Icons.Default.Search, contentDescription = null)
-                }
-            }
+            onSearch = { onSearch(textFieldState.text.toString()) }
         )
     }
 
@@ -128,48 +77,23 @@ fun SearchScreenContent(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.appColors.appBackground,
         topBar = {
-            CollapsedSearchBar(
+            SearchTopBar(
+                uiState = uiState,
                 searchBarState = searchBarState,
                 scrollBehavior = scrollBehavior,
-                appBarWithSearchColors = appBarWithSearchColors,
-                inputField = inputField
-            )
-            ExpandedSearchBar(
-                searchBarState = searchBarState,
                 inputField = inputField,
-                recentSearches = uiState.recentSearches,
-                appBarWithSearchColors = appBarWithSearchColors,
-                onHistoryItemClicked = { onSearch(it) },
-                onClearRecentSearches = { onEvent(SearchUiEvent.OnClearHistory) },
-                onRemoveRecentSearchItem = { onEvent(SearchUiEvent.OnHistoryItemRemoved(it)) }
+                onSearch = onSearch,
+                onEvent = onEvent
             )
         }
     ) { innerPadding ->
-        val paddingModifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
-
-        Box(
+        SearchMainContent(
+            contentState = uiState.contentState,
+            onGameClick = onGameClick,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-        ) {
-            when (val state = uiState.contentState) {
-                is SearchContentState.Loading -> SearchSkeletonGrid()
-                is SearchContentState.Error -> ErrorPage(
-                    message = state.message,
-                    modifier = paddingModifier
-                )
-
-                is SearchContentState.Initial -> InitialSearchPlaceholder(modifier = paddingModifier)
-                is SearchContentState.Empty -> EmptySearchPlaceholder(modifier = paddingModifier)
-                is SearchContentState.Success -> SearchResultGrid(
-                    games = state.games,
-                    filters = state.filters,
-                    onGameClick = onGameClick,
-                    onFilterClick = { onEvent(SearchUiEvent.OnFilterClick(it)) },
-                    modifier = paddingModifier
-                )
-            }
-        }
+        )
     }
 }
 
