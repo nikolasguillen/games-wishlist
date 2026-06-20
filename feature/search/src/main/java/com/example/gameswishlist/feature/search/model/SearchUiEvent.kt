@@ -11,4 +11,5 @@ sealed interface SearchUiEvent {
     data object OnDismissFilters : SearchUiEvent
     data class OnBottomSheetFilterClick(val filter: GameFilterUiModel) : SearchUiEvent
     data object OnApplyFilters : SearchUiEvent
+    data object OnClearFilters : SearchUiEvent
 }

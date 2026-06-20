@@ -98,6 +98,34 @@ class SearchViewModel @Inject constructor(
             SearchUiEvent.OnApplyFilters -> {
                 applyBottomSheetFilters()
             }
+
+            SearchUiEvent.OnClearFilters -> {
+                handleClearFilters()
+            }
+        }
+    }
+
+    private fun handleClearFilters() {
+        val bsState = _uiState.value.bottomSheetState
+        val contentState = _uiState.value.contentState
+        if (contentState !is SearchContentState.Success) return
+
+        val clearedFilters = bsState.filters.map { filter ->
+            when (filter) {
+                is GameFilterUiModel.Platform -> filter.copy(selected = false)
+                is GameFilterUiModel.Genre -> filter.copy(selected = false)
+                is GameFilterUiModel.GameType -> filter.copy(selected = false)
+            }
+        }
+
+        val matchCount = calculateMatchCount(contentState.allGames, clearedFilters)
+        _uiState.update {
+            it.copy(
+                bottomSheetState = bsState.copy(
+                    filters = clearedFilters,
+                    matchCount = matchCount
+                )
+            )
         }
     }
 

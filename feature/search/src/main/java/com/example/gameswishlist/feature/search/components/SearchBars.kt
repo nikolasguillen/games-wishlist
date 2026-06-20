@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
@@ -69,6 +70,7 @@ import com.example.gameswishlist.core.ui.util.annotatedStringResource
 internal fun SearchTopBar(
     uiState: SearchUiState,
     searchBarState: SearchBarState,
+    textFieldState: TextFieldState,
     scrollBehavior: SearchBarScrollBehavior,
     onSearch: (String) -> Unit,
     onEvent: (SearchUiEvent) -> Unit
@@ -107,8 +109,6 @@ internal fun SearchTopBar(
             override fun Modifier.searchBarScrollBehavior(): Modifier = this
         }
     }
-
-    val textFieldState = androidx.compose.foundation.text.input.rememberTextFieldState()
 
     val inputField = @Composable {
         SearchInputField(

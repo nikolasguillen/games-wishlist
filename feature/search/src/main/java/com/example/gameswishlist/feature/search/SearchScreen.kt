@@ -23,7 +23,6 @@ import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.components.SearchFilterBottomSheet
-import com.example.gameswishlist.feature.search.components.SearchInputField
 import com.example.gameswishlist.feature.search.components.SearchMainContent
 import com.example.gameswishlist.feature.search.components.SearchTopBar
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
@@ -56,8 +55,10 @@ fun SearchScreenContent(
     val searchBarState = rememberContainedSearchBarState()
     val scope = rememberCoroutineScope()
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+    val textFieldState = rememberTextFieldState()
 
     val onSearch: (String) -> Unit = { query ->
+        textFieldState.setTextAndPlaceCursorAtEnd(query)
         scope.launch { searchBarState.animateToCollapsed() }
         onEvent(SearchUiEvent.OnSearchTriggered(query))
     }
@@ -69,6 +70,7 @@ fun SearchScreenContent(
             SearchTopBar(
                 uiState = uiState,
                 searchBarState = searchBarState,
+                textFieldState = textFieldState,
                 scrollBehavior = scrollBehavior,
                 onSearch = onSearch,
                 onEvent = onEvent

@@ -33,6 +33,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -81,7 +82,7 @@ fun SearchFilterBottomSheet(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
-                    TextButton(onClick = { /* TODO: Implement clear filters */ }) {
+                    TextButton(onClick = { onEvent(SearchUiEvent.OnClearFilters) }) {
                         Text(text = stringResource(R.string.clear_all))
                     }
                 }
@@ -92,7 +93,9 @@ fun SearchFilterBottomSheet(
 
                 Column(
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
-                    modifier = Modifier.verticalScroll(rememberScrollState()).weight(1f)
+                    modifier = Modifier
+                        .height(LocalWindowInfo.current.containerDpSize.height * 0.5f)
+                        .verticalScroll(rememberScrollState())
                 ) {
                     // Game Types Section
                     FilterSection(
@@ -100,7 +103,6 @@ fun SearchFilterBottomSheet(
                         filters = state.filters.filterIsInstance<GameFilterUiModel.GameType>(),
                         onFilterClick = { onEvent(SearchUiEvent.OnBottomSheetFilterClick(it)) }
                     )
-
                     // Genres Section
                     FilterSection(
                         title = stringResource(R.string.filter_section_genres),
