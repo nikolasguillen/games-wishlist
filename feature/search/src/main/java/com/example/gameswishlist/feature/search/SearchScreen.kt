@@ -4,15 +4,22 @@ package com.example.gameswishlist.feature.search
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -24,6 +31,7 @@ import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.components.SearchFilterBottomSheet
 import com.example.gameswishlist.feature.search.components.SearchMainContent
+import com.example.gameswishlist.feature.search.components.SearchSortBottomSheet
 import com.example.gameswishlist.feature.search.components.SearchTopBar
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
@@ -56,6 +64,13 @@ fun SearchScreenContent(
     val scope = rememberCoroutineScope()
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
     val textFieldState = rememberTextFieldState()
+    val gridState = rememberLazyStaggeredGridState()
+
+    val showScrollToTop by remember {
+        derivedStateOf {
+            gridState.firstVisibleItemIndex > 10
+        }
+    }
 
     val onSearch: (String) -> Unit = { query ->
         textFieldState.setTextAndPlaceCursorAtEnd(query)
@@ -75,18 +90,43 @@ fun SearchScreenContent(
                 onSearch = onSearch,
                 onEvent = onEvent
             )
+        },
+        floatingActionButton = {
+            if (showScrollToTop) {
+                FloatingActionButton(
+                    onClick = {
+                        scope.launch {
+                            gridState.animateScrollToItem(0)
+                        }
+                    },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowUp,
+                        contentDescription = "Scroll to top"
+                    )
+                }
+            }
         }
     ) { innerPadding ->
         SearchMainContent(
             contentState = uiState.contentState,
+            onEvent = onEvent,
             onGameClick = onGameClick,
+            gridState = gridState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         )
 
         SearchFilterBottomSheet(
-            state = uiState.bottomSheetState,
+            state = uiState.filtersBottomSheetState,
+            onEvent = onEvent
+        )
+
+        SearchSortBottomSheet(
+            state = uiState.sortBottomSheetState,
             onEvent = onEvent
         )
     }

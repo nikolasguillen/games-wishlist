@@ -19,4 +19,8 @@
     <string name="apply_filters_count">Show %1$d results</string>
     <string name="show_more">Show more</string>
     <string name="show_less">Show less</string>
+
+    <string name="search_results_count">%1$d games found</string>
+    <string name="sort_label">Sort</string>
+    <string name="filter_label">Filter</string>
 </resources>

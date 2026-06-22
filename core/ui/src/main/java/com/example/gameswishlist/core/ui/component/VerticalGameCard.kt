@@ -59,7 +59,12 @@ fun VerticalGameCard(
                 modifier = Modifier
                     .height(200.dp)
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(MaterialTheme.spacing.mediumLarge))
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = MaterialTheme.spacing.mediumLarge,
+                            topEnd = MaterialTheme.spacing.mediumLarge
+                        )
+                    )
             ) {
                 if (game.coverImage != null) {
                     AsyncImage(

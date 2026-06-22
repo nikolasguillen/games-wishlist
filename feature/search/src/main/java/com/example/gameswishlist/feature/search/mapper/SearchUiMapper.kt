@@ -6,6 +6,8 @@ import com.example.gameswishlist.core.model.Platform
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.UiConstants
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
+import com.example.gameswishlist.feature.search.model.SearchSort
+import com.example.gameswishlist.feature.search.model.SortingUiModel
 import com.example.gameswishlist.core.ui.R as UiR
 
 fun List<Platform>.toPlatformFilters(): List<GameFilterUiModel> {
@@ -95,6 +97,23 @@ fun getInitialGameTypeFilters(): List<GameFilterUiModel> {
             id = type.id,
             label = UiText.StringResource(stringResId),
             selected = false
+        )
+    }
+}
+
+fun getInitialSortFilters(): List<SortingUiModel> {
+    return SearchSort.entries.map { sort ->
+        val labelResId = when (sort) {
+            SearchSort.RELEVANCE -> UiR.string.sort_relevance
+            SearchSort.NAME -> UiR.string.sort_name
+            SearchSort.RATING -> UiR.string.sort_rating
+            SearchSort.RELEASE_DATE -> UiR.string.sort_release_date
+        }
+        SortingUiModel(
+            sortType = sort,
+            label = UiText.StringResource(labelResId),
+            selected = sort == SearchSort.RELEVANCE,
+            descending = true
         )
     }
 }

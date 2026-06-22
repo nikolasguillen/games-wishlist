@@ -40,7 +40,7 @@ class GameRepositoryImpl @Inject constructor(
                 search "$query";
                 fields name, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
                 where game_type != ($excludedIds);
-                limit 200;
+                limit 500;
             """.trimIndent()
             val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
             val response = apiService.searchGames(body)

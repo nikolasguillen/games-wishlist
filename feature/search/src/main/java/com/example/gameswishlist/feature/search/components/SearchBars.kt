@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.AppBarWithSearchColors
@@ -99,8 +98,8 @@ internal fun SearchTopBar(
         scrolledAppBarContainerColor = Color.Transparent,
     )
 
-    // Creiamo un proxy per far sì che la SearchBar interna veda lo stato dello scroll (per i colori)
-    // ma non applichi il modificatore di scroll, poiché lo applichiamo noi alla Surface esterna.
+    // Create a proxy so the internal SearchBar sees the scroll state (for colors)
+    // but doesn't apply the scroll modifier, as we apply it to the outer Surface ourselves.
     val proxyScrollBehavior = remember(scrollBehavior) {
         object : SearchBarScrollBehavior by scrollBehavior {
             override fun Modifier.searchBarScrollBehavior(): Modifier = this
@@ -111,9 +110,7 @@ internal fun SearchTopBar(
         SearchInputField(
             textFieldState = textFieldState,
             searchBarState = searchBarState,
-            onSearch = { onSearch(textFieldState.text.toString()) },
-            showFilterIcon = uiState.contentState is SearchContentState.Success,
-            onFilterClick = { onEvent(SearchUiEvent.OnOpenFilters) }
+            onSearch = { onSearch(textFieldState.text.toString()) }
         )
     }
 
@@ -131,14 +128,11 @@ internal fun SearchTopBar(
 
             val state = uiState.contentState
             if (state is SearchContentState.Success || state is SearchContentState.Loading) {
-                if (state is SearchContentState.Success) {
-                    FilterChipsRow(
-                        filters = state.filters,
-                        onFilterClick = { onEvent(SearchUiEvent.OnFilterClick(it)) }
-                    )
-                } else {
-                    FilterChipsSkeletonRow()
-                }
+                SearchSubHeader(
+                    uiState = uiState,
+                    onEvent = onEvent,
+                    modifier = Modifier.fillMaxWidth()
+                )
                 Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
             }
         }
@@ -164,9 +158,7 @@ internal fun SearchTopBar(
 internal fun SearchInputField(
     textFieldState: TextFieldState,
     searchBarState: SearchBarState,
-    onSearch: () -> Unit,
-    showFilterIcon: Boolean = false,
-    onFilterClick: () -> Unit = {}
+    onSearch: () -> Unit
 ) {
     val searchInputFieldColor = if (searchBarState.currentValue == SearchBarValue.Collapsed) {
         MaterialTheme.appColors.searchBarInputFieldColor
@@ -190,15 +182,8 @@ internal fun SearchInputField(
             )
         },
         trailingIcon = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (searchBarState.currentValue == SearchBarValue.Collapsed && showFilterIcon) {
-                    IconButton(onClick = onFilterClick) {
-                        Icon(imageVector = Icons.Default.Tune, contentDescription = "Open filters")
-                    }
-                }
-                IconButton(onClick = onSearch) {
-                    Icon(imageVector = Icons.Default.Search, contentDescription = null)
-                }
+            IconButton(onClick = onSearch) {
+                Icon(imageVector = Icons.Default.Search, contentDescription = null)
             }
         }
     )
@@ -218,7 +203,6 @@ fun CollapsedSearchBar(
         colors = appBarWithSearchColors,
         inputField = inputField,
         contentPadding = PaddingValues(
-            bottom = MaterialTheme.spacing.large,
             top = WindowInsets.statusBars.asPaddingValues()
                 .calculateTopPadding() + MaterialTheme.spacing.large
         )

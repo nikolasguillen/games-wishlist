@@ -2,28 +2,33 @@ package com.example.gameswishlist.feature.search.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.ErrorPage
 import com.example.gameswishlist.feature.search.model.SearchContentState
-import androidx.compose.material3.MaterialTheme
+import com.example.gameswishlist.feature.search.model.SearchUiEvent
 
 @Composable
 internal fun SearchMainContent(
     contentState: SearchContentState,
+    onEvent: (SearchUiEvent) -> Unit,
     onGameClick: (Int) -> Unit,
+    gridState: LazyStaggeredGridState,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier) {
         when (contentState) {
-            is SearchContentState.Loading -> SearchSkeletonGrid()
             is SearchContentState.Error -> ErrorPage(message = contentState.message)
             is SearchContentState.Initial -> InitialSearchPlaceholder()
             is SearchContentState.Empty -> EmptySearchPlaceholder()
-            is SearchContentState.Success -> SearchResultGrid(
-                games = contentState.games,
+            is SearchContentState.Success, is SearchContentState.Loading -> SearchResultGrid(
+                contentState = contentState,
+                onFilterClick = { onEvent(SearchUiEvent.OnFilterClick(it)) },
                 onGameClick = onGameClick,
+                state = gridState,
                 modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
             )
         }

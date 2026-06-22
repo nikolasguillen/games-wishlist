@@ -39,4 +39,10 @@
     <string name="gametype_fork">Fork</string>
     <string name="gametype_pack">Pack / Addon</string>
     <string name="gametype_update">Update</string>
+
+    <!-- Sorting -->
+    <string name="sort_relevance">Relevance</string>
+    <string name="sort_name">Name</string>
+    <string name="sort_rating">Rating</string>
+    <string name="sort_release_date">Release Date</string>
 </resources>

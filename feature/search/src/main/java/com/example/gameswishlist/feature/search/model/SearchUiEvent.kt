@@ -12,4 +12,7 @@ sealed interface SearchUiEvent {
     data class OnBottomSheetFilterClick(val filter: GameFilterUiModel) : SearchUiEvent
     data object OnApplyFilters : SearchUiEvent
     data object OnClearFilters : SearchUiEvent
+    data class OnSortChanged(val sort: SortingUiModel) : SearchUiEvent
+    data object OnOpenSort : SearchUiEvent
+    data object OnDismissSort : SearchUiEvent
 }

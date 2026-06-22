@@ -13,13 +13,17 @@ import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.mapper.getInitialGameTypeFilters
+import com.example.gameswishlist.feature.search.mapper.getInitialSortFilters
 import com.example.gameswishlist.feature.search.mapper.toGenreFilters
 import com.example.gameswishlist.feature.search.mapper.toPlatformFilters
 import com.example.gameswishlist.feature.search.model.FilterBottomSheetState
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
+import com.example.gameswishlist.feature.search.model.SearchSort
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
+import com.example.gameswishlist.feature.search.model.SortBottomSheetState
+import com.example.gameswishlist.feature.search.model.SortingUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,7 +41,11 @@ class SearchViewModel @Inject constructor(
     private val clearAllHistoryUseCase: ClearAllHistoryUseCase
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(SearchUiState())
+    private val _uiState = MutableStateFlow(
+        SearchUiState(
+            sortBottomSheetState = SortBottomSheetState(sorting = getInitialSortFilters())
+        )
+    )
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
     init {
@@ -78,7 +86,7 @@ class SearchViewModel @Inject constructor(
 
                 _uiState.update {
                     it.copy(
-                        bottomSheetState = FilterBottomSheetState(
+                        filtersBottomSheetState = FilterBottomSheetState(
                             isVisible = true,
                             filters = contentState.filters,
                             matchCount = contentState.games.size
@@ -88,7 +96,13 @@ class SearchViewModel @Inject constructor(
             }
 
             SearchUiEvent.OnDismissFilters -> {
-                _uiState.update { it.copy(bottomSheetState = it.bottomSheetState.copy(isVisible = false)) }
+                _uiState.update {
+                    it.copy(
+                        filtersBottomSheetState = it.filtersBottomSheetState.copy(
+                            isVisible = false
+                        )
+                    )
+                }
             }
 
             is SearchUiEvent.OnBottomSheetFilterClick -> {
@@ -102,11 +116,61 @@ class SearchViewModel @Inject constructor(
             SearchUiEvent.OnClearFilters -> {
                 handleClearFilters()
             }
+
+            is SearchUiEvent.OnSortChanged -> {
+                val bsState = _uiState.value.sortBottomSheetState
+                val newSortingList = bsState.sorting.map {
+                    if (it.sortType == event.sort.sortType) {
+                        if (it.selected) {
+                            // Toggle direction if already selected
+                            it.copy(descending = !it.descending)
+                        } else {
+                            // Select and default to descending for new selections
+                            it.copy(selected = true, descending = true)
+                        }
+                    } else {
+                        it.copy(selected = false)
+                    }
+                }
+
+                _uiState.update {
+                    it.copy(
+                        sortBottomSheetState = bsState.copy(
+                            isVisible = false,
+                            sorting = newSortingList
+                        )
+                    )
+                }
+                val contentState = _uiState.value.contentState
+                if (contentState is SearchContentState.Success) {
+                    updateSearchContent(contentState, contentState.filters)
+                }
+            }
+
+            SearchUiEvent.OnOpenSort -> {
+                _uiState.update {
+                    it.copy(
+                        sortBottomSheetState = it.sortBottomSheetState.copy(
+                            isVisible = true
+                        )
+                    )
+                }
+            }
+
+            SearchUiEvent.OnDismissSort -> {
+                _uiState.update {
+                    it.copy(
+                        sortBottomSheetState = it.sortBottomSheetState.copy(
+                            isVisible = false
+                        )
+                    )
+                }
+            }
         }
     }
 
     private fun handleClearFilters() {
-        val bsState = _uiState.value.bottomSheetState
+        val bsState = _uiState.value.filtersBottomSheetState
         val contentState = _uiState.value.contentState
         if (contentState !is SearchContentState.Success) return
 
@@ -121,7 +185,7 @@ class SearchViewModel @Inject constructor(
         val matchCount = calculateMatchCount(contentState.allGames, clearedFilters)
         _uiState.update {
             it.copy(
-                bottomSheetState = bsState.copy(
+                filtersBottomSheetState = bsState.copy(
                     filters = clearedFilters,
                     matchCount = matchCount
                 )
@@ -158,7 +222,7 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun handleBottomSheetFilterClick(eventFilter: GameFilterUiModel) {
-        val bsState = _uiState.value.bottomSheetState
+        val bsState = _uiState.value.filtersBottomSheetState
         val contentState = _uiState.value.contentState
         if (contentState !is SearchContentState.Success) return
 
@@ -186,52 +250,97 @@ class SearchViewModel @Inject constructor(
 
         val matchCount = calculateMatchCount(contentState.allGames, newFilters)
         _uiState.update {
-            it.copy(bottomSheetState = bsState.copy(filters = newFilters, matchCount = matchCount))
+            it.copy(
+                filtersBottomSheetState = bsState.copy(
+                    filters = newFilters,
+                    matchCount = matchCount
+                )
+            )
         }
     }
 
     private fun applyBottomSheetFilters() {
-        val bsState = _uiState.value.bottomSheetState
+        val bsState = _uiState.value.filtersBottomSheetState
         val contentState = _uiState.value.contentState
         if (contentState !is SearchContentState.Success) return
 
-        _uiState.update { it.copy(bottomSheetState = bsState.copy(isVisible = false)) }
+        _uiState.update { it.copy(filtersBottomSheetState = bsState.copy(isVisible = false)) }
         updateSearchContent(contentState, bsState.filters)
     }
 
-    private fun calculateMatchCount(allGames: List<com.example.gameswishlist.core.model.Game>, filters: List<GameFilterUiModel>): Int {
-        val selectedPlatformIds = filters.filterIsInstance<GameFilterUiModel.Platform>().filter { it.selected }.map { it.id }
-        val selectedGenreIds = filters.filterIsInstance<GameFilterUiModel.Genre>().filter { it.selected }.map { it.id }
-        val selectedGameTypeIds = filters.filterIsInstance<GameFilterUiModel.GameType>().filter { it.selected }.map { it.id }
+    private fun calculateMatchCount(
+        allGames: List<com.example.gameswishlist.core.model.Game>,
+        filters: List<GameFilterUiModel>
+    ): Int {
+        return filterGames(allGames, filters).size
+    }
 
-        return allGames.count { game ->
+    private fun filterGames(
+        allGames: List<com.example.gameswishlist.core.model.Game>,
+        filters: List<GameFilterUiModel>
+    ): List<com.example.gameswishlist.core.model.Game> {
+        val selectedPlatformIds =
+            filters.filterIsInstance<GameFilterUiModel.Platform>().filter { it.selected }
+                .map { it.id }
+        val selectedGenreIds =
+            filters.filterIsInstance<GameFilterUiModel.Genre>().filter { it.selected }.map { it.id }
+        val selectedGameTypeIds =
+            filters.filterIsInstance<GameFilterUiModel.GameType>().filter { it.selected }
+                .map { it.id }
+
+        return allGames.filter { game ->
             val gamePlatformIds = game.platforms.map { it.id }
-            val matchesPlatform = selectedPlatformIds.isEmpty() || selectedPlatformIds.all { it in gamePlatformIds }
+            val matchesPlatform =
+                selectedPlatformIds.isEmpty() || selectedPlatformIds.all { it in gamePlatformIds }
             val gameGenreIds = game.genres.map { it.id }
-            val matchesGenre = selectedGenreIds.isEmpty() || selectedGenreIds.all { it in gameGenreIds }
-            val matchesGameType = selectedGameTypeIds.isEmpty() || game.gameType.id in selectedGameTypeIds
+            val matchesGenre =
+                selectedGenreIds.isEmpty() || selectedGenreIds.all { it in gameGenreIds }
+            val matchesGameType =
+                selectedGameTypeIds.isEmpty() || game.gameType.id in selectedGameTypeIds
             matchesPlatform && matchesGenre && matchesGameType
         }
     }
 
-    private fun updateSearchContent(contentState: SearchContentState.Success, newFilters: List<GameFilterUiModel>) {
-        val selectedPlatformIds = newFilters.filterIsInstance<GameFilterUiModel.Platform>().filter { it.selected }.map { it.id }
-        val selectedGenreIds = newFilters.filterIsInstance<GameFilterUiModel.Genre>().filter { it.selected }.map { it.id }
-        val selectedGameTypeIds = newFilters.filterIsInstance<GameFilterUiModel.GameType>().filter { it.selected }.map { it.id }
+    private fun sortGames(
+        games: List<com.example.gameswishlist.core.model.Game>,
+        sortModel: SortingUiModel?
+    ): List<com.example.gameswishlist.core.model.Game> {
+        val currentSort = sortModel ?: return games
 
-        val filteredGames = contentState.allGames.filter { game ->
-            val gamePlatformIds = game.platforms.map { it.id }
-            val matchesPlatform = selectedPlatformIds.isEmpty() || selectedPlatformIds.all { it in gamePlatformIds }
-            val gameGenreIds = game.genres.map { it.id }
-            val matchesGenre = selectedGenreIds.isEmpty() || selectedGenreIds.all { it in gameGenreIds }
-            val matchesGameType = selectedGameTypeIds.isEmpty() || game.gameType.id in selectedGameTypeIds
-            matchesPlatform && matchesGenre && matchesGameType
+        return when (currentSort.sortType) {
+            SearchSort.RELEVANCE -> {
+                if (currentSort.descending) games.sortedByDescending { calculateGameRelevanceScore(it) }
+                else games.sortedBy { calculateGameRelevanceScore(it) }
+            }
+
+            SearchSort.NAME -> {
+                if (currentSort.descending) games.sortedByDescending { it.name }
+                else games.sortedBy { it.name }
+            }
+
+            SearchSort.RATING -> {
+                if (currentSort.descending) games.sortedByDescending { it.rating }
+                else games.sortedBy { it.rating }
+            }
+
+            SearchSort.RELEASE_DATE -> {
+                if (currentSort.descending) games.sortedByDescending { it.releaseDate }
+                else games.sortedBy { it.releaseDate }
+            }
         }
+    }
+
+    private fun updateSearchContent(
+        contentState: SearchContentState.Success,
+        newFilters: List<GameFilterUiModel>
+    ) {
+        val filteredGames = filterGames(contentState.allGames, newFilters)
+        val sortedGames = sortGames(filteredGames, _uiState.value.sortBottomSheetState.selectedSorting)
 
         _uiState.update {
             it.copy(
                 contentState = contentState.copy(
-                    games = filteredGames.toGameItemList(),
+                    games = sortedGames.toGameItemList(),
                     filters = newFilters
                 )
             )
@@ -247,17 +356,15 @@ class SearchViewModel @Inject constructor(
             _uiState.update { it.copy(contentState = SearchContentState.Loading) }
             searchGamesUseCase(query)
                 .onSuccess { searchResult ->
-                    val sortedGames = searchResult.games.sortedByDescending { game ->
-                        calculateGameRelevanceScore(game)
-                    }
+                    val sortedGames = sortGames(searchResult.games, _uiState.value.sortBottomSheetState.selectedSorting)
 
                     val newState = if (sortedGames.isEmpty()) {
                         SearchContentState.Empty
                     } else {
                         val filters = searchResult.platforms.toPlatformFilters() +
-                                     searchResult.genres.toGenreFilters() + 
-                                     getInitialGameTypeFilters()
-                        
+                                searchResult.genres.toGenreFilters() +
+                                getInitialGameTypeFilters()
+
                         SearchContentState.Success(
                             games = sortedGames.toGameItemList(),
                             filters = filters,

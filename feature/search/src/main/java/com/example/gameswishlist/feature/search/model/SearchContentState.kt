@@ -12,6 +12,8 @@ sealed interface SearchContentState {
         val games: List<GameItemUiModel>,
         val filters: List<GameFilterUiModel>,
         val allGames: List<Game> = emptyList()
-    ) : SearchContentState
+    ) : SearchContentState {
+        val activeFilters: List<GameFilterUiModel> = filters.filter { it.selected }
+    }
     data class Error(val message: UiText) : SearchContentState
 }
