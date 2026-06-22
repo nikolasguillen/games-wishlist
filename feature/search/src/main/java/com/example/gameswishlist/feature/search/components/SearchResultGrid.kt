@@ -3,7 +3,6 @@ package com.example.gameswishlist.feature.search.components
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -51,7 +50,7 @@ fun SearchResultGrid(
         columns = StaggeredGridCells.Fixed(2),
         state = state,
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraLarge),
-        verticalItemSpacing = MaterialTheme.spacing.extraLarge,
+        verticalItemSpacing = MaterialTheme.spacing.large,
         contentPadding = PaddingValues(bottom = MaterialTheme.spacing.medium),
         modifier = modifier
     ) {
@@ -59,8 +58,7 @@ fun SearchResultGrid(
             item(span = StaggeredGridItemSpan.FullLine) {
                 ActiveFiltersRow(
                     filters = activeFilters,
-                    onFilterClick = onFilterClick,
-                    modifier = Modifier.padding(vertical = MaterialTheme.spacing.small)
+                    onFilterClick = onFilterClick
                 )
             }
         }
@@ -86,7 +84,6 @@ fun ActiveFiltersRow(
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
         verticalAlignment = Alignment.CenterVertically,
-        contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large),
         modifier = modifier
     ) {
         items(

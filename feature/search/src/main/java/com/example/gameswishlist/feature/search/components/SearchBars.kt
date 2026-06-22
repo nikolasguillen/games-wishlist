@@ -133,7 +133,7 @@ internal fun SearchTopBar(
                     onEvent = onEvent,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
             }
         }
     }
