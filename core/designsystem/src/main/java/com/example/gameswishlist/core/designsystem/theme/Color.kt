@@ -35,30 +35,3 @@ val BackgroundDark = SpotifyBlack
 val OnBackgroundDark = SpotifyWhite
 val SurfaceDark = SpotifyDarkGrey
 val OnSurfaceDark = SpotifyWhite
-
-// Light colors (even if not used, keeping them for compilation if needed, or we can remove them if we enforce dark)
-// For now, let's keep them as a fallback but we will force Dark in Theme.kt
-val PrimaryLight = Color(0xFF1DB954)
-val OnPrimaryLight = Color.White
-val PrimaryContainerLight = Color(0xFFB1F4B1)
-val OnPrimaryContainerLight = Color(0xFF002108)
-
-val SecondaryLight = Color(0xFF53634F)
-val OnSecondaryLight = Color.White
-val SecondaryContainerLight = Color(0xFFD6E8CE)
-val OnSecondaryContainerLight = Color(0xFF111F0F)
-
-val TertiaryLight = Color(0xFF386567)
-val OnTertiaryLight = Color.White
-val TertiaryContainerLight = Color(0xFFBCEBEB)
-val OnTertiaryContainerLight = Color(0xFF002021)
-
-val ErrorLight = Color(0xFFBA1A1A)
-val OnErrorLight = Color.White
-val ErrorContainerLight = Color(0xFFFFDAD6)
-val OnErrorContainerLight = Color(0xFF410002)
-
-val BackgroundLight = Color(0xFFFBFDF7)
-val OnBackgroundLight = Color(0xFF1A1C19)
-val SurfaceLight = Color(0xFFFBFDF7)
-val OnSurfaceLight = Color(0xFF1A1C19)

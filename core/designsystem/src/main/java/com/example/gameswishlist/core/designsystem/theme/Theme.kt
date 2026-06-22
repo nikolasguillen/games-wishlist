@@ -9,8 +9,6 @@ import androidx.compose.runtime.ReadOnlyComposable
 
 @Composable
 fun GamesWishlistTheme(
-    darkTheme: Boolean = true,
-    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = darkColorScheme(
