@@ -68,7 +68,7 @@ fun SearchScreenContent(
 
     val showScrollToTop by remember {
         derivedStateOf {
-            gridState.firstVisibleItemIndex > 10
+            gridState.firstVisibleItemIndex > 3
         }
     }
 
@@ -96,11 +96,13 @@ fun SearchScreenContent(
                 FloatingActionButton(
                     onClick = {
                         scope.launch {
+                            // Reset search bar scroll state to change background color
+                            scrollBehavior.contentOffset = 0f
+                            scrollBehavior.scrollOffset = 0f
+                            // Scroll the grid to top
                             gridState.animateScrollToItem(0)
                         }
-                    },
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowUp,

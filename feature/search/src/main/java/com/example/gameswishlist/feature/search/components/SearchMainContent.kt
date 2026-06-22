@@ -24,13 +24,15 @@ internal fun SearchMainContent(
             is SearchContentState.Error -> ErrorPage(message = contentState.message)
             is SearchContentState.Initial -> InitialSearchPlaceholder()
             is SearchContentState.Empty -> EmptySearchPlaceholder()
-            is SearchContentState.Success, is SearchContentState.Loading -> SearchResultGrid(
-                contentState = contentState,
-                onFilterClick = { onEvent(SearchUiEvent.OnFilterClick(it)) },
-                onGameClick = onGameClick,
-                state = gridState,
-                modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
-            )
+            is SearchContentState.Success, is SearchContentState.Loading -> {
+                SearchResultGrid(
+                    contentState = contentState,
+                    onFilterClick = { onEvent(SearchUiEvent.OnFilterClick(it)) },
+                    onGameClick = onGameClick,
+                    state = gridState,
+                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
+                )
+            }
         }
     }
 }
