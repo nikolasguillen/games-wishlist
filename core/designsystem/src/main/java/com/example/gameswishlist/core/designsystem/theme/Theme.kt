@@ -41,10 +41,13 @@ fun GamesWishlistTheme(
         onAppBackground = SpotifyWhite,
         searchBarScrolledContainerColor = SpotifyDarkGrey,
         searchBarInputFieldColor = SpotifyMediumGrey,
-        expandedSearchBarColor = SpotifyBlack,
-        navBarContainerColor = SpotifyBlack.copy(alpha = 0.95f),
+        expandedSearchBarColor = SpotifyMediumGrey,
+        navBarContainerColor = SpotifyMediumGrey,
         navBarItemIndicatorColor = SpotifyGreen,
-        navBarItemSelectedIconColor = SpotifyBlack
+        navBarItemSelectedIconColor = SpotifyBlack,
+        filterChipSelectedContainerColor = PrimaryDark,
+        filterChipUnselectedContainerColor = OnPrimaryDark,
+        filterChipSelectedContentColor = OnPrimaryDark
     )
 
     CompositionLocalProvider(

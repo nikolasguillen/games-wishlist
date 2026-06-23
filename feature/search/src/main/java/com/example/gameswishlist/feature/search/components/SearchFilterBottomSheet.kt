@@ -18,7 +18,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
+import com.example.gameswishlist.core.ui.component.CustomFilterChip
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.R
 import com.example.gameswishlist.feature.search.model.FilterBottomSheetState
@@ -170,15 +170,10 @@ private fun FilterSection(
             maxLines = maxRows
         ) {
             filters.forEach { filter ->
-                FilterChip(
-                    selected = filter.selected,
-                    onClick = { onFilterClick(filter) },
-                    label = {
-                        Text(
-                            text = filter.label.asString()
-                        )
-                    },
-                    shape = MaterialTheme.shapes.small
+                CustomFilterChip(
+                    label = filter.label.asString(),
+                    onFilterClick = { onFilterClick(filter) },
+                    selected = filter.selected
                 )
             }
         }

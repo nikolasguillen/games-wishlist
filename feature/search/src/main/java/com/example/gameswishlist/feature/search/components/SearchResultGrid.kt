@@ -1,6 +1,5 @@
 package com.example.gameswishlist.feature.search.components
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.requiredSize
@@ -13,16 +12,15 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.gameswishlist.core.designsystem.theme.spacing
+import com.example.gameswishlist.core.ui.component.CustomFilterChip
 import com.example.gameswishlist.core.ui.component.VerticalGameCard
 import com.example.gameswishlist.core.ui.component.VerticalGameCardSkeleton
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
@@ -90,21 +88,17 @@ fun ActiveFiltersRow(
             items = filters,
             key = { filter -> "${filter::class.simpleName}:${filter.id}" }
         ) { gameFilter ->
-            FilterChip(
+            CustomFilterChip(
+                label = gameFilter.label.asString(),
                 selected = true,
-                onClick = { onFilterClick(gameFilter) },
-                label = {
-                    Text(text = gameFilter.label.asString(), maxLines = 1)
-                },
+                onFilterClick = { onFilterClick(gameFilter) },
                 trailingIcon = {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = null,
                         modifier = Modifier.requiredSize(FilterChipDefaults.IconSize)
                     )
-                },
-                contentPadding = PaddingValues(all = MaterialTheme.spacing.small),
-                modifier = Modifier.animateContentSize()
+                }
             )
         }
     }
