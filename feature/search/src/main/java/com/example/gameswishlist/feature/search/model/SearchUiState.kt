@@ -1,7 +1,5 @@
 package com.example.gameswishlist.feature.search.model
 
-import com.example.gameswishlist.core.ui.model.GameItemUiModel
-
 /**
  * Main UI state for the Search screen.
  *
