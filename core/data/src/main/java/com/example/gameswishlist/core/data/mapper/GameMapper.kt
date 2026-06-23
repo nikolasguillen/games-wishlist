@@ -141,7 +141,8 @@ fun GameWithAllDetails.toGame(): Game {
         gameType = GameType.fromId(game.gameTypeId),
         notes = game.notes,
         priority = game.priority.toPriority(),
-        status = game.status
+        status = game.status,
+        lastViewedAt = game.lastViewedAt
     )
 }
 
@@ -158,7 +159,8 @@ fun Game.toEntity(): GameEntity {
         gameTypeId = gameType.id,
         notes = notes,
         priority = priority.toInt(),
-        status = status
+        status = status,
+        lastViewedAt = lastViewedAt
     )
 }
 

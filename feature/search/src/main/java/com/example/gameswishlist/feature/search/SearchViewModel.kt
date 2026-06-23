@@ -6,7 +6,7 @@ import com.example.gameswishlist.core.common.calculateGameRelevanceScore
 import com.example.gameswishlist.core.domain.usecase.search.AddSearchToHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.ClearAllHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.DeleteSearchHistoryItemUseCase
-import com.example.gameswishlist.core.domain.usecase.search.GetSearchHistoryUseCase
+import com.example.gameswishlist.core.domain.usecase.search.GetRecentSearchActivityUseCase
 import com.example.gameswishlist.core.domain.usecase.search.SearchGamesUseCase
 import com.example.gameswishlist.core.model.RepositoryError
 import com.example.gameswishlist.core.ui.R
@@ -19,6 +19,7 @@ import com.example.gameswishlist.feature.search.mapper.toPlatformFilters
 import com.example.gameswishlist.feature.search.model.FilterBottomSheetState
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
+import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
 import com.example.gameswishlist.feature.search.model.SearchSort
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
@@ -36,7 +37,7 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor(
     private val searchGamesUseCase: SearchGamesUseCase,
     private val addSearchToHistoryUseCase: AddSearchToHistoryUseCase,
-    private val getSearchHistoryUseCase: GetSearchHistoryUseCase,
+    private val getRecentSearchActivityUseCase: GetRecentSearchActivityUseCase,
     private val deleteSearchHistoryItemUseCase: DeleteSearchHistoryItemUseCase,
     private val clearAllHistoryUseCase: ClearAllHistoryUseCase
 ) : ViewModel() {
@@ -50,9 +51,14 @@ class SearchViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getSearchHistoryUseCase().collect {
+            getRecentSearchActivityUseCase().collect { activity ->
                 _uiState.update { currentState ->
-                    currentState.copy(recentSearches = it)
+                    currentState.copy(
+                        history = SearchHistoryUiModel(
+                            queries = activity.queries,
+                            games = activity.games.toGameItemList()
+                        )
+                    )
                 }
             }
         }

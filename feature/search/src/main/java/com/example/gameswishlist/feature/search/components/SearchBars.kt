@@ -54,8 +54,11 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomAlertDialog
+import com.example.gameswishlist.core.ui.component.RecentGameCard
+import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.util.annotatedStringResource
 import com.example.gameswishlist.feature.search.model.SearchContentState
+import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import com.example.gameswishlist.feature.search.R as SearchR
@@ -68,6 +71,7 @@ internal fun SearchTopBar(
     textFieldState: TextFieldState,
     scrollBehavior: SearchBarScrollBehavior,
     onSearch: (String) -> Unit,
+    onGameClick: (Int) -> Unit,
     onEvent: (SearchUiEvent) -> Unit
 ) {
     val isScrolled by remember(scrollBehavior) {
@@ -141,13 +145,14 @@ internal fun SearchTopBar(
     ExpandedSearchBar(
         searchBarState = searchBarState,
         inputField = inputField,
-        recentSearches = uiState.recentSearches,
+        history = uiState.history,
         appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(
             searchBarColors = appBarWithSearchColors.searchBarColors,
             appBarContainerColor = MaterialTheme.appColors.appBackground,
             scrolledAppBarContainerColor = MaterialTheme.appColors.searchBarScrolledContainerColor
         ),
         onHistoryItemClicked = { onSearch(it) },
+        onGameClick = onGameClick,
         onClearRecentSearches = { onEvent(SearchUiEvent.OnClearHistory) },
         onRemoveRecentSearchItem = { onEvent(SearchUiEvent.OnHistoryItemRemoved(it)) }
     )
@@ -214,9 +219,10 @@ fun CollapsedSearchBar(
 fun ExpandedSearchBar(
     searchBarState: SearchBarState,
     inputField: @Composable () -> Unit,
-    recentSearches: List<String>,
+    history: SearchHistoryUiModel,
     appBarWithSearchColors: AppBarWithSearchColors,
     onHistoryItemClicked: (query: String) -> Unit,
+    onGameClick: (Int) -> Unit,
     onClearRecentSearches: () -> Unit,
     onRemoveRecentSearchItem: (query: String) -> Unit
 ) {
@@ -229,7 +235,7 @@ fun ExpandedSearchBar(
             containerColor = MaterialTheme.appColors.expandedSearchBarColor
         )
     ) {
-        if (recentSearches.isEmpty()) return@ExpandedFullScreenSearchBar
+        if (history.isEmpty) return@ExpandedFullScreenSearchBar // TODO mettere placeholder?
         var recentSearchToBeRemoved by remember { mutableStateOf("") }
 
         fun showRecentSearchRemovalDialog(itemToRemove: String) {
@@ -242,66 +248,23 @@ fun ExpandedSearchBar(
                 .fillMaxSize()
                 .padding(
                     vertical = MaterialTheme.spacing.medium
-                )
+                ),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large)
         ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = MaterialTheme.spacing.large)
-            ) {
-                Text(
-                    text = stringResource(SearchR.string.recent_searches),
-                    style = MaterialTheme.typography.titleMedium
+            if (history.queries.isNotEmpty()) {
+                RecentSearchesSection(
+                    recentSearches = history.queries,
+                    onClearRecentSearches = onClearRecentSearches,
+                    onHistoryItemClicked = onHistoryItemClicked,
+                    onShowRemovalDialog = ::showRecentSearchRemovalDialog
                 )
-
-                TextButton(
-                    onClick = onClearRecentSearches
-                ) {
-                    Text(
-                        text = stringResource(SearchR.string.clear_all),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.appColors.onAppBackground
-                    )
-                }
             }
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
-                contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large)
-            ) {
-                items(items = recentSearches, key = { it }) { recentSearch ->
-                    val inputChipInteractionSource = remember { MutableInteractionSource() }
-                    Box {
-                        SuggestionChip(
-                            onClick = { onHistoryItemClicked(recentSearch) },
-                            label = {
-                                Text(
-                                    text = recentSearch,
-                                    maxLines = 1
-                                )
-                            },
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.History,
-                                    contentDescription = null
-                                )
-                            },
-                            contentPadding = PaddingValues(all = MaterialTheme.spacing.small),
-                            interactionSource = inputChipInteractionSource
-                        )
-                        Box(
-                            modifier = Modifier
-                                .matchParentSize()
-                                .combinedClickable(
-                                    onLongClick = { showRecentSearchRemovalDialog(recentSearch) },
-                                    onClick = { onHistoryItemClicked(recentSearch) },
-                                    interactionSource = inputChipInteractionSource,
-                                    indication = null,
-                                )
-                        )
-                    }
-                }
+
+            if (history.games.isNotEmpty()) {
+                RecentGamesSection(
+                    recentGames = history.games,
+                    onGameClick = onGameClick
+                )
             }
         }
 
@@ -320,3 +283,96 @@ fun ExpandedSearchBar(
         }
     }
 }
+
+@Composable
+private fun RecentSearchesSection(
+    recentSearches: List<String>,
+    onClearRecentSearches: () -> Unit,
+    onHistoryItemClicked: (String) -> Unit,
+    onShowRemovalDialog: (String) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = MaterialTheme.spacing.large)
+        ) {
+            Text(
+                text = stringResource(SearchR.string.recent_searches),
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            TextButton(
+                onClick = onClearRecentSearches
+            ) {
+                Text(stringResource(SearchR.string.clear_all))
+            }
+        }
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
+            contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large)
+        ) {
+            items(items = recentSearches, key = { it }) { recentSearch ->
+                val inputChipInteractionSource = remember { MutableInteractionSource() }
+                Box {
+                    SuggestionChip(
+                        onClick = { onHistoryItemClicked(recentSearch) },
+                        label = {
+                            Text(
+                                text = recentSearch,
+                                maxLines = 1
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.History,
+                                contentDescription = null
+                            )
+                        },
+                        contentPadding = PaddingValues(all = MaterialTheme.spacing.small),
+                        interactionSource = inputChipInteractionSource
+                    )
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .combinedClickable(
+                                onLongClick = { onShowRemovalDialog(recentSearch) },
+                                onClick = { onHistoryItemClicked(recentSearch) },
+                                interactionSource = inputChipInteractionSource,
+                                indication = null
+                            )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecentGamesSection(
+    recentGames: List<GameItemUiModel>,
+    onGameClick: (Int) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
+        Text(
+            text = stringResource(SearchR.string.recently_viewed),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
+        )
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
+            contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large)
+        ) {
+            items(items = recentGames, key = { it.id }) { game ->
+                RecentGameCard(
+                    game = game,
+                    onClick = { onGameClick(game.id) }
+                )
+            }
+        }
+    }
+}
+

@@ -56,51 +56,11 @@ fun VerticalGameCard(
             .width(180.dp)
     ) {
         Column {
-            Box(
-                modifier = Modifier
-                    .height(200.dp)
-                    .fillMaxWidth()
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = MaterialTheme.spacing.mediumLarge,
-                            topEnd = MaterialTheme.spacing.mediumLarge
-                        )
-                    )
-            ) {
-                if (game.coverImage != null) {
-                    AsyncImage(
-                        model = game.coverImage,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .fadingEdge(bottomAlpha = 1f, fadeSize = 50.dp)
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surfaceContainerLow),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Image,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                        )
-                    }
-                }
-
-                if (game.rawRating > 0) {
-                    RatingBadge(
-                        rating = game.rawRating,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(MaterialTheme.spacing.small)
-                    )
-                }
-            }
+            GameCoverHeader(
+                coverImage = game.coverImage,
+                rawRating = game.rawRating,
+                height = 200.dp
+            )
 
             Column(
                 modifier = Modifier
@@ -118,39 +78,148 @@ fun VerticalGameCard(
                     lineHeight = MaterialTheme.typography.titleSmall.lineHeight,
                 )
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall)
-                ) {
-                    game.developer?.let {
-                        Text(
-                            text = it.asString(),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false)
-                        )
-                    }
+                GameMetadataRow(developer = game.developer, releaseYear = game.releaseYear)
+            }
+        }
+    }
+}
 
-                    if (game.developer != null && game.releaseYear != null) {
-                        Text(
-                            text = "•",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                        )
-                    }
+@Composable
+fun RecentGameCard(
+    game: GameItemUiModel,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.appColors.cardContainerColor),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0f)),
+        modifier = modifier
+            .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
+            .clickable(onClick = onClick)
+            .width(130.dp)
+    ) {
+        Column {
+            GameCoverHeader(
+                coverImage = game.coverImage,
+                rawRating = game.rawRating,
+                height = 150.dp
+            )
 
-                    game.releaseYear?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                            maxLines = 1
-                        )
-                    }
+            Column(
+                modifier = Modifier
+                    .padding(MaterialTheme.spacing.smallMedium)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = game.name,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                game.releaseYear?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        maxLines = 1
+                    )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun GameCoverHeader(
+    coverImage: String?,
+    rawRating: Double,
+    height: androidx.compose.ui.unit.Dp
+) {
+    Box(
+        modifier = Modifier
+            .height(height)
+            .fillMaxWidth()
+            .clip(
+                RoundedCornerShape(
+                    topStart = MaterialTheme.spacing.mediumLarge,
+                    topEnd = MaterialTheme.spacing.mediumLarge
+                )
+            )
+    ) {
+        if (coverImage != null) {
+            AsyncImage(
+                model = coverImage,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .fadingEdge(bottomAlpha = 1f, fadeSize = 40.dp)
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceContainerLow),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Image,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                )
+            }
+        }
+
+        if (rawRating > 0) {
+            RatingBadge(
+                rating = rawRating,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(MaterialTheme.spacing.small)
+            )
+        }
+    }
+}
+
+@Composable
+private fun GameMetadataRow(
+    developer: com.example.gameswishlist.core.ui.model.UiText?,
+    releaseYear: String?
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall)
+    ) {
+        developer?.let {
+            Text(
+                text = it.asString(),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false)
+            )
+        }
+
+        if (developer != null && releaseYear != null) {
+            Text(
+                text = "•",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
+        }
+
+        releaseYear?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                maxLines = 1
+            )
         }
     }
 }

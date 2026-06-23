@@ -20,7 +20,8 @@ data class GameEntity(
     val gameTypeId: Int,
     val notes: String,
     val priority: Int,
-    val status: GameStatus
+    val status: GameStatus,
+    val lastViewedAt: Long? = null
 )
 
 data class GameWithAllDetails(

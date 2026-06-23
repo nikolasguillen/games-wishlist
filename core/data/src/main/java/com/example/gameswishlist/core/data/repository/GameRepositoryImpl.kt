@@ -59,7 +59,7 @@ class GameRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getSearchHistory(): Flow<List<String>> {
+    override fun getSearchHistory(): Flow<List<String>> {
         return searchHistoryDao.getRecentSearches().map { it.map { entity -> entity.query } }
     }
 
@@ -74,18 +74,29 @@ class GameRepositoryImpl @Inject constructor(
     override suspend fun getGameDetail(id: Int): Game {
         // Try local first
         val localGame = gameDao.getGameById(id)
-        if (localGame != null) return localGame.toGame()
-        // Fetch from network
-        return try {
-            val queryText = """
-                fields name, game_type, summary, first_release_date, cover.url, total_rating, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
-                where id = $id;
-            """.trimIndent()
-            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
-            val networkGame = apiService.getGameDetail(body).first()
-            networkGame.toGame()
-        } catch (e: Exception) {
-            throw e
+        val game = localGame?.toGame()
+            ?: // Fetch from network
+            try {
+                val queryText = """
+                    fields name, game_type, summary, first_release_date, cover.url, total_rating, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                    where id = $id;
+                """.trimIndent()
+                val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+                val networkGame = apiService.getGameDetail(body).first()
+                networkGame.toGame()
+            } catch (e: Exception) {
+                throw e
+            }
+
+        // Update last viewed timestamp and save local
+        val updatedGame = game.copy(lastViewedAt = System.currentTimeMillis())
+        saveGameLocal(updatedGame)
+        return updatedGame
+    }
+
+    override fun getRecentlyViewedGames(): Flow<List<Game>> {
+        return gameDao.getRecentlyViewedGames().map { entities ->
+            entities.map { it.toGame() }
         }
     }
 
