@@ -19,7 +19,8 @@ data class AppColors(
     val navBarItemSelectedIconColor: Color,
     val filterChipSelectedContainerColor: Color,
     val filterChipUnselectedContainerColor: Color,
-    val filterChipSelectedContentColor: Color
+    val filterChipSelectedContentColor: Color,
+    val cardContainerColor: Color
 )
 
 internal val LocalAppColors = staticCompositionLocalOf {
@@ -34,7 +35,8 @@ internal val LocalAppColors = staticCompositionLocalOf {
         navBarItemSelectedIconColor = Color.Unspecified,
         filterChipSelectedContainerColor = Color.Unspecified,
         filterChipUnselectedContainerColor = Color.Unspecified,
-        filterChipSelectedContentColor = Color.Unspecified
+        filterChipSelectedContentColor = Color.Unspecified,
+        cardContainerColor = Color.Unspecified
     )
 }
 

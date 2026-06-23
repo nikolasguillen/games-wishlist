@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.util.fadingEdge
@@ -47,7 +48,7 @@ fun VerticalGameCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.appColors.cardContainerColor),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0f)),
         modifier = modifier
             .clip(RoundedCornerShape(MaterialTheme.spacing.mediumLarge))

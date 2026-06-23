@@ -67,7 +67,11 @@ fun SearchResultGrid(
             }
         } else {
             items(items = games, key = { it.id }) { game ->
-                VerticalGameCard(game = game, onClick = { onGameClick(game.id) })
+                VerticalGameCard(
+                    game = game,
+                    onClick = { onGameClick(game.id) },
+                    modifier = Modifier.animateItem(fadeOutSpec = null)
+                )
             }
         }
     }

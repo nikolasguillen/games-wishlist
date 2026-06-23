@@ -15,12 +15,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.animateFloatingActionButton
 import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.tooling.preview.Preview
@@ -92,23 +94,25 @@ fun SearchScreenContent(
             )
         },
         floatingActionButton = {
-            if (showScrollToTop) {
-                FloatingActionButton(
-                    onClick = {
-                        scope.launch {
-                            // Reset search bar scroll state to change background color
-                            scrollBehavior.contentOffset = 0f
-                            scrollBehavior.scrollOffset = 0f
-                            // Scroll the grid to top
-                            gridState.animateScrollToItem(0)
-                        }
+            FloatingActionButton(
+                onClick = {
+                    scope.launch {
+                        // Reset search bar scroll state to change background color
+                        scrollBehavior.contentOffset = 0f
+                        scrollBehavior.scrollOffset = 0f
+                        // Scroll the grid to top
+                        gridState.animateScrollToItem(0)
                     }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowUp,
-                        contentDescription = "Scroll to top"
-                    )
-                }
+                },
+                modifier = Modifier.animateFloatingActionButton(
+                    visible = showScrollToTop,
+                    alignment = Alignment.Center
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowUp,
+                    contentDescription = "Scroll to top"
+                )
             }
         }
     ) { innerPadding ->
