@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.Card
@@ -29,13 +31,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
+import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.util.fadingEdge
 import com.example.gameswishlist.core.ui.util.shimmerEffect
@@ -88,46 +93,69 @@ fun VerticalGameCard(
 fun RecentGameCard(
     game: GameItemUiModel,
     onClick: () -> Unit,
+    onRemoveClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.appColors.cardContainerColor),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0f)),
-        modifier = modifier
-            .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
-            .clickable(onClick = onClick)
-            .width(130.dp)
-    ) {
-        Column {
-            GameCoverHeader(
-                coverImage = game.coverImage,
-                rawRating = game.rawRating,
-                height = 150.dp
-            )
-
-            Column(
-                modifier = Modifier
-                    .padding(MaterialTheme.spacing.smallMedium)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text(
-                    text = game.name,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+    Box(modifier = modifier.width(130.dp)) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.appColors.cardContainerColor),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0f)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
+                .clickable(onClick = onClick)
+        ) {
+            Column {
+                GameCoverHeader(
+                    coverImage = game.coverImage,
+                    rawRating = null,
+                    height = 150.dp
                 )
 
-                game.releaseYear?.let {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                    modifier = Modifier
+                        .padding(MaterialTheme.spacing.smallMedium)
+                        .fillMaxWidth()
+                ) {
                     Text(
-                        text = it,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                        maxLines = 1
+                        text = game.name,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
+
+                    game.releaseYear?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                            maxLines = 1
+                        )
+                    }
                 }
             }
+        }
+
+        // Removal button
+        Surface(
+            color = Color.Black.copy(alpha = 0.6f),
+            shape = CircleShape,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(36.dp)
+                .padding(MaterialTheme.spacing.small)
+                .clickable(onClick = onRemoveClick)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringResource(R.string.remove),
+                tint = Color.White,
+                modifier = Modifier
+                    .padding(MaterialTheme.spacing.small)
+                    .fillMaxSize()
+            )
         }
     }
 }
@@ -135,8 +163,8 @@ fun RecentGameCard(
 @Composable
 private fun GameCoverHeader(
     coverImage: String?,
-    rawRating: Double,
-    height: androidx.compose.ui.unit.Dp
+    rawRating: Double?,
+    height: Dp
 ) {
     Box(
         modifier = Modifier
@@ -174,7 +202,7 @@ private fun GameCoverHeader(
             }
         }
 
-        if (rawRating > 0) {
+        if (rawRating != null && rawRating > 0) {
             RatingBadge(
                 rating = rawRating,
                 modifier = Modifier

@@ -13,6 +13,8 @@ interface GameRepository {
     suspend fun clearSearchHistory()
     suspend fun getGameDetail(id: Int): Game
     fun getRecentlyViewedGames(): Flow<List<Game>>
+    suspend fun removeRecentGame(gameId: Int)
+    suspend fun clearRecentGames()
     fun getWishlistedGames(): Flow<List<Game>>
     suspend fun toggleWishlist(game: Game)
     suspend fun updateGameDetails(game: Game)

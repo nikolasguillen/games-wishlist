@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.common.calculateGameRelevanceScore
 import com.example.gameswishlist.core.domain.usecase.search.AddSearchToHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.ClearAllHistoryUseCase
+import com.example.gameswishlist.core.domain.usecase.search.ClearRecentGamesUseCase
 import com.example.gameswishlist.core.domain.usecase.search.DeleteSearchHistoryItemUseCase
 import com.example.gameswishlist.core.domain.usecase.search.GetRecentSearchActivityUseCase
+import com.example.gameswishlist.core.domain.usecase.search.RemoveRecentGameUseCase
 import com.example.gameswishlist.core.domain.usecase.search.SearchGamesUseCase
 import com.example.gameswishlist.core.model.RepositoryError
 import com.example.gameswishlist.core.ui.R
@@ -39,7 +41,9 @@ class SearchViewModel @Inject constructor(
     private val addSearchToHistoryUseCase: AddSearchToHistoryUseCase,
     private val getRecentSearchActivityUseCase: GetRecentSearchActivityUseCase,
     private val deleteSearchHistoryItemUseCase: DeleteSearchHistoryItemUseCase,
-    private val clearAllHistoryUseCase: ClearAllHistoryUseCase
+    private val clearAllHistoryUseCase: ClearAllHistoryUseCase,
+    private val removeRecentGameUseCase: RemoveRecentGameUseCase,
+    private val clearRecentGamesUseCase: ClearRecentGamesUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -73,12 +77,19 @@ class SearchViewModel @Inject constructor(
             SearchUiEvent.OnClearHistory -> {
                 viewModelScope.launch {
                     clearAllHistoryUseCase()
+                    clearRecentGamesUseCase()
                 }
             }
 
             is SearchUiEvent.OnHistoryItemRemoved -> {
                 viewModelScope.launch {
                     deleteSearchHistoryItemUseCase(event.query)
+                }
+            }
+
+            is SearchUiEvent.OnRecentGameRemoved -> {
+                viewModelScope.launch {
+                    removeRecentGameUseCase(event.gameId)
                 }
             }
 

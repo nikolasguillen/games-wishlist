@@ -36,6 +36,7 @@ import androidx.compose.material3.SearchBarScrollBehavior
 import androidx.compose.material3.SearchBarState
 import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -153,6 +154,7 @@ internal fun SearchTopBar(
         ),
         onHistoryItemClicked = { onSearch(it) },
         onGameClick = onGameClick,
+        onRemoveRecentGame = { onEvent(SearchUiEvent.OnRecentGameRemoved(it)) },
         onClearRecentSearches = { onEvent(SearchUiEvent.OnClearHistory) },
         onRemoveRecentSearchItem = { onEvent(SearchUiEvent.OnHistoryItemRemoved(it)) }
     )
@@ -223,6 +225,7 @@ fun ExpandedSearchBar(
     appBarWithSearchColors: AppBarWithSearchColors,
     onHistoryItemClicked: (query: String) -> Unit,
     onGameClick: (Int) -> Unit,
+    onRemoveRecentGame: (Int) -> Unit,
     onClearRecentSearches: () -> Unit,
     onRemoveRecentSearchItem: (query: String) -> Unit
 ) {
@@ -263,7 +266,8 @@ fun ExpandedSearchBar(
             if (history.games.isNotEmpty()) {
                 RecentGamesSection(
                     recentGames = history.games,
-                    onGameClick = onGameClick
+                    onGameClick = onGameClick,
+                    onRemoveClick = onRemoveRecentGame
                 )
             }
         }
@@ -353,7 +357,8 @@ private fun RecentSearchesSection(
 @Composable
 private fun RecentGamesSection(
     recentGames: List<GameItemUiModel>,
-    onGameClick: (Int) -> Unit
+    onGameClick: (Int) -> Unit,
+    onRemoveClick: (Int) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
         Text(
@@ -369,7 +374,8 @@ private fun RecentGamesSection(
             items(items = recentGames, key = { it.id }) { game ->
                 RecentGameCard(
                     game = game,
-                    onClick = { onGameClick(game.id) }
+                    onClick = { onGameClick(game.id) },
+                    onRemoveClick = { onRemoveClick(game.id) }
                 )
             }
         }

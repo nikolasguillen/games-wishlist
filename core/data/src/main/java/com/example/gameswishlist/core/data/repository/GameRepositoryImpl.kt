@@ -100,6 +100,14 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun removeRecentGame(gameId: Int) {
+        gameDao.clearLastViewedAt(gameId)
+    }
+
+    override suspend fun clearRecentGames() {
+        gameDao.clearAllLastViewedAt()
+    }
+
     override fun getWishlistedGames(): Flow<List<Game>> {
         return gameDao.getWishlistedGames().map { entities ->
             entities.map { it.toGame() }
