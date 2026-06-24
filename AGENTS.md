@@ -4,6 +4,7 @@
 - `GamesWishlist` is a modular Android app built with Kotlin, Jetpack Compose, Hilt, Room, Retrofit/Moshi, and AndroidX Navigation 3.
 - Module split is intentional: `feature/*` owns screens + viewmodels, `core/domain` wraps repository calls in use cases, `core/data` is the single repository implementation, `core/network` talks to IGDB (formerly RAWG), `core/database` persists local state, and `core/model` holds shared models.
 - Main app composition lives in `app/src/main/java/com/example/gameswishlist/MainActivity.kt`; feature modules do not own navigation graphs.
+- This repository does not include other AI instruction files (for example: `.github/copilot-instructions.md`, `CLAUDE.md`, or `.cursor/rules/`). Use this `AGENTS.md` as the single source of guidance for automated agents.
 
 ## Architecture and data flow
 - Standard read path: Feature `ViewModel` -> domain use case -> `GameRepository` -> network/Room -> mapper -> `core/model`.
@@ -46,5 +47,8 @@
 
 ## Build, test, and iteration workflow
 - Use the Gradle wrapper: `./gradlew :app:assembleDebug`.
+- On Windows (PowerShell), prefer the bundled batch wrapper: `.
+gradlew.bat :app:assembleDebug` or `.
+gradlew :app:assembleDebug` (PowerShell will resolve the .bat wrapper).
 - Feature modules should remain UI-focused; business rules belong in `core/domain` or `core/data`.
 - Avoid editing generated files under `**/build/generated/**`.
