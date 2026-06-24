@@ -18,7 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.ImageNotSupported
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -68,11 +68,11 @@ fun VerticalGameCard(
             )
 
             Column(
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall),
                 modifier = Modifier
                     .padding(vertical = MaterialTheme.spacing.medium)
                     .padding(horizontal = MaterialTheme.spacing.medium)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall)
+                    .fillMaxWidth()
             ) {
                 Text(
                     text = game.name,
@@ -188,13 +188,14 @@ private fun GameCoverHeader(
             )
         } else {
             Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceContainerLow),
-                contentAlignment = Alignment.Center
+                    .fadingEdge(bottomAlpha = 1f, fadeSize = 20.dp)
+                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.Image,
+                    imageVector = Icons.Outlined.ImageNotSupported,
                     contentDescription = null,
                     modifier = Modifier.size(32.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
@@ -291,11 +292,11 @@ fun VerticalGameCardSkeleton(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0f)),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = modifier
             .clip(RoundedCornerShape(MaterialTheme.spacing.mediumLarge))
             .width(180.dp)
+            .shimmerEffect()
     ) {
         Column {
             Box(
