@@ -46,4 +46,6 @@
     <string name="sort_rating">Rating</string>
     <string name="sort_release_date">Release Date</string>
     <string name="remove">Remove</string>
+    <string name="empty_list_message">No games found here.</string>
+    <string name="no_lists_message">No lists yet. Create one!</string>
 </resources>

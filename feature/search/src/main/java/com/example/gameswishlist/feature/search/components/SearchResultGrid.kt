@@ -1,7 +1,10 @@
 package com.example.gameswishlist.feature.search.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -44,34 +47,47 @@ fun SearchResultGrid(
         }
     }
 
-    LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(2),
-        state = state,
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraLarge),
-        verticalItemSpacing = MaterialTheme.spacing.large,
-        contentPadding = PaddingValues(bottom = MaterialTheme.spacing.medium),
-        modifier = modifier
-    ) {
-        if (activeFilters.isNotEmpty()) {
-            item(span = StaggeredGridItemSpan.FullLine) {
+    if (!isLoading && games.isEmpty()) {
+        Column(modifier = modifier.fillMaxSize()) {
+            if (activeFilters.isNotEmpty()) {
                 ActiveFiltersRow(
                     filters = activeFilters,
-                    onFilterClick = onFilterClick
+                    onFilterClick = onFilterClick,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
+            NoFilteredResultsPlaceholder(modifier = Modifier.weight(1f))
         }
-
-        if (isLoading) {
-            items(10) {
-                VerticalGameCardSkeleton()
+    } else {
+        LazyVerticalStaggeredGrid(
+            columns = StaggeredGridCells.Fixed(2),
+            state = state,
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraLarge),
+            verticalItemSpacing = MaterialTheme.spacing.large,
+            contentPadding = PaddingValues(bottom = MaterialTheme.spacing.medium),
+            modifier = modifier
+        ) {
+            if (activeFilters.isNotEmpty()) {
+                item(span = StaggeredGridItemSpan.FullLine) {
+                    ActiveFiltersRow(
+                        filters = activeFilters,
+                        onFilterClick = onFilterClick
+                    )
+                }
             }
-        } else {
-            items(items = games, key = { it.id }) { game ->
-                VerticalGameCard(
-                    game = game,
-                    onClick = { onGameClick(game.id) },
-                    modifier = Modifier.animateItem(fadeOutSpec = null)
-                )
+
+            if (isLoading) {
+                items(10) {
+                    VerticalGameCardSkeleton()
+                }
+            } else {
+                items(items = games, key = { it.id }) { game ->
+                    VerticalGameCard(
+                        game = game,
+                        onClick = { onGameClick(game.id) },
+                        modifier = Modifier.animateItem(fadeOutSpec = null)
+                    )
+                }
             }
         }
     }
