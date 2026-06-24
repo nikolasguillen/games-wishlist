@@ -24,6 +24,7 @@ package com.example.gameswishlist.core.model
  * @property notes User-provided personal notes about the game.
  * @property priority User-defined priority for acquiring or playing the game.
  * @property status Current status of the game in the user's collection (e.g., Want to Buy).
+ * @property lastViewedAt Timestamp of the last time the game was viewed.
  */
 data class Game(
     val id: Int,
@@ -43,5 +44,6 @@ data class Game(
     val gameType: GameType = GameType.MAIN_GAME,
     val notes: String = "",
     val priority: Priority = Priority.LOW,
-    val status: GameStatus = GameStatus.WANT_TO_BUY
+    val status: GameStatus = GameStatus.WANT_TO_BUY,
+    val lastViewedAt: Long? = null
 )

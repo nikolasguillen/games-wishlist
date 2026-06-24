@@ -15,12 +15,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.animateFloatingActionButton
 import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,6 +37,7 @@ import com.example.gameswishlist.feature.search.components.SearchSortBottomSheet
 import com.example.gameswishlist.feature.search.components.SearchTopBar
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
+import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import kotlinx.coroutines.launch
@@ -88,27 +91,30 @@ fun SearchScreenContent(
                 textFieldState = textFieldState,
                 scrollBehavior = scrollBehavior,
                 onSearch = onSearch,
+                onGameClick = onGameClick,
                 onEvent = onEvent
             )
         },
         floatingActionButton = {
-            if (showScrollToTop) {
-                FloatingActionButton(
-                    onClick = {
-                        scope.launch {
-                            // Reset search bar scroll state to change background color
-                            scrollBehavior.contentOffset = 0f
-                            scrollBehavior.scrollOffset = 0f
-                            // Scroll the grid to top
-                            gridState.animateScrollToItem(0)
-                        }
+            FloatingActionButton(
+                onClick = {
+                    scope.launch {
+                        // Reset search bar scroll state to change background color
+                        scrollBehavior.contentOffset = 0f
+                        scrollBehavior.scrollOffset = 0f
+                        // Scroll the grid to top
+                        gridState.animateScrollToItem(0)
                     }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowUp,
-                        contentDescription = "Scroll to top"
-                    )
-                }
+                },
+                modifier = Modifier.animateFloatingActionButton(
+                    visible = showScrollToTop,
+                    alignment = Alignment.Center
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowUp,
+                    contentDescription = "Scroll to top"
+                )
             }
         }
     ) { innerPadding ->
@@ -162,6 +168,26 @@ fun SearchScreenPreview() {
                             label = UiText.DynamicString("Xbox One"),
                             selected = false
                         )
+                    )
+                )
+            ),
+            onEvent = {},
+            onGameClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SearchScreenInitialWithHistoryPreview() {
+    GamesWishlistTheme {
+        SearchScreenContent(
+            uiState = SearchUiState(
+                history = SearchHistoryUiModel(
+                    queries = listOf("The Witcher", "Cyberpunk 2077"),
+                    games = listOf(
+                        GameItemUiModel.getDummy(),
+                        GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077")
                     )
                 )
             ),

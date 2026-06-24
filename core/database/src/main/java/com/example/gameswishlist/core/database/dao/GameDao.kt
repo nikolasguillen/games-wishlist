@@ -22,6 +22,16 @@ interface GameDao {
     @Query("SELECT * FROM games WHERE id = :id")
     suspend fun getGameById(id: Int): GameWithAllDetails?
 
+    @Transaction
+    @Query("SELECT * FROM games WHERE lastViewedAt IS NOT NULL ORDER BY lastViewedAt DESC LIMIT 10")
+    fun getRecentlyViewedGames(): Flow<List<GameWithAllDetails>>
+
+    @Query("UPDATE games SET lastViewedAt = NULL WHERE id = :gameId")
+    suspend fun clearLastViewedAt(gameId: Int)
+
+    @Query("UPDATE games SET lastViewedAt = NULL")
+    suspend fun clearAllLastViewedAt()
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGame(game: GameEntity)
 

@@ -15,7 +15,7 @@ class GetSearchHistoryUseCase @Inject constructor(
     /**
      * Returns a flow containing the list of recent search queries as strings.
      */
-    suspend operator fun invoke(): Flow<List<String>> {
+    operator fun invoke(): Flow<List<String>> {
         return repository.getSearchHistory()
     }
 }
