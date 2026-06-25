@@ -117,3 +117,12 @@ fun getInitialSortFilters(): List<SortingUiModel> {
         )
     }
 }
+
+/**
+ * Business logic to determine if the current sorting is different from the default.
+ * Default is [SearchSort.RELEVANCE] with [SortingUiModel.descending] = true.
+ */
+fun List<SortingUiModel>.isSortActive(): Boolean {
+    val selected = this.find { it.selected } ?: return false
+    return selected.sortType != SearchSort.RELEVANCE || !selected.descending
+}

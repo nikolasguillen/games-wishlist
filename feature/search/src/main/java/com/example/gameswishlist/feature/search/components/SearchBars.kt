@@ -133,8 +133,10 @@ internal fun SearchTopBar(
             val state = uiState.contentState
             if (state is SearchContentState.Success) {
                 SearchSubHeader(
-                    uiState = uiState,
-                    onEvent = onEvent,
+                    resultsCount = state.games.size,
+                    isSortActive = uiState.sortBottomSheetState.isSortActive,
+                    onOpenSort = { onEvent(SearchUiEvent.OnOpenSort) },
+                    onOpenFilters = { onEvent(SearchUiEvent.OnOpenFilters) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))

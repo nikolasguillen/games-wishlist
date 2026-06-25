@@ -38,12 +38,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.util.fadingEdge
-import com.example.gameswishlist.core.ui.util.shimmerEffect
 import kotlin.math.roundToInt
 
 @Composable
@@ -287,62 +287,13 @@ private fun RatingBadge(
     }
 }
 
-@Composable
-fun VerticalGameCardSkeleton(
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        modifier = modifier
-            .clip(RoundedCornerShape(MaterialTheme.spacing.mediumLarge))
-            .width(180.dp)
-            .shimmerEffect()
-    ) {
-        Column {
-            Box(
-                modifier = Modifier
-                    .height(200.dp)
-                    .fillMaxWidth()
-                    .shimmerEffect()
-            )
-
-            Column(
-                modifier = Modifier
-                    .padding(vertical = MaterialTheme.spacing.medium)
-                    .padding(horizontal = MaterialTheme.spacing.medium)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.smallMedium)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(20.dp)
-                        .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
-                        .shimmerEffect()
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.6f)
-                        .height(14.dp)
-                        .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
-                        .shimmerEffect()
-                )
-            }
-        }
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 private fun GameCardPreview() {
-    VerticalGameCard(
-        game = GameItemUiModel.getDummy(),
-        onClick = {}
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun GameCardSkeletonPreview() {
-    VerticalGameCardSkeleton()
+    GamesWishlistTheme {
+        VerticalGameCard(
+            game = GameItemUiModel.getDummy(),
+            onClick = {}
+        )
+    }
 }

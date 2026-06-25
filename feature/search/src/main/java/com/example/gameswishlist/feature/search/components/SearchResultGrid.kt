@@ -25,20 +25,18 @@ import androidx.compose.ui.Modifier
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomFilterChip
 import com.example.gameswishlist.core.ui.component.VerticalGameCard
+import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
-import com.example.gameswishlist.feature.search.model.SearchContentState
 
 @Composable
 fun SearchResultGrid(
-    contentState: SearchContentState,
+    games: List<GameItemUiModel>,
+    activeFilters: List<GameFilterUiModel>,
     onFilterClick: (GameFilterUiModel) -> Unit,
     onGameClick: (Int) -> Unit,
     state: LazyStaggeredGridState,
     modifier: Modifier = Modifier
 ) {
-    val games = (contentState as? SearchContentState.Success)?.games ?: emptyList()
-    val activeFilters = (contentState as? SearchContentState.Success)?.activeFilters ?: emptyList()
-
     LaunchedEffect(games) {
         if (games.isNotEmpty()) {
             state.scrollToItem(0)

@@ -16,6 +16,7 @@ import com.example.gameswishlist.core.ui.mapper.toGameItemList
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.mapper.getInitialGameTypeFilters
 import com.example.gameswishlist.feature.search.mapper.getInitialSortFilters
+import com.example.gameswishlist.feature.search.mapper.isSortActive
 import com.example.gameswishlist.feature.search.mapper.toGenreFilters
 import com.example.gameswishlist.feature.search.mapper.toPlatformFilters
 import com.example.gameswishlist.feature.search.model.FilterBottomSheetState
@@ -48,7 +49,10 @@ class SearchViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(
         SearchUiState(
-            sortBottomSheetState = SortBottomSheetState(sorting = getInitialSortFilters())
+            sortBottomSheetState = SortBottomSheetState(
+                sorting = getInitialSortFilters(),
+                isSortActive = false // Initial is always Relevance/Desc
+            )
         )
     )
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
@@ -154,7 +158,8 @@ class SearchViewModel @Inject constructor(
                     it.copy(
                         sortBottomSheetState = bsState.copy(
                             isVisible = false,
-                            sorting = newSortingList
+                            sorting = newSortingList,
+                            isSortActive = newSortingList.isSortActive()
                         )
                     )
                 }
@@ -326,7 +331,11 @@ class SearchViewModel @Inject constructor(
 
         return when (currentSort.sortType) {
             SearchSort.RELEVANCE -> {
-                if (currentSort.descending) games.sortedByDescending { calculateGameRelevanceScore(it) }
+                if (currentSort.descending) games.sortedByDescending {
+                    calculateGameRelevanceScore(
+                        it
+                    )
+                }
                 else games.sortedBy { calculateGameRelevanceScore(it) }
             }
 
@@ -352,7 +361,8 @@ class SearchViewModel @Inject constructor(
         newFilters: List<GameFilterUiModel>
     ) {
         val filteredGames = filterGames(contentState.allGames, newFilters)
-        val sortedGames = sortGames(filteredGames, _uiState.value.sortBottomSheetState.selectedSorting)
+        val sortedGames =
+            sortGames(filteredGames, _uiState.value.sortBottomSheetState.selectedSorting)
 
         _uiState.update {
             it.copy(
@@ -373,7 +383,10 @@ class SearchViewModel @Inject constructor(
             _uiState.update { it.copy(contentState = SearchContentState.Loading) }
             searchGamesUseCase(query)
                 .onSuccess { searchResult ->
-                    val sortedGames = sortGames(searchResult.games, _uiState.value.sortBottomSheetState.selectedSorting)
+                    val sortedGames = sortGames(
+                        searchResult.games,
+                        _uiState.value.sortBottomSheetState.selectedSorting
+                    )
 
                     val newState = if (sortedGames.isEmpty()) {
                         SearchContentState.Empty
