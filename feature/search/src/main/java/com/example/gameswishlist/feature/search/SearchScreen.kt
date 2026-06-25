@@ -7,7 +7,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
@@ -73,7 +73,7 @@ fun SearchScreenContent(
     // 1. UI States & Behaviors
     val searchBarState = rememberContainedSearchBarState()
     val textFieldState = rememberTextFieldState()
-    val gridState = rememberLazyStaggeredGridState()
+    val gridState = rememberLazyGridState()
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
     val scope = rememberCoroutineScope()
 
@@ -81,8 +81,12 @@ fun SearchScreenContent(
     val isScrolled by remember(scrollBehavior) {
         derivedStateOf {
             if (scrollBehavior.scrollOffsetLimit != 0f) {
-                val fraction = 1 - ((scrollBehavior.scrollOffsetLimit - scrollBehavior.contentOffset)
-                    .coerceIn(scrollBehavior.scrollOffsetLimit, 0f) / scrollBehavior.scrollOffsetLimit)
+                val fraction =
+                    1 - ((scrollBehavior.scrollOffsetLimit - scrollBehavior.contentOffset)
+                        .coerceIn(
+                            scrollBehavior.scrollOffsetLimit,
+                            0f
+                        ) / scrollBehavior.scrollOffsetLimit)
                 fraction > 0.01f
             } else false
         }
@@ -101,14 +105,15 @@ fun SearchScreenContent(
         }
     }
 
-    val onSearch: (String) -> Unit = remember(onScrollToTop, textFieldState, searchBarState, onEvent, scope) {
-        { query ->
-            scope.launch { onScrollToTop() }
-            textFieldState.setTextAndPlaceCursorAtEnd(query)
-            scope.launch { searchBarState.animateToCollapsed() }
-            onEvent(SearchUiEvent.OnSearchTriggered(query))
+    val onSearch: (String) -> Unit =
+        remember(onScrollToTop, textFieldState, searchBarState, onEvent, scope) {
+            { query ->
+                scope.launch { onScrollToTop() }
+                textFieldState.setTextAndPlaceCursorAtEnd(query)
+                scope.launch { searchBarState.animateToCollapsed() }
+                onEvent(SearchUiEvent.OnSearchTriggered(query))
+            }
         }
-    }
 
     // 4. Dynamic Styles
     val backgroundColor by animateColorAsState(

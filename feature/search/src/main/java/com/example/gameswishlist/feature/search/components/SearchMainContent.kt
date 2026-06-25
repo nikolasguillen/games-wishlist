@@ -1,7 +1,7 @@
 package com.example.gameswishlist.feature.search.components
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.gameswishlist.core.ui.component.ErrorPage
@@ -14,7 +14,7 @@ internal fun SearchMainContent(
     contentState: SearchContentState,
     onEvent: (SearchUiEvent) -> Unit,
     onGameClick: (Int) -> Unit,
-    gridState: LazyStaggeredGridState,
+    gridState: LazyGridState,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier) {
