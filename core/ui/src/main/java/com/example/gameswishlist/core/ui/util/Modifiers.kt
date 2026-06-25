@@ -75,7 +75,7 @@ fun Modifier.shimmerEffect(): Modifier = composed {
     val transition = rememberInfiniteTransition(label = "shimmer")
     val startInPx = -2 * size.width.toFloat()
     val endInPx = 2 * size.width.toFloat()
-    
+
     val translateAnim by transition.animateFloat(
         initialValue = startInPx,
         targetValue = endInPx,

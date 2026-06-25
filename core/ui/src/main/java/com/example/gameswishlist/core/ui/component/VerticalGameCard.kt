@@ -1,6 +1,5 @@
 package com.example.gameswishlist.core.ui.component
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,10 +18,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.ImageNotSupported
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,7 +37,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
-import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
@@ -52,27 +49,31 @@ fun VerticalGameCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.appColors.cardContainerColor),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0f)),
+    val cardHeight = 250.dp
+    OutlinedCard(
         modifier = modifier
+            .width(180.dp)
+            .height(cardHeight)
             .clip(RoundedCornerShape(MaterialTheme.spacing.mediumLarge))
             .clickable(onClick = onClick)
-            .width(180.dp)
     ) {
-        Column {
+        Box(modifier = Modifier.fillMaxSize()) {
             GameCoverHeader(
                 coverImage = game.coverImage,
                 rawRating = game.rawRating,
-                height = 200.dp
+                height = cardHeight
             )
 
             Column(
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall),
                 modifier = Modifier
-                    .padding(vertical = MaterialTheme.spacing.medium)
-                    .padding(horizontal = MaterialTheme.spacing.medium)
+                    .align(Alignment.BottomCenter)
                     .fillMaxWidth()
+                    .fadingEdge(topAlpha = 1f, fadeSize = 30.dp)
+                    .background(Color.Black.copy(alpha = 0.7f))
+                    .padding(horizontal = MaterialTheme.spacing.medium)
+                    .padding(bottom = MaterialTheme.spacing.medium)
+                    .padding(top = 50.dp)
             ) {
                 Text(
                     text = game.name,
@@ -96,27 +97,33 @@ fun RecentGameCard(
     onRemoveClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier = modifier.width(130.dp)) {
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.appColors.cardContainerColor),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0f)),
+    val cardHeight = 150.dp
+    Box(
+        modifier = modifier
+            .width(120.dp)
+            .height(cardHeight)
+    ) {
+        OutlinedCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
                 .clickable(onClick = onClick)
         ) {
-            Column {
+            Box(modifier = Modifier.fillMaxSize()) {
                 GameCoverHeader(
                     coverImage = game.coverImage,
                     rawRating = null,
-                    height = 150.dp
+                    height = cardHeight
                 )
 
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
                     modifier = Modifier
-                        .padding(MaterialTheme.spacing.smallMedium)
+                        .align(Alignment.BottomCenter)
                         .fillMaxWidth()
+                        .fadingEdge(topAlpha = 1f, fadeSize = 30.dp)
+                        .background(Color.Black.copy(alpha = 0.7f))
+                        .padding(MaterialTheme.spacing.smallMedium)
+                        .padding(top = 30.dp)
                 ) {
                     Text(
                         text = game.name,
@@ -170,28 +177,19 @@ private fun GameCoverHeader(
         modifier = Modifier
             .height(height)
             .fillMaxWidth()
-            .clip(
-                RoundedCornerShape(
-                    topStart = MaterialTheme.spacing.mediumLarge,
-                    topEnd = MaterialTheme.spacing.mediumLarge
-                )
-            )
     ) {
         if (coverImage != null) {
             AsyncImage(
                 model = coverImage,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .fadingEdge(bottomAlpha = 1f, fadeSize = 40.dp)
+                modifier = Modifier.fillMaxSize()
             )
         } else {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxSize()
-                    .fadingEdge(bottomAlpha = 1f, fadeSize = 20.dp)
                     .background(MaterialTheme.colorScheme.surfaceContainerLow)
             ) {
                 Icon(
@@ -294,6 +292,18 @@ private fun GameCardPreview() {
         VerticalGameCard(
             game = GameItemUiModel.getDummy(),
             onClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RecentGameCardPreview() {
+    GamesWishlistTheme {
+        RecentGameCard(
+            game = GameItemUiModel.getDummy(),
+            onClick = {},
+            onRemoveClick = {}
         )
     }
 }
