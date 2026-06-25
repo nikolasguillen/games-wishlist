@@ -110,8 +110,7 @@ fun MainContent() {
                 }
             },
             modifier = Modifier
-                .padding(bottom = innerPadding.calculateBottomPadding())
-                .consumeWindowInsets(innerPadding),
+                .padding(bottom = innerPadding.calculateBottomPadding()),
             entryProvider = { key ->
                 when (key) {
                     is SearchRoute -> NavEntry(key) {

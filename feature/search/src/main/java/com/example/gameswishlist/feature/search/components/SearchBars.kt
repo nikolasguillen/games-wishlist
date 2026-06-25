@@ -187,10 +187,7 @@ fun CollapsedSearchBar(
         state = searchBarState,
         colors = appBarWithSearchColors,
         inputField = inputField,
-        contentPadding = PaddingValues(
-            top = WindowInsets.statusBars.asPaddingValues()
-                .calculateTopPadding() + MaterialTheme.spacing.large
-        )
+        contentPadding = PaddingValues(top = MaterialTheme.spacing.large)
     )
 }
 
