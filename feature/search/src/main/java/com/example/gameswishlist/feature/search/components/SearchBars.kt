@@ -36,7 +36,6 @@ import androidx.compose.material3.SearchBarScrollBehavior
 import androidx.compose.material3.SearchBarState
 import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -132,7 +131,7 @@ internal fun SearchTopBar(
             )
 
             val state = uiState.contentState
-            if (state is SearchContentState.Success || state is SearchContentState.Loading) {
+            if (state is SearchContentState.Success) {
                 SearchSubHeader(
                     uiState = uiState,
                     onEvent = onEvent,

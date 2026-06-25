@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.ErrorPage
+import com.example.gameswishlist.core.ui.component.LoadingPage
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 
@@ -24,7 +25,8 @@ internal fun SearchMainContent(
             is SearchContentState.Error -> ErrorPage(message = contentState.message)
             is SearchContentState.Initial -> InitialSearchPlaceholder()
             is SearchContentState.Empty -> EmptySearchPlaceholder()
-            is SearchContentState.Success, is SearchContentState.Loading -> {
+            is SearchContentState.Loading -> LoadingPage()
+            is SearchContentState.Success  -> {
                 SearchResultGrid(
                     contentState = contentState,
                     onFilterClick = { onEvent(SearchUiEvent.OnFilterClick(it)) },

@@ -28,7 +28,6 @@ fun CustomFilterChip(
         trailingIcon = trailingIcon,
         shape = MaterialTheme.shapes.small,
         colors = FilterChipDefaults.filterChipColors(
-            containerColor = MaterialTheme.appColors.filterChipUnselectedContainerColor,
             selectedContainerColor = MaterialTheme.appColors.filterChipSelectedContainerColor,
             selectedLabelColor = MaterialTheme.appColors.filterChipSelectedContentColor,
             selectedTrailingIconColor = MaterialTheme.appColors.filterChipSelectedContentColor

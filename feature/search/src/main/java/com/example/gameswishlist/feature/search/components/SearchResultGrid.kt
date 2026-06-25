@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomFilterChip
 import com.example.gameswishlist.core.ui.component.VerticalGameCard
-import com.example.gameswishlist.core.ui.component.VerticalGameCardSkeleton
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 
@@ -39,7 +38,6 @@ fun SearchResultGrid(
 ) {
     val games = (contentState as? SearchContentState.Success)?.games ?: emptyList()
     val activeFilters = (contentState as? SearchContentState.Success)?.activeFilters ?: emptyList()
-    val isLoading = contentState is SearchContentState.Loading
 
     LaunchedEffect(games) {
         if (games.isNotEmpty()) {
@@ -47,7 +45,7 @@ fun SearchResultGrid(
         }
     }
 
-    if (!isLoading && games.isEmpty()) {
+    if (games.isEmpty()) {
         Column(modifier = modifier.fillMaxSize()) {
             if (activeFilters.isNotEmpty()) {
                 ActiveFiltersRow(
@@ -75,19 +73,12 @@ fun SearchResultGrid(
                     )
                 }
             }
-
-            if (isLoading) {
-                items(10) {
-                    VerticalGameCardSkeleton()
-                }
-            } else {
-                items(items = games, key = { it.id }) { game ->
-                    VerticalGameCard(
-                        game = game,
-                        onClick = { onGameClick(game.id) },
-                        modifier = Modifier.animateItem(fadeOutSpec = null)
-                    )
-                }
+            items(items = games, key = { it.id }) { game ->
+                VerticalGameCard(
+                    game = game,
+                    onClick = { onGameClick(game.id) },
+                    modifier = Modifier.animateItem(fadeOutSpec = null)
+                )
             }
         }
     }
