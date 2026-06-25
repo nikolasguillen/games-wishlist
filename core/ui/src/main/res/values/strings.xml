@@ -48,4 +48,22 @@
     <string name="remove">Remove</string>
     <string name="empty_list_message">No games found here.</string>
     <string name="no_lists_message">No lists yet. Create one!</string>
+
+    <!-- Game Detail -->
+    <string name="game_detail_title">Game Details</string>
+    <string name="back_content_description">Back</string>
+    <string name="add_to_list_content_description">Add to List</string>
+    <string name="personal_progress_title">Personal Progress</string>
+    <string name="status_label">Status:</string>
+    <string name="priority_label">Priority:</string>
+    <string name="personal_notes_label">Personal Notes</string>
+    <string name="description_title">Description</string>
+    <string name="platforms_title">Platforms</string>
+    <string name="genres_title">Genres</string>
+    <string name="select_list_title">Select List</string>
+    <string name="no_lists_found_message">No lists found. Go to \'My Lists\' to create one.</string>
+    <string name="metacritic_label">Metacritic: %1$d</string>
+    <string name="priority_low">Low</string>
+    <string name="priority_medium">Medium</string>
+    <string name="priority_high">High</string>
 </resources>
