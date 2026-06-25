@@ -26,14 +26,13 @@ internal fun SearchMainContent(
             is SearchContentState.Initial -> InitialSearchPlaceholder()
             is SearchContentState.Empty -> EmptySearchPlaceholder()
             is SearchContentState.Loading -> LoadingPage()
-            is SearchContentState.Success -> {
+            is SearchContentState.Success  -> {
                 SearchResultGrid(
                     games = contentState.games,
                     activeFilters = contentState.activeFilters,
                     onFilterClick = { onEvent(SearchUiEvent.OnFilterClick(it)) },
                     onGameClick = onGameClick,
-                    state = gridState,
-                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
+                    state = gridState
                 )
             }
         }

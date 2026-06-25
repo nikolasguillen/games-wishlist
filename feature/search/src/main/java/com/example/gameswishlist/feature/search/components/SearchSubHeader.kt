@@ -56,7 +56,8 @@ internal fun SearchSubHeader(
             IconButton(onClick = onOpenFilters) {
                 Icon(
                     imageVector = Icons.Default.Tune,
-                    contentDescription = stringResource(R.string.filter_label)
+                    contentDescription = stringResource(R.string.filter_label),
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
         }

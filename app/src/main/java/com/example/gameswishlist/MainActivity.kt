@@ -5,17 +5,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -24,9 +19,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.NavEntry
@@ -60,13 +52,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             GamesWishlistTheme {
                 MainContent()
-
-                StatusBarProtection()
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainContent() {
     val backStack = rememberNavBackStack(SearchRoute as NavKey)
@@ -176,28 +167,4 @@ fun MainContent() {
             }
         )
     }
-}
-
-@Composable
-private fun StatusBarProtection(
-    color: Color = MaterialTheme.appColors.appBackground,
-) {
-    Spacer(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(
-                with(LocalDensity.current) {
-                    (WindowInsets.statusBars.getTop(this) * 1.2f).toDp()
-                }
-            )
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        color.copy(alpha = 1f),
-                        color.copy(alpha = 0.8f),
-                        Color.Transparent
-                    )
-                )
-            )
-    )
 }

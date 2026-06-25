@@ -60,7 +60,11 @@ fun SearchResultGrid(
             state = state,
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraLarge),
             verticalItemSpacing = MaterialTheme.spacing.large,
-            contentPadding = PaddingValues(bottom = MaterialTheme.spacing.medium),
+            contentPadding = PaddingValues(
+                bottom = MaterialTheme.spacing.medium,
+                start = MaterialTheme.spacing.large,
+                end = MaterialTheme.spacing.large
+            ),
             modifier = modifier
         ) {
             if (activeFilters.isNotEmpty()) {
@@ -91,6 +95,7 @@ fun ActiveFiltersRow(
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
         verticalAlignment = Alignment.CenterVertically,
+        contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large),
         modifier = modifier
     ) {
         items(

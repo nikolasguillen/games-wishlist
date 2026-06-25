@@ -2,6 +2,9 @@
 
 package com.example.gameswishlist.feature.search
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
@@ -24,11 +27,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
+import com.example.gameswishlist.core.ui.component.StatusBarProtection
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.components.SearchFilterBottomSheet
@@ -44,7 +49,9 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SearchScreen(
-    viewModel: SearchViewModel, onGameClick: (Int) -> Unit, modifier: Modifier = Modifier
+    viewModel: SearchViewModel,
+    onGameClick: (Int) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -63,24 +70,55 @@ fun SearchScreenContent(
     onGameClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // 1. UI States & Behaviors
     val searchBarState = rememberContainedSearchBarState()
-    val scope = rememberCoroutineScope()
-    val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
     val textFieldState = rememberTextFieldState()
     val gridState = rememberLazyStaggeredGridState()
+    val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+    val scope = rememberCoroutineScope()
 
-    val showScrollToTop by remember {
+    // 2. Derived States (Scroll logic)
+    val isScrolled by remember(scrollBehavior) {
         derivedStateOf {
-            gridState.firstVisibleItemIndex > 3
+            if (scrollBehavior.scrollOffsetLimit != 0f) {
+                val fraction = 1 - ((scrollBehavior.scrollOffsetLimit - scrollBehavior.contentOffset)
+                    .coerceIn(scrollBehavior.scrollOffsetLimit, 0f) / scrollBehavior.scrollOffsetLimit)
+                fraction > 0.01f
+            } else false
         }
     }
 
-    val onSearch: (String) -> Unit = { query ->
-        textFieldState.setTextAndPlaceCursorAtEnd(query)
-        scope.launch { searchBarState.animateToCollapsed() }
-        onEvent(SearchUiEvent.OnSearchTriggered(query))
+    val showScrollToTop by remember {
+        derivedStateOf { gridState.firstVisibleItemIndex > 1 }
     }
 
+    // 3. UI Actions
+    val onScrollToTop = remember(scrollBehavior, gridState) {
+        suspend {
+            scrollBehavior.contentOffset = 0f
+            scrollBehavior.scrollOffset = 0f
+            gridState.animateScrollToItem(0)
+        }
+    }
+
+    val onSearch: (String) -> Unit = remember(onScrollToTop, textFieldState, searchBarState, onEvent, scope) {
+        { query ->
+            scope.launch { onScrollToTop() }
+            textFieldState.setTextAndPlaceCursorAtEnd(query)
+            scope.launch { searchBarState.animateToCollapsed() }
+            onEvent(SearchUiEvent.OnSearchTriggered(query))
+        }
+    }
+
+    // 4. Dynamic Styles
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isScrolled) MaterialTheme.appColors.searchBarScrolledContainerColor
+        else Color.Transparent,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "topBarBackground"
+    )
+
+    // 5. Layout
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.appColors.appBackground,
@@ -92,30 +130,15 @@ fun SearchScreenContent(
                 scrollBehavior = scrollBehavior,
                 onSearch = onSearch,
                 onGameClick = onGameClick,
-                onEvent = onEvent
+                onEvent = onEvent,
+                backgroundColor = backgroundColor
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    scope.launch {
-                        // Reset search bar scroll state to change background color
-                        scrollBehavior.contentOffset = 0f
-                        scrollBehavior.scrollOffset = 0f
-                        // Scroll the grid to top
-                        gridState.animateScrollToItem(0)
-                    }
-                },
-                modifier = Modifier.animateFloatingActionButton(
-                    visible = showScrollToTop,
-                    alignment = Alignment.Center
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowUp,
-                    contentDescription = "Scroll to top"
-                )
-            }
+            SearchScrollToTopFab(
+                visible = showScrollToTop,
+                onClick = { scope.launch { onScrollToTop() } }
+            )
         }
     ) { innerPadding ->
         SearchMainContent(
@@ -128,14 +151,29 @@ fun SearchScreenContent(
                 .padding(innerPadding)
         )
 
-        SearchFilterBottomSheet(
-            state = uiState.filtersBottomSheetState,
-            onEvent = onEvent
-        )
+        SearchFilterBottomSheet(state = uiState.filtersBottomSheetState, onEvent = onEvent)
+        SearchSortBottomSheet(state = uiState.sortBottomSheetState, onEvent = onEvent)
+    }
 
-        SearchSortBottomSheet(
-            state = uiState.sortBottomSheetState,
-            onEvent = onEvent
+    StatusBarProtection(color = backgroundColor)
+}
+
+@Composable
+private fun SearchScrollToTopFab(
+    visible: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FloatingActionButton(
+        onClick = onClick,
+        modifier = modifier.animateFloatingActionButton(
+            visible = visible,
+            alignment = Alignment.Center
+        )
+    ) {
+        Icon(
+            imageVector = Icons.Default.KeyboardArrowUp,
+            contentDescription = "Scroll to top"
         )
     }
 }
@@ -215,7 +253,11 @@ fun SearchScreenLoadingPreview() {
 @Composable
 fun SearchScreenInitialPreview() {
     GamesWishlistTheme {
-        SearchScreenContent(uiState = SearchUiState(), onEvent = {}, onGameClick = {})
+        SearchScreenContent(
+            uiState = SearchUiState(),
+            onEvent = {},
+            onGameClick = {}
+        )
     }
 }
 

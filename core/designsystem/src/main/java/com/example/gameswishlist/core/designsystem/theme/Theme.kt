@@ -5,6 +5,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.ui.graphics.lerp
 
 
 @Composable
@@ -39,8 +40,8 @@ fun GamesWishlistTheme(
     val appColors = AppColors(
         appBackground = SpotifyBlack,
         onAppBackground = SpotifyWhite,
-        searchBarScrolledContainerColor = SpotifyDarkGrey,
-        searchBarInputFieldColor = SpotifyMediumGrey,
+        searchBarScrolledContainerColor = SpotifyMediumGrey,
+        searchBarInputFieldColor = lerp(SpotifyMediumGrey, SpotifyWhite, 0.05f),
         expandedSearchBarColor = SpotifyMediumGrey,
         navBarContainerColor = SpotifyMediumGrey,
         navBarItemIndicatorColor = SpotifyGreen,

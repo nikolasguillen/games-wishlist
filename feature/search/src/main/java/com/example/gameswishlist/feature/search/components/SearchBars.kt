@@ -55,6 +55,7 @@ import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomAlertDialog
 import com.example.gameswishlist.core.ui.component.RecentGameCard
+import com.example.gameswishlist.core.ui.component.StatusBarProtection
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.util.annotatedStringResource
 import com.example.gameswishlist.feature.search.model.SearchContentState
@@ -72,28 +73,9 @@ internal fun SearchTopBar(
     scrollBehavior: SearchBarScrollBehavior,
     onSearch: (String) -> Unit,
     onGameClick: (Int) -> Unit,
-    onEvent: (SearchUiEvent) -> Unit
+    onEvent: (SearchUiEvent) -> Unit,
+    backgroundColor: Color
 ) {
-    val isScrolled by remember(scrollBehavior) {
-        derivedStateOf {
-            if (scrollBehavior.scrollOffsetLimit != 0f) {
-                val fraction =
-                    1 - ((scrollBehavior.scrollOffsetLimit - scrollBehavior.contentOffset).coerceIn(
-                        scrollBehavior.scrollOffsetLimit,
-                        0f
-                    ) / scrollBehavior.scrollOffsetLimit)
-                fraction > 0.01f
-            } else false
-        }
-    }
-
-    val backgroundColor by animateColorAsState(
-        targetValue = if (isScrolled) MaterialTheme.appColors.searchBarScrolledContainerColor
-        else MaterialTheme.appColors.appBackground,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "topBarBackground"
-    )
-
     val appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(
         searchBarColors = SearchBarDefaults.containedColors(state = searchBarState).copy(
             dividerColor = SearchBarDefaults.colors().dividerColor.copy(alpha = 0.5f)
@@ -150,7 +132,7 @@ internal fun SearchTopBar(
         history = uiState.history,
         appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(
             searchBarColors = appBarWithSearchColors.searchBarColors,
-            appBarContainerColor = MaterialTheme.appColors.appBackground,
+            appBarContainerColor = Color.Transparent,
             scrolledAppBarContainerColor = MaterialTheme.appColors.searchBarScrolledContainerColor
         ),
         onHistoryItemClicked = { onSearch(it) },
@@ -382,4 +364,3 @@ private fun RecentGamesSection(
         }
     }
 }
-
