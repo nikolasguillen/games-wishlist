@@ -5,27 +5,23 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import com.example.gameswishlist.core.designsystem.theme.AppComponentsColors
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.navigation.GameDetailRoute
@@ -63,44 +59,19 @@ fun MainContent() {
     val backStack = rememberNavBackStack(SearchRoute as NavKey)
     Scaffold(
         containerColor = MaterialTheme.appColors.appBackground,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
-            if (backStack.last() is SearchRoute || backStack.last() is ListsRoute) {
-                NavigationBar(
-                    containerColor = MaterialTheme.appColors.navBarContainerColor
-                ) {
-                    NavigationBarItem(
-                        selected = backStack.last() is SearchRoute,
-                        onClick = {
-                            if (backStack.last() !is SearchRoute) {
-                                backStack.add(SearchRoute)
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                Icons.Default.Search,
-                                contentDescription = stringResource(R.string.search_nav_bar_item)
-                            )
-                        },
-                        label = { Text(stringResource(R.string.search_nav_bar_item)) },
-                        colors = AppComponentsColors.navBarItemColors
-                    )
-                    NavigationBarItem(
-                        selected = backStack.last() is ListsRoute || backStack.last() is WishlistRoute,
-                        onClick = {
-                            if (backStack.last() !is ListsRoute) {
-                                backStack.add(ListsRoute)
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                Icons.AutoMirrored.Filled.List,
-                                contentDescription = stringResource(R.string.lists_nav_bar_item)
-                            )
-                        },
-                        label = { Text(stringResource(R.string.lists_nav_bar_item)) },
-                        colors = AppComponentsColors.navBarItemColors
-                    )
-                }
+            AnimatedVisibility(
+                visible = backStack.last() is SearchRoute || backStack.last() is ListsRoute,
+                enter = slideInVertically(initialOffsetY = { it }),
+                exit = slideOutVertically(targetOffsetY = { it })
+            ) {
+                GamesWishlistBottomBar(
+                    backStack = backStack,
+                    onNavigateToRoute = { route ->
+                        backStack.add(route)
+                    }
+                )
             }
         }
     ) { innerPadding ->
@@ -113,12 +84,6 @@ fun MainContent() {
             },
             modifier = Modifier.fillMaxSize(),
             entryProvider = { key ->
-                val modifierWithPadding = if (key is SearchRoute || key is ListsRoute) {
-                    Modifier.padding(bottom = innerPadding.calculateBottomPadding())
-                } else {
-                    Modifier
-                }
-
                 when (key) {
                     is SearchRoute -> NavEntry(key) {
                         val vm: SearchViewModel = hiltViewModel()
@@ -127,7 +92,9 @@ fun MainContent() {
                             onGameClick = { gameId: Int ->
                                 backStack.add(GameDetailRoute(gameId))
                             },
-                            modifier = modifierWithPadding
+                            modifier = Modifier
+                                .padding(innerPadding)
+                                .consumeWindowInsets(innerPadding)
                         )
                     }
 
@@ -138,7 +105,9 @@ fun MainContent() {
                             onListClick = { listId: Long, listName: String ->
                                 backStack.add(WishlistRoute(listId, listName))
                             },
-                            modifier = modifierWithPadding
+                            modifier = Modifier
+                                .padding(innerPadding)
+                                .consumeWindowInsets(innerPadding)
                         )
                     }
 
