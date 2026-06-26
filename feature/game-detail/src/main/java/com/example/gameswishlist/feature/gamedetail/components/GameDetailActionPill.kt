@@ -11,11 +11,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -45,53 +44,59 @@ internal fun GameDetailActionPill(
     modifier: Modifier = Modifier,
     listName: String? = null
 ) {
-    Row(
-        modifier = modifier
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f))
-            .animatedMetallicBorder(width = 2.dp, shape = CircleShape)
-            .widthIn(min = 250.dp)
-            .padding(
-                horizontal = MaterialTheme.spacing.medium,
-                vertical = MaterialTheme.spacing.medium
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        // Favorite Action
-        IconButton(
-            onClick = onFavoriteClick,
-            colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent)
-        ) {
-            Icon(
-                imageVector = Icons.Default.FavoriteBorder,
-                contentDescription = stringResource(com.example.gameswishlist.feature.gamedetail.R.string.favorite_content_description),
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        // Main Action: Manage List with "Brushed Metal" effect and custom icon
-        IconButton(
-            onClick = onManageListClick,
+    Box(modifier = modifier) {
+        Box(
             modifier = Modifier
-                .size(60.dp)
+                .height(60.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f))
                 .animatedMetallicBorder(width = 2.dp, shape = CircleShape)
-                .padding(MaterialTheme.spacing.smallMedium)
-                .brushedMetal(shape = CircleShape, baseColor = Color.Gray, animateOnce = true)
+                .width(200.dp)
+                .align(Alignment.Center)
+        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier
+                .height(72.dp)
+                .align(Alignment.Center)
         ) {
-            MachinedPlusIcon(modifier = Modifier.size(25.dp))
-        }
+            // Favorite Action
+            IconButton(
+                onClick = onFavoriteClick,
+                colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.FavoriteBorder,
+                    contentDescription = stringResource(com.example.gameswishlist.feature.gamedetail.R.string.favorite_content_description),
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
 
-        // Share Action
-        IconButton(
-            onClick = onShareClick,
-            colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Share,
-                contentDescription = stringResource(com.example.gameswishlist.feature.gamedetail.R.string.share_content_description),
-                tint = MaterialTheme.colorScheme.onSurface
-            )
+            // Main Action: Manage List with "Brushed Metal" effect and custom icon
+            IconButton(
+                onClick = onManageListClick,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                    .size(72.dp)
+                    .animatedMetallicBorder(width = 2.dp, shape = CircleShape)
+                    .padding(MaterialTheme.spacing.smallMedium)
+                    .brushedMetal(shape = CircleShape, baseColor = Color.Gray, animateOnce = true)
+            ) {
+                MachinedPlusIcon(color = Color.Black, modifier = Modifier.size(32.dp))
+            }
+
+            // Share Action
+            IconButton(
+                onClick = onShareClick,
+                colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Share,
+                    contentDescription = stringResource(com.example.gameswishlist.feature.gamedetail.R.string.share_content_description),
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
     }
 }
@@ -102,24 +107,26 @@ internal fun GameDetailActionPill(
  */
 @Composable
 private fun MachinedPlusIcon(
-    modifier: Modifier = Modifier, color: Color = MaterialTheme.colorScheme.onPrimary
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.onPrimary
 ) {
     Box(
-        modifier = modifier.size(24.dp), contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
+        modifier = modifier
     ) {
         // Horizontal bar
         Spacer(
             modifier = Modifier
                 .fillMaxWidth(0.7f)
-                .height(3.5.dp)
-                .background(color, CircleShape)
+                .height(4.dp)
+                .background(color, shape = CircleShape)
         )
         // Vertical bar
         Spacer(
             modifier = Modifier
                 .fillMaxHeight(0.7f)
-                .width(3.5.dp)
-                .background(color, CircleShape)
+                .width(4.dp)
+                .background(color, shape = CircleShape)
         )
     }
 }

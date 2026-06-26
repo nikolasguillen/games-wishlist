@@ -123,10 +123,8 @@ private fun PersonalCardCollapsedContent(
                     uiModel.availablePriorities.find { it.selected }?.let { priority ->
                         SummaryBadge(
                             text = priority.label.asString(),
-                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(
-                                alpha = 0.3f
-                            ),
-                            contentColor = MaterialTheme.colorScheme.primary
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 }
@@ -234,8 +232,8 @@ private fun PersonalCardExpandedContent(
 @Composable
 private fun SummaryBadge(
     text: String,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceVariant,
-    contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Surface(
         color = containerColor,
