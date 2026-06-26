@@ -18,9 +18,11 @@ import com.example.gameswishlist.core.domain.repository.GameRepository
 import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameType
+import com.example.gameswishlist.core.model.WishlistConstants
 import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.network.IgdbApiService
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -75,8 +77,10 @@ class GameRepositoryImpl @Inject constructor(
         return try {
             // Try local first
             val localGame = gameDao.getGameById(id)
+            val isWishlisted = gameDao.isGameInList(id, WishlistConstants.DEFAULT_WISHLIST_ID)
+
             val game = if (localGame != null) {
-                localGame.toGame()
+                localGame.toGame().copy(isWishlisted = isWishlisted)
             } else {
                 // Fetch from network
                 val queryText = """
@@ -85,7 +89,7 @@ class GameRepositoryImpl @Inject constructor(
                 """.trimIndent()
                 val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
                 val networkGame = apiService.getGameDetail(body).first()
-                networkGame.toGame()
+                networkGame.toGame().copy(isWishlisted = isWishlisted)
             }
 
             // Update last viewed timestamp and save local
@@ -98,8 +102,11 @@ class GameRepositoryImpl @Inject constructor(
     }
 
     override fun getRecentlyViewedGames(): Flow<List<Game>> {
-        return gameDao.getRecentlyViewedGames().map { entities ->
-            entities.map { it.toGame() }
+        return combine(
+            gameDao.getRecentlyViewedGames(),
+            gameDao.getGameIdsInList(WishlistConstants.DEFAULT_WISHLIST_ID)
+        ) { entities, wishlistIds ->
+            entities.map { it.toGame().copy(isWishlisted = it.game.id in wishlistIds) }
         }
     }
 
@@ -113,13 +120,29 @@ class GameRepositoryImpl @Inject constructor(
 
     override fun getWishlistedGames(): Flow<List<Game>> {
         return gameDao.getWishlistedGames().map { entities ->
-            entities.map { it.toGame() }
+            entities.map { it.toGame().copy(isWishlisted = true) }
         }
     }
 
     override suspend fun toggleWishlist(game: Game) {
-        val updatedGame = game.copy(isWishlisted = !game.isWishlisted)
-        saveGameLocal(updatedGame)
+        val isWishlisted = gameDao.isGameInList(game.id, WishlistConstants.DEFAULT_WISHLIST_ID)
+        if (isWishlisted) {
+            gameDao.deleteGameListCrossRef(
+                GameListCrossRef(
+                    game.id,
+                    WishlistConstants.DEFAULT_WISHLIST_ID
+                )
+            )
+        } else {
+            // Ensure game is saved local before adding to list
+            saveGameLocal(game)
+            gameDao.insertGameListCrossRef(
+                GameListCrossRef(
+                    game.id,
+                    WishlistConstants.DEFAULT_WISHLIST_ID
+                )
+            )
+        }
     }
 
     override suspend fun updateGameDetails(game: Game) {
@@ -157,8 +180,11 @@ class GameRepositoryImpl @Inject constructor(
     }
 
     override fun getGamesByList(listId: Long): Flow<List<Game>> {
-        return gameDao.getGamesByListId(listId).map { entities ->
-            entities.map { it.toGame() }
+        return combine(
+            gameDao.getGamesByListId(listId),
+            gameDao.getGameIdsInList(WishlistConstants.DEFAULT_WISHLIST_ID)
+        ) { entities, wishlistIds ->
+            entities.map { it.toGame().copy(isWishlisted = it.game.id in wishlistIds) }
         }
     }
 }

@@ -39,7 +39,7 @@ fun SearchResultGrid(
     state: LazyGridState,
     modifier: Modifier = Modifier
 ) {
-    LaunchedEffect(games) {
+    LaunchedEffect(Unit) {
         if (games.isNotEmpty()) {
             state.scrollToItem(0)
         }

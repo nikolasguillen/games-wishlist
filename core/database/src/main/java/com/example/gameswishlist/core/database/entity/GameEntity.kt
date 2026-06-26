@@ -16,7 +16,6 @@ data class GameEntity(
     val backgroundImage: String?,
     val rating: Double,
     val metacritic: Int?,
-    val isWishlisted: Boolean,
     val gameTypeId: Int,
     val notes: String,
     val priority: Int?,

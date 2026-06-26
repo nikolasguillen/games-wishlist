@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Default Lists -->
+    <string name="default_wishlist_name">Wishlist</string>
+    <string name="default_wishlist_description">My main game wishlist</string>
+</resources>

@@ -1,6 +1,12 @@
 package com.example.gameswishlist.core.database.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Update
 import com.example.gameswishlist.core.database.entity.CompanyEntity
 import com.example.gameswishlist.core.database.entity.GameCompanyCrossRef
 import com.example.gameswishlist.core.database.entity.GameEntity
@@ -10,12 +16,17 @@ import com.example.gameswishlist.core.database.entity.GamePlatformCrossRef
 import com.example.gameswishlist.core.database.entity.GameWithAllDetails
 import com.example.gameswishlist.core.database.entity.GenreEntity
 import com.example.gameswishlist.core.database.entity.PlatformEntity
+import com.example.gameswishlist.core.model.WishlistConstants
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface GameDao {
     @Transaction
-    @Query("SELECT * FROM games WHERE isWishlisted = 1")
+    @Query(
+        "SELECT * FROM games " +
+                "INNER JOIN game_list_cross_ref ON games.id = game_list_cross_ref.gameId " +
+                "WHERE game_list_cross_ref.listId = ${WishlistConstants.DEFAULT_WISHLIST_ID}"
+    )
     fun getWishlistedGames(): Flow<List<GameWithAllDetails>>
 
     @Transaction
@@ -44,7 +55,13 @@ interface GameDao {
     @Transaction
     @Query("SELECT * FROM games INNER JOIN game_list_cross_ref ON games.id = game_list_cross_ref.gameId WHERE game_list_cross_ref.listId = :listId")
     fun getGamesByListId(listId: Long): Flow<List<GameWithAllDetails>>
-    
+
+    @Query("SELECT EXISTS(SELECT 1 FROM game_list_cross_ref WHERE gameId = :gameId AND listId = :listId)")
+    suspend fun isGameInList(gameId: Int, listId: Long): Boolean
+
+    @Query("SELECT gameId FROM game_list_cross_ref WHERE listId = :listId")
+    fun getGameIdsInList(listId: Long): Flow<List<Int>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGameListCrossRef(crossRef: GameListCrossRef)
 

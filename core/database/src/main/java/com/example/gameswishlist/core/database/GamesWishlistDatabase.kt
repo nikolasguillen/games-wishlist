@@ -39,4 +39,8 @@ abstract class GamesWishlistDatabase : RoomDatabase() {
     abstract fun gameDao(): GameDao
     abstract fun listDao(): ListDao
     abstract fun searchHistoryDao(): SearchHistoryDao
+
+    companion object {
+        const val DATABASE_NAME = "games_wishlist_database"
+    }
 }
