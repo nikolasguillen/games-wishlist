@@ -54,15 +54,6 @@ fun GameDetailMainContent(
         // Initial transparent space to show the hero image
         Spacer(modifier = Modifier.height(headerHeight - MaterialTheme.spacing.extraLarge))
 
-        // Large title displayed on top of the hero image area (before the sheet covers it)
-        Text(
-            text = game.name,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            modifier = Modifier.padding(MaterialTheme.spacing.large)
-        )
-
         // "Sheet" with the actual content
         Column(
             modifier = Modifier
@@ -77,6 +68,15 @@ fun GameDetailMainContent(
                 )
                 .padding(MaterialTheme.spacing.large)
         ) {
+            Text(
+                text = game.name,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
+
             GameDetailPersonalCard(
                 uiModel = game.personalDetails,
                 onStatusChange = { onEvent(GameDetailUiEvent.UpdateStatus(it)) },
