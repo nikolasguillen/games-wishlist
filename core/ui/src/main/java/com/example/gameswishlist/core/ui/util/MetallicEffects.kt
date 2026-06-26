@@ -30,9 +30,9 @@ fun primaryMetallicGradient(): Brush {
     return Brush.linearGradient(
         colors = listOf(
             MaterialTheme.colorScheme.primary,
-            MaterialTheme.colorScheme.primaryContainer,
+            MaterialTheme.colorScheme.primaryFixed,
             MaterialTheme.colorScheme.primary,
-            MaterialTheme.colorScheme.primaryContainer,
+            MaterialTheme.colorScheme.primaryFixed,
             MaterialTheme.colorScheme.primary
         )
     )
@@ -72,8 +72,8 @@ fun rememberAnimatedMetallicGradient(
                 primary
             ),
             // We shift the start/end offsets to create the "glitter" movement
-            start = Offset(progress * 1000f - 500f, 0f),
-            end = Offset(progress * 1000f + 500f, 1000f)
+            start = Offset(progress * 1000f - 1500f, 0f),
+            end = Offset(progress * 1000f + 1500f, 1000f)
         )
     }
 }

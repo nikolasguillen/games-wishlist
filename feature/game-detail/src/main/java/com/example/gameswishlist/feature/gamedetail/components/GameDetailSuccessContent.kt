@@ -2,6 +2,7 @@ package com.example.gameswishlist.feature.gamedetail.components
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -9,30 +10,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.component.ImmersiveDetailLayout
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 
 /**
- * The full success content of the Game Detail screen, including the immersive layout.
+ * The full success content of the Game Detail screen, including the immersive layout and floating action pill.
  */
 @Composable
 internal fun GameDetailSuccessContent(
@@ -43,41 +38,38 @@ internal fun GameDetailSuccessContent(
 ) {
     val headerHeight = 350.dp
     
-    ImmersiveDetailLayout(
-        title = game.name,
-        onBackClick = onBackClick,
-        headerHeight = headerHeight,
-        modifier = modifier,
-        actions = { alpha ->
-            IconButton(
-                onClick = { onEvent(GameDetailUiEvent.OpenListSelector) },
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(
-                        alpha = (1f - alpha)
-                    )
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.List,
-                    contentDescription = stringResource(R.string.add_to_list_content_description),
-                    tint = if (alpha > 0.5f) MaterialTheme.colorScheme.onSurface else Color.White
+    Box(modifier = modifier.fillMaxSize()) {
+        ImmersiveDetailLayout(
+            title = game.name,
+            onBackClick = onBackClick,
+            headerHeight = headerHeight,
+            modifier = Modifier.fillMaxSize(),
+            heroContent = { scrollOffsetProvider ->
+                GameDetailHeroHeader(
+                    imageUrl = game.backgroundImage,
+                    scrollOffsetProvider = scrollOffsetProvider,
+                    height = headerHeight
                 )
             }
-        },
-        heroContent = { scrollOffsetProvider ->
-            GameDetailHeroHeader(
-                imageUrl = game.backgroundImage,
-                scrollOffsetProvider = scrollOffsetProvider,
-                height = headerHeight
+        ) { scrollState, innerPadding ->
+            GameDetailSheetContent(
+                game = game,
+                scrollState = scrollState,
+                headerHeight = headerHeight,
+                onEvent = onEvent,
+                innerPadding = innerPadding
             )
         }
-    ) { scrollState, innerPadding ->
-        GameDetailSheetContent(
-            game = game,
-            scrollState = scrollState,
-            headerHeight = headerHeight,
-            onEvent = onEvent,
-            innerPadding = innerPadding
+
+        // Floating Action Pill
+        GameDetailActionPill(
+            onFavoriteClick = { /* TODO */ },
+            onManageListClick = { onEvent(GameDetailUiEvent.OpenListSelector) },
+            onShareClick = { /* TODO */ },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(MaterialTheme.spacing.large)
+                .navigationBarsPadding()
         )
     }
 }
@@ -143,8 +135,8 @@ private fun GameDetailSheetContent(
                 platforms = game.platforms
             )
 
-            // Extra padding at the bottom to prevent content from ending up under the nav bar
-            Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding() + 100.dp))
+            // Extra padding at the bottom to prevent content from ending up under the pill
+            Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding() + 150.dp))
         }
     }
 }
