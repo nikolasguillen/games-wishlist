@@ -13,8 +13,8 @@ val SpotifyWhite = Color(0xFFFFFFFF)
 // Keep existing names if they are used elsewhere, but update values for Dark theme
 val PrimaryDark = SpotifyGreen
 val OnPrimaryDark = Color.Black
-val PrimaryContainerDark = SpotifyGreen // Darker green
-val OnPrimaryContainerDark = SpotifyBlack
+val PrimaryContainerDark = Color(0xFF0C4D21) // A deeper, darker green for container
+val OnPrimaryContainerDark = Color(0xFFB3F2C7) // A very light green for text on container
 
 val SecondaryDark = SpotifyLightGrey
 val OnSecondaryDark = SpotifyBlack

@@ -82,8 +82,8 @@ fun ImmersiveDetailLayout(
                     IconButton(
                         onClick = onBackClick,
                         colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(
-                                alpha = (1f - topBarAlpha) * 0.4f
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(
+                                alpha = (1f - topBarAlpha)
                             )
                         )
                     ) {

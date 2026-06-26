@@ -78,7 +78,7 @@ fun GameDetailContent(
                     onClick = { onEvent(GameDetailUiEvent.OpenListSelector) },
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = MaterialTheme.colorScheme.surface.copy(
-                            alpha = (1f - alpha) * 0.4f
+                            alpha = (1f - alpha)
                         )
                     )
                 ) {

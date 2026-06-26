@@ -1,5 +1,6 @@
 package com.example.gameswishlist.feature.gamedetail.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.model.GameStatus
@@ -24,6 +26,7 @@ import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.component.CustomFilterChip
 import com.example.gameswishlist.core.ui.component.CustomSegmentedButton
 import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.core.ui.util.rememberAnimatedMetallicGradient
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameStatusUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PriorityUiModel
@@ -36,7 +39,10 @@ fun GameDetailPersonalCard(
     onNotesChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    OutlinedCard(modifier = modifier.fillMaxWidth()) {
+    OutlinedCard(
+        modifier = modifier.fillMaxWidth(),
+        border = BorderStroke(2.dp, rememberAnimatedMetallicGradient())
+    ) {
         Column(modifier = Modifier.padding(MaterialTheme.spacing.large)) {
             Text(
                 stringResource(R.string.personal_progress_title),
@@ -74,14 +80,14 @@ fun GameDetailPersonalCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
-            
+
             val selectedPriorityIndex = uiModel.availablePriorities.indexOfFirst { it.selected }
 
             CustomSegmentedButton(
                 options = uiModel.availablePriorities,
                 selectedIndex = selectedPriorityIndex,
-                onOptionSelected = { index -> 
-                    onPriorityChange(uiModel.availablePriorities[index].id) 
+                onOptionSelected = { index ->
+                    onPriorityChange(uiModel.availablePriorities[index].id)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { priorityUi ->
