@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -30,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.util.animatedMetallicBorder
-import com.example.gameswishlist.feature.gamedetail.R
+import com.example.gameswishlist.core.ui.util.brushedMetal
 
 /**
  * A floating action pill for the Game Detail screen.
@@ -49,12 +50,13 @@ internal fun GameDetailActionPill(
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f))
             .animatedMetallicBorder(width = 2.dp, shape = CircleShape)
+            .widthIn(min = 250.dp)
             .padding(
                 horizontal = MaterialTheme.spacing.medium,
-                vertical = MaterialTheme.spacing.small
+                vertical = MaterialTheme.spacing.medium
             ),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)
+        horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         // Favorite Action
         IconButton(
@@ -63,23 +65,21 @@ internal fun GameDetailActionPill(
         ) {
             Icon(
                 imageVector = Icons.Default.FavoriteBorder,
-                contentDescription = stringResource(R.string.favorite_content_description),
+                contentDescription = stringResource(com.example.gameswishlist.feature.gamedetail.R.string.favorite_content_description),
                 tint = MaterialTheme.colorScheme.onSurface
             )
         }
 
-        // Main Action: Manage List with Machined Metal Texture and Custom Bold Plus
+        // Main Action: Manage List with "Brushed Metal" effect and custom icon
         IconButton(
             onClick = onManageListClick,
-            shape = CircleShape,
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = Color.Transparent
-            ),
             modifier = Modifier
-                .size(56.dp)
+                .size(60.dp)
                 .animatedMetallicBorder(width = 2.dp, shape = CircleShape)
+                .padding(MaterialTheme.spacing.smallMedium)
+                .brushedMetal(shape = CircleShape, baseColor = Color.Gray, animateOnce = true)
         ) {
-            MachinedPlusIcon()
+            MachinedPlusIcon(modifier = Modifier.size(25.dp))
         }
 
         // Share Action
@@ -102,12 +102,10 @@ internal fun GameDetailActionPill(
  */
 @Composable
 private fun MachinedPlusIcon(
-    modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.onPrimary
+    modifier: Modifier = Modifier, color: Color = MaterialTheme.colorScheme.onPrimary
 ) {
     Box(
-        modifier = modifier.size(24.dp),
-        contentAlignment = Alignment.Center
+        modifier = modifier.size(24.dp), contentAlignment = Alignment.Center
     ) {
         // Horizontal bar
         Spacer(
