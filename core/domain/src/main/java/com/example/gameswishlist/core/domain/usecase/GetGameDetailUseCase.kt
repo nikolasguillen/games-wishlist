@@ -1,6 +1,7 @@
 package com.example.gameswishlist.core.domain.usecase
 
 import com.example.gameswishlist.core.domain.repository.GameRepository
+import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.Game
 import javax.inject.Inject
 
@@ -17,14 +18,9 @@ class GetGameDetailUseCase @Inject constructor(
      * Fetches details for the game identified by [id].
      *
      * @param id The unique identifier of the game.
-     * @return A [Result] containing the [Game] details or an error.
+     * @return An [AppResult] containing the [Game] details or an error.
      */
-    suspend operator fun invoke(id: Int): Result<Game> {
-        return try {
-            val game = repository.getGameDetail(id)
-            Result.success(game)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    suspend operator fun invoke(id: Int): AppResult<Game> {
+        return repository.getGameDetail(id)
     }
 }

@@ -11,7 +11,7 @@ interface GameRepository {
     fun getSearchHistory(): Flow<List<String>>
     suspend fun deleteSearchHistoryItem(query: String)
     suspend fun clearSearchHistory()
-    suspend fun getGameDetail(id: Int): Game
+    suspend fun getGameDetail(id: Int): AppResult<Game>
     fun getRecentlyViewedGames(): Flow<List<Game>>
     suspend fun removeRecentGame(gameId: Int)
     suspend fun clearRecentGames()

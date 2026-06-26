@@ -66,4 +66,11 @@
     <string name="priority_low">Low</string>
     <string name="priority_medium">Medium</string>
     <string name="priority_high">High</string>
+
+    <!-- Game Status -->
+    <string name="status_want_to_buy">Want to buy</string>
+    <string name="status_bought">Bought</string>
+    <string name="status_playing">Playing</string>
+    <string name="status_completed">Completed</string>
+    <string name="status_dropped">Dropped</string>
 </resources>

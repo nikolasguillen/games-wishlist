@@ -9,15 +9,16 @@ import com.example.gameswishlist.core.domain.usecase.list.GetListsUseCase
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
-import com.example.gameswishlist.core.model.WishlistList
-import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
-import com.example.gameswishlist.feature.gamedetail.model.toUiModel
+import com.example.gameswishlist.core.ui.mapper.toUiText
+import com.example.gameswishlist.feature.gamedetail.mapper.toUiModel
+import com.example.gameswishlist.feature.gamedetail.model.GameDetailContentState
+import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
+import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,82 +26,112 @@ import javax.inject.Inject
 class GameDetailViewModel @Inject constructor(
     private val getGameDetailUseCase: GetGameDetailUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
-    getListsUseCase: GetListsUseCase,
+    private val getListsUseCase: GetListsUseCase,
     private val addGameToListUseCase: AddGameToListUseCase
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<GameDetailUiState>(GameDetailUiState.Loading)
+    private val _uiState = MutableStateFlow(GameDetailUiState())
     val uiState: StateFlow<GameDetailUiState> = _uiState.asStateFlow()
 
     private var currentGame: Game? = null
 
-    val availableLists: StateFlow<List<WishlistList>> = getListsUseCase()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    fun loadGame(id: Int) {
+    init {
         viewModelScope.launch {
-            _uiState.value = GameDetailUiState.Loading
+            getListsUseCase().collect { lists ->
+                _uiState.update { it.copy(availableLists = lists) }
+            }
+        }
+    }
+
+    fun onEvent(event: GameDetailUiEvent) {
+        when (event) {
+            is GameDetailUiEvent.LoadGame -> loadGame(event.id)
+            is GameDetailUiEvent.UpdateNotes -> updateNotes(event.notes)
+            is GameDetailUiEvent.UpdatePriority -> updatePriority(event.priorityId)
+            is GameDetailUiEvent.UpdateStatus -> updateStatus(event.statusId)
+            is GameDetailUiEvent.AddGameToList -> addGameToList(event.listId)
+            GameDetailUiEvent.OpenListSelector -> _uiState.update { it.copy(isListSelectorVisible = true) }
+            GameDetailUiEvent.DismissListSelector -> _uiState.update { it.copy(isListSelectorVisible = false) }
+        }
+    }
+
+    private fun loadGame(id: Int) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(contentState = GameDetailContentState.Loading) }
             getGameDetailUseCase(id)
                 .onSuccess { game ->
                     currentGame = game
-                    _uiState.value = GameDetailUiState.Success(game.toUiModel())
+                    _uiState.update { it.copy(contentState = GameDetailContentState.Success(game.toUiModel())) }
                 }
                 .onFailure { error ->
-                    _uiState.value = GameDetailUiState.Error(error.message ?: "Unknown error")
+                    _uiState.update {
+                        it.copy(
+                            contentState = GameDetailContentState.Error(
+                                error.toUiText()
+                            )
+                        )
+                    }
                 }
         }
     }
 
-    fun updateNotes(notes: String) {
+    private fun updateNotes(notes: String) {
         currentGame?.let { game ->
             val updatedGame = game.copy(notes = notes)
             currentGame = updatedGame
-            _uiState.value = GameDetailUiState.Success(updatedGame.toUiModel())
+            updateContentState(updatedGame)
             viewModelScope.launch {
                 updateGameUseCase(updatedGame)
             }
         }
     }
 
-    fun updatePriority(priority: Priority) {
+    private fun updatePriority(priorityId: Int) {
+        val priority = Priority.fromId(priorityId)
         currentGame?.let { game ->
             val updatedGame = game.copy(priority = priority)
             currentGame = updatedGame
-            _uiState.value = GameDetailUiState.Success(updatedGame.toUiModel())
+            updateContentState(updatedGame)
             viewModelScope.launch {
                 updateGameUseCase(updatedGame)
             }
         }
     }
 
-    fun updateStatus(status: GameStatus) {
+    private fun updateStatus(statusId: Int) {
+        val status = GameStatus.fromId(statusId)
         currentGame?.let { game ->
             val updatedGame = game.copy(status = status)
             currentGame = updatedGame
-            _uiState.value = GameDetailUiState.Success(updatedGame.toUiModel())
+            updateContentState(updatedGame)
             viewModelScope.launch {
                 updateGameUseCase(updatedGame)
             }
         }
     }
 
-    fun addGameToList(listId: Long) {
+    private fun addGameToList(listId: Long) {
         currentGame?.let { game ->
             viewModelScope.launch {
                 val updatedGame = game.copy(status = GameStatus.WANT_TO_BUY)
                 updateGameUseCase(updatedGame)
                 addGameToListUseCase(game.id, listId)
-                
+
                 // Update local state to reflect status change
                 currentGame = updatedGame
-                _uiState.value = GameDetailUiState.Success(updatedGame.toUiModel())
+                _uiState.update {
+                    it.copy(
+                        contentState = GameDetailContentState.Success(updatedGame.toUiModel()),
+                        isListSelectorVisible = false
+                    )
+                }
             }
         }
     }
-}
 
-sealed interface GameDetailUiState {
-    data object Loading : GameDetailUiState
-    data class Success(val game: GameDetailUiModel) : GameDetailUiState
-    data class Error(val message: String) : GameDetailUiState
+    private fun updateContentState(game: Game) {
+        _uiState.update {
+            it.copy(contentState = GameDetailContentState.Success(game.toUiModel()))
+        }
+    }
 }

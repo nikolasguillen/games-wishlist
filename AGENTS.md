@@ -11,6 +11,11 @@
 - Example chain for search: `feature/search/SearchViewModel.kt` -> `core/domain/usecase/search/SearchGamesUseCase.kt` -> `core/data/repository/GameRepositoryImpl.kt` -> `core/network/IgdbApiService.kt`.
 - `SearchGamesUseCase` is a "Composite Use Case" that returns `SearchResult` (containing both games and derived filters).
 - UI Models use the `-UiModel` suffix (e.g., `GameFilterUiModel`, `GameItemUiModel`) to separate domain models from Compose-specific needs.
+- **ViewModel Structure**: Always follow the Unidirectional Data Flow (UDF) pattern as implemented in `SearchViewModel.kt` and `GameDetailViewModel.kt`:
+    - Use a single `uiState: StateFlow<FeatureUiState>` where `FeatureUiState` is a data class.
+    - Use a `sealed interface FeatureContentState` inside the UI state for main content lifecycle (e.g., `Loading`, `Success`, `Error`).
+    - Expose a single `onEvent(event: FeatureUiEvent)` function to handle all UI interactions.
+    - Initialize data collection (like lists or history) in the `init` block updating the state via `_uiState.update { ... }`.
 - Use `AppResult.map` for clean data transformations across layers.
 
 ## Navigation and UI composition

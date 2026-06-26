@@ -10,10 +10,8 @@ import com.example.gameswishlist.core.domain.usecase.search.DeleteSearchHistoryI
 import com.example.gameswishlist.core.domain.usecase.search.GetRecentSearchActivityUseCase
 import com.example.gameswishlist.core.domain.usecase.search.RemoveRecentGameUseCase
 import com.example.gameswishlist.core.domain.usecase.search.SearchGamesUseCase
-import com.example.gameswishlist.core.model.RepositoryError
-import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
-import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.feature.search.mapper.getInitialGameTypeFilters
 import com.example.gameswishlist.feature.search.mapper.getInitialSortFilters
 import com.example.gameswishlist.feature.search.mapper.isSortActive
@@ -407,20 +405,11 @@ class SearchViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             contentState = SearchContentState.Error(
-                                message = error.toSearchMessage()
+                                message = error.toUiText()
                             )
                         )
                     }
                 }
         }
-    }
-}
-
-private fun RepositoryError.toSearchMessage(): UiText {
-    return when (this) {
-        RepositoryError.NoNetwork -> UiText.StringResource(R.string.error_no_network)
-        RepositoryError.RequestTimeout -> UiText.StringResource(R.string.error_request_timeout)
-        is RepositoryError.Http -> UiText.StringResource(R.string.error_http, code)
-        is RepositoryError.Unknown -> UiText.StringResource(R.string.error_unknown)
     }
 }

@@ -71,12 +71,14 @@ class GameRepositoryImpl @Inject constructor(
         searchHistoryDao.deleteAll()
     }
 
-    override suspend fun getGameDetail(id: Int): Game {
-        // Try local first
-        val localGame = gameDao.getGameById(id)
-        val game = localGame?.toGame()
-            ?: // Fetch from network
-            try {
+    override suspend fun getGameDetail(id: Int): AppResult<Game> {
+        return try {
+            // Try local first
+            val localGame = gameDao.getGameById(id)
+            val game = if (localGame != null) {
+                localGame.toGame()
+            } else {
+                // Fetch from network
                 val queryText = """
                     fields name, game_type, summary, first_release_date, cover.url, total_rating, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
                     where id = $id;
@@ -84,14 +86,15 @@ class GameRepositoryImpl @Inject constructor(
                 val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
                 val networkGame = apiService.getGameDetail(body).first()
                 networkGame.toGame()
-            } catch (e: Exception) {
-                throw e
             }
 
-        // Update last viewed timestamp and save local
-        val updatedGame = game.copy(lastViewedAt = System.currentTimeMillis())
-        saveGameLocal(updatedGame)
-        return updatedGame
+            // Update last viewed timestamp and save local
+            val updatedGame = game.copy(lastViewedAt = System.currentTimeMillis())
+            saveGameLocal(updatedGame)
+            AppResult.success(updatedGame)
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
     }
 
     override fun getRecentlyViewedGames(): Flow<List<Game>> {

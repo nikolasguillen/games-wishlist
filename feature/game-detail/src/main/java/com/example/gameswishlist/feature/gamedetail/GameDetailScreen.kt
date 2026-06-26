@@ -13,7 +13,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,24 +23,28 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.ui.R
+import com.example.gameswishlist.core.ui.component.LoadingPage
 import com.example.gameswishlist.feature.gamedetail.components.GameDetailHeader
 import com.example.gameswishlist.feature.gamedetail.components.GameDetailInfoSection
 import com.example.gameswishlist.feature.gamedetail.components.GameDetailPersonalCard
 import com.example.gameswishlist.feature.gamedetail.components.ListSelectorDialog
+import com.example.gameswishlist.feature.gamedetail.mapper.toUiModel
+import com.example.gameswishlist.feature.gamedetail.model.GameDetailContentState
+import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiModel
+import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
+import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
 
 @Composable
 fun GameDetailScreen(
@@ -51,20 +54,15 @@ fun GameDetailScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val availableLists by viewModel.availableLists.collectAsStateWithLifecycle()
 
     LaunchedEffect(gameId) {
-        viewModel.loadGame(gameId)
+        viewModel.onEvent(GameDetailUiEvent.LoadGame(gameId))
     }
 
     GameDetailContent(
         uiState = uiState,
-        availableLists = availableLists,
+        onEvent = viewModel::onEvent,
         onBackClick = onBackClick,
-        onStatusChange = viewModel::updateStatus,
-        onPriorityChange = viewModel::updatePriority,
-        onNotesChange = viewModel::updateNotes,
-        onAddToList = viewModel::addGameToList,
         modifier = modifier
     )
 }
@@ -73,24 +71,17 @@ fun GameDetailScreen(
 @Composable
 fun GameDetailContent(
     uiState: GameDetailUiState,
-    availableLists: List<WishlistList>,
+    onEvent: (GameDetailUiEvent) -> Unit,
     onBackClick: () -> Unit,
-    onStatusChange: (GameStatus) -> Unit,
-    onPriorityChange: (Priority) -> Unit,
-    onNotesChange: (String) -> Unit,
-    onAddToList: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var showListSelector by remember { mutableStateOf(false) }
-
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = if (uiState is GameDetailUiState.Success) uiState.game.name 
-                               else stringResource(R.string.game_detail_title)
-                    )
+                    if (uiState.contentState is GameDetailContentState.Success) {
+                        Text(text = uiState.contentState.game.name)
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
@@ -101,8 +92,8 @@ fun GameDetailContent(
                     }
                 },
                 actions = {
-                    if (uiState is GameDetailUiState.Success) {
-                        IconButton(onClick = { showListSelector = true }) {
+                    if (uiState.contentState is GameDetailContentState.Success) {
+                        IconButton(onClick = { onEvent(GameDetailUiEvent.OpenListSelector) }) {
                             Icon(
                                 Icons.AutoMirrored.Filled.List,
                                 contentDescription = stringResource(R.string.add_to_list_content_description)
@@ -120,19 +111,21 @@ fun GameDetailContent(
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            when (uiState) {
-                is GameDetailUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            when (val content = uiState.contentState) {
+                is GameDetailContentState.Loading -> {
+                    LoadingPage()
                 }
-                is GameDetailUiState.Error -> {
+
+                is GameDetailContentState.Error -> {
                     Text(
-                        text = uiState.message,
+                        text = content.message.asString(),
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-                is GameDetailUiState.Success -> {
-                    val game = uiState.game
+
+                is GameDetailContentState.Success -> {
+                    val game = content.game
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -145,12 +138,10 @@ fun GameDetailContent(
 
                         Column(modifier = Modifier.padding(16.dp)) {
                             GameDetailPersonalCard(
-                                status = game.status,
-                                priority = game.priority,
-                                notes = game.notes,
-                                onStatusChange = onStatusChange,
-                                onPriorityChange = onPriorityChange,
-                                onNotesChange = onNotesChange
+                                uiModel = game.personalDetails,
+                                onStatusChange = { onEvent(GameDetailUiEvent.UpdateStatus(it)) },
+                                onPriorityChange = { onEvent(GameDetailUiEvent.UpdatePriority(it)) },
+                                onNotesChange = { onEvent(GameDetailUiEvent.UpdateNotes(it)) }
                             )
 
                             Spacer(modifier = Modifier.height(16.dp))
@@ -168,13 +159,12 @@ fun GameDetailContent(
             }
         }
 
-        if (showListSelector) {
+        if (uiState.isListSelectorVisible) {
             ListSelectorDialog(
-                lists = availableLists,
-                onDismiss = { showListSelector = false },
+                lists = uiState.availableLists,
+                onDismiss = { onEvent(GameDetailUiEvent.DismissListSelector) },
                 onListSelected = { listId ->
-                    onAddToList(listId)
-                    showListSelector = false
+                    onEvent(GameDetailUiEvent.AddGameToList(listId))
                 }
             )
         }
@@ -184,29 +174,34 @@ fun GameDetailContent(
 @Preview(showBackground = true)
 @Composable
 fun GameDetailContentSuccessPreview() {
-    MaterialTheme {
+    GamesWishlistTheme {
         GameDetailContent(
-            uiState = GameDetailUiState.Success(
-                GameDetailUiModel(
-                    id = 1,
-                    name = "The Witcher 3: Wild Hunt",
-                    description = "A legendary RPG with a rich story and vast open world.",
-                    backgroundImage = null,
-                    rating = 95.0,
-                    metaCritic = 92,
-                    platforms = listOf("PC", "PS4", "Xbox One", "Switch"),
-                    genres = listOf("RPG", "Action"),
-                    status = GameStatus.PLAYING,
-                    priority = Priority.HIGH,
-                    notes = "Geralt's adventures are amazing!"
-                )
+            uiState = GameDetailUiState(
+                contentState = GameDetailContentState.Success(
+                    GameDetailUiModel(
+                        id = 1,
+                        name = "The Witcher 3: Wild Hunt",
+                        description = "A legendary RPG with a rich story and vast open world.",
+                        backgroundImage = null,
+                        rating = 95.0,
+                        metaCritic = 92,
+                        platforms = listOf("PC", "PS4", "Xbox One", "Switch"),
+                        genres = listOf("RPG", "Action"),
+                        personalDetails = GameDetailPersonalUiModel(
+                            notes = "Geralt's adventures are amazing!",
+                            availableStatuses = GameStatus.entries.mapIndexed { index, status ->
+                                status.toUiModel(index == 1)
+                            },
+                            availablePriorities = Priority.entries.mapIndexed { index, priority ->
+                                priority.toUiModel(index == 1)
+                            }
+                        )
+                    )
+                ),
+                availableLists = listOf(WishlistList(1, "Backlog"))
             ),
-            availableLists = listOf(WishlistList(1, "Backlog")),
-            onBackClick = {},
-            onStatusChange = {},
-            onPriorityChange = {},
-            onNotesChange = {},
-            onAddToList = {}
+            onEvent = {},
+            onBackClick = {}
         )
     }
 }
@@ -214,15 +209,11 @@ fun GameDetailContentSuccessPreview() {
 @Preview(showBackground = true)
 @Composable
 fun GameDetailContentLoadingPreview() {
-    MaterialTheme {
+    GamesWishlistTheme {
         GameDetailContent(
-            uiState = GameDetailUiState.Loading,
-            availableLists = emptyList(),
-            onBackClick = {},
-            onStatusChange = {},
-            onPriorityChange = {},
-            onNotesChange = {},
-            onAddToList = {}
+            uiState = GameDetailUiState(contentState = GameDetailContentState.Loading),
+            onEvent = {},
+            onBackClick = {}
         )
     }
 }
