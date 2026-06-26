@@ -21,9 +21,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
@@ -79,13 +81,13 @@ fun MainContent() {
         }
     ) { innerPadding ->
         NavDisplay(
-            backStack = backStack,
-            onBack = {
-                if (backStack.size > 1) {
-                    backStack.removeAt(backStack.size - 1)
-                }
-            },
             modifier = Modifier.fillMaxSize(),
+            backStack = backStack,
+            onBack = { backStack.removeLastOrNull() },
+            entryDecorators = listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator()
+            ),
             transitionSpec = {
                 fadeIn() togetherWith fadeOut()
             },
@@ -98,11 +100,14 @@ fun MainContent() {
             entryProvider = { key ->
                 when (key) {
                     is SearchRoute -> NavEntry(key) {
-                        val vm: SearchViewModel = hiltViewModel()
+                        val vm = hiltViewModel<SearchViewModel>()
                         SearchScreen(
                             viewModel = vm,
                             onGameClick = { gameId: Int ->
-                                backStack.add(GameDetailRoute(gameId))
+                                val nextRoute = GameDetailRoute(gameId)
+                                if (backStack.lastOrNull() != nextRoute) {
+                                    backStack.add(nextRoute)
+                                }
                             },
                             modifier = Modifier
                                 .padding(innerPadding)
@@ -111,11 +116,14 @@ fun MainContent() {
                     }
 
                     is ListsRoute -> NavEntry(key) {
-                        val vm: ListsViewModel = hiltViewModel()
+                        val vm = hiltViewModel<ListsViewModel>()
                         ListsScreen(
                             viewModel = vm,
                             onListClick = { listId: Long, listName: String ->
-                                backStack.add(WishlistRoute(listId, listName))
+                                val nextRoute = WishlistRoute(listId, listName)
+                                if (backStack.lastOrNull() != nextRoute) {
+                                    backStack.add(nextRoute)
+                                }
                             },
                             modifier = Modifier
                                 .padding(innerPadding)
@@ -124,8 +132,8 @@ fun MainContent() {
                     }
 
                     is WishlistRoute -> NavEntry(key) {
-                        val vm: WishlistViewModel = hiltViewModel(
-                            creationCallback = { factory: WishlistViewModel.Factory ->
+                        val vm = hiltViewModel<WishlistViewModel, WishlistViewModel.Factory>(
+                            creationCallback = { factory ->
                                 factory.create(key.listId)
                             }
                         )
@@ -133,27 +141,24 @@ fun MainContent() {
                             listName = key.listName,
                             viewModel = vm,
                             onGameClick = { gameId: Int ->
-                                backStack.add(GameDetailRoute(gameId))
+                                val nextRoute = GameDetailRoute(gameId)
+                                if (backStack.lastOrNull() != nextRoute) {
+                                    backStack.add(nextRoute)
+                                }
                             },
-                            onBackClick = {
-                                backStack.removeAt(backStack.size - 1)
-                            }
+                            onBackClick = { backStack.removeLastOrNull() },
                         )
                     }
 
                     is GameDetailRoute -> NavEntry(key) {
-                        val vm: GameDetailViewModel = hiltViewModel(
-                            creationCallback = { factory: GameDetailViewModel.Factory ->
+                        val vm = hiltViewModel<GameDetailViewModel, GameDetailViewModel.Factory>(
+                            creationCallback = { factory ->
                                 factory.create(key.gameId)
                             }
                         )
                         GameDetailScreen(
                             viewModel = vm,
-                            onBackClick = {
-                                if (backStack.size > 1) {
-                                    backStack.removeAt(backStack.size - 1)
-                                }
-                            }
+                            onBackClick = { backStack.removeLastOrNull() }
                         )
                     }
 
