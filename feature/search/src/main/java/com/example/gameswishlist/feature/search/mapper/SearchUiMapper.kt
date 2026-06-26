@@ -3,6 +3,7 @@ package com.example.gameswishlist.feature.search.mapper
 import com.example.gameswishlist.core.model.GameType
 import com.example.gameswishlist.core.model.Genre
 import com.example.gameswishlist.core.model.Platform
+import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.UiConstants
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
@@ -84,18 +85,9 @@ fun getInitialGameTypeFilters(): List<GameFilterUiModel> {
         GameType.DLC_ADDON,
         GameType.STANDALONE_EXPANSION
     ).map { type ->
-        val stringResId = when (type) {
-            GameType.MAIN_GAME -> UiR.string.gametype_main_game
-            GameType.REMAKE -> UiR.string.gametype_remake
-            GameType.REMASTER -> UiR.string.gametype_remaster
-            GameType.EXPANSION -> UiR.string.gametype_expansion
-            GameType.DLC_ADDON -> UiR.string.gametype_dlc_addon
-            GameType.STANDALONE_EXPANSION -> UiR.string.gametype_standalone_expansion
-            else -> UiR.string.gametype_main_game
-        }
         GameFilterUiModel.GameType(
             id = type.id,
-            label = UiText.StringResource(stringResId),
+            label = type.toUiText(),
             selected = false
         )
     }

@@ -114,6 +114,7 @@ private fun GameDetailSheetContent(
             // Sheet Header with Title, Rating, and Genres
             GameDetailSheetHeader(
                 name = game.name,
+                gameType = game.gameType.asString(),
                 ratingText = game.ratingText.asString(),
                 genres = game.genres
             )

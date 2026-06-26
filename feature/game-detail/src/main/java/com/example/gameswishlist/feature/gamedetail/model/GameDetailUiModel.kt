@@ -7,6 +7,7 @@ data class GameDetailUiModel(
     val name: String,
     val description: String,
     val backgroundImage: String?,
+    val gameType: UiText,
     val ratingText: UiText,
     val platforms: List<String>,
     val genres: List<String>,

@@ -4,6 +4,7 @@ import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.ui.R
+import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
@@ -31,6 +32,7 @@ fun Game.toUiModel(): GameDetailUiModel {
         name = name,
         description = description,
         backgroundImage = backgroundImage,
+        gameType = gameType.toUiText(),
         ratingText = cleanedRating,
         platforms = platforms.map { it.name },
         genres = genres.map { it.name },
