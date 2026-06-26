@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -64,41 +64,43 @@ fun MainContent() {
     Scaffold(
         containerColor = MaterialTheme.appColors.appBackground,
         bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.appColors.navBarContainerColor
-            ) {
-                NavigationBarItem(
-                    selected = backStack.last() is SearchRoute,
-                    onClick = {
-                        if (backStack.last() !is SearchRoute) {
-                            backStack.add(SearchRoute)
-                        }
-                    },
-                    icon = {
-                        Icon(
-                            Icons.Default.Search,
-                            contentDescription = stringResource(R.string.search_nav_bar_item)
-                        )
-                    },
-                    label = { Text(stringResource(R.string.search_nav_bar_item)) },
-                    colors = AppComponentsColors.navBarItemColors
-                )
-                NavigationBarItem(
-                    selected = backStack.last() is ListsRoute || backStack.last() is WishlistRoute,
-                    onClick = {
-                        if (backStack.last() !is ListsRoute) {
-                            backStack.add(ListsRoute)
-                        }
-                    },
-                    icon = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.List,
-                            contentDescription = stringResource(R.string.lists_nav_bar_item)
-                        )
-                    },
-                    label = { Text(stringResource(R.string.lists_nav_bar_item)) },
-                    colors = AppComponentsColors.navBarItemColors
-                )
+            if (backStack.last() is SearchRoute || backStack.last() is ListsRoute) {
+                NavigationBar(
+                    containerColor = MaterialTheme.appColors.navBarContainerColor
+                ) {
+                    NavigationBarItem(
+                        selected = backStack.last() is SearchRoute,
+                        onClick = {
+                            if (backStack.last() !is SearchRoute) {
+                                backStack.add(SearchRoute)
+                            }
+                        },
+                        icon = {
+                            Icon(
+                                Icons.Default.Search,
+                                contentDescription = stringResource(R.string.search_nav_bar_item)
+                            )
+                        },
+                        label = { Text(stringResource(R.string.search_nav_bar_item)) },
+                        colors = AppComponentsColors.navBarItemColors
+                    )
+                    NavigationBarItem(
+                        selected = backStack.last() is ListsRoute || backStack.last() is WishlistRoute,
+                        onClick = {
+                            if (backStack.last() !is ListsRoute) {
+                                backStack.add(ListsRoute)
+                            }
+                        },
+                        icon = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.List,
+                                contentDescription = stringResource(R.string.lists_nav_bar_item)
+                            )
+                        },
+                        label = { Text(stringResource(R.string.lists_nav_bar_item)) },
+                        colors = AppComponentsColors.navBarItemColors
+                    )
+                }
             }
         }
     ) { innerPadding ->
@@ -109,9 +111,14 @@ fun MainContent() {
                     backStack.removeAt(backStack.size - 1)
                 }
             },
-            modifier = Modifier
-                .padding(bottom = innerPadding.calculateBottomPadding()),
+            modifier = Modifier.fillMaxSize(),
             entryProvider = { key ->
+                val modifierWithPadding = if (key is SearchRoute || key is ListsRoute) {
+                    Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+                } else {
+                    Modifier
+                }
+
                 when (key) {
                     is SearchRoute -> NavEntry(key) {
                         val vm: SearchViewModel = hiltViewModel()
@@ -119,7 +126,8 @@ fun MainContent() {
                             viewModel = vm,
                             onGameClick = { gameId: Int ->
                                 backStack.add(GameDetailRoute(gameId))
-                            }
+                            },
+                            modifier = modifierWithPadding
                         )
                     }
 
@@ -129,7 +137,8 @@ fun MainContent() {
                             viewModel = vm,
                             onListClick = { listId: Long, listName: String ->
                                 backStack.add(WishlistRoute(listId, listName))
-                            }
+                            },
+                            modifier = modifierWithPadding
                         )
                     }
 

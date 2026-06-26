@@ -158,9 +158,9 @@ fun SearchScreenContent(
 
         SearchFilterBottomSheet(state = uiState.filtersBottomSheetState, onEvent = onEvent)
         SearchSortBottomSheet(state = uiState.sortBottomSheetState, onEvent = onEvent)
-    }
 
-    StatusBarProtection(color = backgroundColor)
+        StatusBarProtection(color = backgroundColor)
+    }
 }
 
 @Composable
