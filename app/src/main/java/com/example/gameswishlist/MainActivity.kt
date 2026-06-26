@@ -158,7 +158,13 @@ fun MainContent() {
                         )
                         GameDetailScreen(
                             viewModel = vm,
-                            onBackClick = { backStack.removeLastOrNull() }
+                            onBackClick = { backStack.removeLastOrNull() },
+                            onGameClick = { gameId: Int ->
+                                val nextRoute = GameDetailRoute(gameId)
+                                if (backStack.lastOrNull() != nextRoute) {
+                                    backStack.add(nextRoute)
+                                }
+                            }
                         )
                     }
 

@@ -22,6 +22,11 @@ import com.squareup.moshi.JsonClass
  * @property platforms List of platforms the game is available on (e.g., PS5, PC, Xbox).
  * @property genres List of genres the game belongs to (e.g., RPG, Shooter).
  * @property involvedCompanies List of companies involved in the game, categorized by their role (Developer/Publisher).
+ * @property parentGame The main game if this is a DLC, Remake, etc.
+ * @property dlcList List of DLCs for this game.
+ * @property expansions List of expansions for this game.
+ * @property remakes List of remakes of this game.
+ * @property remasters List of remasters of this game.
  */
 @JsonClass(generateAdapter = true)
 data class IgdbGame(
@@ -38,7 +43,12 @@ data class IgdbGame(
     val url: String?,
     val platforms: List<IgdbPlatform>?,
     val genres: List<IgdbGenre>?,
-    @Json(name = "involved_companies") val involvedCompanies: List<IgdbInvolvedCompany>?
+    @Json(name = "involved_companies") val involvedCompanies: List<IgdbInvolvedCompany>?,
+    @Json(name = "parent_game") val parentGame: IgdbGame? = null,
+    @Json(name = "dlcs") val dlcList: List<IgdbGame>? = null,
+    val expansions: List<IgdbGame>? = null,
+    val remakes: List<IgdbGame>? = null,
+    val remasters: List<IgdbGame>? = null
 )
 
 /**

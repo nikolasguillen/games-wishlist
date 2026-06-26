@@ -4,4 +4,5 @@ import com.example.gameswishlist.core.ui.model.UiText
 
 sealed interface GameDetailUiEffect {
     data class ShareGame(val text: UiText) : GameDetailUiEffect
+    data class NavigateToGame(val id: Int) : GameDetailUiEffect
 }

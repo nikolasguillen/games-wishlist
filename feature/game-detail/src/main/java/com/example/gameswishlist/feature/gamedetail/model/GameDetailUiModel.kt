@@ -12,5 +12,6 @@ data class GameDetailUiModel(
     val platforms: List<String>,
     val genres: List<String>,
     val isWishlisted: Boolean,
-    val personalDetails: GameDetailPersonalUiModel
+    val personalDetails: GameDetailPersonalUiModel,
+    val relatedGames: List<RelatedGamesUiModel>
 )

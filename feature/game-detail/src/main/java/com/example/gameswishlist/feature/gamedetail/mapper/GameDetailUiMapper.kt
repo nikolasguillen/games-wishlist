@@ -5,14 +5,63 @@ import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.mapper.getRatingUiText
+import com.example.gameswishlist.core.ui.mapper.toGameItem
 import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameStatusUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PriorityUiModel
+import com.example.gameswishlist.feature.gamedetail.model.RelatedGamesUiModel
 
 fun Game.toUiModel(): GameDetailUiModel {
+    val related = mutableListOf<RelatedGamesUiModel>()
+
+    parentGame?.let {
+        related.add(
+            RelatedGamesUiModel(
+                title = UiText.StringResource(R.string.related_parent_game),
+                games = listOf(it.toGameItem())
+            )
+        )
+    }
+
+    if (dlcs.isNotEmpty()) {
+        related.add(
+            RelatedGamesUiModel(
+                title = UiText.StringResource(R.string.related_dlcs),
+                games = dlcs.map { it.toGameItem() }
+            )
+        )
+    }
+
+    if (expansions.isNotEmpty()) {
+        related.add(
+            RelatedGamesUiModel(
+                title = UiText.StringResource(R.string.related_expansions),
+                games = expansions.map { it.toGameItem() }
+            )
+        )
+    }
+
+    if (remakes.isNotEmpty()) {
+        related.add(
+            RelatedGamesUiModel(
+                title = UiText.StringResource(R.string.related_remakes),
+                games = remakes.map { it.toGameItem() }
+            )
+        )
+    }
+
+    if (remasters.isNotEmpty()) {
+        related.add(
+            RelatedGamesUiModel(
+                title = UiText.StringResource(R.string.related_remasters),
+                games = remasters.map { it.toGameItem() }
+            )
+        )
+    }
+
     return GameDetailUiModel(
         id = id,
         name = name,
@@ -26,7 +75,9 @@ fun Game.toUiModel(): GameDetailUiModel {
         personalDetails = GameDetailPersonalUiModel(
             notes = notes,
             availableStatuses = GameStatus.entries.map { it.toUiModel(selected = this.status?.id == it.id) },
-            availablePriorities = Priority.entries.map { it.toUiModel(selected = this.priority?.id == it.id) })
+            availablePriorities = Priority.entries.map { it.toUiModel(selected = this.priority?.id == it.id) }
+        ),
+        relatedGames = related
     )
 }
 

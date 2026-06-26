@@ -68,6 +68,9 @@ class GameDetailViewModel @AssistedInject constructor(
             GameDetailUiEvent.DismissListSelector -> _uiState.update { it.copy(isListSelectorVisible = false) }
             GameDetailUiEvent.ToggleFavorite -> toggleFavorite()
             GameDetailUiEvent.ShareGame -> shareGame()
+            is GameDetailUiEvent.NavigateToGame -> viewModelScope.launch {
+                _uiEffect.emit(GameDetailUiEffect.NavigateToGame(event.id))
+            }
         }
     }
 

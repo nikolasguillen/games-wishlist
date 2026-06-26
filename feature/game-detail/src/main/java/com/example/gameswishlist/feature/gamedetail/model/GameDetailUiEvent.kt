@@ -10,4 +10,5 @@ sealed interface GameDetailUiEvent {
     data object DismissListSelector : GameDetailUiEvent
     data object ToggleFavorite : GameDetailUiEvent
     data object ShareGame : GameDetailUiEvent
+    data class NavigateToGame(val id: Int) : GameDetailUiEvent
 }

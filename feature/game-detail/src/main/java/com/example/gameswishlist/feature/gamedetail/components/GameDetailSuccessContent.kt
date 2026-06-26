@@ -137,6 +137,14 @@ private fun GameDetailSheetContent(
                 platforms = game.platforms
             )
 
+            if (game.relatedGames.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraLarge))
+                RelatedGamesSection(
+                    relatedGames = game.relatedGames,
+                    onGameClick = { onEvent(GameDetailUiEvent.NavigateToGame(it)) }
+                )
+            }
+
             // Extra padding at the bottom to prevent content from ending up under the pill
             Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding() + 150.dp))
         }

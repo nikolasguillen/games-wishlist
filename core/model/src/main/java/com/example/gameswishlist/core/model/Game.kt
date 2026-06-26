@@ -46,5 +46,10 @@ data class Game(
     val priority: Priority? = null,
     val status: GameStatus? = null,
     val url: String? = null,
-    val lastViewedAt: Long? = null
+    val lastViewedAt: Long? = null,
+    val dlcs: List<Game> = emptyList(),
+    val expansions: List<Game> = emptyList(),
+    val remakes: List<Game> = emptyList(),
+    val remasters: List<Game> = emptyList(),
+    val parentGame: Game? = null
 )

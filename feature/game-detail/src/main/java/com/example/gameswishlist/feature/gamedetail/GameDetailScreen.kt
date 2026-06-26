@@ -29,6 +29,7 @@ import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
 fun GameDetailScreen(
     viewModel: GameDetailViewModel,
     onBackClick: () -> Unit,
+    onGameClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -43,6 +44,10 @@ fun GameDetailScreen(
                         putExtra(Intent.EXTRA_TEXT, effect.text.asString(context))
                     }
                     context.startActivity(Intent.createChooser(intent, null))
+                }
+
+                is GameDetailUiEffect.NavigateToGame -> {
+                    onGameClick(effect.id)
                 }
             }
         }
@@ -107,7 +112,8 @@ fun GameDetailContentSuccessPreview() {
                             availablePriorities = Priority.entries.mapIndexed { index, priority ->
                                 priority.toUiModel(index == 1)
                             }
-                        )
+                        ),
+                        relatedGames = emptyList()
                     )
                 ),
                 availableLists = listOf(WishlistList(1, "Backlog"))

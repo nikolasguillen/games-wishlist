@@ -47,7 +47,12 @@ fun IgdbGame.toGame(): Game {
         developers = involvedCompanies?.filter { it.developer }?.map { it.company.toCompany() }
             ?: emptyList(),
         gameType = GameType.fromId(gameType),
-        url = url
+        url = url,
+        dlcs = dlcList?.map { it.toGame() } ?: emptyList(),
+        expansions = expansions?.map { it.toGame() } ?: emptyList(),
+        remakes = remakes?.map { it.toGame() } ?: emptyList(),
+        remasters = remasters?.map { it.toGame() } ?: emptyList(),
+        parentGame = parentGame?.toGame()
     )
 }
 

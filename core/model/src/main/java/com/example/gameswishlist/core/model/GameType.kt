@@ -1,7 +1,7 @@
 package com.example.gameswishlist.core.model
 
 /**
- * Represents the type of a game as defined by IGDB.
+ * Represents the type of game as defined by IGDB.
  *
  * @property id The raw integer ID from the IGDB API.
  */

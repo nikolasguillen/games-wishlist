@@ -73,4 +73,11 @@
     <string name="status_playing">Playing</string>
     <string name="status_completed">Completed</string>
     <string name="status_dropped">Dropped</string>
+
+    <!-- Related Games -->
+    <string name="related_parent_game">Main Game</string>
+    <string name="related_dlcs">DLCs</string>
+    <string name="related_expansions">Expansions</string>
+    <string name="related_remakes">Remakes</string>
+    <string name="related_remasters">Remasters</string>
 </resources>
