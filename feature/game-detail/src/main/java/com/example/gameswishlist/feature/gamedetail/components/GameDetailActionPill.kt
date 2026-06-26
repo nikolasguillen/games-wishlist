@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Icon
@@ -38,11 +39,11 @@ import com.example.gameswishlist.core.ui.util.brushedMetal
  */
 @Composable
 internal fun GameDetailActionPill(
+    isFavorite: Boolean,
     onFavoriteClick: () -> Unit,
     onManageListClick: () -> Unit,
     onShareClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    listName: String? = null
+    modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier) {
         Box(
@@ -67,9 +68,9 @@ internal fun GameDetailActionPill(
                 colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent)
             ) {
                 Icon(
-                    imageVector = Icons.Default.FavoriteBorder,
+                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                     contentDescription = stringResource(com.example.gameswishlist.feature.gamedetail.R.string.favorite_content_description),
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -136,10 +137,10 @@ private fun MachinedPlusIcon(
 private fun GameDetailActionPillPreview() {
     GamesWishlistTheme {
         GameDetailActionPill(
+            isFavorite = true,
             onFavoriteClick = {},
             onManageListClick = {},
-            onShareClick = {},
-            listName = "Backlog"
+            onShareClick = {}
         )
     }
 }

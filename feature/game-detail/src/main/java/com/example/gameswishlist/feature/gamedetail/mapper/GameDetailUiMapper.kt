@@ -34,6 +34,7 @@ fun Game.toUiModel(): GameDetailUiModel {
         ratingText = cleanedRating,
         platforms = platforms.map { it.name },
         genres = genres.map { it.name },
+        isWishlisted = isWishlisted,
         personalDetails = GameDetailPersonalUiModel(
             notes = notes,
             availableStatuses = GameStatus.entries.map { it.toUiModel(selected = this.status?.id == it.id) },

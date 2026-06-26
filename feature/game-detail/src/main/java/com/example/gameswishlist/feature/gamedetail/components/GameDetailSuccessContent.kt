@@ -63,9 +63,10 @@ internal fun GameDetailSuccessContent(
 
         // Floating Action Pill
         GameDetailActionPill(
-            onFavoriteClick = { /* TODO */ },
+            isFavorite = game.isWishlisted,
+            onFavoriteClick = { onEvent(GameDetailUiEvent.ToggleFavorite) },
             onManageListClick = { onEvent(GameDetailUiEvent.OpenListSelector) },
-            onShareClick = { /* TODO */ },
+            onShareClick = { onEvent(GameDetailUiEvent.ShareGame) },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(MaterialTheme.spacing.large)

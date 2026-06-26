@@ -10,5 +10,6 @@ data class GameDetailUiModel(
     val ratingText: UiText,
     val platforms: List<String>,
     val genres: List<String>,
+    val isWishlisted: Boolean,
     val personalDetails: GameDetailPersonalUiModel
 )

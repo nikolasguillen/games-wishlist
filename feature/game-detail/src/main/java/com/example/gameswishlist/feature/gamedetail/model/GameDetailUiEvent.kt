@@ -8,4 +8,6 @@ sealed interface GameDetailUiEvent {
     data class AddGameToList(val listId: Long) : GameDetailUiEvent
     data object OpenListSelector : GameDetailUiEvent
     data object DismissListSelector : GameDetailUiEvent
+    data object ToggleFavorite : GameDetailUiEvent
+    data object ShareGame : GameDetailUiEvent
 }

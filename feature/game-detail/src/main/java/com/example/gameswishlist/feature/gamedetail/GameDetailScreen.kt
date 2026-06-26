@@ -1,10 +1,13 @@
 package com.example.gameswishlist.feature.gamedetail
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
@@ -17,6 +20,7 @@ import com.example.gameswishlist.feature.gamedetail.components.ListSelectorDialo
 import com.example.gameswishlist.feature.gamedetail.mapper.toUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailContentState
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiModel
+import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEffect
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
@@ -28,6 +32,21 @@ fun GameDetailScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    LaunchedEffect(viewModel.uiEffect) {
+        viewModel.uiEffect.collect { effect ->
+            when (effect) {
+                is GameDetailUiEffect.ShareGame -> {
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, effect.text.asString(context))
+                    }
+                    context.startActivity(Intent.createChooser(intent, null))
+                }
+            }
+        }
+    }
 
     GameDetailContent(
         uiState = uiState,
@@ -78,6 +97,7 @@ fun GameDetailContentSuccessPreview() {
                         ratingText = UiText.DynamicString("Metacritic: 95"),
                         platforms = listOf("PC", "PS4", "Xbox One", "Switch"),
                         genres = listOf("RPG", "Action"),
+                        isWishlisted = false,
                         personalDetails = GameDetailPersonalUiModel(
                             notes = "Geralt's adventures are amazing!",
                             availableStatuses = GameStatus.entries.mapIndexed { index, status ->

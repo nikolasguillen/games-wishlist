@@ -3,6 +3,7 @@ package com.example.gameswishlist.feature.gamedetail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.domain.usecase.GetGameDetailUseCase
+import com.example.gameswishlist.core.domain.usecase.ToggleWishlistUseCase
 import com.example.gameswishlist.core.domain.usecase.UpdateGameUseCase
 import com.example.gameswishlist.core.domain.usecase.list.AddGameToListUseCase
 import com.example.gameswishlist.core.domain.usecase.list.GetListsUseCase
@@ -10,16 +11,20 @@ import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.ui.mapper.toUiText
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.mapper.toUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailContentState
+import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEffect
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -29,12 +34,16 @@ class GameDetailViewModel @AssistedInject constructor(
     @Assisted gameId: Int,
     private val getGameDetailUseCase: GetGameDetailUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
+    private val toggleWishlistUseCase: ToggleWishlistUseCase,
     private val getListsUseCase: GetListsUseCase,
     private val addGameToListUseCase: AddGameToListUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(GameDetailUiState())
     val uiState: StateFlow<GameDetailUiState> = _uiState.asStateFlow()
+
+    private val _uiEffect = MutableSharedFlow<GameDetailUiEffect>()
+    val uiEffect = _uiEffect.asSharedFlow()
 
     private var currentGame: Game? = null
 
@@ -57,6 +66,8 @@ class GameDetailViewModel @AssistedInject constructor(
             is GameDetailUiEvent.AddGameToList -> addGameToList(event.listId)
             GameDetailUiEvent.OpenListSelector -> _uiState.update { it.copy(isListSelectorVisible = true) }
             GameDetailUiEvent.DismissListSelector -> _uiState.update { it.copy(isListSelectorVisible = false) }
+            GameDetailUiEvent.ToggleFavorite -> toggleFavorite()
+            GameDetailUiEvent.ShareGame -> shareGame()
         }
     }
 
@@ -132,6 +143,32 @@ class GameDetailViewModel @AssistedInject constructor(
                         isListSelectorVisible = false
                     )
                 }
+            }
+        }
+    }
+
+    private fun toggleFavorite() {
+        currentGame?.let { game ->
+            viewModelScope.launch {
+                toggleWishlistUseCase(game)
+                val updatedGame = game.copy(isWishlisted = !game.isWishlisted)
+                currentGame = updatedGame
+                updateContentState(updatedGame)
+            }
+        }
+    }
+
+    private fun shareGame() {
+        currentGame?.let { game ->
+            viewModelScope.launch {
+                _uiEffect.emit(
+                    GameDetailUiEffect.ShareGame(
+                        UiText.StringResource(
+                            R.string.share_game_message,
+                            game.name
+                        )
+                    )
+                )
             }
         }
     }
