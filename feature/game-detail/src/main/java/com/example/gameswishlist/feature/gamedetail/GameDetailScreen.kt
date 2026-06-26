@@ -25,6 +25,7 @@ import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.component.ImmersiveDetailLayout
 import com.example.gameswishlist.core.ui.component.LoadingPage
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.components.GameDetailHeroHeader
 import com.example.gameswishlist.feature.gamedetail.components.GameDetailMainContent
 import com.example.gameswishlist.feature.gamedetail.components.ListSelectorDialog
@@ -148,8 +149,7 @@ fun GameDetailContentSuccessPreview() {
                         name = "The Witcher 3: Wild Hunt",
                         description = "A legendary RPG with a rich story and vast open world.",
                         backgroundImage = null,
-                        rating = 95.0,
-                        metaCritic = 92,
+                        ratingText = UiText.DynamicString("Metacritic: 95"),
                         platforms = listOf("PC", "PS4", "Xbox One", "Switch"),
                         genres = listOf("RPG", "Action"),
                         personalDetails = GameDetailPersonalUiModel(

@@ -7,6 +7,7 @@ import com.example.gameswishlist.core.ui.model.UiText
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToInt
 
 fun List<Game>.toGameItemList(): List<GameItemUiModel> {
     return this.map { it.toGameItem() }
@@ -51,14 +52,22 @@ fun Game.toGameItem(): GameItemUiModel {
         }
     }
 
-    val cleanedRating = if (rating == 0.0) {
-        UiText.StringResource(R.string.rating_not_defined)
-    } else {
-        UiText.StringResource(R.string.rating_format, rating)
+    val roundedRating: Int = when {
+        metaCritic != null && metaCritic!! > 0 -> {
+            metaCritic!!
+        }
+
+        rating > 0.0 -> {
+            rating.roundToInt()
+        }
+
+        else -> {
+            0
+        }
     }
 
-    val cleanedPlatforms = platforms.map { 
-        (it.abbreviation ?: it.name).replace(Regex("\\s\\(.*\\)"), "") 
+    val cleanedPlatforms = platforms.map {
+        (it.abbreviation ?: it.name).replace(Regex("\\s\\(.*\\)"), "")
     }
 
     val platformsText = if (cleanedPlatforms.isNotEmpty()) {
@@ -71,8 +80,7 @@ fun Game.toGameItem(): GameItemUiModel {
         id = id,
         name = name,
         coverImage = backgroundImage,
-        ratingText = cleanedRating,
-        rawRating = rating,
+        rating = roundedRating,
         releaseDateText = formattedReleaseDate?.let {
             UiText.StringResource(R.string.release_date_format, it)
         } ?: UiText.StringResource(R.string.unknown_release_date),

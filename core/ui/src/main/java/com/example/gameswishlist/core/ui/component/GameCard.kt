@@ -77,7 +77,7 @@ fun GameCard(
                     maxLines = 1
                 )
                 Text(
-                    text = game.ratingText.asString(),
+                    text = game.rating.toString(),
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

@@ -41,7 +41,6 @@ import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.util.fadingEdge
-import kotlin.math.roundToInt
 
 @Composable
 fun VerticalGameCard(
@@ -60,7 +59,7 @@ fun VerticalGameCard(
         Box(modifier = Modifier.fillMaxSize()) {
             GameCoverHeader(
                 coverImage = game.coverImage,
-                rawRating = game.rawRating,
+                rating = game.rating,
                 height = cardHeight
             )
 
@@ -112,7 +111,7 @@ fun RecentGameCard(
             Box(modifier = Modifier.fillMaxSize()) {
                 GameCoverHeader(
                     coverImage = game.coverImage,
-                    rawRating = null,
+                    rating = null,
                     height = cardHeight
                 )
 
@@ -170,7 +169,7 @@ fun RecentGameCard(
 @Composable
 private fun GameCoverHeader(
     coverImage: String?,
-    rawRating: Double?,
+    rating: Int?,
     height: Dp
 ) {
     Box(
@@ -201,9 +200,9 @@ private fun GameCoverHeader(
             }
         }
 
-        if (rawRating != null && rawRating > 0) {
+        if (rating != null && rating > 0) {
             RatingBadge(
-                rating = rawRating,
+                rating = rating,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(MaterialTheme.spacing.small)
@@ -253,23 +252,26 @@ private fun GameMetadataRow(
 
 @Composable
 private fun RatingBadge(
-    rating: Double,
+    rating: Int,
     modifier: Modifier = Modifier
 ) {
     Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.8f),
+        color = Color.Black.copy(alpha = 0.6f),
         shape = RoundedCornerShape(MaterialTheme.spacing.small),
         modifier = modifier
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            modifier = Modifier.padding(
+                horizontal = MaterialTheme.spacing.medium,
+                vertical = MaterialTheme.spacing.small
+            ),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
         ) {
             Icon(
                 imageVector = Icons.Filled.Star,
                 contentDescription = null,
-                modifier = Modifier.size(12.dp),
+                modifier = Modifier.size(14.dp),
                 tint = when {
                     rating >= 80 -> Color(0xFF4CAF50) // Green
                     rating >= 60 -> Color(0xFFFFC107) // Yellow
@@ -277,9 +279,10 @@ private fun RatingBadge(
                 }
             )
             Text(
-                text = rating.roundToInt().toString(),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold
+                text = rating.toString(),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
         }
     }

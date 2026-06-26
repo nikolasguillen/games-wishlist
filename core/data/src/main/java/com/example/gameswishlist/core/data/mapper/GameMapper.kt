@@ -39,6 +39,7 @@ fun IgdbGame.toGame(): Game {
         rating = totalRating ?: 0.0,
         ratingCount = totalRatingCount ?: 0,
         hypes = hypes ?: 0,
+        metaCritic = aggregatedRating?.toInt(),
         platforms = platforms?.map { it.toPlatform() } ?: emptyList(),
         genres = genres?.map { it.toGenre() } ?: emptyList(),
         publishers = involvedCompanies?.filter { it.publisher }?.map { it.company.toCompany() }

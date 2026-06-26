@@ -13,12 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.spacing
@@ -68,15 +65,16 @@ fun GameDetailMainContent(
                 )
                 .padding(MaterialTheme.spacing.large)
         ) {
-            Text(
-                text = game.name,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+            // Sheet Header with Title, Rating, and Genres
+            GameDetailSheetHeader(
+                name = game.name,
+                ratingText = game.ratingText.asString(),
+                genres = game.genres
             )
 
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
 
+            // Personal Progress Section
             GameDetailPersonalCard(
                 uiModel = game.personalDetails,
                 onStatusChange = { onEvent(GameDetailUiEvent.UpdateStatus(it)) },
@@ -86,12 +84,10 @@ fun GameDetailMainContent(
 
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraLarge))
 
+            // Game Technical Info Section
             GameDetailInfoSection(
-                rating = game.rating,
-                metacritic = game.metaCritic,
                 description = game.description,
-                platforms = game.platforms,
-                genres = game.genres
+                platforms = game.platforms
             )
 
             // Extra padding at the bottom to prevent content from ending up under the nav bar

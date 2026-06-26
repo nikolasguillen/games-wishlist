@@ -9,21 +9,36 @@ import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiMo
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameStatusUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PriorityUiModel
+import kotlin.math.roundToInt
 
 fun Game.toUiModel(): GameDetailUiModel {
+    val cleanedRating = when {
+        metaCritic != null && (metaCritic ?: 0) > 0 -> {
+            UiText.StringResource(R.string.metacritic_label, metaCritic ?: 0)
+        }
+
+        rating > 0.0 -> {
+            UiText.StringResource(R.string.rating_format, rating.roundToInt())
+        }
+
+        else -> {
+            UiText.StringResource(R.string.rating_not_defined)
+        }
+    }
+
     return GameDetailUiModel(
         id = id,
         name = name,
         description = description,
         backgroundImage = backgroundImage,
-        rating = rating,
-        metaCritic = metaCritic,
+        ratingText = cleanedRating,
         platforms = platforms.map { it.name },
         genres = genres.map { it.name },
         personalDetails = GameDetailPersonalUiModel(
             notes = notes,
             availableStatuses = GameStatus.entries.map { it.toUiModel(selected = this.status.id == it.id) },
-            availablePriorities = Priority.entries.map { it.toUiModel(selected = this.priority.id == it.id) }))
+            availablePriorities = Priority.entries.map { it.toUiModel(selected = this.priority.id == it.id) })
+    )
 }
 
 fun GameStatus.toUiModel(selected: Boolean): GameStatusUiModel {
