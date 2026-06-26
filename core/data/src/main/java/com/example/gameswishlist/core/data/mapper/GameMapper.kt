@@ -46,7 +46,8 @@ fun IgdbGame.toGame(): Game {
             ?: emptyList(),
         developers = involvedCompanies?.filter { it.developer }?.map { it.company.toCompany() }
             ?: emptyList(),
-        gameType = GameType.fromId(gameType)
+        gameType = GameType.fromId(gameType),
+        url = url
     )
 }
 
@@ -143,6 +144,7 @@ fun GameWithAllDetails.toGame(): Game {
         notes = game.notes,
         priority = game.priority?.toPriority(),
         status = game.status,
+        url = game.url,
         lastViewedAt = game.lastViewedAt
     )
 }
@@ -161,6 +163,7 @@ fun Game.toEntity(): GameEntity {
         notes = notes,
         priority = priority?.toInt(),
         status = status,
+        url = url,
         lastViewedAt = lastViewedAt
     )
 }

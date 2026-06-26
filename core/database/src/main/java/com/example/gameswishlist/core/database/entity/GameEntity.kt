@@ -21,6 +21,7 @@ data class GameEntity(
     val notes: String,
     val priority: Int?,
     val status: GameStatus?,
+    val url: String?,
     val lastViewedAt: Long? = null
 )
 

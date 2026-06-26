@@ -18,6 +18,7 @@ import com.squareup.moshi.JsonClass
  * @property totalRatingCount Total number of ratings across all platforms. Used as a proxy for popularity.
  * @property aggregatedRating Average rating based on both external critics and IGDB users (0-10).
  * @property hypes Number of users who added this to their "want to play" list. Useful for identifying trending games.
+ * @property url The official IGDB page URL for the game.
  * @property platforms List of platforms the game is available on (e.g., PS5, PC, Xbox).
  * @property genres List of genres the game belongs to (e.g., RPG, Shooter).
  * @property involvedCompanies List of companies involved in the game, categorized by their role (Developer/Publisher).
@@ -34,6 +35,7 @@ data class IgdbGame(
     @Json(name = "total_rating_count") val totalRatingCount: Int?,
     @Json(name = "aggregated_rating") val aggregatedRating: Double?,
     val hypes: Int?,
+    val url: String?,
     val platforms: List<IgdbPlatform>?,
     val genres: List<IgdbGenre>?,
     @Json(name = "involved_companies") val involvedCompanies: List<IgdbInvolvedCompany>?

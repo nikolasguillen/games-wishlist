@@ -161,14 +161,19 @@ class GameDetailViewModel @AssistedInject constructor(
     private fun shareGame() {
         currentGame?.let { game ->
             viewModelScope.launch {
-                _uiEffect.emit(
-                    GameDetailUiEffect.ShareGame(
-                        UiText.StringResource(
-                            R.string.share_game_message,
-                            game.name
-                        )
+                val message = game.url?.let {
+                    UiText.StringResource(
+                        R.string.share_game_with_url_message,
+                        game.name,
+                        it
                     )
-                )
+                } ?: run {
+                    UiText.StringResource(
+                        R.string.share_game_message,
+                        game.name
+                    )
+                }
+                _uiEffect.emit(GameDetailUiEffect.ShareGame(message))
             }
         }
     }
