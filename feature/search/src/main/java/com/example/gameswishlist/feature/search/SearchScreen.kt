@@ -105,10 +105,18 @@ fun SearchScreenContent(
         }
     }
 
+    val onResetScroll = remember(scrollBehavior, gridState) {
+        suspend {
+            scrollBehavior.contentOffset = 0f
+            scrollBehavior.scrollOffset = 0f
+            gridState.scrollToItem(0)
+        }
+    }
+
     val onSearch: (String) -> Unit =
-        remember(onScrollToTop, textFieldState, searchBarState, onEvent, scope) {
+        remember(onResetScroll, textFieldState, searchBarState, onEvent, scope) {
             { query ->
-                scope.launch { onScrollToTop() }
+                scope.launch { onResetScroll() }
                 textFieldState.setTextAndPlaceCursorAtEnd(query)
                 scope.launch { searchBarState.animateToCollapsed() }
                 onEvent(SearchUiEvent.OnSearchTriggered(query))
