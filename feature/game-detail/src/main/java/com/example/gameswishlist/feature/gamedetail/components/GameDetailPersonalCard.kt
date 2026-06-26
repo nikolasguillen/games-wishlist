@@ -4,9 +4,11 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -67,7 +69,12 @@ fun GameDetailPersonalCard(
             .fillMaxWidth()
             .animateContentSize()
             .clip(MaterialTheme.shapes.medium)
-            .clickable { expanded = !expanded },
+            .height(IntrinsicSize.Min)
+            .clickable(
+                onClick = { expanded = !expanded },
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ),
         border = BorderStroke(2.dp, rememberAnimatedMetallicGradient())
     ) {
         if (expanded) {
