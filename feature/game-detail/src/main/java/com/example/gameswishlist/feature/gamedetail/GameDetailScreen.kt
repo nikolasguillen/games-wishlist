@@ -10,7 +10,6 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,16 +38,11 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun GameDetailScreen(
-    gameId: Int,
     viewModel: GameDetailViewModel,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    LaunchedEffect(gameId) {
-        viewModel.onEvent(GameDetailUiEvent.LoadGame(gameId))
-    }
 
     GameDetailContent(
         uiState = uiState,

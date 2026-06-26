@@ -18,7 +18,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -31,7 +30,6 @@ import com.example.gameswishlist.core.ui.R as CoreUiR
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WishlistScreen(
-    listId: Long,
     listName: String,
     viewModel: WishlistViewModel,
     onGameClick: (Int) -> Unit,
@@ -39,10 +37,6 @@ fun WishlistScreen(
     modifier: Modifier = Modifier
 ) {
     val games by viewModel.games.collectAsStateWithLifecycle()
-
-    LaunchedEffect(listId) {
-        viewModel.loadGames(listId)
-    }
 
     Scaffold(
         topBar = {

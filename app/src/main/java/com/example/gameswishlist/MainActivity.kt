@@ -124,9 +124,12 @@ fun MainContent() {
                     }
 
                     is WishlistRoute -> NavEntry(key) {
-                        val vm: WishlistViewModel = hiltViewModel()
+                        val vm: WishlistViewModel = hiltViewModel(
+                            creationCallback = { factory: WishlistViewModel.Factory ->
+                                factory.create(key.listId)
+                            }
+                        )
                         WishlistScreen(
-                            listId = key.listId,
                             listName = key.listName,
                             viewModel = vm,
                             onGameClick = { gameId: Int ->
@@ -139,9 +142,12 @@ fun MainContent() {
                     }
 
                     is GameDetailRoute -> NavEntry(key) {
-                        val vm: GameDetailViewModel = hiltViewModel()
+                        val vm: GameDetailViewModel = hiltViewModel(
+                            creationCallback = { factory: GameDetailViewModel.Factory ->
+                                factory.create(key.gameId)
+                            }
+                        )
                         GameDetailScreen(
-                            gameId = key.gameId,
                             viewModel = vm,
                             onBackClick = {
                                 if (backStack.size > 1) {

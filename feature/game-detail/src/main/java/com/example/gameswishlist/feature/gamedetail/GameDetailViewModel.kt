@@ -14,16 +14,19 @@ import com.example.gameswishlist.feature.gamedetail.mapper.toUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailContentState
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class GameDetailViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = GameDetailViewModel.Factory::class)
+class GameDetailViewModel @AssistedInject constructor(
+    @Assisted gameId: Int,
     private val getGameDetailUseCase: GetGameDetailUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
     private val getListsUseCase: GetListsUseCase,
@@ -41,6 +44,8 @@ class GameDetailViewModel @Inject constructor(
                 _uiState.update { it.copy(availableLists = lists) }
             }
         }
+
+        loadGame(gameId)
     }
 
     fun onEvent(event: GameDetailUiEvent) {
@@ -135,5 +140,10 @@ class GameDetailViewModel @Inject constructor(
         _uiState.update {
             it.copy(contentState = GameDetailContentState.Success(game.toUiModel()))
         }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(gameId: Int): GameDetailViewModel
     }
 }

@@ -46,11 +46,11 @@ fun GamesWishlistTheme(
         navBarContainerColor = SpotifyMediumGrey,
         navBarItemIndicatorColor = SpotifyGreen,
         navBarItemSelectedIconColor = SpotifyBlack,
-        filterChipSelectedContainerColor = PrimaryDark,
-        filterChipSelectedContentColor = OnPrimaryDark,
+        filterChipSelectedContainerColor = PrimaryContainerDark,
+        filterChipSelectedContentColor = OnPrimaryContainerDark,
         cardContainerColor = SecondaryContainerDark,
-        segmentedButtonSelectedColor = PrimaryDark,
-        segmentedButtonSelectedContentColor = OnPrimaryDark
+        segmentedButtonSelectedColor = PrimaryContainerDark,
+        segmentedButtonSelectedContentColor = OnPrimaryContainerDark
     )
 
     CompositionLocalProvider(
