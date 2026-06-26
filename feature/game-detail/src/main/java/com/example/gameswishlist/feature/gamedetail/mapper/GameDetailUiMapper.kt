@@ -4,36 +4,22 @@ import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.ui.R
+import com.example.gameswishlist.core.ui.mapper.getRatingUiText
 import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameStatusUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PriorityUiModel
-import kotlin.math.roundToInt
 
 fun Game.toUiModel(): GameDetailUiModel {
-    val cleanedRating = when {
-        metaCritic != null && (metaCritic ?: 0) > 0 -> {
-            UiText.StringResource(R.string.metacritic_label, metaCritic ?: 0)
-        }
-
-        rating > 0.0 -> {
-            UiText.StringResource(R.string.rating_format, rating.roundToInt())
-        }
-
-        else -> {
-            UiText.StringResource(R.string.rating_not_defined)
-        }
-    }
-
     return GameDetailUiModel(
         id = id,
         name = name,
         description = description,
         backgroundImage = backgroundImage,
         gameType = gameType.toUiText(),
-        ratingText = cleanedRating,
+        ratingText = getRatingUiText(),
         platforms = platforms.map { it.name },
         genres = genres.map { it.name },
         isWishlisted = isWishlisted,

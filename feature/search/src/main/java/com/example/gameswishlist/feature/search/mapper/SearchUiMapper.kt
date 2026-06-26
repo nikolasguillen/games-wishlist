@@ -3,6 +3,7 @@ package com.example.gameswishlist.feature.search.mapper
 import com.example.gameswishlist.core.model.GameType
 import com.example.gameswishlist.core.model.Genre
 import com.example.gameswishlist.core.model.Platform
+import com.example.gameswishlist.core.ui.mapper.getShortLabel
 import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.UiConstants
@@ -50,17 +51,9 @@ fun List<Platform>.toPlatformFilters(): List<GameFilterUiModel> {
             }
         )
         .map { platform ->
-            val abbreviation = platform.abbreviation
-            val label =
-                if (platform.name.length > UiConstants.MAX_PLATFORM_NAME_LENGTH && abbreviation != null) {
-                    abbreviation
-                } else {
-                    platform.name
-                }
-
             GameFilterUiModel.Platform(
                 id = platform.id,
-                label = UiText.DynamicString(label),
+                label = UiText.DynamicString(platform.getShortLabel()),
                 selected = false
             )
         }
