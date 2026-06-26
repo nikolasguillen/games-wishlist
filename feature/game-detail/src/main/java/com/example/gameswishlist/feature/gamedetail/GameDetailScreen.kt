@@ -35,6 +35,7 @@ import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiMo
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun GameDetailScreen(
@@ -102,7 +103,7 @@ fun GameDetailContent(
         Box(modifier = Modifier.fillMaxSize()) {
             when (val content = uiState.contentState) {
                 is GameDetailContentState.Loading -> {
-                    LoadingPage()
+                    LoadingPage(delay = 200.milliseconds)
                 }
 
                 is GameDetailContentState.Error -> {
