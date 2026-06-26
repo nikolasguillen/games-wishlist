@@ -141,7 +141,7 @@ fun GameWithAllDetails.toGame(): Game {
         isWishlisted = game.isWishlisted,
         gameType = GameType.fromId(game.gameTypeId),
         notes = game.notes,
-        priority = game.priority.toPriority(),
+        priority = game.priority?.toPriority(),
         status = game.status,
         lastViewedAt = game.lastViewedAt
     )
@@ -159,7 +159,7 @@ fun Game.toEntity(): GameEntity {
         isWishlisted = isWishlisted,
         gameTypeId = gameType.id,
         notes = notes,
-        priority = priority.toInt(),
+        priority = priority?.toInt(),
         status = status,
         lastViewedAt = lastViewedAt
     )

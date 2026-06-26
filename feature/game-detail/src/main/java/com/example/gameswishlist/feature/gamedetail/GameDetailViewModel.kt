@@ -89,7 +89,8 @@ class GameDetailViewModel @Inject constructor(
     private fun updatePriority(priorityId: Int) {
         val priority = Priority.fromId(priorityId)
         currentGame?.let { game ->
-            val updatedGame = game.copy(priority = priority)
+            val newPriority = if (game.priority == priority) null else priority
+            val updatedGame = game.copy(priority = newPriority)
             currentGame = updatedGame
             updateContentState(updatedGame)
             viewModelScope.launch {
@@ -101,7 +102,8 @@ class GameDetailViewModel @Inject constructor(
     private fun updateStatus(statusId: Int) {
         val status = GameStatus.fromId(statusId)
         currentGame?.let { game ->
-            val updatedGame = game.copy(status = status)
+            val newStatus = if (game.status == status) null else status
+            val updatedGame = game.copy(status = newStatus)
             currentGame = updatedGame
             updateContentState(updatedGame)
             viewModelScope.launch {

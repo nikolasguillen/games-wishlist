@@ -76,7 +76,6 @@ fun GameDetailPersonalCard(
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
             
             val selectedPriorityIndex = uiModel.availablePriorities.indexOfFirst { it.selected }
-                .coerceAtLeast(0)
 
             CustomSegmentedButton(
                 options = uiModel.availablePriorities,

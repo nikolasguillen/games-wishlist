@@ -43,7 +43,7 @@ data class Game(
     val isWishlisted: Boolean = false,
     val gameType: GameType = GameType.MAIN_GAME,
     val notes: String = "",
-    val priority: Priority = Priority.LOW,
-    val status: GameStatus = GameStatus.WANT_TO_BUY,
+    val priority: Priority? = null,
+    val status: GameStatus? = null,
     val lastViewedAt: Long? = null
 )

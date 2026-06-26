@@ -19,8 +19,8 @@ data class GameEntity(
     val isWishlisted: Boolean,
     val gameTypeId: Int,
     val notes: String,
-    val priority: Int,
-    val status: GameStatus,
+    val priority: Int?,
+    val status: GameStatus?,
     val lastViewedAt: Long? = null
 )
 

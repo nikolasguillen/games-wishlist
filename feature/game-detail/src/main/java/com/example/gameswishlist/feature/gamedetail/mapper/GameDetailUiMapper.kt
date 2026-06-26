@@ -36,8 +36,8 @@ fun Game.toUiModel(): GameDetailUiModel {
         genres = genres.map { it.name },
         personalDetails = GameDetailPersonalUiModel(
             notes = notes,
-            availableStatuses = GameStatus.entries.map { it.toUiModel(selected = this.status.id == it.id) },
-            availablePriorities = Priority.entries.map { it.toUiModel(selected = this.priority.id == it.id) })
+            availableStatuses = GameStatus.entries.map { it.toUiModel(selected = this.status?.id == it.id) },
+            availablePriorities = Priority.entries.map { it.toUiModel(selected = this.priority?.id == it.id) })
     )
 }
 
