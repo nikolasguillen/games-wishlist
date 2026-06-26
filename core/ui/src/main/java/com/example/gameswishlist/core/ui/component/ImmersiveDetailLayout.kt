@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.ui.R
 
 /**
@@ -109,6 +110,8 @@ fun ImmersiveDetailLayout(
 
             // Foreground / Sheet Layer
             content(scrollState, innerPadding)
+
+            StatusBarProtection(color = MaterialTheme.appColors.appBackground)
         }
     }
 }
