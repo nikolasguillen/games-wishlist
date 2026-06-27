@@ -17,8 +17,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,7 +44,7 @@ internal fun GameDetailSuccessContent(
     modifier: Modifier = Modifier
 ) {
     val headerHeight = 450.dp
-    var fullScreenImageIndex by remember { mutableStateOf<Int?>(null) }
+    var fullScreenImageIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     val pagerState = rememberPagerState(pageCount = { game.images.size })
     val scope = rememberCoroutineScope()
 
@@ -94,6 +94,8 @@ internal fun GameDetailSuccessContent(
             initialPage = index,
             onDismiss = { fullScreenImageIndex = null },
             onPageChange = { newIndex ->
+                // Update the state so rotation keeps the current page
+                fullScreenImageIndex = newIndex
                 // Sync back to the main pager
                 scope.launch {
                     pagerState.scrollToPage(newIndex)
