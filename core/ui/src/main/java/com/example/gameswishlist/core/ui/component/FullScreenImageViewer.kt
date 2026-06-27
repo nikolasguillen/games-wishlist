@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
@@ -74,7 +75,7 @@ fun FullScreenImageViewer(
                     .align(Alignment.TopEnd)
                     .statusBarsPadding()
                     .padding(end = MaterialTheme.spacing.medium)
-                    .background(Color.Black.copy(alpha = 0.5f), MaterialTheme.shapes.small)
+                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
