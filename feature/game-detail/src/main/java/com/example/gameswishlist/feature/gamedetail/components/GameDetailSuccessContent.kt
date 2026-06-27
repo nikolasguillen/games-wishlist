@@ -11,19 +11,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.spacing
+import com.example.gameswishlist.core.ui.component.FullScreenImageViewer
 import com.example.gameswishlist.core.ui.component.ImmersiveDetailLayout
 import com.example.gameswishlist.core.ui.component.StatusBarProtection
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
+import kotlinx.coroutines.launch
 
 /**
  * The full success content of the Game Detail screen, including the immersive layout and floating action pill.
@@ -36,6 +44,9 @@ internal fun GameDetailSuccessContent(
     modifier: Modifier = Modifier
 ) {
     val headerHeight = 450.dp
+    var fullScreenImageIndex by remember { mutableStateOf<Int?>(null) }
+    val pagerState = rememberPagerState(pageCount = { game.images.size })
+    val scope = rememberCoroutineScope()
 
     Box(modifier = modifier.fillMaxSize()) {
         ImmersiveDetailLayout(
@@ -47,7 +58,9 @@ internal fun GameDetailSuccessContent(
                 GameDetailHeroHeader(
                     images = game.images,
                     scrollOffsetProvider = scrollOffsetProvider,
-                    height = headerHeight
+                    height = headerHeight,
+                    pagerState = pagerState,
+                    onImageClick = { fullScreenImageIndex = it }
                 )
             }
         ) { innerPadding ->
@@ -71,7 +84,22 @@ internal fun GameDetailSuccessContent(
                 .navigationBarsPadding()
         )
 
-        StatusBarProtection()
+        StatusBarProtection(color = MaterialTheme.colorScheme.surfaceContainer)
+    }
+
+    // Full Screen Viewer
+    fullScreenImageIndex?.let { index ->
+        FullScreenImageViewer(
+            images = game.images,
+            initialPage = index,
+            onDismiss = { fullScreenImageIndex = null },
+            onPageChange = { newIndex ->
+                // Sync back to the main pager
+                scope.launch {
+                    pagerState.scrollToPage(newIndex)
+                }
+            }
+        )
     }
 }
 

@@ -1,6 +1,7 @@
 package com.example.gameswishlist.core.ui.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,13 +28,15 @@ import com.example.gameswishlist.core.designsystem.theme.spacing
  * @param pagerState The state of the pager.
  * @param modifier The modifier to be applied to the pager.
  * @param contentScale How the images should be scaled.
+ * @param onImageClick Optional callback when an image is clicked, receiving the index.
  */
 @Composable
 fun ImageGalleryPager(
     images: List<String>,
     pagerState: PagerState,
     modifier: Modifier = Modifier,
-    contentScale: ContentScale = ContentScale.Crop
+    contentScale: ContentScale = ContentScale.Crop,
+    onImageClick: ((Int) -> Unit)? = null
 ) {
     Box(modifier = modifier) {
         if (images.isNotEmpty()) {
@@ -45,7 +48,13 @@ fun ImageGalleryPager(
                     model = images[page],
                     contentDescription = null,
                     contentScale = contentScale,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .then(
+                            if (onImageClick != null) {
+                                Modifier.clickable { onImageClick(page) }
+                            } else Modifier
+                        )
                 )
             }
 
