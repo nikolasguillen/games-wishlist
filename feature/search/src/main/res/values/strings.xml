@@ -25,4 +25,5 @@
     <string name="search_results_count">%1$d games found</string>
     <string name="sort_label">Sort</string>
     <string name="filter_label">Filter</string>
+    <string name="scroll_to_top_content_description">Scroll to top</string>
 </resources>

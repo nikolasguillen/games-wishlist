@@ -24,6 +24,18 @@ data class GameEntity(
     val lastViewedAt: Long? = null
 )
 
+@Entity(
+    tableName = "related_games",
+    primaryKeys = ["parentId", "relatedGameId", "relationType"]
+)
+data class RelatedGameEntity(
+    val parentId: Int,
+    val relatedGameId: Int,
+    val name: String,
+    val coverUrl: String?,
+    val relationType: String
+)
+
 data class GameWithAllDetails(
     @Embedded val game: GameEntity,
     @Relation(
@@ -51,7 +63,12 @@ data class GameWithAllDetails(
         parentColumn = "id",
         entityColumn = "gameId"
     )
-    val companyRefs: List<GameCompanyWithDetails>
+    val companyRefs: List<GameCompanyWithDetails>,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "parentId"
+    )
+    val relatedGames: List<RelatedGameEntity>
 )
 
 data class GameCompanyWithDetails(

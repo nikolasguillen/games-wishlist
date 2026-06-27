@@ -8,6 +8,7 @@ import com.example.gameswishlist.core.data.mapper.toGameGenreCrossRefs
 import com.example.gameswishlist.core.data.mapper.toGamePlatformCrossRefs
 import com.example.gameswishlist.core.data.mapper.toGenreEntities
 import com.example.gameswishlist.core.data.mapper.toPlatformEntities
+import com.example.gameswishlist.core.data.mapper.toRelatedGameEntities
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
 import com.example.gameswishlist.core.database.dao.SearchHistoryDao
@@ -158,7 +159,8 @@ class GameRepositoryImpl @Inject constructor(
             genres = game.toGenreEntities(),
             genreCrossRefs = game.toGameGenreCrossRefs(),
             companies = game.toCompanyEntities(),
-            companyCrossRefs = game.toGameCompanyCrossRefs()
+            companyCrossRefs = game.toGameCompanyCrossRefs(),
+            relatedGames = game.toRelatedGameEntities()
         )
     }
 

@@ -8,12 +8,14 @@ import com.example.gameswishlist.core.database.entity.GamePlatformCrossRef
 import com.example.gameswishlist.core.database.entity.GameWithAllDetails
 import com.example.gameswishlist.core.database.entity.GenreEntity
 import com.example.gameswishlist.core.database.entity.PlatformEntity
+import com.example.gameswishlist.core.database.entity.RelatedGameEntity
 import com.example.gameswishlist.core.model.Company
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameType
 import com.example.gameswishlist.core.model.Genre
 import com.example.gameswishlist.core.model.Platform
 import com.example.gameswishlist.core.model.Priority
+import com.example.gameswishlist.core.model.RelationType
 import com.example.gameswishlist.core.network.model.IgdbGame
 import com.example.gameswishlist.core.network.model.IgdbGenre
 import com.example.gameswishlist.core.network.model.IgdbPlatform
@@ -52,21 +54,18 @@ fun IgdbGame.toGame(): Game {
         expansions = expansions?.map { it.toGame() } ?: emptyList(),
         remakes = remakes?.map { it.toGame() } ?: emptyList(),
         remasters = remasters?.map { it.toGame() } ?: emptyList(),
-        parentGame = parentGame?.toGame()
-    )
+        parentGame = parentGame?.toGame())
 }
 
 fun IgdbGenre.toGenre(): Genre {
     return Genre(
-        id = id,
-        name = name
+        id = id, name = name
     )
 }
 
 fun com.example.gameswishlist.core.network.model.IgdbCompany.toCompany(): Company {
     return Company(
-        id = id,
-        name = name
+        id = id, name = name
     )
 }
 
@@ -105,33 +104,35 @@ fun PlatformEntity.toPlatform(): Platform {
 
 fun Genre.toEntity(): GenreEntity {
     return GenreEntity(
-        id = id,
-        name = name
+        id = id, name = name
     )
 }
 
 fun GenreEntity.toGenre(): Genre {
     return Genre(
-        id = id,
-        name = name
+        id = id, name = name
     )
 }
 
 fun Company.toEntity(): CompanyEntity {
     return CompanyEntity(
-        id = id,
-        name = name
+        id = id, name = name
     )
 }
 
 fun CompanyEntity.toCompany(): Company {
     return Company(
-        id = id,
-        name = name
+        id = id, name = name
     )
 }
 
 fun GameWithAllDetails.toGame(): Game {
+    val dlcs = relatedGames.filter { it.relationType == RelationType.DLC }.map { it.toGame() }
+    val expansions = relatedGames.filter { it.relationType == RelationType.EXPANSION }.map { it.toGame() }
+    val remakes = relatedGames.filter { it.relationType == RelationType.REMAKE }.map { it.toGame() }
+    val remasters = relatedGames.filter { it.relationType == RelationType.REMASTER }.map { it.toGame() }
+    val parentGame = relatedGames.find { it.relationType == RelationType.PARENT }?.toGame()
+
     return Game(
         id = game.id,
         name = game.name,
@@ -149,8 +150,81 @@ fun GameWithAllDetails.toGame(): Game {
         priority = game.priority?.toPriority(),
         status = game.status,
         url = game.url,
-        lastViewedAt = game.lastViewedAt
+        lastViewedAt = game.lastViewedAt,
+        dlcs = dlcs,
+        expansions = expansions,
+        remakes = remakes,
+        remasters = remasters,
+        parentGame = parentGame
     )
+}
+
+fun RelatedGameEntity.toGame(): Game {
+    return Game(
+        id = relatedGameId, name = name, backgroundImage = coverUrl
+    )
+}
+
+fun Game.toRelatedGameEntities(): List<RelatedGameEntity> {
+    val related = mutableListOf<RelatedGameEntity>()
+
+    dlcs.forEach {
+        related.add(
+            RelatedGameEntity(
+                parentId = id,
+                relatedGameId = it.id,
+                name = it.name,
+                coverUrl = it.backgroundImage,
+                relationType = RelationType.DLC
+            )
+        )
+    }
+    expansions.forEach {
+        related.add(
+            RelatedGameEntity(
+                parentId = id,
+                relatedGameId = it.id,
+                name = it.name,
+                coverUrl = it.backgroundImage,
+                relationType = RelationType.EXPANSION
+            )
+        )
+    }
+    remakes.forEach {
+        related.add(
+            RelatedGameEntity(
+                parentId = id,
+                relatedGameId = it.id,
+                name = it.name,
+                coverUrl = it.backgroundImage,
+                relationType = RelationType.REMAKE
+            )
+        )
+    }
+    remasters.forEach {
+        related.add(
+            RelatedGameEntity(
+                parentId = id,
+                relatedGameId = it.id,
+                name = it.name,
+                coverUrl = it.backgroundImage,
+                relationType = RelationType.REMASTER
+            )
+        )
+    }
+    parentGame?.let {
+        related.add(
+            RelatedGameEntity(
+                parentId = id,
+                relatedGameId = it.id,
+                name = it.name,
+                coverUrl = it.backgroundImage,
+                relationType = RelationType.PARENT
+            )
+        )
+    }
+
+    return related
 }
 
 fun Game.toEntity(): GameEntity {
@@ -178,8 +252,7 @@ fun Game.toPlatformEntities(): List<PlatformEntity> {
 fun Game.toGamePlatformCrossRefs(): List<GamePlatformCrossRef> {
     return platforms.map {
         GamePlatformCrossRef(
-            gameId = id,
-            platformId = it.id
+            gameId = id, platformId = it.id
         )
     }
 }
@@ -204,8 +277,7 @@ fun Game.toGameCompanyCrossRefs(): List<GameCompanyCrossRef> {
             gameId = id,
             companyId = companyId,
             isDeveloper = developers.any { it.id == companyId },
-            isPublisher = publishers.any { it.id == companyId }
-        )
+            isPublisher = publishers.any { it.id == companyId })
     }
 }
 

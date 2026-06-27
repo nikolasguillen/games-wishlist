@@ -16,6 +16,7 @@ import com.example.gameswishlist.core.database.entity.GamePlatformCrossRef
 import com.example.gameswishlist.core.database.entity.GameWithAllDetails
 import com.example.gameswishlist.core.database.entity.GenreEntity
 import com.example.gameswishlist.core.database.entity.PlatformEntity
+import com.example.gameswishlist.core.database.entity.RelatedGameEntity
 import com.example.gameswishlist.core.model.WishlistConstants
 import kotlinx.coroutines.flow.Flow
 
@@ -86,6 +87,12 @@ interface GameDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGameCompanyCrossRef(crossRef: GameCompanyCrossRef)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRelatedGame(relatedGame: com.example.gameswishlist.core.database.entity.RelatedGameEntity)
+
+    @Query("DELETE FROM related_games WHERE parentId = :parentId")
+    suspend fun deleteRelatedGamesByParentId(parentId: Int)
+
     @Transaction
     suspend fun saveGame(
         game: GameEntity,
@@ -94,7 +101,8 @@ interface GameDao {
         genres: List<GenreEntity>,
         genreCrossRefs: List<GameGenreCrossRef>,
         companies: List<CompanyEntity>,
-        companyCrossRefs: List<GameCompanyCrossRef>
+        companyCrossRefs: List<GameCompanyCrossRef>,
+        relatedGames: List<RelatedGameEntity> = emptyList()
     ) {
         insertGame(game)
         platforms.forEach { insertPlatform(it) }
@@ -103,5 +111,8 @@ interface GameDao {
         genreCrossRefs.forEach { insertGameGenreCrossRef(it) }
         companies.forEach { insertCompany(it) }
         companyCrossRefs.forEach { insertGameCompanyCrossRef(it) }
+
+        deleteRelatedGamesByParentId(game.id)
+        relatedGames.forEach { insertRelatedGame(it) }
     }
 }

@@ -15,6 +15,7 @@ import com.example.gameswishlist.core.database.entity.GamePlatformCrossRef
 import com.example.gameswishlist.core.database.entity.GenreEntity
 import com.example.gameswishlist.core.database.entity.ListEntity
 import com.example.gameswishlist.core.database.entity.PlatformEntity
+import com.example.gameswishlist.core.database.entity.RelatedGameEntity
 import com.example.gameswishlist.core.database.entity.SearchHistoryEntity
 import com.example.gameswishlist.core.database.util.Converters
 
@@ -29,9 +30,10 @@ import com.example.gameswishlist.core.database.util.Converters
         GenreEntity::class,
         GameGenreCrossRef::class,
         CompanyEntity::class,
-        GameCompanyCrossRef::class
+        GameCompanyCrossRef::class,
+        RelatedGameEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
