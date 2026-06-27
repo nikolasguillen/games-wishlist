@@ -16,9 +16,11 @@ import com.example.gameswishlist.core.model.Genre
 import com.example.gameswishlist.core.model.Platform
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.model.RelationType
+import com.example.gameswishlist.core.model.ReleaseDate
 import com.example.gameswishlist.core.network.model.IgdbGame
 import com.example.gameswishlist.core.network.model.IgdbGenre
 import com.example.gameswishlist.core.network.model.IgdbPlatform
+import com.example.gameswishlist.core.network.model.IgdbReleaseDate
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -38,11 +40,13 @@ fun IgdbGame.toGame(): Game {
         hypes = hypes ?: 0,
         metaCritic = aggregatedRating?.toInt(),
         platforms = platforms?.map { it.toPlatform() } ?: emptyList(),
+        releaseDates = releaseDates?.map { it.toReleaseDate() } ?: emptyList(),
         genres = genres?.map { it.toGenre() } ?: emptyList(),
         publishers = involvedCompanies?.filter { it.publisher }?.map { it.company.toCompany() }
             ?: emptyList(),
         developers = involvedCompanies?.filter { it.developer }?.map { it.company.toCompany() }
             ?: emptyList(),
+        engines = gameEngines?.map { it.name } ?: emptyList(),
         gameType = GameType.fromId(gameType),
         url = url,
         dlcs = dlcList?.map { it.toGame() } ?: emptyList(),
@@ -83,6 +87,13 @@ fun IgdbPlatform.toPlatform(): Platform {
         generation = generation,
         category = category,
         platformFamily = platformFamily
+    )
+}
+
+fun IgdbReleaseDate.toReleaseDate(): ReleaseDate {
+    return ReleaseDate(
+        date = date,
+        platformName = platform?.name ?: "Unknown"
     )
 }
 
@@ -149,10 +160,17 @@ fun GameWithAllDetails.toGame(): Game {
         backgroundImage = game.backgroundImage,
         rating = game.rating,
         metaCritic = game.metacritic,
-        platforms = platforms.map { it.toPlatform() },
+        platforms = platformRefs.map { it.platform.toPlatform() },
+        releaseDates = platformRefs.map {
+            ReleaseDate(
+                platformName = it.platform.name,
+                date = it.crossRef.releaseDate
+            )
+        },
         genres = genres.map { it.toGenre() },
         developers = companyRefs.filter { it.crossRef.isDeveloper }.map { it.company.toCompany() },
         publishers = companyRefs.filter { it.crossRef.isPublisher }.map { it.company.toCompany() },
+        engines = game.engines,
         gameType = GameType.fromId(game.gameTypeId),
         notes = game.notes,
         priority = game.priority?.toPriority(),
@@ -251,6 +269,7 @@ fun Game.toEntity(): GameEntity {
         status = status,
         url = url,
         artworks = artworks,
+        engines = engines,
         lastViewedAt = lastViewedAt
     )
 }
@@ -260,9 +279,12 @@ fun Game.toPlatformEntities(): List<PlatformEntity> {
 }
 
 fun Game.toGamePlatformCrossRefs(): List<GamePlatformCrossRef> {
-    return platforms.map {
+    return platforms.map { platform ->
+        val releaseDate = releaseDates.find { it.platformName == platform.name }?.date
         GamePlatformCrossRef(
-            gameId = id, platformId = it.id
+            gameId = id,
+            platformId = platform.id,
+            releaseDate = releaseDate
         )
     }
 }

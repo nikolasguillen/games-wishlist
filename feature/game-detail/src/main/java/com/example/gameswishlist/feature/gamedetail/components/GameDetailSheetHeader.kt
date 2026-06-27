@@ -18,6 +18,7 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomInfoChip
+import com.example.gameswishlist.core.ui.model.UiText
 
 /**
  * A header component for the game detail sheet containing the game name and metadata.
@@ -31,17 +32,17 @@ import com.example.gameswishlist.core.ui.component.CustomInfoChip
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun GameDetailSheetHeader(
-    name: String,
-    gameType: String,
-    ratingText: String,
-    genres: List<String>,
+    name: UiText,
+    gameType: UiText,
+    ratingText: UiText,
+    genres: List<UiText>,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier.fillMaxWidth()
     ) {
         Text(
-            text = name,
+            text = name.asString(),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
@@ -54,15 +55,15 @@ fun GameDetailSheetHeader(
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
         ) {
             // Game Type Chip
-            CustomInfoChip(text = gameType)
+            CustomInfoChip(text = gameType.asString())
 
             // Rating Chip
-            CustomInfoChip(text = ratingText)
+            CustomInfoChip(text = ratingText.asString())
 
             // Genre Chips
             genres.forEach { genre ->
                 CustomInfoChip(
-                    text = genre,
+                    text = genre.asString(),
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                 )
@@ -76,10 +77,14 @@ fun GameDetailSheetHeader(
 private fun GameDetailSheetHeaderPreview() {
     GamesWishlistTheme {
         GameDetailSheetHeader(
-            name = "The Witcher 3: Wild Hunt",
-            gameType = "Main Game",
-            ratingText = "Metacritic: 92",
-            genres = listOf("RPG", "Open World", "Action"),
+            name = UiText.DynamicString("The Witcher 3: Wild Hunt"),
+            gameType = UiText.DynamicString("Main Game"),
+            ratingText = UiText.DynamicString("Metacritic: 92"),
+            genres = listOf(
+                UiText.DynamicString("RPG"),
+                UiText.DynamicString("Open World"),
+                UiText.DynamicString("Action")
+            ),
             modifier = Modifier.background(MaterialTheme.appColors.appBackground)
         )
     }

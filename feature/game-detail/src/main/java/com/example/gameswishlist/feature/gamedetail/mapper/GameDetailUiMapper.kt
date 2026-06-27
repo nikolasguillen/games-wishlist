@@ -13,8 +13,12 @@ import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameStatusUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PriorityUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RelatedGamesUiModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 fun Game.toUiModel(): GameDetailUiModel {
+    val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
     val related = mutableListOf<RelatedGamesUiModel>()
 
     parentGame?.let {
@@ -64,16 +68,29 @@ fun Game.toUiModel(): GameDetailUiModel {
 
     return GameDetailUiModel(
         id = id,
-        name = name,
-        description = description,
+        name = UiText.DynamicString(name),
+        description = UiText.DynamicString(description),
         images = listOfNotNull(backgroundImage) + artworks,
         gameType = gameType.toUiText(),
         ratingText = getRatingUiText(),
-        platforms = platforms.map { it.name },
-        genres = genres.map { it.name },
+        platforms = UiText.DynamicString(platforms.joinToString(", ") { it.name }),
+        releaseDates = releaseDates
+            .sortedBy { it.date }
+            .map {
+                val dateString = it.date?.let { date ->
+                    UiText.DynamicString(dateFormat.format(Date(date * 1000)))
+                } ?: run {
+                    UiText.StringResource(com.example.gameswishlist.feature.gamedetail.R.string.tba)
+                }
+                UiText.DynamicString(it.platformName) to dateString
+            },
+        genres = genres.map { UiText.DynamicString(it.name) },
+        developers = UiText.DynamicString(developers.joinToString(", ") { it.name }),
+        publishers = UiText.DynamicString(publishers.joinToString(", ") { it.name }),
+        engines = UiText.DynamicString(engines.joinToString(", ")),
         isWishlisted = isWishlisted,
         personalDetails = GameDetailPersonalUiModel(
-            notes = notes,
+            notes = UiText.DynamicString(notes),
             availableStatuses = GameStatus.entries.map { it.toUiModel(selected = this.status?.id == it.id) },
             availablePriorities = Priority.entries.map { it.toUiModel(selected = this.priority?.id == it.id) }
         ),

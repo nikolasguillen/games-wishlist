@@ -19,5 +19,6 @@ data class PlatformEntity(
 )
 data class GamePlatformCrossRef(
     val gameId: Int,
-    val platformId: Int
+    val platformId: Int,
+    val releaseDate: Long? = null
 )

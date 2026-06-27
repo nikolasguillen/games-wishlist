@@ -49,6 +49,7 @@
     - Always use **English** for comments, KDoc, and any form of internal documentation.
     - **Models**: Mandatory class-level KDoc using `@property` tags for all models in `core:model` (Domain) and `core:network` (Network). Avoid inline comments for fields.
     - **Localization**: NEVER hardcode user-facing strings in models or logic. Use Android String Resources (`strings.xml`). Domain models should only contain raw data or Enums; UI-specific display labels must be handled in the UI layer (e.g., using `UiText` or Mappers).
+    - **UI Text Policy**: All text fields in UI state models (`-UiModel` and `FeatureUiState`) must use `UiText`. Avoid using plain `String` for user-facing content to ensure the ViewModel remains agnostic of the Android Context and to facilitate localization/dynamic string handling.
     - **Business Logic**: Document Use Cases and complex algorithms (like sorting or filtering) explaining the *rationale* and parameters.
 
 ## Build, test, and iteration workflow

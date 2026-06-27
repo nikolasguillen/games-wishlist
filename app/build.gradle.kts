@@ -91,7 +91,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.logging.interceptor)
     implementation(libs.material)
-    implementation(libs.moshi.kotlin)
     implementation(libs.okhttp)
     implementation(libs.play.services.location)
     implementation(libs.retrofit)

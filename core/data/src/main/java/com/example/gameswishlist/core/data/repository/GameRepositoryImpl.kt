@@ -85,7 +85,7 @@ class GameRepositoryImpl @Inject constructor(
             } else {
                 // Fetch from network
                 val queryText = """
-                    fields name, url, game_type, summary, first_release_date, cover.url, total_rating, aggregated_rating, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher,
+                    fields name, url, game_type, summary, first_release_date, cover.url, total_rating, aggregated_rating, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, release_dates.date, release_dates.platform.name, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, game_engines.name,
                     dlcs.name, dlcs.cover.url, expansions.name, expansions.cover.url, remakes.name, remakes.cover.url, remasters.name, remasters.cover.url, parent_game.name, parent_game.cover.url, artworks.url, screenshots.url;
                     where id = $id;
                 """.trimIndent()

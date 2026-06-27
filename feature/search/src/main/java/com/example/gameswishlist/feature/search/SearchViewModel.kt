@@ -12,6 +12,7 @@ import com.example.gameswishlist.core.domain.usecase.search.RemoveRecentGameUseC
 import com.example.gameswishlist.core.domain.usecase.search.SearchGamesUseCase
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
 import com.example.gameswishlist.core.ui.mapper.toUiText
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.mapper.getInitialGameTypeFilters
 import com.example.gameswishlist.feature.search.mapper.getInitialSortFilters
 import com.example.gameswishlist.feature.search.mapper.isSortActive
@@ -62,7 +63,7 @@ class SearchViewModel @Inject constructor(
                     _uiState.update { currentState ->
                         currentState.copy(
                             history = SearchHistoryUiModel(
-                                queries = activity.queries,
+                                queries = activity.queries.map { UiText.DynamicString(it) },
                                 games = activity.games.toGameItemList()
                             )
                         )

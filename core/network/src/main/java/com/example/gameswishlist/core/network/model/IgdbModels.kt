@@ -20,8 +20,10 @@ import com.squareup.moshi.JsonClass
  * @property hypes Number of users who added this to their "want to play" list. Useful for identifying trending games.
  * @property url The official IGDB page URL for the game.
  * @property platforms List of platforms the game is available on (e.g., PS5, PC, Xbox).
+ * @property releaseDates Detailed release dates for each platform.
  * @property genres List of genres the game belongs to (e.g., RPG, Shooter).
  * @property involvedCompanies List of companies involved in the game, categorized by their role (Developer/Publisher).
+ * @property gameEngines List of game engines used to develop the game (e.g., Unreal Engine, Unity).
  * @property parentGame The main game if this is a DLC, Remake, etc.
  * @property dlcList List of DLCs for this game.
  * @property expansions List of expansions for this game.
@@ -42,8 +44,10 @@ data class IgdbGame(
     val hypes: Int?,
     val url: String?,
     val platforms: List<IgdbPlatform>?,
+    @Json(name = "release_dates") val releaseDates: List<IgdbReleaseDate>?,
     val genres: List<IgdbGenre>?,
     @Json(name = "involved_companies") val involvedCompanies: List<IgdbInvolvedCompany>?,
+    @Json(name = "game_engines") val gameEngines: List<IgdbGameEngine>?,
     @Json(name = "parent_game") val parentGame: IgdbGame? = null,
     @Json(name = "dlcs") val dlcList: List<IgdbGame>? = null,
     val expansions: List<IgdbGame>? = null,
@@ -110,6 +114,20 @@ data class IgdbGenre(
 )
 
 /**
+ * Represents a release date for a game on a specific platform.
+ *
+ * @property id Internal IGDB unique identifier.
+ * @property date Unix timestamp (seconds) of the release date.
+ * @property platform The platform this release date refers to.
+ */
+@JsonClass(generateAdapter = true)
+data class IgdbReleaseDate(
+    val id: Int,
+    val date: Long?,
+    val platform: IgdbPlatform?
+)
+
+/**
  * Junction model for companies involved in a game's production.
  *
  * @property id Internal IGDB unique identifier for the involved company record.
@@ -133,6 +151,18 @@ data class IgdbInvolvedCompany(
  */
 @JsonClass(generateAdapter = true)
 data class IgdbCompany(
+    val id: Int,
+    val name: String
+)
+
+/**
+ * Represents a game engine.
+ *
+ * @property id Internal IGDB unique identifier.
+ * @property name The name of the engine (e.g., "Unreal Engine 5").
+ */
+@JsonClass(generateAdapter = true)
+data class IgdbGameEngine(
     val id: Int,
     val name: String
 )

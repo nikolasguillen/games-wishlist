@@ -33,7 +33,7 @@ import com.example.gameswishlist.core.database.util.Converters
         GameCompanyCrossRef::class,
         RelatedGameEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

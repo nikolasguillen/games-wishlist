@@ -96,16 +96,20 @@ fun GameDetailContentSuccessPreview() {
                 contentState = GameDetailContentState.Success(
                     GameDetailUiModel(
                         id = 1,
-                        name = "The Witcher 3: Wild Hunt",
-                        description = "A legendary RPG with a rich story and vast open world.",
+                        name = UiText.DynamicString("The Witcher 3: Wild Hunt"),
+                        description = UiText.DynamicString("A legendary RPG with a rich story and vast open world."),
                         images = emptyList(),
                         gameType = UiText.DynamicString("Main Game"),
                         ratingText = UiText.DynamicString("Metacritic: 95"),
-                        platforms = listOf("PC", "PS4", "Xbox One", "Switch"),
-                        genres = listOf("RPG", "Action"),
+                        platforms = UiText.DynamicString("PC, PS4, Xbox One, Switch"),
+                        releaseDates = emptyList(),
+                        genres = listOf("RPG", "Action").map { UiText.DynamicString(it) },
+                        developers = UiText.DynamicString("CD Projekt Red"),
+                        publishers = UiText.DynamicString("CD Projekt"),
+                        engines = UiText.DynamicString("RedEngine"),
                         isWishlisted = false,
                         personalDetails = GameDetailPersonalUiModel(
-                            notes = "Geralt's adventures are amazing!",
+                            notes = UiText.DynamicString("Geralt's adventures are amazing!"),
                             availableStatuses = GameStatus.entries.mapIndexed { index, status ->
                                 status.toUiModel(index == 1)
                             },

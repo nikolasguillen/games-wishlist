@@ -114,13 +114,13 @@ fun Game.toGameItem(): GameItemUiModel {
 
     return GameItemUiModel(
         id = id,
-        name = name,
+        name = UiText.DynamicString(name),
         coverImage = backgroundImage,
         rating = getDisplayRating(),
         releaseDateText = formattedReleaseDate?.let {
             UiText.StringResource(R.string.release_date_format, it)
         } ?: UiText.StringResource(R.string.unknown_release_date),
-        releaseYear = year,
+        releaseYear = year?.let { UiText.DynamicString(it) },
         developer = if (developers.isNotEmpty()) UiText.DynamicString(developers.joinToString { it.name }) else null,
         platforms = platformsText
     )

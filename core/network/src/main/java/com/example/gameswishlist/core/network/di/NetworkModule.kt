@@ -5,7 +5,6 @@ import com.example.gameswishlist.core.network.IgdbApiService
 import com.example.gameswishlist.core.network.IgdbAuthManager
 import com.example.gameswishlist.core.network.IgdbAuthService
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Lazy
 import dagger.Module
 import dagger.Provides
@@ -26,9 +25,7 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideMoshi(): Moshi {
-        return Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
-            .build()
+        return Moshi.Builder().build()
     }
 
     @Provides

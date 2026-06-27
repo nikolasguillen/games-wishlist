@@ -49,6 +49,7 @@ import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomAlertDialog
 import com.example.gameswishlist.core.ui.component.RecentGameCard
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.annotatedStringResource
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
@@ -265,7 +266,7 @@ fun ExpandedSearchBar(
 
 @Composable
 private fun RecentSearchesSection(
-    recentSearches: List<String>,
+    recentSearches: List<UiText>,
     onClearRecentSearches: () -> Unit,
     onHistoryItemClicked: (String) -> Unit,
     onShowRemovalDialog: (String) -> Unit
@@ -293,14 +294,15 @@ private fun RecentSearchesSection(
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
             contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large)
         ) {
-            items(items = recentSearches, key = { it }) { recentSearch ->
+            items(items = recentSearches, key = { it.hashCode() }) { recentSearch ->
+                val query = recentSearch.asString()
                 val inputChipInteractionSource = remember { MutableInteractionSource() }
                 Box {
                     SuggestionChip(
-                        onClick = { onHistoryItemClicked(recentSearch) },
+                        onClick = { onHistoryItemClicked(query) },
                         label = {
                             Text(
-                                text = recentSearch,
+                                text = query,
                                 maxLines = 1
                             )
                         },
@@ -317,8 +319,8 @@ private fun RecentSearchesSection(
                         modifier = Modifier
                             .matchParentSize()
                             .combinedClickable(
-                                onLongClick = { onShowRemovalDialog(recentSearch) },
-                                onClick = { onHistoryItemClicked(recentSearch) },
+                                onLongClick = { onShowRemovalDialog(query) },
+                                onClick = { onHistoryItemClicked(query) },
                                 interactionSource = inputChipInteractionSource,
                                 indication = null
                             )

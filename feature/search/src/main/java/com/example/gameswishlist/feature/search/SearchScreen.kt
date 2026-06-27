@@ -204,7 +204,8 @@ fun SearchScreenPreview() {
                 contentState = SearchContentState.Success(
                     games = listOf(
                         GameItemUiModel.getDummy(),
-                        GameItemUiModel.getDummy().copy(id = 2, name = "The Witcher 2")
+                        GameItemUiModel.getDummy()
+                            .copy(id = 2, name = UiText.DynamicString("The Witcher 2"))
                     ),
                     filters = listOf(
                         GameFilterUiModel.Platform(
@@ -239,10 +240,16 @@ fun SearchScreenInitialWithHistoryPreview() {
         SearchScreenContent(
             uiState = SearchUiState(
                 history = SearchHistoryUiModel(
-                    queries = listOf("The Witcher", "Cyberpunk 2077"),
+                    queries = listOf(
+                        UiText.DynamicString("The Witcher"),
+                        UiText.DynamicString("Cyberpunk 2077")
+                    ),
                     games = listOf(
                         GameItemUiModel.getDummy(),
-                        GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077")
+                        GameItemUiModel.getDummy().copy(
+                            id = 2,
+                            name = UiText.DynamicString("Cyberpunk 2077")
+                        )
                     )
                 )
             ),

@@ -16,9 +16,11 @@ package com.example.gameswishlist.core.model
  * @property hypes Number of users anticipating or "hyping" this game (useful for new titles).
  * @property metaCritic The official Metacritic score, if available.
  * @property platforms List of platforms this game is released on.
+ * @property releaseDates Detailed release dates for each platform.
  * @property genres Categories the game belongs to (e.g., RPG, Adventure).
  * @property publishers Companies responsible for publishing the title.
  * @property developers Studio(s) that developed the game.
+ * @property engines Game engines used (e.g., Unreal Engine).
  * @property gameType The classification of the game (e.g., Main Game, DLC, Remake).
  * @property notes User-provided personal notes about the game.
  * @property priority User-defined priority for acquiring or playing the game.
@@ -37,9 +39,11 @@ data class Game(
     val hypes: Int = 0,
     val metaCritic: Int? = null,
     val platforms: List<Platform> = emptyList(),
+    val releaseDates: List<ReleaseDate> = emptyList(),
     val genres: List<Genre> = emptyList(),
     val publishers: List<Company> = emptyList(),
     val developers: List<Company> = emptyList(),
+    val engines: List<String> = emptyList(),
     val isWishlisted: Boolean = false,
     val gameType: GameType = GameType.MAIN_GAME,
     val notes: String = "",

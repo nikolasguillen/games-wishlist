@@ -59,6 +59,10 @@
     <string name="personal_notes_label">Personal Notes</string>
     <string name="description_title">Description</string>
     <string name="platforms_title">Platforms</string>
+    <string name="developers_title">Developers</string>
+    <string name="publishers_title">Publishers</string>
+    <string name="engines_title">Game Engines</string>
+    <string name="release_dates_title">Release Dates</string>
     <string name="genres_title">Genres</string>
     <string name="select_list_title">Select List</string>
     <string name="no_lists_found_message">No lists found. Go to \'My Lists\' to create one.</string>

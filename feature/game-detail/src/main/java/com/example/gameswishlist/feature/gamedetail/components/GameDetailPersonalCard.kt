@@ -220,7 +220,7 @@ private fun PersonalCardExpandedContent(
 
         // Notes
         OutlinedTextField(
-            value = uiModel.notes,
+            value = uiModel.notes.asString(),
             onValueChange = onNotesChange,
             label = { Text(stringResource(R.string.personal_notes_label)) },
             modifier = Modifier.fillMaxWidth(),
@@ -283,7 +283,7 @@ fun GameDetailPersonalCardPreview() {
                         false
                     )
                 ),
-                notes = "Loving the open world so far!"
+                notes = UiText.DynamicString("Loving the open world so far!")
             ),
             onStatusChange = {},
             onPriorityChange = {},

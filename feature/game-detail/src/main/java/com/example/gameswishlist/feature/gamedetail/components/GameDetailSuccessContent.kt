@@ -50,7 +50,7 @@ internal fun GameDetailSuccessContent(
 
     Box(modifier = modifier.fillMaxSize()) {
         ImmersiveDetailLayout(
-            title = game.name,
+            title = game.name.asString(),
             onBackClick = onBackClick,
             headerHeight = headerHeight,
             modifier = Modifier.fillMaxSize(),
@@ -141,8 +141,8 @@ private fun GameDetailSheetContent(
             // Sheet Header with Title, Rating, and Genres
             GameDetailSheetHeader(
                 name = game.name,
-                gameType = game.gameType.asString(),
-                ratingText = game.ratingText.asString(),
+                gameType = game.gameType,
+                ratingText = game.ratingText,
                 genres = game.genres,
                 modifier = horizontalPadding
             )
@@ -164,6 +164,10 @@ private fun GameDetailSheetContent(
             GameDetailInfoSection(
                 description = game.description,
                 platforms = game.platforms,
+                developers = game.developers,
+                publishers = game.publishers,
+                engines = game.engines,
+                releaseDates = game.releaseDates,
                 modifier = horizontalPadding
             )
 

@@ -75,7 +75,7 @@ fun VerticalGameCard(
                     .padding(top = 50.dp)
             ) {
                 Text(
-                    text = game.name,
+                    text = game.name.asString(),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
@@ -125,7 +125,7 @@ fun RecentGameCard(
                         .padding(top = 30.dp)
                 ) {
                     Text(
-                        text = game.name,
+                        text = game.name.asString(),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
@@ -134,7 +134,7 @@ fun RecentGameCard(
 
                     game.releaseYear?.let {
                         Text(
-                            text = it,
+                            text = it.asString(),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                             maxLines = 1
@@ -196,7 +196,7 @@ fun GameCompactCard(
                     .padding(top = 30.dp)
             ) {
                 Text(
-                    text = game.name,
+                    text = game.name.asString(),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -205,7 +205,7 @@ fun GameCompactCard(
 
                 game.releaseYear?.let {
                     Text(
-                        text = it,
+                        text = it.asString(),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                         maxLines = 1
@@ -264,7 +264,7 @@ private fun GameCoverHeader(
 @Composable
 private fun GameMetadataRow(
     developer: com.example.gameswishlist.core.ui.model.UiText?,
-    releaseYear: String?
+    releaseYear: com.example.gameswishlist.core.ui.model.UiText?
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -291,7 +291,7 @@ private fun GameMetadataRow(
 
         releaseYear?.let {
             Text(
-                text = it,
+                text = it.asString(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                 maxLines = 1
