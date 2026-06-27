@@ -47,11 +47,14 @@ fun IgdbGame.toGame(): Game {
         url = url,
         dlcs = dlcList?.map { it.toGame() } ?: emptyList(),
         expansions = expansions?.map { it.toGame() } ?: emptyList(),
-        remakes = remakes?.map { it.toGame() } ?: emptyList(),
         remasters = remasters?.map { it.toGame() } ?: emptyList(),
+        remakes = remakes?.map { it.toGame() } ?: emptyList(),
         parentGame = parentGame?.toGame(),
-        artworks = ((artworks?.mapNotNull { it.url } ?: emptyList()) + (screenshots?.mapNotNull { it.url }
-            ?: emptyList())).map { it.toIgdbImageUrl() }
+        artworks = if (!screenshots.isNullOrEmpty()) {
+            screenshots?.mapNotNull { it.url?.toIgdbImageUrl() }.orEmpty()
+        } else {
+            artworks?.mapNotNull { it.url?.toIgdbImageUrl() } ?: emptyList()
+        }
     )
 }
 
@@ -131,9 +134,11 @@ fun CompanyEntity.toCompany(): Company {
 
 fun GameWithAllDetails.toGame(): Game {
     val dlcs = relatedGames.filter { it.relationType == RelationType.DLC }.map { it.toGame() }
-    val expansions = relatedGames.filter { it.relationType == RelationType.EXPANSION }.map { it.toGame() }
+    val expansions =
+        relatedGames.filter { it.relationType == RelationType.EXPANSION }.map { it.toGame() }
     val remakes = relatedGames.filter { it.relationType == RelationType.REMAKE }.map { it.toGame() }
-    val remasters = relatedGames.filter { it.relationType == RelationType.REMASTER }.map { it.toGame() }
+    val remasters =
+        relatedGames.filter { it.relationType == RelationType.REMASTER }.map { it.toGame() }
     val parentGame = relatedGames.find { it.relationType == RelationType.PARENT }?.toGame()
 
     return Game(
