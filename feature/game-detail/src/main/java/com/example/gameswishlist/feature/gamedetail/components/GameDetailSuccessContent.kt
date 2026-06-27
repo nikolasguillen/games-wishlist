@@ -37,7 +37,7 @@ internal fun GameDetailSuccessContent(
     modifier: Modifier = Modifier
 ) {
     val headerHeight = 350.dp
-    
+
     Box(modifier = modifier.fillMaxSize()) {
         ImmersiveDetailLayout(
             title = game.name,
@@ -109,14 +109,16 @@ private fun GameDetailSheetContent(
                         topEnd = MaterialTheme.spacing.extraLarge
                     )
                 )
-                .padding(MaterialTheme.spacing.large)
+                .padding(top = MaterialTheme.spacing.large)
         ) {
+            val horizontalPadding = Modifier.padding(horizontal = MaterialTheme.spacing.large)
             // Sheet Header with Title, Rating, and Genres
             GameDetailSheetHeader(
                 name = game.name,
                 gameType = game.gameType.asString(),
                 ratingText = game.ratingText.asString(),
-                genres = game.genres
+                genres = game.genres,
+                modifier = horizontalPadding
             )
 
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
@@ -126,7 +128,8 @@ private fun GameDetailSheetContent(
                 uiModel = game.personalDetails,
                 onStatusChange = { onEvent(GameDetailUiEvent.UpdateStatus(it)) },
                 onPriorityChange = { onEvent(GameDetailUiEvent.UpdatePriority(it)) },
-                onNotesChange = { onEvent(GameDetailUiEvent.UpdateNotes(it)) }
+                onNotesChange = { onEvent(GameDetailUiEvent.UpdateNotes(it)) },
+                modifier = horizontalPadding
             )
 
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraLarge))
@@ -134,7 +137,8 @@ private fun GameDetailSheetContent(
             // Game Technical Info Section
             GameDetailInfoSection(
                 description = game.description,
-                platforms = game.platforms
+                platforms = game.platforms,
+                modifier = horizontalPadding
             )
 
             if (game.relatedGames.isNotEmpty()) {
@@ -146,7 +150,7 @@ private fun GameDetailSheetContent(
             }
 
             // Extra padding at the bottom to prevent content from ending up under the pill
-            Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding() + 150.dp))
+            Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding() + 120.dp))
         }
     }
 }

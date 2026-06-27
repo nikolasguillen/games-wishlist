@@ -35,14 +35,14 @@ fun RelatedGamesSection(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium)
+                modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
             )
 
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
 
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
-                contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.medium)
+                contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large)
             ) {
                 items(related.games) { game ->
                     GameCompactCard(

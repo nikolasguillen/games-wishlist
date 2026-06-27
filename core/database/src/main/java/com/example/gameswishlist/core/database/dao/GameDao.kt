@@ -88,7 +88,7 @@ interface GameDao {
     suspend fun insertGameCompanyCrossRef(crossRef: GameCompanyCrossRef)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertRelatedGame(relatedGame: com.example.gameswishlist.core.database.entity.RelatedGameEntity)
+    suspend fun insertRelatedGame(relatedGame: RelatedGameEntity)
 
     @Query("DELETE FROM related_games WHERE parentId = :parentId")
     suspend fun deleteRelatedGamesByParentId(parentId: Int)
