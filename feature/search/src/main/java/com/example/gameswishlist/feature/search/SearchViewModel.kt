@@ -57,16 +57,17 @@ class SearchViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getRecentSearchActivityUseCase().collect { activity ->
-                _uiState.update { currentState ->
-                    currentState.copy(
-                        history = SearchHistoryUiModel(
-                            queries = activity.queries,
-                            games = activity.games.toGameItemList()
+            getRecentSearchActivityUseCase()
+                .collect { activity ->
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            history = SearchHistoryUiModel(
+                                queries = activity.queries,
+                                games = activity.games.toGameItemList()
+                            )
                         )
-                    )
+                    }
                 }
-            }
         }
     }
 

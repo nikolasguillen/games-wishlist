@@ -1,25 +1,30 @@
 package com.example.gameswishlist
 
+import android.os.Build
 import android.os.Bundle
+import android.view.RoundedCorner
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
@@ -80,6 +85,24 @@ fun MainContent() {
             }
         }
     ) { innerPadding ->
+        val view = LocalView.current
+        val density = LocalDensity.current
+        val cornerRadius = remember(view, density) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val insets = view.rootWindowInsets
+                val radiusPx =
+                    insets?.getRoundedCorner(RoundedCorner.POSITION_TOP_LEFT)?.radius ?: 0
+                with(density) { radiusPx.toDp() }
+            } else {
+                0.dp
+            }
+        }
+
+        val cornerClipModifier = Modifier.graphicsLayer {
+            shape = RoundedCornerShape(cornerRadius)
+            clip = true
+        }
+
         NavDisplay(
             modifier = Modifier.fillMaxSize(),
             backStack = backStack,
@@ -88,15 +111,6 @@ fun MainContent() {
                 rememberSaveableStateHolderNavEntryDecorator(),
                 rememberViewModelStoreNavEntryDecorator()
             ),
-            transitionSpec = {
-                fadeIn() togetherWith fadeOut()
-            },
-            popTransitionSpec = {
-                fadeIn() togetherWith fadeOut()
-            },
-            predictivePopTransitionSpec = {
-                fadeIn() togetherWith fadeOut()
-            },
             entryProvider = { key ->
                 when (key) {
                     is SearchRoute -> NavEntry(key) {
@@ -109,7 +123,7 @@ fun MainContent() {
                                     backStack.add(nextRoute)
                                 }
                             },
-                            modifier = Modifier
+                            modifier = cornerClipModifier
                                 .padding(innerPadding)
                                 .consumeWindowInsets(innerPadding)
                         )
@@ -164,7 +178,8 @@ fun MainContent() {
                                 if (backStack.lastOrNull() != nextRoute) {
                                     backStack.add(nextRoute)
                                 }
-                            }
+                            },
+                            modifier = cornerClipModifier
                         )
                     }
 

@@ -45,7 +45,9 @@ import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun SearchScreen(
@@ -70,12 +72,14 @@ fun SearchScreenContent(
     onGameClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+
     // 1. UI States & Behaviors
     val searchBarState = rememberContainedSearchBarState()
     val textFieldState = rememberTextFieldState()
     val gridState = rememberLazyGridState()
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
     val scope = rememberCoroutineScope()
+
 
     // 2. Derived States (Scroll logic)
     val isScrolled by remember(scrollBehavior) {
@@ -123,6 +127,17 @@ fun SearchScreenContent(
             }
         }
 
+    val onGameClickWithCollapse: (Int) -> Unit =
+        remember(onGameClick, searchBarState, scope) {
+            { gameId ->
+                scope.launch {
+                    onGameClick(gameId)
+                    delay(300.milliseconds)
+                    searchBarState.snapTo(0F)
+                }
+            }
+        }
+
     // 4. Dynamic Styles
     val backgroundColor by animateColorAsState(
         targetValue = if (isScrolled) MaterialTheme.appColors.searchBarScrolledContainerColor
@@ -142,7 +157,7 @@ fun SearchScreenContent(
                 textFieldState = textFieldState,
                 scrollBehavior = scrollBehavior,
                 onSearch = onSearch,
-                onGameClick = onGameClick,
+                onGameClick = onGameClickWithCollapse,
                 onEvent = onEvent,
                 backgroundColor = backgroundColor
             )
@@ -157,7 +172,7 @@ fun SearchScreenContent(
         SearchMainContent(
             contentState = uiState.contentState,
             onEvent = onEvent,
-            onGameClick = onGameClick,
+            onGameClick = onGameClickWithCollapse,
             gridState = gridState,
             modifier = Modifier
                 .fillMaxSize()
