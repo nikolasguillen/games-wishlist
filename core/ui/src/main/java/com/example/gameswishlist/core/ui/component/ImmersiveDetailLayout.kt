@@ -76,6 +76,7 @@ fun ImmersiveDetailLayout(
                         text = title,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
+                        maxLines = 1,
                         modifier = Modifier.graphicsLayer { alpha = topBarAlpha }
                     )
                 },
