@@ -75,12 +75,15 @@ fun FullScreenImageViewer(
                     .align(Alignment.TopEnd)
                     .statusBarsPadding()
                     .padding(end = MaterialTheme.spacing.medium)
-                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    .background(
+                        MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.5f),
+                        CircleShape
+                    )
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = null,
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
