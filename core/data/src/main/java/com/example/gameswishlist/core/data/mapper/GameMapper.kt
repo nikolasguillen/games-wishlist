@@ -27,17 +27,12 @@ fun IgdbGame.toGame(): Game {
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val releasedDate = firstReleaseDate?.let { dateFormat.format(Date(it * 1000)) }
 
-    // IGDB cover URLs start with //, so we add https:
-    val imageUrl = cover?.url?.let {
-        if (it.startsWith("//")) "https:$it" else it
-    }?.replace("t_thumb", "t_720p") // Better quality
-
     return Game(
         id = id,
         name = name,
         description = summary ?: "",
         releaseDate = releasedDate,
-        backgroundImage = imageUrl,
+        backgroundImage = cover?.url?.toIgdbImageUrl(),
         rating = totalRating ?: 0.0,
         ratingCount = totalRatingCount ?: 0,
         hypes = hypes ?: 0,
@@ -54,7 +49,15 @@ fun IgdbGame.toGame(): Game {
         expansions = expansions?.map { it.toGame() } ?: emptyList(),
         remakes = remakes?.map { it.toGame() } ?: emptyList(),
         remasters = remasters?.map { it.toGame() } ?: emptyList(),
-        parentGame = parentGame?.toGame())
+        parentGame = parentGame?.toGame(),
+        artworks = ((artworks?.mapNotNull { it.url } ?: emptyList()) + (screenshots?.mapNotNull { it.url }
+            ?: emptyList())).map { it.toIgdbImageUrl() }
+    )
+}
+
+private fun String.toIgdbImageUrl(size: String = "t_720p"): String {
+    val formattedUrl = if (this.startsWith("//")) "https:$this" else this
+    return formattedUrl.replace("t_thumb", size)
 }
 
 fun IgdbGenre.toGenre(): Genre {
@@ -150,6 +153,7 @@ fun GameWithAllDetails.toGame(): Game {
         priority = game.priority?.toPriority(),
         status = game.status,
         url = game.url,
+        artworks = game.artworks,
         lastViewedAt = game.lastViewedAt,
         dlcs = dlcs,
         expansions = expansions,
@@ -241,6 +245,7 @@ fun Game.toEntity(): GameEntity {
         priority = priority?.toInt(),
         status = status,
         url = url,
+        artworks = artworks,
         lastViewedAt = lastViewedAt
     )
 }

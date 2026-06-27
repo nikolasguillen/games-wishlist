@@ -1,13 +1,16 @@
 package com.example.gameswishlist.core.ui.component
 
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,7 +35,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.ui.R
 
 /**
@@ -55,7 +57,7 @@ fun ImmersiveDetailLayout(
     headerHeight: Dp = 350.dp,
     heroContent: @Composable (scrollOffsetProvider: () -> Int) -> Unit,
     actions: @Composable RowScope.(alpha: Float) -> Unit = {},
-    content: @Composable (scrollState: ScrollState, innerPadding: PaddingValues) -> Unit
+    content: @Composable (innerPadding: PaddingValues) -> Unit
 ) {
     val scrollState = rememberScrollState()
     val titleThresholdPx = with(LocalDensity.current) { (headerHeight - 100.dp).toPx() }
@@ -107,14 +109,31 @@ fun ImmersiveDetailLayout(
             )
         }
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            // Background / Hero Layer
-            heroContent { scrollState.value }
+        // Single scrollable container for the whole screen
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+        ) {
+            // Hero Layer (Bottom)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(headerHeight)
+                    .graphicsLayer {
+                        // Parallax effect: moves slower than the scroll
+                        // 1.0f (scroll speed) - 0.3f (desired hero speed) = 0.7f compensation
+                        translationY = scrollState.value * 0.7f
+                    }
+            ) {
+                heroContent { scrollState.value }
+            }
 
-            // Foreground / Sheet Layer
-            content(scrollState, innerPadding)
-
-            StatusBarProtection(color = MaterialTheme.appColors.appBackground)
+            // Sheet Layer (Top)
+            // We don't use padding here because we want the content to be able to scroll OVER the hero
+            Column(modifier = Modifier.fillMaxWidth()) {
+                content(innerPadding)
+            }
         }
     }
 }

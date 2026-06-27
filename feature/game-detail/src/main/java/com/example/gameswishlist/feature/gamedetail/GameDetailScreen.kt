@@ -98,7 +98,7 @@ fun GameDetailContentSuccessPreview() {
                         id = 1,
                         name = "The Witcher 3: Wild Hunt",
                         description = "A legendary RPG with a rich story and vast open world.",
-                        backgroundImage = null,
+                        images = emptyList(),
                         gameType = UiText.DynamicString("Main Game"),
                         ratingText = UiText.DynamicString("Metacritic: 95"),
                         platforms = listOf("PC", "PS4", "Xbox One", "Switch"),

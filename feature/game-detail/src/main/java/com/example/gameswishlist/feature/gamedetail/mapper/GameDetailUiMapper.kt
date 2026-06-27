@@ -66,7 +66,7 @@ fun Game.toUiModel(): GameDetailUiModel {
         id = id,
         name = name,
         description = description,
-        backgroundImage = backgroundImage,
+        images = listOfNotNull(backgroundImage) + artworks,
         gameType = gameType.toUiText(),
         ratingText = getRatingUiText(),
         platforms = platforms.map { it.name },

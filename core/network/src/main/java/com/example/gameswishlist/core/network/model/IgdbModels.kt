@@ -48,7 +48,21 @@ data class IgdbGame(
     @Json(name = "dlcs") val dlcList: List<IgdbGame>? = null,
     val expansions: List<IgdbGame>? = null,
     val remakes: List<IgdbGame>? = null,
-    val remasters: List<IgdbGame>? = null
+    val remasters: List<IgdbGame>? = null,
+    val artworks: List<IgdbArtwork>? = null,
+    val screenshots: List<IgdbArtwork>? = null
+)
+
+/**
+ * Represents a game's artwork or screenshot image reference.
+ *
+ * @property id Internal IGDB unique identifier.
+ * @property url The URL of the image. Usually starts with "//", needs "https:" protocol prefix.
+ */
+@JsonClass(generateAdapter = true)
+data class IgdbArtwork(
+    val id: Int,
+    val url: String?
 )
 
 /**

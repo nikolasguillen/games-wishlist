@@ -51,5 +51,6 @@ data class Game(
     val expansions: List<Game> = emptyList(),
     val remakes: List<Game> = emptyList(),
     val remasters: List<Game> = emptyList(),
-    val parentGame: Game? = null
+    val parentGame: Game? = null,
+    val artworks: List<String> = emptyList()
 )

@@ -1,6 +1,5 @@
 package com.example.gameswishlist.feature.gamedetail.components
 
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,6 +21,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.ImmersiveDetailLayout
+import com.example.gameswishlist.core.ui.component.StatusBarProtection
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 
@@ -36,7 +35,7 @@ internal fun GameDetailSuccessContent(
     onEvent: (GameDetailUiEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val headerHeight = 350.dp
+    val headerHeight = 450.dp
 
     Box(modifier = modifier.fillMaxSize()) {
         ImmersiveDetailLayout(
@@ -46,15 +45,14 @@ internal fun GameDetailSuccessContent(
             modifier = Modifier.fillMaxSize(),
             heroContent = { scrollOffsetProvider ->
                 GameDetailHeroHeader(
-                    imageUrl = game.backgroundImage,
+                    images = game.images,
                     scrollOffsetProvider = scrollOffsetProvider,
                     height = headerHeight
                 )
             }
-        ) { scrollState, innerPadding ->
+        ) { innerPadding ->
             GameDetailSheetContent(
                 game = game,
-                scrollState = scrollState,
                 headerHeight = headerHeight,
                 onEvent = onEvent,
                 innerPadding = innerPadding
@@ -72,6 +70,8 @@ internal fun GameDetailSuccessContent(
                 .padding(MaterialTheme.spacing.large)
                 .navigationBarsPadding()
         )
+
+        StatusBarProtection()
     }
 }
 
@@ -81,7 +81,6 @@ internal fun GameDetailSuccessContent(
 @Composable
 private fun GameDetailSheetContent(
     game: GameDetailUiModel,
-    scrollState: ScrollState,
     headerHeight: Dp,
     onEvent: (GameDetailUiEvent) -> Unit,
     innerPadding: PaddingValues,
@@ -89,12 +88,9 @@ private fun GameDetailSheetContent(
 ) {
     val screenHeight = LocalWindowInfo.current.containerDpSize.height
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-    ) {
-        // Initial transparent space to show the hero image
+    Column(modifier = modifier.fillMaxSize()) {
+        // Initial transparent space to show the hero image.
+        // This Spacer doesn't consume touches, so they pass through to the hero background.
         Spacer(modifier = Modifier.height(headerHeight - MaterialTheme.spacing.extraLarge))
 
         // "Sheet" with the actual content
@@ -132,7 +128,7 @@ private fun GameDetailSheetContent(
                 modifier = horizontalPadding
             )
 
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraLarge))
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
 
             // Game Technical Info Section
             GameDetailInfoSection(
