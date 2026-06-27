@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -34,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.gameswishlist.core.ui.component.CustomFab
 import com.example.gameswishlist.core.ui.component.EmptyPage
 import com.example.gameswishlist.core.ui.R as CoreUiR
 
@@ -52,8 +52,11 @@ fun ListsScreen(
             TopAppBar(title = { Text("My Lists") })
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showCreateDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Create List")
+            CustomFab(onClick = { showCreateDialog = true }) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = stringResource(R.string.create_list_content_description)
+                )
             }
         },
         contentWindowInsets = WindowInsets.systemBars,

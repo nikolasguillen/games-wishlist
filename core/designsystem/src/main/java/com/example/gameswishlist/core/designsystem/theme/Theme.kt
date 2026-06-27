@@ -50,7 +50,9 @@ fun GamesWishlistTheme(
         filterChipSelectedContentColor = OnPrimaryContainerDark,
         cardContainerColor = SecondaryContainerDark,
         segmentedButtonSelectedColor = PrimaryContainerDark,
-        segmentedButtonSelectedContentColor = OnPrimaryContainerDark
+        segmentedButtonSelectedContentColor = OnPrimaryContainerDark,
+        fabContainerColor = SpotifyGreen,
+        fabContentColor = SpotifyBlack
     )
 
     CompositionLocalProvider(

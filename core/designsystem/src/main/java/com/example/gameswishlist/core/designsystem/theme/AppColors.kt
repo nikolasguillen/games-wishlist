@@ -21,7 +21,9 @@ data class AppColors(
     val filterChipSelectedContentColor: Color,
     val cardContainerColor: Color,
     val segmentedButtonSelectedColor: Color,
-    val segmentedButtonSelectedContentColor: Color
+    val segmentedButtonSelectedContentColor: Color,
+    val fabContainerColor: Color,
+    val fabContentColor: Color
 )
 
 internal val LocalAppColors = staticCompositionLocalOf {
@@ -38,7 +40,9 @@ internal val LocalAppColors = staticCompositionLocalOf {
         filterChipSelectedContentColor = Color.Unspecified,
         cardContainerColor = Color.Unspecified,
         segmentedButtonSelectedColor = Color.Unspecified,
-        segmentedButtonSelectedContentColor = Color.Unspecified
+        segmentedButtonSelectedContentColor = Color.Unspecified,
+        fabContainerColor = Color.Unspecified,
+        fabContentColor = Color.Unspecified
     )
 }
 
