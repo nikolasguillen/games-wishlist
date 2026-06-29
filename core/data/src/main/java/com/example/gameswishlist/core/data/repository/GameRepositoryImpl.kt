@@ -42,7 +42,7 @@ class GameRepositoryImpl @Inject constructor(
             val queryText = """
                 search "$query";
                 fields name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
-                where game_type != ($excludedIds);
+                where game_type != ($excludedIds) & version_parent = null;
                 limit 500;
             """.trimIndent()
             val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())

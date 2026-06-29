@@ -11,8 +11,9 @@ import com.example.gameswishlist.core.model.GameType
  * 2. Hype Factor: Boosts anticipated games.
  * 3. Type Penalty/Bonus: Prioritizes MAIN_GAME and deprioritizes noisy types.
  * 4. Keyword Noise Penalty: Deprioritizes editions/packs that clutter search results.
+ * 5. Text Match Multiplier: Boosts games that match the search query closely.
  */
-fun calculateGameRelevanceScore(game: Game): Double {
+fun calculateGameRelevanceScore(game: Game, query: String = ""): Double {
     // Component 1: Bayesian Average
     val voteCount = game.ratingCount.toDouble()
     val averageRating = game.rating
@@ -49,5 +50,24 @@ fun calculateGameRelevanceScore(game: Game): Double {
         noisePenalty = 0.6 // Reduce score by 40% if it looks like noise
     }
 
-    return (bayesianScore + hypeBonus) * typeWeight * noisePenalty
+    // Component 5: Text Match Multiplier
+    var matchMultiplier = 1.0
+    if (query.isNotBlank()) {
+        val name = game.name.lowercase()
+        val q = query.lowercase().trim()
+        
+        when {
+            name == q -> matchMultiplier = 8.0
+            name.startsWith(q) -> matchMultiplier = 4.0
+            name.contains(q) -> matchMultiplier = 2.0
+        }
+        
+        // Bonus for exact word match if it's not just "contained"
+        // e.g. "Halo" in "Halo Infinite" vs "Halogen"
+        if (name.split(" ", "-", ":").any { it == q }) {
+            matchMultiplier *= 1.5
+        }
+    }
+
+    return (bayesianScore + hypeBonus) * typeWeight * noisePenalty * matchMultiplier
 }
