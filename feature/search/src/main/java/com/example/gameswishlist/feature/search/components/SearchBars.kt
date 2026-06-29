@@ -45,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.style.TextAlign
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomAlertDialog
@@ -212,31 +213,41 @@ fun ExpandedSearchBar(
             containerColor = MaterialTheme.appColors.expandedSearchBarColor
         )
     ) {
-        if (history.isEmpty) return@ExpandedFullScreenSearchBar // TODO mettere placeholder?
+        if (history.isEmpty) {
+            Text(
+                text = stringResource(SearchR.string.expanded_search_initial_message),
+                style = MaterialTheme.typography.labelLarge,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .padding(MaterialTheme.spacing.large)
+                    .fillMaxWidth()
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        vertical = MaterialTheme.spacing.medium
+                    ),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large)
+            ) {
+                if (history.queries.isNotEmpty()) {
+                    RecentSearchesSection(
+                        recentSearches = history.queries,
+                        onClearRecentSearches = { showClearHistoryDialog = true },
+                        onHistoryItemClicked = onHistoryItemClicked,
+                        onShowRemovalDialog = { queryToRemove = it }
+                    )
+                }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    vertical = MaterialTheme.spacing.medium
-                ),
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large)
-        ) {
-            if (history.queries.isNotEmpty()) {
-                RecentSearchesSection(
-                    recentSearches = history.queries,
-                    onClearRecentSearches = { showClearHistoryDialog = true },
-                    onHistoryItemClicked = onHistoryItemClicked,
-                    onShowRemovalDialog = { queryToRemove = it }
-                )
-            }
-
-            if (history.games.isNotEmpty()) {
-                RecentGamesSection(
-                    recentGames = history.games,
-                    onGameClick = onGameClick,
-                    onRemoveClick = onRemoveRecentGame
-                )
+                if (history.games.isNotEmpty()) {
+                    RecentGamesSection(
+                        recentGames = history.games,
+                        onGameClick = onGameClick,
+                        onRemoveClick = onRemoveRecentGame
+                    )
+                }
             }
         }
 
