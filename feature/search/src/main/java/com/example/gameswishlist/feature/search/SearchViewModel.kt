@@ -1,5 +1,8 @@
 package com.example.gameswishlist.feature.search
 
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.common.calculateGameRelevanceScore
@@ -27,13 +30,20 @@ import com.example.gameswishlist.feature.search.model.SearchUiState
 import com.example.gameswishlist.feature.search.model.SortBottomSheetState
 import com.example.gameswishlist.feature.search.model.SortingUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val searchGamesUseCase: SearchGamesUseCase,
@@ -55,6 +65,8 @@ class SearchViewModel @Inject constructor(
     )
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
+    val textFieldState = TextFieldState()
+
     init {
         viewModelScope.launch {
             getRecentSearchActivityUseCase()
@@ -69,11 +81,28 @@ class SearchViewModel @Inject constructor(
                     }
                 }
         }
+
+        snapshotFlow { textFieldState.text }
+            .debounce(300.milliseconds)
+            .distinctUntilChanged()
+            .onEach { query ->
+                val queryString = query.toString()
+                if (queryString.length >= 2) {
+                    val suggestions = _uiState.value.history.queries.filter {
+                        it.contains(queryString, ignoreCase = true)
+                    }
+                    _uiState.update { it.copy(suggestions = suggestions) }
+                } else {
+                    _uiState.update { it.copy(suggestions = emptyList()) }
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
     fun onEvent(event: SearchUiEvent) {
         when (event) {
             is SearchUiEvent.OnSearchTriggered -> {
+                textFieldState.setTextAndPlaceCursorAtEnd(event.query)
                 performSearch(query = event.query)
             }
 

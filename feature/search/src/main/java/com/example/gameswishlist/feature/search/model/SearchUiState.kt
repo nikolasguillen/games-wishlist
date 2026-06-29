@@ -10,6 +10,7 @@ package com.example.gameswishlist.feature.search.model
  */
 data class SearchUiState(
     val history: SearchHistoryUiModel = SearchHistoryUiModel(),
+    val suggestions: List<String> = emptyList(),
     val contentState: SearchContentState = SearchContentState.Initial,
     val filtersBottomSheetState: FilterBottomSheetState = FilterBottomSheetState(),
     val sortBottomSheetState: SortBottomSheetState = SortBottomSheetState()

@@ -124,6 +124,7 @@ internal fun SearchTopBar(
         searchBarState = searchBarState,
         inputField = inputField,
         history = uiState.history,
+        suggestions = uiState.suggestions,
         appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(
             searchBarColors = appBarWithSearchColors.searchBarColors,
             appBarContainerColor = Color.Transparent,
@@ -196,6 +197,7 @@ fun ExpandedSearchBar(
     searchBarState: SearchBarState,
     inputField: @Composable () -> Unit,
     history: SearchHistoryUiModel,
+    suggestions: List<String>,
     appBarWithSearchColors: AppBarWithSearchColors,
     onHistoryItemClicked: (query: String) -> Unit,
     onGameClick: (Int) -> Unit,
@@ -213,7 +215,7 @@ fun ExpandedSearchBar(
             containerColor = MaterialTheme.appColors.expandedSearchBarColor
         )
     ) {
-        if (history.isEmpty) {
+        if (history.isEmpty && suggestions.isEmpty()) {
             Text(
                 text = stringResource(SearchR.string.expanded_search_initial_message),
                 style = MaterialTheme.typography.labelLarge,
@@ -232,21 +234,28 @@ fun ExpandedSearchBar(
                     ),
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large)
             ) {
-                if (history.queries.isNotEmpty()) {
-                    RecentSearchesSection(
-                        recentSearches = history.queries,
-                        onClearRecentSearches = { showClearHistoryDialog = true },
-                        onHistoryItemClicked = onHistoryItemClicked,
-                        onShowRemovalDialog = { queryToRemove = it }
+                if (suggestions.isNotEmpty()) {
+                    SuggestionsSection(
+                        suggestions = suggestions,
+                        onSuggestionClick = onHistoryItemClicked
                     )
-                }
+                } else {
+                    if (history.queries.isNotEmpty()) {
+                        RecentSearchesSection(
+                            recentSearches = history.queries,
+                            onClearRecentSearches = { showClearHistoryDialog = true },
+                            onHistoryItemClicked = onHistoryItemClicked,
+                            onShowRemovalDialog = { queryToRemove = it }
+                        )
+                    }
 
-                if (history.games.isNotEmpty()) {
-                    RecentGamesSection(
-                        recentGames = history.games,
-                        onGameClick = onGameClick,
-                        onRemoveClick = onRemoveRecentGame
-                    )
+                    if (history.games.isNotEmpty()) {
+                        RecentGamesSection(
+                            recentGames = history.games,
+                            onGameClick = onGameClick,
+                            onRemoveClick = onRemoveRecentGame
+                        )
+                    }
                 }
             }
         }
@@ -285,13 +294,51 @@ fun ExpandedSearchBar(
 }
 
 @Composable
+private fun SuggestionsSection(
+    suggestions: List<String>,
+    onSuggestionClick: (String) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
+        Text(
+            text = stringResource(SearchR.string.suggestions_label),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
+        )
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
+            contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large)
+        ) {
+            items(items = suggestions, key = { it }) { suggestion ->
+                SuggestionChip(
+                    onClick = { onSuggestionClick(suggestion) },
+                    label = {
+                        Text(
+                            text = suggestion,
+                            maxLines = 1
+                        )
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null
+                        )
+                    },
+                    contentPadding = PaddingValues(all = MaterialTheme.spacing.small)
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun RecentSearchesSection(
     recentSearches: List<String>,
     onClearRecentSearches: () -> Unit,
     onHistoryItemClicked: (String) -> Unit,
     onShowRemovalDialog: (String) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
+    Column {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,

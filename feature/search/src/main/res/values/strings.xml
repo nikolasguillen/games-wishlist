@@ -7,6 +7,7 @@
     <string name="search_no_results">No games found for this search</string>
     <string name="search_no_filtered_results">No games match the selected filters</string>
     <string name="recent_searches">Recent searches</string>
+    <string name="suggestions_label">Suggestions</string>
     <string name="recently_viewed">Recently viewed</string>
     <string name="clear_all">Clear all</string>
     <string name="clear_history_title">Clear search history</string>
