@@ -53,6 +53,23 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getSearchSuggestions(query: String): AppResult<List<Game>> {
+        return try {
+            val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
+            val queryText = """
+                search "$query";
+                fields name, cover.url, first_release_date, hypes, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                where game_type != ($excludedIds);
+                limit 10;
+            """.trimIndent()
+            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+            val response = apiService.searchGames(body)
+            AppResult.success(response.map { it.toGame() })
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
     override suspend fun addSearchToHistory(query: String) {
         searchHistoryDao.insert(
             SearchHistoryEntity(

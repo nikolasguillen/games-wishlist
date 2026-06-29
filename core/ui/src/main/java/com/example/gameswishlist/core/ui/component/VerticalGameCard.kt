@@ -75,7 +75,7 @@ fun VerticalGameCard(
                     .padding(top = 50.dp)
             ) {
                 Text(
-                    text = game.name,
+                    text = game.name.asString(),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
@@ -83,7 +83,10 @@ fun VerticalGameCard(
                     lineHeight = MaterialTheme.typography.titleSmall.lineHeight,
                 )
 
-                GameMetadataRow(developer = game.developer, releaseYear = game.releaseYear)
+                GameMetadataRow(
+                    developer = game.developer,
+                    releaseYear = game.releaseYear?.asString()
+                )
             }
         }
     }
@@ -125,7 +128,7 @@ fun RecentGameCard(
                         .padding(top = 30.dp)
                 ) {
                     Text(
-                        text = game.name,
+                        text = game.name.asString(),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
@@ -134,7 +137,7 @@ fun RecentGameCard(
 
                     game.releaseYear?.let {
                         Text(
-                            text = it,
+                            text = it.asString(),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                             maxLines = 1
@@ -196,7 +199,7 @@ fun GameCompactCard(
                     .padding(top = 30.dp)
             ) {
                 Text(
-                    text = game.name,
+                    text = game.name.asString(),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -205,7 +208,7 @@ fun GameCompactCard(
 
                 game.releaseYear?.let {
                     Text(
-                        text = it,
+                        text = it.asString(),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                         maxLines = 1

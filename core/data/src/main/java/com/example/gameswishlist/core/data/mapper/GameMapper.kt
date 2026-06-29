@@ -16,6 +16,7 @@ import com.example.gameswishlist.core.model.Genre
 import com.example.gameswishlist.core.model.Platform
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.model.RelationType
+import com.example.gameswishlist.core.network.model.IgdbCompany
 import com.example.gameswishlist.core.network.model.IgdbGame
 import com.example.gameswishlist.core.network.model.IgdbGenre
 import com.example.gameswishlist.core.network.model.IgdbPlatform
@@ -69,7 +70,7 @@ fun IgdbGenre.toGenre(): Genre {
     )
 }
 
-fun com.example.gameswishlist.core.network.model.IgdbCompany.toCompany(): Company {
+fun IgdbCompany.toCompany(): Company {
     return Company(
         id = id, name = name
     )

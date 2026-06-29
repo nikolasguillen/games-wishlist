@@ -1,5 +1,6 @@
 package com.example.gameswishlist.feature.search.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.TextFieldState
@@ -55,6 +57,7 @@ import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.util.annotatedStringResource
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
+import com.example.gameswishlist.feature.search.model.SearchSuggestionUiModel
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import com.example.gameswishlist.feature.search.R as SearchR
@@ -132,6 +135,7 @@ internal fun SearchTopBar(
             scrolledAppBarContainerColor = MaterialTheme.appColors.searchBarScrolledContainerColor
         ),
         onHistoryItemClicked = { onSearch(it) },
+        onSuggestionClick = { onEvent(SearchUiEvent.OnSuggestionClick(it)) },
         onGameClick = onGameClick,
         onRemoveRecentGame = { onEvent(SearchUiEvent.OnRecentGameRemoved(it)) },
         onClearRecentSearches = { onEvent(SearchUiEvent.OnClearHistory) },
@@ -205,9 +209,10 @@ fun ExpandedSearchBar(
     searchBarState: SearchBarState,
     inputField: @Composable () -> Unit,
     history: SearchHistoryUiModel,
-    suggestions: List<String>,
+    suggestions: List<SearchSuggestionUiModel>,
     appBarWithSearchColors: AppBarWithSearchColors,
     onHistoryItemClicked: (query: String) -> Unit,
+    onSuggestionClick: (SearchSuggestionUiModel) -> Unit,
     onGameClick: (Int) -> Unit,
     onRemoveRecentGame: (Int) -> Unit,
     onClearRecentSearches: () -> Unit,
@@ -245,7 +250,7 @@ fun ExpandedSearchBar(
                 if (suggestions.isNotEmpty()) {
                     SuggestionsSection(
                         suggestions = suggestions,
-                        onSuggestionClick = onHistoryItemClicked
+                        onSuggestionClick = onSuggestionClick
                     )
                 } else {
                     if (history.queries.isNotEmpty()) {
@@ -256,7 +261,6 @@ fun ExpandedSearchBar(
                             onShowRemovalDialog = { queryToRemove = it }
                         )
                     }
-
                     if (history.games.isNotEmpty()) {
                         RecentGamesSection(
                             recentGames = history.games,
@@ -303,38 +307,20 @@ fun ExpandedSearchBar(
 
 @Composable
 private fun SuggestionsSection(
-    suggestions: List<String>,
-    onSuggestionClick: (String) -> Unit
+    suggestions: List<SearchSuggestionUiModel>,
+    onSuggestionClick: (SearchSuggestionUiModel) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
-        Text(
-            text = stringResource(SearchR.string.suggestions_label),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
-        )
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
-            contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large)
-        ) {
-            items(items = suggestions, key = { it }) { suggestion ->
-                SuggestionChip(
-                    onClick = { onSuggestionClick(suggestion) },
-                    label = {
-                        Text(
-                            text = suggestion,
-                            maxLines = 1
-                        )
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null
-                        )
-                    },
-                    contentPadding = PaddingValues(all = MaterialTheme.spacing.small)
-                )
-            }
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
+        items(
+            items = suggestions,
+            key = { it.id }
+        ) { suggestion: SearchSuggestionUiModel ->
+            SuggestionRow(
+                suggestion = suggestion,
+                modifier = Modifier
+                    .clickable { onSuggestionClick(suggestion) }
+                    .fillMaxWidth()
+            )
         }
     }
 }

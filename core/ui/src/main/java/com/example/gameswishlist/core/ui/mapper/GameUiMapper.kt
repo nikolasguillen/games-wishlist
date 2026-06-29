@@ -40,9 +40,11 @@ fun Game.getRatingUiText(
         metaCritic != null && metaCritic!! > 0 -> {
             UiText.StringResource(metacriticLabelRes, displayRating)
         }
+
         rating > 0.0 -> {
             UiText.StringResource(ratingLabelRes, displayRating)
         }
+
         else -> {
             UiText.StringResource(notDefinedLabelRes)
         }
@@ -78,7 +80,7 @@ private fun getOrdinalSuffixRes(day: Int): Int {
 fun Game.toGameItem(): GameItemUiModel {
     val year = releaseDate?.let {
         try {
-            LocalDate.parse(it).year.toString()
+            UiText.DynamicString(LocalDate.parse(it).year.toString())
         } catch (_: Exception) {
             null
         }
@@ -114,7 +116,7 @@ fun Game.toGameItem(): GameItemUiModel {
 
     return GameItemUiModel(
         id = id,
-        name = name,
+        name = UiText.DynamicString(name),
         coverImage = backgroundImage,
         rating = getDisplayRating(),
         releaseDateText = formattedReleaseDate?.let {
