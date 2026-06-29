@@ -38,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -201,7 +202,8 @@ fun ExpandedSearchBar(
     onClearRecentSearches: () -> Unit,
     onRemoveRecentSearchItem: (query: String) -> Unit
 ) {
-    var showHistoryItemRemovalDialog by remember { mutableStateOf(false) }
+    var queryToRemove by rememberSaveable { mutableStateOf<String?>(null) }
+    var showClearHistoryDialog by rememberSaveable { mutableStateOf(false) }
 
     ExpandedFullScreenSearchBar(
         state = searchBarState,
@@ -211,12 +213,6 @@ fun ExpandedSearchBar(
         )
     ) {
         if (history.isEmpty) return@ExpandedFullScreenSearchBar // TODO mettere placeholder?
-        var recentSearchToBeRemoved by remember { mutableStateOf("") }
-
-        fun showRecentSearchRemovalDialog(itemToRemove: String) {
-            recentSearchToBeRemoved = itemToRemove
-            showHistoryItemRemovalDialog = true
-        }
 
         Column(
             modifier = Modifier
@@ -229,9 +225,9 @@ fun ExpandedSearchBar(
             if (history.queries.isNotEmpty()) {
                 RecentSearchesSection(
                     recentSearches = history.queries,
-                    onClearRecentSearches = onClearRecentSearches,
+                    onClearRecentSearches = { showClearHistoryDialog = true },
                     onHistoryItemClicked = onHistoryItemClicked,
-                    onShowRemovalDialog = ::showRecentSearchRemovalDialog
+                    onShowRemovalDialog = { queryToRemove = it }
                 )
             }
 
@@ -244,20 +240,34 @@ fun ExpandedSearchBar(
             }
         }
 
-        if (showHistoryItemRemovalDialog) {
+        queryToRemove?.let { query ->
             CustomAlertDialog(
                 title = stringResource(SearchR.string.remove_history_item),
                 message = annotatedStringResource(
                     SearchR.string.remove_history_item_message,
-                    recentSearchToBeRemoved
+                    query
                 ),
                 confirmButtonText = stringResource(SearchR.string.proceed_label),
                 onConfirm = {
-                    onRemoveRecentSearchItem(recentSearchToBeRemoved)
-                    showHistoryItemRemovalDialog = false
+                    onRemoveRecentSearchItem(query)
+                    queryToRemove = null
                 },
                 dismissButtonText = stringResource(SearchR.string.cancel),
-                onDismiss = { showHistoryItemRemovalDialog = false }
+                onDismiss = { queryToRemove = null }
+            )
+        }
+
+        if (showClearHistoryDialog) {
+            CustomAlertDialog(
+                title = stringResource(SearchR.string.clear_history_title),
+                message = stringResource(SearchR.string.clear_history_message),
+                confirmButtonText = stringResource(SearchR.string.proceed_label),
+                onConfirm = {
+                    onClearRecentSearches()
+                    showClearHistoryDialog = false
+                },
+                dismissButtonText = stringResource(SearchR.string.cancel),
+                onDismiss = { showClearHistoryDialog = false }
             )
         }
     }
