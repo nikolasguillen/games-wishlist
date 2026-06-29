@@ -25,6 +25,7 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.model.SearchSuggestionUiModel
+import com.example.gameswishlist.core.ui.R as CoreUiR
 
 @Composable
 fun SuggestionRow(suggestion: SearchSuggestionUiModel, modifier: Modifier = Modifier) {
@@ -34,6 +35,8 @@ fun SuggestionRow(suggestion: SearchSuggestionUiModel, modifier: Modifier = Modi
                 AsyncImage(
                     model = suggestion.coverUrl,
                     contentDescription = null,
+                    placeholder = painterResource(CoreUiR.drawable.placeholder),
+                    error = painterResource(CoreUiR.drawable.placeholder),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(70.dp)
@@ -47,14 +50,14 @@ fun SuggestionRow(suggestion: SearchSuggestionUiModel, modifier: Modifier = Modi
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    suggestion.developer?.asString()?.let {
-                            Text(
-                                text = it,
-                                maxLines = 1,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                    suggestion.developer?.let {
+                        Text(
+                            text = it.asString(),
+                            maxLines = 1,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
@@ -104,6 +107,23 @@ private fun SuggestionRowRecentSearchPreview() {
             SuggestionRow(
                 suggestion = SearchSuggestionUiModel.RecentSearch(
                     text = UiText.DynamicString("Elden Ring")
+                )
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SuggestionRowGameErrorPreview() {
+    GamesWishlistTheme {
+        Surface {
+            SuggestionRow(
+                suggestion = SearchSuggestionUiModel.Game(
+                    gameId = 1,
+                    text = UiText.DynamicString("Broken Game URL"),
+                    coverUrl = null,
+                    developer = UiText.DynamicString("Unknown Developer")
                 )
             )
         }

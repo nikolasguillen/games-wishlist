@@ -242,9 +242,7 @@ fun ExpandedSearchBar(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(
-                        vertical = MaterialTheme.spacing.medium
-                    ),
+                    .padding(vertical = MaterialTheme.spacing.medium),
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large)
             ) {
                 if (suggestions.isNotEmpty()) {

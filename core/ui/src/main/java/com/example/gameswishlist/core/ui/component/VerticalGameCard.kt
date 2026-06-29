@@ -36,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.R
@@ -231,11 +232,40 @@ private fun GameCoverHeader(
             .fillMaxWidth()
     ) {
         if (coverImage != null) {
-            AsyncImage(
+            SubcomposeAsyncImage(
                 model = coverImage,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                loading = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(MaterialTheme.spacing.extraLarge),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AsyncImage(
+                            model = R.drawable.placeholder,
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                },
+                error = {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ImageNotSupported,
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        )
+                    }
+                }
             )
         } else {
             Box(

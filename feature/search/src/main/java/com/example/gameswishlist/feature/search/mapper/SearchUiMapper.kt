@@ -22,7 +22,7 @@ fun List<Game>.toSuggestionGameList(): List<SearchSuggestionUiModel.Game> {
                 gameId = game.id,
                 text = UiText.DynamicString(game.name),
                 coverUrl = game.backgroundImage,
-                developer = UiText.DynamicString(game.developers.firstOrNull()?.name ?: ""),
+                developer = game.developers.firstOrNull()?.let { UiText.DynamicString(it.name) },
                 releaseYear = game.releaseDate?.take(4)?.let { UiText.DynamicString(it) }
             )
         }
