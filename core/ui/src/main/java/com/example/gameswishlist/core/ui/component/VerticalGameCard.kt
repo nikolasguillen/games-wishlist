@@ -76,7 +76,7 @@ fun VerticalGameCard(
                     .padding(top = 50.dp)
             ) {
                 Text(
-                    text = game.name.asString(),
+                    text = game.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
@@ -86,7 +86,7 @@ fun VerticalGameCard(
 
                 GameMetadataRow(
                     developer = game.developer,
-                    releaseYear = game.releaseYear?.asString()
+                    releaseYear = game.releaseYear
                 )
             }
         }
@@ -129,7 +129,7 @@ fun RecentGameCard(
                         .padding(top = 30.dp)
                 ) {
                     Text(
-                        text = game.name.asString(),
+                        text = game.name,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
@@ -138,7 +138,7 @@ fun RecentGameCard(
 
                     game.releaseYear?.let {
                         Text(
-                            text = it.asString(),
+                            text = it,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                             maxLines = 1
@@ -200,7 +200,7 @@ fun GameCompactCard(
                     .padding(top = 30.dp)
             ) {
                 Text(
-                    text = game.name.asString(),
+                    text = game.name,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -209,7 +209,7 @@ fun GameCompactCard(
 
                 game.releaseYear?.let {
                     Text(
-                        text = it.asString(),
+                        text = it,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                         maxLines = 1
@@ -296,7 +296,7 @@ private fun GameCoverHeader(
 
 @Composable
 private fun GameMetadataRow(
-    developer: com.example.gameswishlist.core.ui.model.UiText?,
+    developer: String?,
     releaseYear: String?
 ) {
     Row(
@@ -305,7 +305,7 @@ private fun GameMetadataRow(
     ) {
         developer?.let {
             Text(
-                text = it.asString(),
+                text = it,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,

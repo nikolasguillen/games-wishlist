@@ -1,6 +1,5 @@
 package com.example.gameswishlist.feature.search.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -57,7 +56,6 @@ import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.util.annotatedStringResource
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
-import com.example.gameswishlist.feature.search.model.SearchSuggestionUiModel
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import com.example.gameswishlist.feature.search.R as SearchR
@@ -209,10 +207,10 @@ fun ExpandedSearchBar(
     searchBarState: SearchBarState,
     inputField: @Composable () -> Unit,
     history: SearchHistoryUiModel,
-    suggestions: List<SearchSuggestionUiModel>,
+    suggestions: List<String>,
     appBarWithSearchColors: AppBarWithSearchColors,
     onHistoryItemClicked: (query: String) -> Unit,
-    onSuggestionClick: (SearchSuggestionUiModel) -> Unit,
+    onSuggestionClick: (String) -> Unit,
     onGameClick: (Int) -> Unit,
     onRemoveRecentGame: (Int) -> Unit,
     onClearRecentSearches: () -> Unit,
@@ -305,19 +303,18 @@ fun ExpandedSearchBar(
 
 @Composable
 private fun SuggestionsSection(
-    suggestions: List<SearchSuggestionUiModel>,
-    onSuggestionClick: (SearchSuggestionUiModel) -> Unit
+    suggestions: List<String>,
+    onSuggestionClick: (String) -> Unit
 ) {
     LazyColumn(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
         items(
             items = suggestions,
-            key = { it.id }
-        ) { suggestion: SearchSuggestionUiModel ->
+            key = { it }
+        ) { suggestion ->
             SuggestionRow(
                 suggestion = suggestion,
-                modifier = Modifier
-                    .clickable { onSuggestionClick(suggestion) }
-                    .fillMaxWidth()
+                onClick = onSuggestionClick,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }

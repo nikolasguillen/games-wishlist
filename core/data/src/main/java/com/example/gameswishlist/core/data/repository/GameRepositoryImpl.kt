@@ -79,8 +79,12 @@ class GameRepositoryImpl @Inject constructor(
         )
     }
 
-    override fun getSearchHistory(): Flow<List<String>> {
+    override fun getRecentSearchHistory(): Flow<List<String>> {
         return searchHistoryDao.getRecentSearches().map { it.map { entity -> entity.query } }
+    }
+
+    override suspend fun getFilteredSearchHistory(query: String): List<String> {
+        return searchHistoryDao.filterRecentSearches(query).map { entity -> entity.query }
     }
 
     override suspend fun deleteSearchHistoryItem(query: String) {

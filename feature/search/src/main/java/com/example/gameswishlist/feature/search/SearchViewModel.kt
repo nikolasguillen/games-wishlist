@@ -21,43 +21,40 @@ import com.example.gameswishlist.feature.search.mapper.getInitialSortFilters
 import com.example.gameswishlist.feature.search.mapper.isSortActive
 import com.example.gameswishlist.feature.search.mapper.toGenreFilters
 import com.example.gameswishlist.feature.search.mapper.toPlatformFilters
-import com.example.gameswishlist.feature.search.mapper.toSuggestionGameList
-import com.example.gameswishlist.feature.search.mapper.toSuggestionRecentList
 import com.example.gameswishlist.feature.search.model.FilterBottomSheetState
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
 import com.example.gameswishlist.feature.search.model.SearchSort
-import com.example.gameswishlist.feature.search.model.SearchSuggestionUiModel
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import com.example.gameswishlist.feature.search.model.SortBottomSheetState
 import com.example.gameswishlist.feature.search.model.SortingUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(FlowPreview::class)
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val searchGamesUseCase: SearchGamesUseCase,
     private val addSearchToHistoryUseCase: AddSearchToHistoryUseCase,
     private val getRecentSearchActivityUseCase: GetRecentSearchActivityUseCase,
-    private val getSearchSuggestionsUseCase: GetSearchSuggestionsUseCase,
     private val deleteSearchHistoryItemUseCase: DeleteSearchHistoryItemUseCase,
     private val clearAllHistoryUseCase: ClearAllHistoryUseCase,
     private val removeRecentGameUseCase: RemoveRecentGameUseCase,
-    private val clearRecentGamesUseCase: ClearRecentGamesUseCase
+    private val clearRecentGamesUseCase: ClearRecentGamesUseCase,
+    private val getSearchSuggestionsUseCase: GetSearchSuggestionsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -80,20 +77,8 @@ class SearchViewModel @Inject constructor(
     fun onEvent(event: SearchUiEvent) {
         when (event) {
             is SearchUiEvent.OnSuggestionClick -> {
-                when (val suggestion = event.suggestion) {
-                    is SearchSuggestionUiModel.Game -> {
-                        // For games, we could trigger navigation here if we had an Effect channel,
-                        // or just perform a search with the exact name for now.
-                        // Ideally, this should navigate to GameDetail.
-                        textFieldState.setTextAndPlaceCursorAtEnd(suggestion.text.toString())
-                        performSearch(suggestion.text.toString())
-                    }
-
-                    is SearchSuggestionUiModel.RecentSearch -> {
-                        textFieldState.setTextAndPlaceCursorAtEnd(suggestion.text.toString())
-                        performSearch(suggestion.text.toString())
-                    }
-                }
+                textFieldState.setTextAndPlaceCursorAtEnd(event.suggestion)
+                performSearch(event.suggestion)
             }
 
             is SearchUiEvent.OnSearchTriggered -> {
@@ -442,33 +427,16 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun initSearchSuggestions() {
-        snapshotFlow { textFieldState.text }.debounce(300.milliseconds).distinctUntilChanged()
+        snapshotFlow { textFieldState.text }
+            .map { it.toString() }
+            .distinctUntilChanged()
             .onEach { query ->
-                val queryString = query.toString()
-                if (queryString.length >= 2) {
-                    val localMatches = _uiState.value.history.queries.filter {
-                        it.contains(
-                            queryString,
-                            ignoreCase = true
-                        )
-                    }.toSuggestionRecentList()
-
-                    val remoteMatches = mutableListOf<SearchSuggestionUiModel.Game>()
-
-                    getSearchSuggestionsUseCase(queryString).onSuccess { apiGames ->
-                        val apiSuggestions = apiGames.toSuggestionGameList()
-                        remoteMatches.addAll(apiSuggestions)
-                    }
-
-                    _uiState.update {
-                        it.copy(
-                            suggestions = localMatches + remoteMatches
-                        )
-                    }
-
-                } else {
+                if (query.length < 2) {
                     _uiState.update { it.copy(suggestions = emptyList()) }
+                    return@onEach
                 }
-            }.launchIn(viewModelScope)
+                _uiState.update { it.copy(suggestions = getSearchSuggestionsUseCase(query)) }
+            }
+            .launchIn(viewModelScope)
     }
 }

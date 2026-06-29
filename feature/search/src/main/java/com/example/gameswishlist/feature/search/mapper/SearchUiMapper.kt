@@ -1,6 +1,5 @@
 package com.example.gameswishlist.feature.search.mapper
 
-import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameType
 import com.example.gameswishlist.core.model.Genre
 import com.example.gameswishlist.core.model.Platform
@@ -10,31 +9,8 @@ import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.UiConstants
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchSort
-import com.example.gameswishlist.feature.search.model.SearchSuggestionUiModel
 import com.example.gameswishlist.feature.search.model.SortingUiModel
 import com.example.gameswishlist.core.ui.R as UiR
-
-fun List<Game>.toSuggestionGameList(): List<SearchSuggestionUiModel.Game> {
-    return this
-        .sortedByDescending { it.hypes }
-        .map { game ->
-            SearchSuggestionUiModel.Game(
-                gameId = game.id,
-                text = UiText.DynamicString(game.name),
-                coverUrl = game.backgroundImage,
-                developer = game.developers.firstOrNull()?.let { UiText.DynamicString(it.name) },
-                releaseYear = game.releaseDate?.take(4)?.let { UiText.DynamicString(it) }
-            )
-        }
-}
-
-fun List<String>.toSuggestionRecentList(): List<SearchSuggestionUiModel.RecentSearch> {
-    return this.map { query ->
-        SearchSuggestionUiModel.RecentSearch(
-            text = UiText.DynamicString(query)
-        )
-    }
-}
 
 fun List<Platform>.toPlatformFilters(): List<GameFilterUiModel> {
     return this

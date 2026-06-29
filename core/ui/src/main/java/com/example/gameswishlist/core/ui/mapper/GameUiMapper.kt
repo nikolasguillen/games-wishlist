@@ -80,7 +80,7 @@ private fun getOrdinalSuffixRes(day: Int): Int {
 fun Game.toGameItem(): GameItemUiModel {
     val year = releaseDate?.let {
         try {
-            UiText.DynamicString(LocalDate.parse(it).year.toString())
+            LocalDate.parse(it).year.toString()
         } catch (_: Exception) {
             null
         }
@@ -116,14 +116,14 @@ fun Game.toGameItem(): GameItemUiModel {
 
     return GameItemUiModel(
         id = id,
-        name = UiText.DynamicString(name),
+        name = name,
         coverImage = backgroundImage,
         rating = getDisplayRating(),
         releaseDateText = formattedReleaseDate?.let {
             UiText.StringResource(R.string.release_date_format, it)
         } ?: UiText.StringResource(R.string.unknown_release_date),
         releaseYear = year,
-        developer = if (developers.isNotEmpty()) UiText.DynamicString(developers.joinToString { it.name }) else null,
+        developer = if (developers.isNotEmpty()) developers.joinToString { it.name } else null,
         platforms = platformsText
     )
 }
