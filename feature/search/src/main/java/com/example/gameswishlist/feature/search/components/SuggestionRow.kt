@@ -24,10 +24,8 @@ fun SuggestionRow(suggestion: String, onClick: (String) -> Unit, modifier: Modif
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .padding(
-                all = MaterialTheme.spacing.medium
-            )
             .clickable { onClick(suggestion) }
+            .padding(MaterialTheme.spacing.large)
     ) {
         Icon(
             imageVector = Icons.Default.History,

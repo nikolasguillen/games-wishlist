@@ -132,8 +132,8 @@ internal fun SearchTopBar(
             appBarContainerColor = Color.Transparent,
             scrolledAppBarContainerColor = MaterialTheme.appColors.searchBarScrolledContainerColor
         ),
-        onHistoryItemClicked = { onSearch(it) },
-        onSuggestionClick = { onEvent(SearchUiEvent.OnSuggestionClick(it)) },
+        onHistoryItemClicked = onSearch,
+        onSuggestionClick = onSearch,
         onGameClick = onGameClick,
         onRemoveRecentGame = { onEvent(SearchUiEvent.OnRecentGameRemoved(it)) },
         onClearRecentSearches = { onEvent(SearchUiEvent.OnClearHistory) },

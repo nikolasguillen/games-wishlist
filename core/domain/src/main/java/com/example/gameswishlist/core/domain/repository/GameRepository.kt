@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface GameRepository {
     suspend fun searchGames(query: String): AppResult<List<Game>>
-    suspend fun getSearchSuggestions(query: String): AppResult<List<Game>>
     suspend fun addSearchToHistory(query: String)
     fun getRecentSearchHistory(): Flow<List<String>>
     suspend fun getFilteredSearchHistory(query: String): List<String>

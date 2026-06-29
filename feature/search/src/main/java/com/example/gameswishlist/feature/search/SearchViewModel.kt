@@ -76,11 +76,6 @@ class SearchViewModel @Inject constructor(
 
     fun onEvent(event: SearchUiEvent) {
         when (event) {
-            is SearchUiEvent.OnSuggestionClick -> {
-                textFieldState.setTextAndPlaceCursorAtEnd(event.suggestion)
-                performSearch(event.suggestion)
-            }
-
             is SearchUiEvent.OnSearchTriggered -> {
                 textFieldState.setTextAndPlaceCursorAtEnd(event.query)
                 performSearch(query = event.query)
