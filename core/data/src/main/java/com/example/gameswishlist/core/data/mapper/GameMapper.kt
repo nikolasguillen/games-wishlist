@@ -40,9 +40,9 @@ fun IgdbGame.toGame(): Game {
         metaCritic = aggregatedRating?.toInt(),
         platforms = platforms?.map { it.toPlatform() } ?: emptyList(),
         genres = genres?.map { it.toGenre() } ?: emptyList(),
-        publishers = involvedCompanies?.filter { it.publisher }?.map { it.company.toCompany() }
+        publishers = involvedCompanies?.filter { it.publisher == true }?.map { it.company.toCompany() }
             ?: emptyList(),
-        developers = involvedCompanies?.filter { it.developer }?.map { it.company.toCompany() }
+        developers = involvedCompanies?.filter { it.developer == true }?.map { it.company.toCompany() }
             ?: emptyList(),
         gameType = GameType.fromId(gameType),
         url = url,

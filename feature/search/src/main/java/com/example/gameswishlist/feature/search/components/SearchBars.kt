@@ -56,6 +56,7 @@ import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.util.annotatedStringResource
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
+import com.example.gameswishlist.feature.search.model.SearchSuggestionUiModel
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import com.example.gameswishlist.feature.search.R as SearchR
@@ -68,6 +69,7 @@ internal fun SearchTopBar(
     textFieldState: TextFieldState,
     scrollBehavior: SearchBarScrollBehavior,
     onSearch: (String) -> Unit,
+    onSuggestionClick: (SearchSuggestionUiModel) -> Unit,
     onGameClick: (Int) -> Unit,
     onEvent: (SearchUiEvent) -> Unit,
     backgroundColor: Color
@@ -133,7 +135,7 @@ internal fun SearchTopBar(
             scrolledAppBarContainerColor = MaterialTheme.appColors.searchBarScrolledContainerColor
         ),
         onHistoryItemClicked = onSearch,
-        onSuggestionClick = onSearch,
+        onSuggestionClick = onSuggestionClick,
         onGameClick = onGameClick,
         onRemoveRecentGame = { onEvent(SearchUiEvent.OnRecentGameRemoved(it)) },
         onClearRecentSearches = { onEvent(SearchUiEvent.OnClearHistory) },
@@ -207,10 +209,10 @@ fun ExpandedSearchBar(
     searchBarState: SearchBarState,
     inputField: @Composable () -> Unit,
     history: SearchHistoryUiModel,
-    suggestions: List<String>,
+    suggestions: List<SearchSuggestionUiModel>,
     appBarWithSearchColors: AppBarWithSearchColors,
     onHistoryItemClicked: (query: String) -> Unit,
-    onSuggestionClick: (String) -> Unit,
+    onSuggestionClick: (SearchSuggestionUiModel) -> Unit,
     onGameClick: (Int) -> Unit,
     onRemoveRecentGame: (Int) -> Unit,
     onClearRecentSearches: () -> Unit,
@@ -303,13 +305,18 @@ fun ExpandedSearchBar(
 
 @Composable
 private fun SuggestionsSection(
-    suggestions: List<String>,
-    onSuggestionClick: (String) -> Unit
+    suggestions: List<SearchSuggestionUiModel>,
+    onSuggestionClick: (SearchSuggestionUiModel) -> Unit
 ) {
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
+    LazyColumn {
         items(
             items = suggestions,
-            key = { it }
+            key = {
+                when (it) {
+                    is SearchSuggestionUiModel.History -> "hist_${it.query}"
+                    is SearchSuggestionUiModel.Game -> "game_${it.id}"
+                }
+            }
         ) { suggestion ->
             SuggestionRow(
                 suggestion = suggestion,

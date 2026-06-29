@@ -121,8 +121,8 @@ data class IgdbGenre(
 data class IgdbInvolvedCompany(
     val id: Int,
     val company: IgdbCompany,
-    val developer: Boolean,
-    val publisher: Boolean
+    val developer: Boolean? = false,
+    val publisher: Boolean? = false
 )
 
 /**

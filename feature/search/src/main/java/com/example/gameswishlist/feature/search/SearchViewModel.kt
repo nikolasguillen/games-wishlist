@@ -15,6 +15,7 @@ import com.example.gameswishlist.core.domain.usecase.search.GetSearchSuggestions
 import com.example.gameswishlist.core.domain.usecase.search.RemoveRecentGameUseCase
 import com.example.gameswishlist.core.domain.usecase.search.SearchGamesUseCase
 import com.example.gameswishlist.core.model.Game
+import com.example.gameswishlist.core.model.SearchSuggestion
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
 import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.feature.search.mapper.getInitialGameTypeFilters
@@ -22,11 +23,13 @@ import com.example.gameswishlist.feature.search.mapper.getInitialSortFilters
 import com.example.gameswishlist.feature.search.mapper.isSortActive
 import com.example.gameswishlist.feature.search.mapper.toGenreFilters
 import com.example.gameswishlist.feature.search.mapper.toPlatformFilters
+import com.example.gameswishlist.feature.search.mapper.toUiModels
 import com.example.gameswishlist.feature.search.model.FilterBottomSheetState
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
 import com.example.gameswishlist.feature.search.model.SearchSort
+import com.example.gameswishlist.feature.search.model.SearchSuggestionUiModel
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import com.example.gameswishlist.feature.search.model.SortBottomSheetState
@@ -37,13 +40,18 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -80,6 +88,15 @@ class SearchViewModel @Inject constructor(
             is SearchUiEvent.OnSearchTriggered -> {
                 textFieldState.setTextAndPlaceCursorAtEnd(event.query)
                 performSearch(query = event.query)
+            }
+
+            is SearchUiEvent.OnSuggestionClick -> {
+                if (event.suggestion is SearchSuggestionUiModel.History) {
+                    val query = event.suggestion.query
+                    textFieldState.setTextAndPlaceCursorAtEnd(query)
+                    performSearch(query = query)
+                }
+                // Game suggestion navigation is handled in the UI layer
             }
 
             SearchUiEvent.OnClearHistory -> {
@@ -424,16 +441,28 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun initSearchSuggestions() {
-        snapshotFlow { textFieldState.text }
-            .map { it.toString() }
+        val queryFlow = snapshotFlow { textFieldState.text.toString() }
             .distinctUntilChanged()
-            .onEach { query ->
-                if (query.length < 2) {
-                    _uiState.update { it.copy(suggestions = emptyList()) }
-                    return@onEach
-                }
-                _uiState.update { it.copy(suggestions = getSearchSuggestionsUseCase(query)) }
+
+        // 1. Instant local history suggestions
+        val localSuggestionsFlow = queryFlow.map { query ->
+            if (query.length < 2) emptyList()
+            else getSearchSuggestionsUseCase.getLocalSuggestions(query)
+        }
+
+        // 2. Debounced remote game suggestions
+        val remoteSuggestionsFlow = queryFlow
+            .debounce(300.milliseconds)
+            .flatMapLatest { query ->
+                if (query.length < 2) flowOf(emptyList())
+                else getSearchSuggestionsUseCase.getRemoteSuggestionsFlow(query)
             }
-            .launchIn(viewModelScope)
+
+        // Combine both and map to UI models
+        combine(localSuggestionsFlow, remoteSuggestionsFlow) { local, remote ->
+            (local + remote).toUiModels()
+        }.onEach { suggestions ->
+            _uiState.update { it.copy(suggestions = suggestions) }
+        }.launchIn(viewModelScope)
     }
 }

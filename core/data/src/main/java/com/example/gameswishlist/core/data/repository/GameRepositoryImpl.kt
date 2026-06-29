@@ -53,6 +53,22 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getRemoteSearchSuggestions(query: String): AppResult<List<Game>> {
+        return try {
+            val queryText = """
+                fields name, cover.url, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, first_release_date;
+                where name ~ *"$query"* & version_parent = null & game_type = (0, 8, 9, 10, 11);
+                sort hypes desc;
+                limit 10;
+            """.trimIndent()
+            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+            val response = apiService.searchGames(body)
+            AppResult.success(response.map { it.toGame() })
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
     override suspend fun addSearchToHistory(query: String) {
         searchHistoryDao.insert(
             SearchHistoryEntity(
