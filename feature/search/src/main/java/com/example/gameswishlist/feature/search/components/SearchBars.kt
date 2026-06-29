@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material3.AppBarWithSearch
@@ -167,8 +168,15 @@ internal fun SearchInputField(
             )
         },
         trailingIcon = {
-            IconButton(onClick = onSearch) {
-                Icon(imageVector = Icons.Default.Search, contentDescription = null)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (searchBarState.currentValue == SearchBarValue.Expanded && textFieldState.text.isNotEmpty()) {
+                    IconButton(onClick = { textFieldState.edit { replace(0, length, "") } }) {
+                        Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                    }
+                }
+                IconButton(onClick = onSearch) {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                }
             }
         }
     )
