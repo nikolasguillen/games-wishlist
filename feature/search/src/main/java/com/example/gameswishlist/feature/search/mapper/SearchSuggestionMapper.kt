@@ -1,41 +1,34 @@
 package com.example.gameswishlist.feature.search.mapper
 
-import com.example.gameswishlist.core.model.SearchSuggestion
-import com.example.gameswishlist.feature.search.model.SearchSuggestionUiModel
+import com.example.gameswishlist.core.model.Game
+import com.example.gameswishlist.feature.search.model.GameSuggestionUiModel
 
 /**
- * Maps domain [SearchSuggestion] to [SearchSuggestionUiModel].
- * Handles formatting of subtitles for game suggestions.
+ * Maps a domain [Game] to a [GameSuggestionUiModel].
+ * Formats the developer/publisher and release year into a subtitle.
  */
-fun SearchSuggestion.toUiModel(): SearchSuggestionUiModel {
-    return when (this) {
-        is SearchSuggestion.HistorySuggestion -> {
-            SearchSuggestionUiModel.History(query)
+fun Game.toSuggestionUiModel(): GameSuggestionUiModel {
+    val developer = developers.firstOrNull()?.name
+    val publisher = publishers.firstOrNull()?.name
+    val year = releaseDate?.take(4) ?: ""
+
+    val subtitle = buildString {
+        val company = developer ?: publisher
+        if (company != null) {
+            append(company)
+            if (year.isNotEmpty()) append(" · ")
         }
-        is SearchSuggestion.GameSuggestion -> {
-            val developer = game.developers.firstOrNull()?.name
-            val publisher = game.publishers.firstOrNull()?.name
-            val year = game.releaseDate?.take(4) ?: ""
-            
-            val subtitle = buildString {
-                val company = developer ?: publisher
-                if (company != null) {
-                    append(company)
-                    if (year.isNotEmpty()) append(" · ")
-                }
-                append(year)
-            }
-            
-            SearchSuggestionUiModel.Game(
-                id = game.id,
-                name = game.name,
-                coverUrl = game.backgroundImage,
-                subtitle = subtitle
-            )
-        }
+        append(year)
     }
+
+    return GameSuggestionUiModel(
+        id = id,
+        name = name,
+        coverUrl = backgroundImage,
+        subtitle = subtitle
+    )
 }
 
-fun List<SearchSuggestion>.toUiModels(): List<SearchSuggestionUiModel> {
-    return map { it.toUiModel() }
+fun List<Game>.toSuggestionUiModels(): List<GameSuggestionUiModel> {
+    return map { it.toSuggestionUiModel() }
 }

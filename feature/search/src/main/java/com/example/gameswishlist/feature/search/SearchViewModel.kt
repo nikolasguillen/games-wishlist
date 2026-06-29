@@ -23,13 +23,13 @@ import com.example.gameswishlist.feature.search.mapper.getInitialSortFilters
 import com.example.gameswishlist.feature.search.mapper.isSortActive
 import com.example.gameswishlist.feature.search.mapper.toGenreFilters
 import com.example.gameswishlist.feature.search.mapper.toPlatformFilters
-import com.example.gameswishlist.feature.search.mapper.toUiModels
+import com.example.gameswishlist.feature.search.mapper.toSuggestionUiModels
 import com.example.gameswishlist.feature.search.model.FilterBottomSheetState
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
 import com.example.gameswishlist.feature.search.model.SearchSort
-import com.example.gameswishlist.feature.search.model.SearchSuggestionUiModel
+import com.example.gameswishlist.feature.search.model.SearchSuggestionsUiModel
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import com.example.gameswishlist.feature.search.model.SortBottomSheetState
@@ -37,13 +37,14 @@ import com.example.gameswishlist.feature.search.model.SortingUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -90,13 +91,9 @@ class SearchViewModel @Inject constructor(
                 performSearch(query = event.query)
             }
 
-            is SearchUiEvent.OnSuggestionClick -> {
-                if (event.suggestion is SearchSuggestionUiModel.History) {
-                    val query = event.suggestion.query
-                    textFieldState.setTextAndPlaceCursorAtEnd(query)
-                    performSearch(query = query)
-                }
-                // Game suggestion navigation is handled in the UI layer
+            is SearchUiEvent.OnHistorySuggestionClick -> {
+                textFieldState.setTextAndPlaceCursorAtEnd(event.query)
+                performSearch(query = event.query)
             }
 
             SearchUiEvent.OnClearHistory -> {
@@ -448,19 +445,37 @@ class SearchViewModel @Inject constructor(
         val localSuggestionsFlow = queryFlow.map { query ->
             if (query.length < 2) emptyList()
             else getSearchSuggestionsUseCase.getLocalSuggestions(query)
+                .filterIsInstance<SearchSuggestion.HistorySuggestion>()
+                .map { it.query }
         }
 
-        // 2. Debounced remote game suggestions
-        val remoteSuggestionsFlow = queryFlow
-            .debounce(300.milliseconds)
-            .flatMapLatest { query ->
-                if (query.length < 2) flowOf(emptyList())
-                else getSearchSuggestionsUseCase.getRemoteSuggestionsFlow(query)
-            }
+        // 2. Remote suggestions with instant loading state and debounced fetch
+        val remoteSuggestionsFlow = queryFlow.flatMapLatest { query ->
+            if (query.length < 2) flowOf(SearchSuggestionsUiModel())
+            else flow {
+                // Signal loading state immediately
+                emit(SearchSuggestionsUiModel(isLoadingRemote = true))
 
-        // Combine both and map to UI models
+                // Debounce manually before the API call
+                delay(300.milliseconds)
+
+                getSearchSuggestionsUseCase.getRemoteSuggestionsFlow(query).collect { domainSuggestions ->
+                    val games = domainSuggestions
+                        .filterIsInstance<SearchSuggestion.GameSuggestion>()
+                        .map { it.game }
+                    emit(
+                        SearchSuggestionsUiModel(
+                            gameSuggestions = games.toSuggestionUiModels(),
+                            isLoadingRemote = false
+                        )
+                    )
+                }
+            }
+        }
+
+        // Combine both into a single SearchSuggestionsUiModel
         combine(localSuggestionsFlow, remoteSuggestionsFlow) { local, remote ->
-            (local + remote).toUiModels()
+            remote.copy(historySuggestions = local)
         }.onEach { suggestions ->
             _uiState.update { it.copy(suggestions = suggestions) }
         }.launchIn(viewModelScope)

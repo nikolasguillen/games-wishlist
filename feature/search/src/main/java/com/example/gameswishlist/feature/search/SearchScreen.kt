@@ -34,7 +34,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
-import com.example.gameswishlist.feature.search.model.SearchSuggestionUiModel
 import com.example.gameswishlist.core.ui.component.CustomFab
 import com.example.gameswishlist.core.ui.component.StatusBarProtection
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
@@ -142,14 +141,11 @@ fun SearchScreenContent(
             }
         }
 
-    val onSuggestionClick: (SearchSuggestionUiModel) -> Unit =
-        remember(onSearch, onGameClickWithCollapse, onEvent) {
-            { suggestion ->
-                when (suggestion) {
-                    is SearchSuggestionUiModel.History -> onSearch(suggestion.query)
-                    is SearchSuggestionUiModel.Game -> onGameClickWithCollapse(suggestion.id)
-                }
-                onEvent(SearchUiEvent.OnSuggestionClick(suggestion))
+    val onHistorySuggestionClick: (String) -> Unit =
+        remember(onSearch, onEvent) {
+            { query ->
+                onSearch(query)
+                onEvent(SearchUiEvent.OnHistorySuggestionClick(query))
             }
         }
 
@@ -172,7 +168,7 @@ fun SearchScreenContent(
                 textFieldState = textFieldState,
                 scrollBehavior = scrollBehavior,
                 onSearch = onSearch,
-                onSuggestionClick = onSuggestionClick,
+                onHistorySuggestionClick = onHistorySuggestionClick,
                 onGameClick = onGameClickWithCollapse,
                 onEvent = onEvent,
                 backgroundColor = backgroundColor

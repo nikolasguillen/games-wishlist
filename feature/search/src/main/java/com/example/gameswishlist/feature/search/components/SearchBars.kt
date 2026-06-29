@@ -56,7 +56,7 @@ import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.util.annotatedStringResource
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
-import com.example.gameswishlist.feature.search.model.SearchSuggestionUiModel
+import com.example.gameswishlist.feature.search.model.SearchSuggestionsUiModel
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import com.example.gameswishlist.feature.search.R as SearchR
@@ -69,7 +69,7 @@ internal fun SearchTopBar(
     textFieldState: TextFieldState,
     scrollBehavior: SearchBarScrollBehavior,
     onSearch: (String) -> Unit,
-    onSuggestionClick: (SearchSuggestionUiModel) -> Unit,
+    onHistorySuggestionClick: (String) -> Unit,
     onGameClick: (Int) -> Unit,
     onEvent: (SearchUiEvent) -> Unit,
     backgroundColor: Color
@@ -129,13 +129,13 @@ internal fun SearchTopBar(
         inputField = inputField,
         history = uiState.history,
         suggestions = uiState.suggestions,
+        searchQuery = textFieldState.text.toString(),
         appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(
             searchBarColors = appBarWithSearchColors.searchBarColors,
             appBarContainerColor = Color.Transparent,
             scrolledAppBarContainerColor = MaterialTheme.appColors.searchBarScrolledContainerColor
         ),
-        onHistoryItemClicked = onSearch,
-        onSuggestionClick = onSuggestionClick,
+        onHistorySuggestionClick = onHistorySuggestionClick,
         onGameClick = onGameClick,
         onRemoveRecentGame = { onEvent(SearchUiEvent.OnRecentGameRemoved(it)) },
         onClearRecentSearches = { onEvent(SearchUiEvent.OnClearHistory) },
@@ -209,10 +209,10 @@ fun ExpandedSearchBar(
     searchBarState: SearchBarState,
     inputField: @Composable () -> Unit,
     history: SearchHistoryUiModel,
-    suggestions: List<SearchSuggestionUiModel>,
+    suggestions: SearchSuggestionsUiModel,
+    searchQuery: String,
     appBarWithSearchColors: AppBarWithSearchColors,
-    onHistoryItemClicked: (query: String) -> Unit,
-    onSuggestionClick: (SearchSuggestionUiModel) -> Unit,
+    onHistorySuggestionClick: (String) -> Unit,
     onGameClick: (Int) -> Unit,
     onRemoveRecentGame: (Int) -> Unit,
     onClearRecentSearches: () -> Unit,
@@ -228,7 +228,7 @@ fun ExpandedSearchBar(
             containerColor = MaterialTheme.appColors.expandedSearchBarColor
         )
     ) {
-        if (history.isEmpty && suggestions.isEmpty()) {
+        if (history.isEmpty && suggestions.isEmpty) {
             Text(
                 text = stringResource(SearchR.string.expanded_search_initial_message),
                 style = MaterialTheme.typography.labelLarge,
@@ -245,17 +245,24 @@ fun ExpandedSearchBar(
                     .padding(vertical = MaterialTheme.spacing.medium),
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large)
             ) {
-                if (suggestions.isNotEmpty()) {
+                if (!suggestions.isEmpty) {
                     SuggestionsSection(
                         suggestions = suggestions,
-                        onSuggestionClick = onSuggestionClick
+                        onHistorySuggestionClick = onHistorySuggestionClick,
+                        onGameSuggestionClick = onGameClick
+                    )
+                } else if (searchQuery.isNotBlank() && !suggestions.isLoadingRemote) {
+                    SearchActionRow(
+                        query = searchQuery,
+                        onClick = onHistorySuggestionClick,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 } else {
                     if (history.queries.isNotEmpty()) {
                         RecentSearchesSection(
                             recentSearches = history.queries,
                             onClearRecentSearches = { showClearHistoryDialog = true },
-                            onHistoryItemClicked = onHistoryItemClicked,
+                            onHistoryItemClicked = { onHistorySuggestionClick(it) },
                             onShowRemovalDialog = { queryToRemove = it }
                         )
                     }
@@ -305,24 +312,37 @@ fun ExpandedSearchBar(
 
 @Composable
 private fun SuggestionsSection(
-    suggestions: List<SearchSuggestionUiModel>,
-    onSuggestionClick: (SearchSuggestionUiModel) -> Unit
+    suggestions: SearchSuggestionsUiModel,
+    onHistorySuggestionClick: (String) -> Unit,
+    onGameSuggestionClick: (Int) -> Unit
 ) {
-    LazyColumn {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
         items(
-            items = suggestions,
-            key = {
-                when (it) {
-                    is SearchSuggestionUiModel.History -> "hist_${it.query}"
-                    is SearchSuggestionUiModel.Game -> "game_${it.id}"
-                }
-            }
-        ) { suggestion ->
-            SuggestionRow(
-                suggestion = suggestion,
-                onClick = onSuggestionClick,
+            items = suggestions.historySuggestions,
+            key = { "hist_$it" }
+        ) { query ->
+            HistorySuggestionRow(
+                query = query,
+                onClick = onHistorySuggestionClick,
                 modifier = Modifier.fillMaxWidth()
             )
+        }
+
+        if (suggestions.isLoadingRemote) {
+            items(3, key = { "loading_$it" }) {
+                LoadingSuggestionRow(modifier = Modifier.fillMaxWidth())
+            }
+        } else {
+            items(
+                items = suggestions.gameSuggestions,
+                key = { "game_${it.id}" }
+            ) { gameSuggestion ->
+                GameSuggestionRow(
+                    suggestion = gameSuggestion,
+                    onClick = onGameSuggestionClick,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 }

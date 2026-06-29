@@ -16,6 +16,7 @@
     <string name="remove_history_item_message">Are you sure you want to remove &lt;b&gt;%1s&lt;/b&gt; from your recent searches?</string>
     <string name="proceed_label">Proceed</string>
     <string name="cancel">Cancel</string>
+    <string name="search_for_action_prefix">Search for</string>
 
     <!-- Filters Bottom Sheet -->
     <string name="filters_title">Filters</string>
