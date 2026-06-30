@@ -55,7 +55,7 @@ object DateUtils {
             val date = LocalDate.parse(isoDate)
             val formatter = DateTimeFormatter.ofLocalizedDate(style).withLocale(locale)
             date.format(formatter)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             isoDate
         }
     }
@@ -67,7 +67,7 @@ object DateUtils {
         if (isoDate.isNullOrEmpty()) return null
         return try {
             LocalDate.parse(isoDate).year.toString()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -79,7 +79,7 @@ object DateUtils {
         if (isoDate.isNullOrEmpty()) return null
         return try {
             LocalDate.parse(isoDate)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
