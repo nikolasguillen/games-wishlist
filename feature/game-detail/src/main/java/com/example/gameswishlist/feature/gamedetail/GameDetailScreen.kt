@@ -24,6 +24,7 @@ import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEffect
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
+import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 
 @Composable
 fun GameDetailScreen(
@@ -100,12 +101,11 @@ fun GameDetailContentSuccessPreview() {
                         description = UiText.DynamicString("A legendary RPG with a rich story and vast open world."),
                         images = emptyList(),
                         gameType = UiText.DynamicString("Main Game"),
-                        ratingText = UiText.DynamicString("Metacritic: 95"),
+                        rating = RatingUiModel(95, UiText.DynamicString("Metascore")),
                         platforms = UiText.DynamicString("PC, PS4, Xbox One, Switch"),
                         releaseDates = emptyList(),
                         genres = listOf("RPG", "Action").map { UiText.DynamicString(it) },
-                        developers = UiText.DynamicString("CD Projekt Red"),
-                        publishers = UiText.DynamicString("CD Projekt"),
+                        companyInfo = UiText.DynamicString("CD Projekt Red, CD Projekt"),
                         engines = UiText.DynamicString("RedEngine"),
                         isWishlisted = false,
                         personalDetails = GameDetailPersonalUiModel(

@@ -28,25 +28,20 @@ fun Game.getDisplayRating(): Int = when {
 }
 
 /**
- * Returns the [UiText] representation of the game's rating with appropriate labels.
+ * Returns the [UiText] representation of the game's rating label (e.g., "Metascore" or "Rating").
  */
-fun Game.getRatingUiText(
-    metacriticLabelRes: Int = R.string.metacritic_label,
-    ratingLabelRes: Int = R.string.rating_format,
-    notDefinedLabelRes: Int = R.string.rating_not_defined
-): UiText {
-    val displayRating = getDisplayRating()
+fun Game.getRatingUiText(): UiText {
     return when {
         metaCritic != null && metaCritic!! > 0 -> {
-            UiText.StringResource(metacriticLabelRes, displayRating)
+            UiText.StringResource(R.string.metacritic_title)
         }
 
         rating > 0.0 -> {
-            UiText.StringResource(ratingLabelRes, displayRating)
+            UiText.StringResource(R.string.rating_title)
         }
 
         else -> {
-            UiText.StringResource(notDefinedLabelRes)
+            UiText.StringResource(R.string.rating_title)
         }
     }
 }
@@ -54,8 +49,15 @@ fun Game.getRatingUiText(
 /**
  * Provides a short, display-friendly version of a platform name.
  */
+fun String.getShortPlatformLabel(): String {
+    return this.replace(Regex("\\s\\(.*\\)"), "")
+}
+
+/**
+ * Provides a short, display-friendly version of a platform name.
+ */
 fun Platform.getShortLabel(): String {
-    val cleanedName = name.replace(Regex("\\s\\(.*\\)"), "")
+    val cleanedName = name.getShortPlatformLabel()
     val abbr = abbreviation
     return if (cleanedName.length > UiConstants.MAX_PLATFORM_NAME_LENGTH && abbr != null) {
         abbr

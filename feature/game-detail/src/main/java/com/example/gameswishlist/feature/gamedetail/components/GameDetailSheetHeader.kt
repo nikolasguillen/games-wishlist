@@ -25,7 +25,7 @@ import com.example.gameswishlist.core.ui.model.UiText
  *
  * @param name The name of the game.
  * @param gameType The type of the game (e.g., Main Game, DLC).
- * @param ratingText The rating text to be displayed.
+ * @param companyInfo The developer(s) and publisher(s) of the game.
  * @param genres The list of game genres.
  * @param modifier The modifier to be applied to the header.
  */
@@ -34,10 +34,12 @@ import com.example.gameswishlist.core.ui.model.UiText
 fun GameDetailSheetHeader(
     name: UiText,
     gameType: UiText,
-    ratingText: UiText,
+    companyInfo: UiText,
     genres: List<UiText>,
     modifier: Modifier = Modifier
 ) {
+    val subtitle = companyInfo.asString()
+
     Column(
         modifier = modifier.fillMaxWidth()
     ) {
@@ -48,7 +50,15 @@ fun GameDetailSheetHeader(
             color = MaterialTheme.colorScheme.onBackground
         )
 
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
+        if (subtitle.isNotEmpty()) {
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
 
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
@@ -56,9 +66,6 @@ fun GameDetailSheetHeader(
         ) {
             // Game Type Chip
             CustomInfoChip(text = gameType.asString())
-
-            // Rating Chip
-            CustomInfoChip(text = ratingText.asString())
 
             // Genre Chips
             genres.forEach { genre ->
@@ -79,7 +86,7 @@ private fun GameDetailSheetHeaderPreview() {
         GameDetailSheetHeader(
             name = UiText.DynamicString("The Witcher 3: Wild Hunt"),
             gameType = UiText.DynamicString("Main Game"),
-            ratingText = UiText.DynamicString("Metacritic: 92"),
+            companyInfo = UiText.DynamicString("CD Projekt Red, CD Projekt"),
             genres = listOf(
                 UiText.DynamicString("RPG"),
                 UiText.DynamicString("Open World"),

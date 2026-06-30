@@ -41,6 +41,7 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
+import com.example.gameswishlist.core.ui.util.ColorUtils
 import com.example.gameswishlist.core.ui.util.fadingEdge
 
 @Composable
@@ -355,11 +356,7 @@ private fun RatingBadge(
                 imageVector = Icons.Filled.Star,
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
-                tint = when {
-                    rating >= 80 -> Color(0xFF4CAF50) // Green
-                    rating >= 60 -> Color(0xFFFFC107) // Yellow
-                    else -> Color(0xFFF44336) // Red
-                }
+                tint = ColorUtils.getScoreColor(rating)
             )
             Text(
                 text = rating.toString(),

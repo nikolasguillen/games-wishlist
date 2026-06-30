@@ -67,6 +67,8 @@
     <string name="select_list_title">Select List</string>
     <string name="no_lists_found_message">No lists found. Go to \'My Lists\' to create one.</string>
     <string name="metacritic_label">Metacritic: %1$d</string>
+    <string name="metacritic_title">Metascore</string>
+    <string name="rating_title">Rating</string>
     <string name="priority_low">Low</string>
     <string name="priority_medium">Medium</string>
     <string name="priority_high">High</string>

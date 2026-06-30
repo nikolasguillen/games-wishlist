@@ -4,7 +4,9 @@ import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.ui.R
+import com.example.gameswishlist.core.ui.mapper.getDisplayRating
 import com.example.gameswishlist.core.ui.mapper.getRatingUiText
+import com.example.gameswishlist.core.ui.mapper.getShortPlatformLabel
 import com.example.gameswishlist.core.ui.mapper.toGameItem
 import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.core.ui.model.UiText
@@ -12,6 +14,7 @@ import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiMo
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameStatusUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PriorityUiModel
+import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RelatedGamesUiModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -66,14 +69,27 @@ fun Game.toUiModel(): GameDetailUiModel {
         )
     }
 
+    val displayRating = getDisplayRating()
+    val ratingModel = if (displayRating > 0) {
+        RatingUiModel(
+            score = displayRating,
+            label = getRatingUiText()
+        )
+    } else null
+
+    val companies = listOfNotNull(
+        developers.joinToString(", ") { it.name }.takeIf { it.isNotEmpty() },
+        publishers.joinToString(", ") { it.name }.takeIf { it.isNotEmpty() }
+    ).joinToString(", ")
+
     return GameDetailUiModel(
         id = id,
         name = UiText.DynamicString(name),
         description = UiText.DynamicString(description),
         images = listOfNotNull(backgroundImage) + artworks,
         gameType = gameType.toUiText(),
-        ratingText = getRatingUiText(),
-        platforms = UiText.DynamicString(platforms.joinToString(", ") { it.name }),
+        rating = ratingModel,
+        platforms = UiText.DynamicString(platforms.joinToString(", ") { it.name.getShortPlatformLabel() }),
         releaseDates = releaseDates
             .sortedBy { it.date }
             .map {
@@ -82,11 +98,10 @@ fun Game.toUiModel(): GameDetailUiModel {
                 } ?: run {
                     UiText.StringResource(com.example.gameswishlist.feature.gamedetail.R.string.tba)
                 }
-                UiText.DynamicString(it.platformName) to dateString
+                UiText.DynamicString(it.platformName.getShortPlatformLabel()) to dateString
             },
         genres = genres.map { UiText.DynamicString(it.name) },
-        developers = UiText.DynamicString(developers.joinToString(", ") { it.name }),
-        publishers = UiText.DynamicString(publishers.joinToString(", ") { it.name }),
+        companyInfo = UiText.DynamicString(companies),
         engines = UiText.DynamicString(engines.joinToString(", ")),
         isWishlisted = isWishlisted,
         personalDetails = GameDetailPersonalUiModel(

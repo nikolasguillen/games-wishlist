@@ -142,7 +142,7 @@ private fun GameDetailSheetContent(
             GameDetailSheetHeader(
                 name = game.name,
                 gameType = game.gameType,
-                ratingText = game.ratingText,
+                companyInfo = game.companyInfo,
                 genres = game.genres,
                 modifier = horizontalPadding
             )
@@ -164,9 +164,8 @@ private fun GameDetailSheetContent(
             GameDetailInfoSection(
                 description = game.description,
                 platforms = game.platforms,
-                developers = game.developers,
-                publishers = game.publishers,
                 engines = game.engines,
+                rating = game.rating,
                 releaseDates = game.releaseDates,
                 modifier = horizontalPadding
             )
