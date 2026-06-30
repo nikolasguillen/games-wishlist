@@ -67,7 +67,7 @@ fun GameCard(
                 verticalArrangement = Arrangement.Top
             ) {
                 Text(
-                    text = game.name.asString(),
+                    text = game.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2

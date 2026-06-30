@@ -350,7 +350,7 @@ private fun SuggestionsSection(
 
 @Composable
 private fun RecentSearchesSection(
-    recentSearches: List<UiText>,
+    recentSearches: List<String>,
     onClearRecentSearches: () -> Unit,
     onHistoryItemClicked: (String) -> Unit,
     onShowRemovalDialog: (String) -> Unit
@@ -379,7 +379,7 @@ private fun RecentSearchesSection(
             contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large)
         ) {
             items(items = recentSearches, key = { it.hashCode() }) { recentSearch ->
-                val query = recentSearch.asString()
+                val query = recentSearch
                 val inputChipInteractionSource = remember { MutableInteractionSource() }
                 Box {
                     SuggestionChip(
