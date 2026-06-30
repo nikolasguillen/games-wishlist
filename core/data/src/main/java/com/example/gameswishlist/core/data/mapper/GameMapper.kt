@@ -1,5 +1,6 @@
 package com.example.gameswishlist.core.data.mapper
 
+import com.example.gameswishlist.core.common.DateUtils
 import com.example.gameswishlist.core.database.entity.CompanyEntity
 import com.example.gameswishlist.core.database.entity.GameCompanyCrossRef
 import com.example.gameswishlist.core.database.entity.GameEntity
@@ -22,13 +23,9 @@ import com.example.gameswishlist.core.network.model.IgdbGame
 import com.example.gameswishlist.core.network.model.IgdbGenre
 import com.example.gameswishlist.core.network.model.IgdbPlatform
 import com.example.gameswishlist.core.network.model.IgdbReleaseDate
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 fun IgdbGame.toGame(): Game {
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    val releasedDate = firstReleaseDate?.let { dateFormat.format(Date(it * 1000)) }
+    val releasedDate = firstReleaseDate?.let { DateUtils.formatUnixTimestamp(it, "yyyy-MM-dd") }
 
     return Game(
         id = id,

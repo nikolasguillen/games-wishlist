@@ -1,5 +1,6 @@
 package com.example.gameswishlist.feature.gamedetail.mapper
 
+import com.example.gameswishlist.core.common.DateUtils
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
@@ -16,12 +17,8 @@ import com.example.gameswishlist.feature.gamedetail.model.GameStatusUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PriorityUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RelatedGamesUiModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 fun Game.toUiModel(): GameDetailUiModel {
-    val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
     val related = mutableListOf<RelatedGamesUiModel>()
 
     parentGame?.let {
@@ -94,7 +91,7 @@ fun Game.toUiModel(): GameDetailUiModel {
             .sortedBy { it.date }
             .map {
                 val dateString = it.date?.let { date ->
-                    UiText.DynamicString(dateFormat.format(Date(date * 1000)))
+                    UiText.DynamicString(DateUtils.formatUnixTimestamp(date))
                 } ?: run {
                     UiText.StringResource(com.example.gameswishlist.feature.gamedetail.R.string.tba)
                 }

@@ -1,12 +1,12 @@
 package com.example.gameswishlist.core.ui.mapper
 
+import com.example.gameswishlist.core.common.DateUtils
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.Platform
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.UiConstants
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -80,17 +80,11 @@ private fun getOrdinalSuffixRes(day: Int): Int {
  * Maps a [Game] domain model to a [GameItemUiModel].
  */
 fun Game.toGameItem(): GameItemUiModel {
-    val year = releaseDate?.let {
-        try {
-            LocalDate.parse(it).year.toString()
-        } catch (_: Exception) {
-            null
-        }
-    }
+    val year = DateUtils.getYearFromIsoDate(releaseDate)
 
     val formattedReleaseDate = releaseDate?.let { dateString ->
         try {
-            val date = LocalDate.parse(dateString)
+            val date = DateUtils.parseIsoDate(dateString) ?: return@let null
             val month = date.format(DateTimeFormatter.ofPattern("MMM", Locale.ENGLISH))
             val day = date.dayOfMonth
             val yearVal = date.year
