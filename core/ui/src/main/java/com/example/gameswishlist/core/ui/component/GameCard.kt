@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 
@@ -84,7 +85,7 @@ fun GameCard(
                 )
                 game.developer?.let {
                     Text(
-                        text = it.asString(),
+                        text = it,
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -106,8 +107,10 @@ fun GameCard(
 @Preview(showBackground = true)
 @Composable
 private fun GameCardPreview() {
-    GameCard(
-        game = GameItemUiModel.getDummy(),
-        onClick = {}
-    )
+    GamesWishlistTheme {
+        GameCard(
+            game = GameItemUiModel.getDummy(),
+            onClick = {}
+        )
+    }
 }

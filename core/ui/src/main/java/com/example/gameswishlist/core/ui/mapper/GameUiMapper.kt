@@ -40,9 +40,11 @@ fun Game.getRatingUiText(
         metaCritic != null && metaCritic!! > 0 -> {
             UiText.StringResource(metacriticLabelRes, displayRating)
         }
+
         rating > 0.0 -> {
             UiText.StringResource(ratingLabelRes, displayRating)
         }
+
         else -> {
             UiText.StringResource(notDefinedLabelRes)
         }
@@ -114,14 +116,14 @@ fun Game.toGameItem(): GameItemUiModel {
 
     return GameItemUiModel(
         id = id,
-        name = UiText.DynamicString(name),
+        name = name,
         coverImage = backgroundImage,
         rating = getDisplayRating(),
         releaseDateText = formattedReleaseDate?.let {
             UiText.StringResource(R.string.release_date_format, it)
         } ?: UiText.StringResource(R.string.unknown_release_date),
-        releaseYear = year?.let { UiText.DynamicString(it) },
-        developer = if (developers.isNotEmpty()) UiText.DynamicString(developers.joinToString { it.name }) else null,
+        releaseYear = year,
+        developer = if (developers.isNotEmpty()) developers.joinToString { it.name } else null,
         platforms = platformsText
     )
 }

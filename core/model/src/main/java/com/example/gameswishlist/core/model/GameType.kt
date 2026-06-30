@@ -33,6 +33,6 @@ enum class GameType(val id: Int) {
          * Types that are typically excluded from search results to reduce noise.
          */
         val noisyTypes =
-            listOf(BUNDLE, FORK, PACK, UPDATE, MOD, EPISODE, SEASON)
+            listOf(BUNDLE, FORK, PACK, UPDATE, MOD, EPISODE, SEASON, PORT)
     }
 }

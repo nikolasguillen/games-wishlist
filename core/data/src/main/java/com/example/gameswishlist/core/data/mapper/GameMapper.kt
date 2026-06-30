@@ -17,6 +17,7 @@ import com.example.gameswishlist.core.model.Platform
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.model.RelationType
 import com.example.gameswishlist.core.model.ReleaseDate
+import com.example.gameswishlist.core.network.model.IgdbCompany
 import com.example.gameswishlist.core.network.model.IgdbGame
 import com.example.gameswishlist.core.network.model.IgdbGenre
 import com.example.gameswishlist.core.network.model.IgdbPlatform
@@ -42,9 +43,11 @@ fun IgdbGame.toGame(): Game {
         platforms = platforms?.map { it.toPlatform() } ?: emptyList(),
         releaseDates = releaseDates?.map { it.toReleaseDate() } ?: emptyList(),
         genres = genres?.map { it.toGenre() } ?: emptyList(),
-        publishers = involvedCompanies?.filter { it.publisher }?.map { it.company.toCompany() }
+        publishers = involvedCompanies?.filter { it.publisher == true }
+            ?.map { it.company.toCompany() }
             ?: emptyList(),
-        developers = involvedCompanies?.filter { it.developer }?.map { it.company.toCompany() }
+        developers = involvedCompanies?.filter { it.developer == true }
+            ?.map { it.company.toCompany() }
             ?: emptyList(),
         engines = gameEngines?.map { it.name } ?: emptyList(),
         gameType = GameType.fromId(gameType),
@@ -73,7 +76,7 @@ fun IgdbGenre.toGenre(): Genre {
     )
 }
 
-fun com.example.gameswishlist.core.network.model.IgdbCompany.toCompany(): Company {
+fun IgdbCompany.toCompany(): Company {
     return Company(
         id = id, name = name
     )

@@ -15,6 +15,9 @@ interface SearchHistoryDao {
     @Query("SELECT * FROM search_history ORDER BY timestamp DESC LIMIT 10")
     fun getRecentSearches(): Flow<List<SearchHistoryEntity>>
 
+    @Query("SELECT * FROM search_history WHERE `query` LIKE :searchQuery || '%' ORDER BY timestamp DESC LIMIT 5")
+    suspend fun filterRecentSearches(searchQuery: String): List<SearchHistoryEntity>
+
     @Query("DELETE FROM search_history WHERE `query` = :searchQuery")
     suspend fun delete(searchQuery: String)
 

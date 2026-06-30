@@ -134,17 +134,11 @@ class GameDetailViewModel @AssistedInject constructor(
     private fun addGameToList(listId: Long) {
         currentGame?.let { game ->
             viewModelScope.launch {
-                val updatedGame = game.copy(status = GameStatus.WANT_TO_BUY)
-                updateGameUseCase(updatedGame)
+                updateGameUseCase(game)
                 addGameToListUseCase(game.id, listId)
 
-                // Update local state to reflect status change
-                currentGame = updatedGame
                 _uiState.update {
-                    it.copy(
-                        contentState = GameDetailContentState.Success(updatedGame.toUiModel()),
-                        isListSelectorVisible = false
-                    )
+                    it.copy(isListSelectorVisible = false)
                 }
             }
         }

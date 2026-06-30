@@ -1,5 +1,8 @@
 package com.example.gameswishlist.feature.search
 
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.common.calculateGameRelevanceScore
@@ -8,33 +11,50 @@ import com.example.gameswishlist.core.domain.usecase.search.ClearAllHistoryUseCa
 import com.example.gameswishlist.core.domain.usecase.search.ClearRecentGamesUseCase
 import com.example.gameswishlist.core.domain.usecase.search.DeleteSearchHistoryItemUseCase
 import com.example.gameswishlist.core.domain.usecase.search.GetRecentSearchActivityUseCase
+import com.example.gameswishlist.core.domain.usecase.search.GetSearchSuggestionsUseCase
 import com.example.gameswishlist.core.domain.usecase.search.RemoveRecentGameUseCase
 import com.example.gameswishlist.core.domain.usecase.search.SearchGamesUseCase
+import com.example.gameswishlist.core.model.Game
+import com.example.gameswishlist.core.model.SearchSuggestion
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
 import com.example.gameswishlist.core.ui.mapper.toUiText
-import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.mapper.getInitialGameTypeFilters
 import com.example.gameswishlist.feature.search.mapper.getInitialSortFilters
 import com.example.gameswishlist.feature.search.mapper.isSortActive
 import com.example.gameswishlist.feature.search.mapper.toGenreFilters
 import com.example.gameswishlist.feature.search.mapper.toPlatformFilters
+import com.example.gameswishlist.feature.search.mapper.toSuggestionUiModels
 import com.example.gameswishlist.feature.search.model.FilterBottomSheetState
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
 import com.example.gameswishlist.feature.search.model.SearchSort
+import com.example.gameswishlist.feature.search.model.SearchSuggestionsUiModel
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import com.example.gameswishlist.feature.search.model.SortBottomSheetState
 import com.example.gameswishlist.feature.search.model.SortingUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val searchGamesUseCase: SearchGamesUseCase,
@@ -43,7 +63,8 @@ class SearchViewModel @Inject constructor(
     private val deleteSearchHistoryItemUseCase: DeleteSearchHistoryItemUseCase,
     private val clearAllHistoryUseCase: ClearAllHistoryUseCase,
     private val removeRecentGameUseCase: RemoveRecentGameUseCase,
-    private val clearRecentGamesUseCase: ClearRecentGamesUseCase
+    private val clearRecentGamesUseCase: ClearRecentGamesUseCase,
+    private val getSearchSuggestionsUseCase: GetSearchSuggestionsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -56,25 +77,22 @@ class SearchViewModel @Inject constructor(
     )
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
+    val textFieldState = TextFieldState()
+
     init {
-        viewModelScope.launch {
-            getRecentSearchActivityUseCase()
-                .collect { activity ->
-                    _uiState.update { currentState ->
-                        currentState.copy(
-                            history = SearchHistoryUiModel(
-                                queries = activity.queries.map { UiText.DynamicString(it) },
-                                games = activity.games.toGameItemList()
-                            )
-                        )
-                    }
-                }
-        }
+        initSearchHistory()
+        initSearchSuggestions()
     }
 
     fun onEvent(event: SearchUiEvent) {
         when (event) {
             is SearchUiEvent.OnSearchTriggered -> {
+                textFieldState.setTextAndPlaceCursorAtEnd(event.query)
+                performSearch(query = event.query)
+            }
+
+            is SearchUiEvent.OnHistorySuggestionClick -> {
+                textFieldState.setTextAndPlaceCursorAtEnd(event.query)
                 performSearch(query = event.query)
             }
 
@@ -208,8 +226,7 @@ class SearchViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 filtersBottomSheetState = bsState.copy(
-                    filters = clearedFilters,
-                    matchCount = matchCount
+                    filters = clearedFilters, matchCount = matchCount
                 )
             )
         }
@@ -274,8 +291,7 @@ class SearchViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 filtersBottomSheetState = bsState.copy(
-                    filters = newFilters,
-                    matchCount = matchCount
+                    filters = newFilters, matchCount = matchCount
                 )
             )
         }
@@ -291,16 +307,14 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun calculateMatchCount(
-        allGames: List<com.example.gameswishlist.core.model.Game>,
-        filters: List<GameFilterUiModel>
+        allGames: List<Game>, filters: List<GameFilterUiModel>
     ): Int {
         return filterGames(allGames, filters).size
     }
 
     private fun filterGames(
-        allGames: List<com.example.gameswishlist.core.model.Game>,
-        filters: List<GameFilterUiModel>
-    ): List<com.example.gameswishlist.core.model.Game> {
+        allGames: List<Game>, filters: List<GameFilterUiModel>
+    ): List<Game> {
         val selectedPlatformIds =
             filters.filterIsInstance<GameFilterUiModel.Platform>().filter { it.selected }
                 .map { it.id }
@@ -324,19 +338,18 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun sortGames(
-        games: List<com.example.gameswishlist.core.model.Game>,
-        sortModel: SortingUiModel?
-    ): List<com.example.gameswishlist.core.model.Game> {
+        games: List<Game>,
+        sortModel: SortingUiModel?,
+        query: String = ""
+    ): List<Game> {
         val currentSort = sortModel ?: return games
 
         return when (currentSort.sortType) {
             SearchSort.RELEVANCE -> {
                 if (currentSort.descending) games.sortedByDescending {
-                    calculateGameRelevanceScore(
-                        it
-                    )
+                    calculateGameRelevanceScore(it, query)
                 }
-                else games.sortedBy { calculateGameRelevanceScore(it) }
+                else games.sortedBy { calculateGameRelevanceScore(it, query) }
             }
 
             SearchSort.NAME -> {
@@ -357,18 +370,17 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun updateSearchContent(
-        contentState: SearchContentState.Success,
-        newFilters: List<GameFilterUiModel>
+        contentState: SearchContentState.Success, newFilters: List<GameFilterUiModel>
     ) {
+        val query = textFieldState.text.toString()
         val filteredGames = filterGames(contentState.allGames, newFilters)
         val sortedGames =
-            sortGames(filteredGames, _uiState.value.sortBottomSheetState.selectedSorting)
+            sortGames(filteredGames, _uiState.value.sortBottomSheetState.selectedSorting, query)
 
         _uiState.update {
             it.copy(
                 contentState = contentState.copy(
-                    games = sortedGames.toGameItemList(),
-                    filters = newFilters
+                    games = sortedGames.toGameItemList(), filters = newFilters
                 )
             )
         }
@@ -381,37 +393,92 @@ class SearchViewModel @Inject constructor(
             addSearchToHistoryUseCase(query)
 
             _uiState.update { it.copy(contentState = SearchContentState.Loading) }
-            searchGamesUseCase(query)
-                .onSuccess { searchResult ->
-                    val sortedGames = sortGames(
-                        searchResult.games,
-                        _uiState.value.sortBottomSheetState.selectedSorting
+            searchGamesUseCase(query).onSuccess { searchResult ->
+                val sortedGames = sortGames(
+                    searchResult.games, _uiState.value.sortBottomSheetState.selectedSorting, query
+                )
+
+                val newState = if (sortedGames.isEmpty()) {
+                    SearchContentState.Empty
+                } else {
+                    val filters =
+                        searchResult.platforms.toPlatformFilters() + searchResult.genres.toGenreFilters() + getInitialGameTypeFilters()
+
+                    SearchContentState.Success(
+                        games = sortedGames.toGameItemList(),
+                        filters = filters,
+                        allGames = sortedGames
                     )
-
-                    val newState = if (sortedGames.isEmpty()) {
-                        SearchContentState.Empty
-                    } else {
-                        val filters = searchResult.platforms.toPlatformFilters() +
-                                searchResult.genres.toGenreFilters() +
-                                getInitialGameTypeFilters()
-
-                        SearchContentState.Success(
-                            games = sortedGames.toGameItemList(),
-                            filters = filters,
-                            allGames = sortedGames
-                        )
-                    }
-                    _uiState.update { it.copy(contentState = newState) }
                 }
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(
-                            contentState = SearchContentState.Error(
-                                message = error.toUiText()
+                _uiState.update { it.copy(contentState = newState) }
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(
+                        contentState = SearchContentState.Error(
+                            message = error.toUiText()
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    private fun initSearchHistory() {
+        viewModelScope.launch {
+            getRecentSearchActivityUseCase().collect { activity ->
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        history = SearchHistoryUiModel(
+                            queries = activity.queries, games = activity.games.toGameItemList()
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    private fun initSearchSuggestions() {
+        val queryFlow = snapshotFlow { textFieldState.text.toString() }
+            .distinctUntilChanged()
+
+        // 1. Instant local history suggestions
+        val localSuggestionsFlow = queryFlow.map { query ->
+            if (query.length < 2) emptyList()
+            else getSearchSuggestionsUseCase.getLocalSuggestions(query)
+                .filterIsInstance<SearchSuggestion.HistorySuggestion>()
+                .map { it.query }
+        }
+
+        // 2. Remote suggestions with instant loading state and debounced fetch
+        val remoteSuggestionsFlow = queryFlow.flatMapLatest { query ->
+            if (query.length < 2) flowOf(SearchSuggestionsUiModel())
+            else flow {
+                // Signal loading state immediately
+                emit(SearchSuggestionsUiModel(isLoadingRemote = true))
+
+                // Debounce manually before the API call
+                delay(300.milliseconds)
+
+                getSearchSuggestionsUseCase.getRemoteSuggestionsFlow(query)
+                    .collect { domainSuggestions ->
+                        val games = domainSuggestions
+                            .filterIsInstance<SearchSuggestion.GameSuggestion>()
+                            .map { it.game }
+                        emit(
+                            SearchSuggestionsUiModel(
+                                gameSuggestions = games.toSuggestionUiModels(),
+                                isLoadingRemote = false
                             )
                         )
                     }
-                }
+            }
         }
+
+        // Combine both into a single SearchSuggestionsUiModel
+        combine(localSuggestionsFlow, remoteSuggestionsFlow) { local, remote ->
+            remote.copy(historySuggestions = local)
+        }.onEach { suggestions ->
+            _uiState.update { it.copy(suggestions = suggestions) }
+        }.launchIn(viewModelScope)
     }
 }

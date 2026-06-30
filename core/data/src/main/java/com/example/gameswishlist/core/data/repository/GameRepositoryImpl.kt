@@ -42,8 +42,24 @@ class GameRepositoryImpl @Inject constructor(
             val queryText = """
                 search "$query";
                 fields name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
-                where game_type != ($excludedIds);
+                where game_type != ($excludedIds) & version_parent = null;
                 limit 500;
+            """.trimIndent()
+            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+            val response = apiService.searchGames(body)
+            AppResult.success(response.map { it.toGame() })
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override suspend fun getRemoteSearchSuggestions(query: String): AppResult<List<Game>> {
+        return try {
+            val queryText = """
+                fields name, cover.url, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, first_release_date;
+                where name ~ *"$query"* & version_parent = null & game_type = (0, 8, 9, 10, 11);
+                sort hypes desc;
+                limit 10;
             """.trimIndent()
             val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
             val response = apiService.searchGames(body)
@@ -62,8 +78,12 @@ class GameRepositoryImpl @Inject constructor(
         )
     }
 
-    override fun getSearchHistory(): Flow<List<String>> {
+    override fun getRecentSearchHistory(): Flow<List<String>> {
         return searchHistoryDao.getRecentSearches().map { it.map { entity -> entity.query } }
+    }
+
+    override suspend fun getFilteredSearchHistory(query: String): List<String> {
+        return searchHistoryDao.filterRecentSearches(query).map { entity -> entity.query }
     }
 
     override suspend fun deleteSearchHistoryItem(query: String) {

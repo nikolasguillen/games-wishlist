@@ -40,6 +40,7 @@
 - **Naming**: Always append `UiModel` to models used in the UI layer.
 - **UI Spacing**: When setting a dimension in `dp`, always check if a matching value exists in `MaterialTheme.spacing` first to maintain design consistency.
 - **State Management**: Use `sealed interface` for `SearchContentState` or similar UI state patterns.
+- **Dialogs**: For any alert dialog, always use the project-specific `CustomAlertDialog` composable from `core:ui` instead of the standard `AlertDialog`.
 - **Constants**: Store shared UI constants (like `MAX_PLATFORM_NAME_LENGTH`) in `core/ui/util/Constants.kt`.
 - **Filtering**: Perform filtering and logic in the `ViewModel` or `UseCase` using IDs (not names) for robustness.
 - **Business Logic**: Keep logic (like the "12 characters label rule") in Mappers or UseCases, not in the Composables.

@@ -8,6 +8,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
@@ -60,6 +61,7 @@ fun SearchScreen(
 
     SearchScreenContent(
         uiState = uiState,
+        textFieldState = viewModel.textFieldState,
         onEvent = viewModel::onEvent,
         onGameClick = onGameClick,
         modifier = modifier
@@ -69,6 +71,7 @@ fun SearchScreen(
 @Composable
 fun SearchScreenContent(
     uiState: SearchUiState,
+    textFieldState: TextFieldState,
     onEvent: (SearchUiEvent) -> Unit,
     onGameClick: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -76,7 +79,6 @@ fun SearchScreenContent(
 
     // 1. UI States & Behaviors
     val searchBarState = rememberContainedSearchBarState()
-    val textFieldState = rememberTextFieldState()
     val gridState = rememberLazyGridState()
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
     val scope = rememberCoroutineScope()
@@ -139,6 +141,14 @@ fun SearchScreenContent(
             }
         }
 
+    val onHistorySuggestionClick: (String) -> Unit =
+        remember(onSearch, onEvent) {
+            { query ->
+                onSearch(query)
+                onEvent(SearchUiEvent.OnHistorySuggestionClick(query))
+            }
+        }
+
     // 4. Dynamic Styles
     val backgroundColor by animateColorAsState(
         targetValue = if (isScrolled) MaterialTheme.appColors.searchBarScrolledContainerColor
@@ -158,6 +168,7 @@ fun SearchScreenContent(
                 textFieldState = textFieldState,
                 scrollBehavior = scrollBehavior,
                 onSearch = onSearch,
+                onHistorySuggestionClick = onHistorySuggestionClick,
                 onGameClick = onGameClickWithCollapse,
                 onEvent = onEvent,
                 backgroundColor = backgroundColor
@@ -205,7 +216,7 @@ fun SearchScreenPreview() {
                     games = listOf(
                         GameItemUiModel.getDummy(),
                         GameItemUiModel.getDummy()
-                            .copy(id = 2, name = UiText.DynamicString("The Witcher 2"))
+                            .copy(id = 2, name = "The Witcher 2")
                     ),
                     filters = listOf(
                         GameFilterUiModel.Platform(
@@ -227,6 +238,7 @@ fun SearchScreenPreview() {
                     )
                 )
             ),
+            textFieldState = rememberTextFieldState(),
             onEvent = {},
             onGameClick = {}
         )
@@ -240,19 +252,15 @@ fun SearchScreenInitialWithHistoryPreview() {
         SearchScreenContent(
             uiState = SearchUiState(
                 history = SearchHistoryUiModel(
-                    queries = listOf(
-                        UiText.DynamicString("The Witcher"),
-                        UiText.DynamicString("Cyberpunk 2077")
-                    ),
+                    queries = listOf("The Witcher", "Cyberpunk 2077"),
                     games = listOf(
                         GameItemUiModel.getDummy(),
-                        GameItemUiModel.getDummy().copy(
-                            id = 2,
-                            name = UiText.DynamicString("Cyberpunk 2077")
-                        )
+                        GameItemUiModel.getDummy()
+                            .copy(id = 2, name = "Cyberpunk 2077")
                     )
                 )
             ),
+            textFieldState = rememberTextFieldState(),
             onEvent = {},
             onGameClick = {}
         )
@@ -267,6 +275,7 @@ fun SearchScreenLoadingPreview() {
             uiState = SearchUiState(
                 contentState = SearchContentState.Loading
             ),
+            textFieldState = rememberTextFieldState(),
             onEvent = {},
             onGameClick = {}
         )
@@ -279,6 +288,7 @@ fun SearchScreenInitialPreview() {
     GamesWishlistTheme {
         SearchScreenContent(
             uiState = SearchUiState(),
+            textFieldState = rememberTextFieldState(),
             onEvent = {},
             onGameClick = {}
         )
@@ -293,6 +303,7 @@ fun SearchScreenEmptyPreview() {
             uiState = SearchUiState(
                 contentState = SearchContentState.Empty
             ),
+            textFieldState = rememberTextFieldState(),
             onEvent = {},
             onGameClick = {}
         )

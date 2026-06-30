@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.gameswishlist.core.designsystem.theme.spacing
 
 @Composable
 fun EmptyPage(
@@ -37,7 +38,7 @@ fun EmptyPage(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                 modifier = Modifier.size(80.dp)
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.smallMedium))
             Text(
                 text = message,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

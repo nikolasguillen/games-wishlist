@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material3.AppBarWithSearch
@@ -38,12 +40,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.style.TextAlign
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomAlertDialog
@@ -53,6 +57,7 @@ import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.annotatedStringResource
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
+import com.example.gameswishlist.feature.search.model.SearchSuggestionsUiModel
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import com.example.gameswishlist.feature.search.R as SearchR
@@ -65,6 +70,7 @@ internal fun SearchTopBar(
     textFieldState: TextFieldState,
     scrollBehavior: SearchBarScrollBehavior,
     onSearch: (String) -> Unit,
+    onHistorySuggestionClick: (String) -> Unit,
     onGameClick: (Int) -> Unit,
     onEvent: (SearchUiEvent) -> Unit,
     backgroundColor: Color
@@ -123,12 +129,14 @@ internal fun SearchTopBar(
         searchBarState = searchBarState,
         inputField = inputField,
         history = uiState.history,
+        suggestions = uiState.suggestions,
+        searchQuery = textFieldState.text.toString(),
         appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(
             searchBarColors = appBarWithSearchColors.searchBarColors,
             appBarContainerColor = Color.Transparent,
             scrolledAppBarContainerColor = MaterialTheme.appColors.searchBarScrolledContainerColor
         ),
-        onHistoryItemClicked = { onSearch(it) },
+        onHistorySuggestionClick = onHistorySuggestionClick,
         onGameClick = onGameClick,
         onRemoveRecentGame = { onEvent(SearchUiEvent.OnRecentGameRemoved(it)) },
         onClearRecentSearches = { onEvent(SearchUiEvent.OnClearHistory) },
@@ -165,8 +173,15 @@ internal fun SearchInputField(
             )
         },
         trailingIcon = {
-            IconButton(onClick = onSearch) {
-                Icon(imageVector = Icons.Default.Search, contentDescription = null)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (searchBarState.currentValue == SearchBarValue.Expanded && textFieldState.text.isNotEmpty()) {
+                    IconButton(onClick = { textFieldState.edit { replace(0, length, "") } }) {
+                        Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                    }
+                }
+                IconButton(onClick = onSearch) {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                }
             }
         }
     )
@@ -195,14 +210,17 @@ fun ExpandedSearchBar(
     searchBarState: SearchBarState,
     inputField: @Composable () -> Unit,
     history: SearchHistoryUiModel,
+    suggestions: SearchSuggestionsUiModel,
+    searchQuery: String,
     appBarWithSearchColors: AppBarWithSearchColors,
-    onHistoryItemClicked: (query: String) -> Unit,
+    onHistorySuggestionClick: (String) -> Unit,
     onGameClick: (Int) -> Unit,
     onRemoveRecentGame: (Int) -> Unit,
     onClearRecentSearches: () -> Unit,
     onRemoveRecentSearchItem: (query: String) -> Unit
 ) {
-    var showHistoryItemRemovalDialog by remember { mutableStateOf(false) }
+    var queryToRemove by rememberSaveable { mutableStateOf<String?>(null) }
+    var showClearHistoryDialog by rememberSaveable { mutableStateOf(false) }
 
     ExpandedFullScreenSearchBar(
         state = searchBarState,
@@ -211,55 +229,121 @@ fun ExpandedSearchBar(
             containerColor = MaterialTheme.appColors.expandedSearchBarColor
         )
     ) {
-        if (history.isEmpty) return@ExpandedFullScreenSearchBar // TODO mettere placeholder?
-        var recentSearchToBeRemoved by remember { mutableStateOf("") }
-
-        fun showRecentSearchRemovalDialog(itemToRemove: String) {
-            recentSearchToBeRemoved = itemToRemove
-            showHistoryItemRemovalDialog = true
+        if (history.isEmpty && suggestions.isEmpty) {
+            Text(
+                text = stringResource(SearchR.string.expanded_search_initial_message),
+                style = MaterialTheme.typography.labelLarge,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .padding(MaterialTheme.spacing.large)
+                    .fillMaxWidth()
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(vertical = MaterialTheme.spacing.medium),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large)
+            ) {
+                if (!suggestions.isEmpty) {
+                    SuggestionsSection(
+                        suggestions = suggestions,
+                        onHistorySuggestionClick = onHistorySuggestionClick,
+                        onGameSuggestionClick = onGameClick
+                    )
+                } else if (searchQuery.isNotBlank() && !suggestions.isLoadingRemote) {
+                    SearchActionRow(
+                        query = searchQuery,
+                        onClick = onHistorySuggestionClick,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    if (history.queries.isNotEmpty()) {
+                        RecentSearchesSection(
+                            recentSearches = history.queries,
+                            onClearRecentSearches = { showClearHistoryDialog = true },
+                            onHistoryItemClicked = { onHistorySuggestionClick(it) },
+                            onShowRemovalDialog = { queryToRemove = it }
+                        )
+                    }
+                    if (history.games.isNotEmpty()) {
+                        RecentGamesSection(
+                            recentGames = history.games,
+                            onGameClick = onGameClick,
+                            onRemoveClick = onRemoveRecentGame
+                        )
+                    }
+                }
+            }
         }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    vertical = MaterialTheme.spacing.medium
-                ),
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large)
-        ) {
-            if (history.queries.isNotEmpty()) {
-                RecentSearchesSection(
-                    recentSearches = history.queries,
-                    onClearRecentSearches = onClearRecentSearches,
-                    onHistoryItemClicked = onHistoryItemClicked,
-                    onShowRemovalDialog = ::showRecentSearchRemovalDialog
-                )
-            }
-
-            if (history.games.isNotEmpty()) {
-                RecentGamesSection(
-                    recentGames = history.games,
-                    onGameClick = onGameClick,
-                    onRemoveClick = onRemoveRecentGame
-                )
-            }
-        }
-
-        if (showHistoryItemRemovalDialog) {
+        queryToRemove?.let { query ->
             CustomAlertDialog(
                 title = stringResource(SearchR.string.remove_history_item),
                 message = annotatedStringResource(
                     SearchR.string.remove_history_item_message,
-                    recentSearchToBeRemoved
+                    query
                 ),
                 confirmButtonText = stringResource(SearchR.string.proceed_label),
                 onConfirm = {
-                    onRemoveRecentSearchItem(recentSearchToBeRemoved)
-                    showHistoryItemRemovalDialog = false
+                    onRemoveRecentSearchItem(query)
+                    queryToRemove = null
                 },
                 dismissButtonText = stringResource(SearchR.string.cancel),
-                onDismiss = { showHistoryItemRemovalDialog = false }
+                onDismiss = { queryToRemove = null }
             )
+        }
+
+        if (showClearHistoryDialog) {
+            CustomAlertDialog(
+                title = stringResource(SearchR.string.clear_history_title),
+                message = stringResource(SearchR.string.clear_history_message),
+                confirmButtonText = stringResource(SearchR.string.proceed_label),
+                onConfirm = {
+                    onClearRecentSearches()
+                    showClearHistoryDialog = false
+                },
+                dismissButtonText = stringResource(SearchR.string.cancel),
+                onDismiss = { showClearHistoryDialog = false }
+            )
+        }
+    }
+}
+
+@Composable
+private fun SuggestionsSection(
+    suggestions: SearchSuggestionsUiModel,
+    onHistorySuggestionClick: (String) -> Unit,
+    onGameSuggestionClick: (Int) -> Unit
+) {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
+        items(
+            items = suggestions.historySuggestions,
+            key = { "hist_$it" }
+        ) { query ->
+            HistorySuggestionRow(
+                query = query,
+                onClick = onHistorySuggestionClick,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        if (suggestions.isLoadingRemote) {
+            items(3, key = { "loading_$it" }) {
+                LoadingSuggestionRow(modifier = Modifier.fillMaxWidth())
+            }
+        } else {
+            items(
+                items = suggestions.gameSuggestions,
+                key = { "game_${it.id}" }
+            ) { gameSuggestion ->
+                GameSuggestionRow(
+                    suggestion = gameSuggestion,
+                    onClick = onGameSuggestionClick,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 }
@@ -271,7 +355,7 @@ private fun RecentSearchesSection(
     onHistoryItemClicked: (String) -> Unit,
     onShowRemovalDialog: (String) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
+    Column {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,

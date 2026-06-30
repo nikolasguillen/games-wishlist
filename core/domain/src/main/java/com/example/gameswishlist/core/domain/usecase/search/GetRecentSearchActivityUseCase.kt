@@ -23,7 +23,7 @@ class GetRecentSearchActivityUseCase @Inject constructor(
     @OptIn(FlowPreview::class)
     operator fun invoke(): Flow<RecentSearchActivity> {
         return combine(
-            repository.getSearchHistory(),
+            repository.getRecentSearchHistory(),
             repository.getRecentlyViewedGames().debounce(300.milliseconds)
         ) { queries, games ->
             RecentSearchActivity(

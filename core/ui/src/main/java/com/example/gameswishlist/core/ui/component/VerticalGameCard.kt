@@ -36,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.R
@@ -75,7 +76,7 @@ fun VerticalGameCard(
                     .padding(top = 50.dp)
             ) {
                 Text(
-                    text = game.name.asString(),
+                    text = game.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
@@ -83,7 +84,10 @@ fun VerticalGameCard(
                     lineHeight = MaterialTheme.typography.titleSmall.lineHeight,
                 )
 
-                GameMetadataRow(developer = game.developer, releaseYear = game.releaseYear)
+                GameMetadataRow(
+                    developer = game.developer,
+                    releaseYear = game.releaseYear
+                )
             }
         }
     }
@@ -125,7 +129,7 @@ fun RecentGameCard(
                         .padding(top = 30.dp)
                 ) {
                     Text(
-                        text = game.name.asString(),
+                        text = game.name,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
@@ -134,7 +138,7 @@ fun RecentGameCard(
 
                     game.releaseYear?.let {
                         Text(
-                            text = it.asString(),
+                            text = it,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                             maxLines = 1
@@ -196,7 +200,7 @@ fun GameCompactCard(
                     .padding(top = 30.dp)
             ) {
                 Text(
-                    text = game.name.asString(),
+                    text = game.name,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -205,7 +209,7 @@ fun GameCompactCard(
 
                 game.releaseYear?.let {
                     Text(
-                        text = it.asString(),
+                        text = it,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                         maxLines = 1
@@ -228,11 +232,40 @@ private fun GameCoverHeader(
             .fillMaxWidth()
     ) {
         if (coverImage != null) {
-            AsyncImage(
+            SubcomposeAsyncImage(
                 model = coverImage,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                loading = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(MaterialTheme.spacing.extraLarge),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AsyncImage(
+                            model = R.drawable.placeholder,
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                },
+                error = {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ImageNotSupported,
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        )
+                    }
+                }
             )
         } else {
             Box(
@@ -263,8 +296,8 @@ private fun GameCoverHeader(
 
 @Composable
 private fun GameMetadataRow(
-    developer: com.example.gameswishlist.core.ui.model.UiText?,
-    releaseYear: com.example.gameswishlist.core.ui.model.UiText?
+    developer: String?,
+    releaseYear: String?
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -272,7 +305,7 @@ private fun GameMetadataRow(
     ) {
         developer?.let {
             Text(
-                text = it.asString(),
+                text = it,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -291,7 +324,7 @@ private fun GameMetadataRow(
 
         releaseYear?.let {
             Text(
-                text = it.asString(),
+                text = it,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                 maxLines = 1
