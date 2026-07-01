@@ -17,7 +17,7 @@ fun CustomAlertDialog(
     confirmButtonText: String,
     onConfirm: () -> Unit,
     dismissButtonText: String,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val dialogWidth = LocalWindowInfo.current.containerDpSize.width * 0.8f
 
@@ -34,11 +34,13 @@ fun CustomAlertDialog(
                 Text(text = confirmButtonText)
             }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = dismissButtonText)
+        dismissButton = if (dismissButtonText.isNotEmpty()) {
+            {
+                TextButton(onClick = onDismiss) {
+                    Text(text = dismissButtonText)
+                }
             }
-        },
+        } else null,
         modifier = Modifier.width(dialogWidth)
     )
 }
@@ -49,8 +51,8 @@ fun CustomAlertDialog(
     message: String,
     confirmButtonText: String,
     onConfirm: () -> Unit,
-    dismissButtonText: String,
-    onDismiss: () -> Unit
+    dismissButtonText: String = "",
+    onDismiss: () -> Unit = {}
 ) {
     CustomAlertDialog(
         title = title,

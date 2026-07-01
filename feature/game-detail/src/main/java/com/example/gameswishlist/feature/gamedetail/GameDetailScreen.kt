@@ -14,6 +14,7 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.model.WishlistList
+import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.components.GameDetailMainContent
 import com.example.gameswishlist.feature.gamedetail.components.ListSelectorDialog
@@ -25,6 +26,7 @@ import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
+import com.example.gameswishlist.feature.gamedetail.model.ReleaseInfoUiModel
 
 @Composable
 fun GameDetailScreen(
@@ -101,12 +103,23 @@ fun GameDetailContentSuccessPreview() {
                         description = UiText.DynamicString("A legendary RPG with a rich story and vast open world."),
                         images = emptyList(),
                         gameType = UiText.DynamicString("Main Game"),
-                        rating = RatingUiModel(95, UiText.DynamicString("Metascore")),
-                        platforms = UiText.DynamicString("PC, PS4, Xbox One, Switch"),
-                        releaseDates = emptyList(),
+                        rating = RatingUiModel(
+                            score = 95,
+                            scoreText = UiText.DynamicString("95"),
+                            scoreLabel = UiText.DynamicString("Metascore"),
+                            hypes = UiText.DynamicString("120"),
+                            hypesLabel = UiText.StringResource(R.string.hypes_title),
+                            ratingCount = UiText.DynamicString("450"),
+                            ratingCountLabel = UiText.StringResource(R.string.rating_count_title)
+                        ),
+                        releaseInfo = ReleaseInfoUiModel(
+                            mainDate = UiText.DynamicString("May 19, 2015"),
+                            detailedMessage = null,
+                            isExpandable = false
+                        ),
+                        platforms = listOf("PC", "PS4", "Xbox One", "Switch").map { UiText.DynamicString(it) },
                         genres = listOf("RPG", "Action").map { UiText.DynamicString(it) },
                         companyInfo = UiText.DynamicString("CD Projekt Red, CD Projekt"),
-                        engines = UiText.DynamicString("RedEngine"),
                         isWishlisted = false,
                         personalDetails = GameDetailPersonalUiModel(
                             notes = UiText.DynamicString("Geralt's adventures are amazing!"),
@@ -117,8 +130,7 @@ fun GameDetailContentSuccessPreview() {
                                 priority.toUiModel(index == 1)
                             }
                         ),
-                        relatedGames = emptyList(),
-                        mainReleaseDate = UiText.DynamicString("May 19th, 2015")
+                        relatedGames = emptyList()
                     )
                 ),
                 availableLists = listOf(WishlistList(1, "Backlog"))

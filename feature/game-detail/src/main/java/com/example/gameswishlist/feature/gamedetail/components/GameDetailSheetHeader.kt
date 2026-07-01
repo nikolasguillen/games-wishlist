@@ -61,16 +61,17 @@ fun GameDetailSheetHeader(
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
 
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)
         ) {
             // Game Type Chip
-            CustomInfoChip(text = gameType.asString())
+            CustomInfoChip(text = gameType.asString(), isLarge = false)
 
             // Genre Chips
             genres.forEach { genre ->
                 CustomInfoChip(
                     text = genre.asString(),
+                    isLarge = false,
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                 )

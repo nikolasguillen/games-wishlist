@@ -21,6 +21,11 @@ sealed class UiText {
         vararg val args: Any
     ) : UiText()
 
+    data class CompoundString(
+        val texts: List<UiText>,
+        val separator: String = ""
+    ) : UiText()
+
     @Composable
     fun asString(): String {
         return when (this) {
@@ -30,6 +35,16 @@ sealed class UiText {
                     if (arg is UiText) arg.asString() else arg
                 }.toTypedArray()
                 stringResource(resId, *resolvedArgs)
+            }
+            is CompoundString -> {
+                val stringBuilder = StringBuilder()
+                texts.forEachIndexed { index, uiText ->
+                    stringBuilder.append(uiText.asString())
+                    if (index < texts.lastIndex) {
+                        stringBuilder.append(separator)
+                    }
+                }
+                stringBuilder.toString()
             }
         }
     }
@@ -42,6 +57,9 @@ sealed class UiText {
                     if (arg is UiText) arg.asString(context) else arg
                 }.toTypedArray()
                 context.getString(resId, *resolvedArgs)
+            }
+            is CompoundString -> {
+                texts.joinToString(separator) { it.asString(context) }
             }
         }
     }

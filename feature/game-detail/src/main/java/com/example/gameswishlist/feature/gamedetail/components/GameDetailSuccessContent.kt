@@ -163,11 +163,9 @@ private fun GameDetailSheetContent(
             // Game Technical Info Section
             GameDetailInfoSection(
                 description = game.description,
-                platforms = game.platforms,
-                engines = game.engines,
                 rating = game.rating,
-                mainReleaseDate = game.mainReleaseDate,
-                releaseDates = game.releaseDates,
+                releaseInfo = game.releaseInfo,
+                platforms = game.platforms,
                 modifier = horizontalPadding
             )
 

@@ -17,6 +17,8 @@ import com.example.gameswishlist.feature.gamedetail.model.GameStatusUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PriorityUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RelatedGamesUiModel
+import com.example.gameswishlist.feature.gamedetail.model.ReleaseInfoUiModel
+import java.util.Locale
 
 fun Game.toUiModel(): GameDetailUiModel {
     val related = mutableListOf<RelatedGamesUiModel>()
@@ -67,10 +69,15 @@ fun Game.toUiModel(): GameDetailUiModel {
     }
 
     val displayRating = getDisplayRating()
-    val ratingModel = if (displayRating > 0) {
+    val ratingModel = if (displayRating > 0 || hypes > 0 || ratingCount > 0) {
         RatingUiModel(
             score = displayRating,
-            label = getRatingUiText()
+            scoreText = UiText.DynamicString(displayRating.toString()),
+            scoreLabel = getRatingUiText(),
+            hypes = if (hypes > 0) UiText.DynamicString(formatLargeNumber(hypes)) else null,
+            hypesLabel = if (hypes > 0) UiText.StringResource(R.string.hypes_title) else null,
+            ratingCount = if (ratingCount > 0) UiText.DynamicString(formatLargeNumber(ratingCount)) else null,
+            ratingCountLabel = if (ratingCount > 0) UiText.StringResource(R.string.rating_count_title) else null
         )
     } else null
 
@@ -79,6 +86,32 @@ fun Game.toUiModel(): GameDetailUiModel {
         publishers.joinToString(", ") { it.name }.takeIf { it.isNotEmpty() }
     ).joinToString(", ")
 
+    val uiReleaseDates = releaseDates
+        .sortedBy { it.date }
+        .map {
+            val dateString = it.date?.let { date ->
+                UiText.DynamicString(DateUtils.formatUnixTimestamp(date))
+            } ?: run {
+                UiText.StringResource(com.example.gameswishlist.feature.gamedetail.R.string.tba)
+            }
+            UiText.StringResource(
+                R.string.platform_date_format,
+                it.platformName.getShortPlatformLabel(),
+                dateString
+            )
+        }
+
+    val releaseInfo = if (releaseDate != null || uiReleaseDates.isNotEmpty()) {
+        ReleaseInfoUiModel(
+            mainDate = DateUtils.formatIsoDate(releaseDate)?.let { UiText.DynamicString(it) }
+                ?: UiText.StringResource(com.example.gameswishlist.feature.gamedetail.R.string.tba),
+            detailedMessage = if (uiReleaseDates.isNotEmpty()) {
+                UiText.CompoundString(uiReleaseDates, separator = "\n")
+            } else null,
+            isExpandable = releaseDates.map { it.date }.distinct().size > 1
+        )
+    } else null
+
     return GameDetailUiModel(
         id = id,
         name = UiText.DynamicString(name),
@@ -86,22 +119,10 @@ fun Game.toUiModel(): GameDetailUiModel {
         images = listOfNotNull(backgroundImage) + artworks,
         gameType = gameType.toUiText(),
         rating = ratingModel,
-        platforms = UiText.DynamicString(platforms.joinToString(", ") { it.name.getShortPlatformLabel() }),
-        mainReleaseDate = releaseDate?.let { UiText.DynamicString(it) }
-            ?: UiText.StringResource(com.example.gameswishlist.feature.gamedetail.R.string.tba),
-        releaseDates = releaseDates
-            .sortedBy { it.date }
-            .map {
-                val dateString = it.date?.let { date ->
-                    UiText.DynamicString(DateUtils.formatUnixTimestamp(date))
-                } ?: run {
-                    UiText.StringResource(com.example.gameswishlist.feature.gamedetail.R.string.tba)
-                }
-                UiText.DynamicString(it.platformName.getShortPlatformLabel()) to dateString
-            },
+        releaseInfo = releaseInfo,
+        platforms = platforms.map { UiText.DynamicString(it.name.getShortPlatformLabel()) },
         genres = genres.map { UiText.DynamicString(it.name) },
         companyInfo = UiText.DynamicString(companies),
-        engines = UiText.DynamicString(engines.joinToString(", ")),
         isWishlisted = isWishlisted,
         personalDetails = GameDetailPersonalUiModel(
             notes = UiText.DynamicString(notes),
@@ -110,6 +131,14 @@ fun Game.toUiModel(): GameDetailUiModel {
         ),
         relatedGames = related
     )
+}
+
+private fun formatLargeNumber(number: Int): String {
+    return when {
+        number >= 1_000_000 -> String.format(Locale.US, "%.1fM", number / 1_000_000.0)
+        number >= 1_000 -> String.format(Locale.US, "%.1fK", number / 1_000.0)
+        else -> number.toString()
+    }
 }
 
 fun GameStatus.toUiModel(selected: Boolean): GameStatusUiModel {
