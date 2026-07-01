@@ -159,6 +159,8 @@ fun GameWithAllDetails.toGame(): Game {
         releaseDate = game.released,
         backgroundImage = game.backgroundImage,
         rating = game.rating,
+        ratingCount = game.ratingCount,
+        hypes = game.hypes,
         metaCritic = game.metacritic,
         platforms = platformRefs.map { it.platform.toPlatform() },
         releaseDates = platformRefs.map {
@@ -262,6 +264,8 @@ fun Game.toEntity(): GameEntity {
         released = releaseDate,
         backgroundImage = backgroundImage,
         rating = rating,
+        ratingCount = ratingCount,
+        hypes = hypes,
         metacritic = metaCritic,
         gameTypeId = gameType.id,
         notes = notes,

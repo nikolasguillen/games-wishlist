@@ -9,13 +9,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -61,6 +67,8 @@ internal fun GameRatingCard(
                 RatingMetricItem(
                     label = rating.hypesLabel.asString(),
                     value = rating.hypes.asString(),
+                    icon = Icons.Default.Whatshot,
+                    iconColor = Color(0xFFF44336),
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -70,6 +78,8 @@ internal fun GameRatingCard(
                 RatingMetricItem(
                     label = rating.ratingCountLabel.asString(),
                     value = rating.ratingCount.asString(),
+                    icon = Icons.Default.Star,
+                    iconColor = Color(0xFFFFB300),
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -82,7 +92,9 @@ private fun RatingMetricItem(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
-    score: Int? = null
+    score: Int? = null,
+    icon: ImageVector? = null,
+    iconColor: Color = MaterialTheme.colorScheme.primary
 ) {
     Column(
         modifier = modifier,
@@ -102,13 +114,22 @@ private fun RatingMetricItem(
                 )
                 Text(
                     text = value,
-                    style = MaterialTheme.typography.titleSmall.copy(
+                    style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold
                     ),
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
         } else {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraSmall))
+            }
             Text(
                 text = value,
                 style = MaterialTheme.typography.titleMedium.copy(

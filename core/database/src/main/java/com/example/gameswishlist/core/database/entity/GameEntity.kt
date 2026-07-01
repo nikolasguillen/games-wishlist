@@ -15,6 +15,8 @@ data class GameEntity(
     val released: String?,
     val backgroundImage: String?,
     val rating: Double,
+    val ratingCount: Int = 0,
+    val hypes: Int = 0,
     val metacritic: Int?,
     val gameTypeId: Int,
     val notes: String,
