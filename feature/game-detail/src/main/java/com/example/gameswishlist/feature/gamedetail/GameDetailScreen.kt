@@ -117,7 +117,8 @@ fun GameDetailContentSuccessPreview() {
                                 priority.toUiModel(index == 1)
                             }
                         ),
-                        relatedGames = emptyList()
+                        relatedGames = emptyList(),
+                        mainReleaseDate = UiText.DynamicString("May 19th, 2015")
                     )
                 ),
                 availableLists = listOf(WishlistList(1, "Backlog"))

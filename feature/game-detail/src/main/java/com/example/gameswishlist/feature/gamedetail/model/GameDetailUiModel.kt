@@ -15,6 +15,7 @@ data class GameDetailUiModel(
     val gameType: UiText,
     val rating: RatingUiModel?,
     val platforms: UiText,
+    val mainReleaseDate: UiText,
     val releaseDates: List<Pair<UiText, UiText>>,
     val genres: List<UiText>,
     val companyInfo: UiText,

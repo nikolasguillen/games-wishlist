@@ -166,6 +166,7 @@ private fun GameDetailSheetContent(
                 platforms = game.platforms,
                 engines = game.engines,
                 rating = game.rating,
+                mainReleaseDate = game.mainReleaseDate,
                 releaseDates = game.releaseDates,
                 modifier = horizontalPadding
             )

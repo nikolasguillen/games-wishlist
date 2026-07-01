@@ -86,4 +86,6 @@
     <string name="related_expansions">Expansions</string>
     <string name="related_remakes">Remakes</string>
     <string name="related_remasters">Remasters</string>
+    <string name="show_more">Show more</string>
+    <string name="show_less">Show less</string>
 </resources>

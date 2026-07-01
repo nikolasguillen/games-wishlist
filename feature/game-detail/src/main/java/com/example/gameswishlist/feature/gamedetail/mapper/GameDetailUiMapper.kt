@@ -87,6 +87,8 @@ fun Game.toUiModel(): GameDetailUiModel {
         gameType = gameType.toUiText(),
         rating = ratingModel,
         platforms = UiText.DynamicString(platforms.joinToString(", ") { it.name.getShortPlatformLabel() }),
+        mainReleaseDate = releaseDate?.let { UiText.DynamicString(it) }
+            ?: UiText.StringResource(com.example.gameswishlist.feature.gamedetail.R.string.tba),
         releaseDates = releaseDates
             .sortedBy { it.date }
             .map {
