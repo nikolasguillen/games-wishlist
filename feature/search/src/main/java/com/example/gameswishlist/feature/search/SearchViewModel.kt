@@ -37,17 +37,13 @@ import com.example.gameswishlist.feature.search.model.SortingUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -78,6 +74,7 @@ class SearchViewModel @Inject constructor(
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
     val textFieldState = TextFieldState()
+    private var suggestionsJob: Job? = null
 
     init {
         initSearchHistory()
@@ -388,6 +385,8 @@ class SearchViewModel @Inject constructor(
 
     private fun performSearch(query: String) {
         if (query.isBlank()) return
+        suggestionsJob?.cancel()
+        _uiState.update { it.copy(suggestions = SearchSuggestionsUiModel()) }
 
         viewModelScope.launch {
             addSearchToHistoryUseCase(query)
@@ -438,47 +437,46 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun initSearchSuggestions() {
-        val queryFlow = snapshotFlow { textFieldState.text.toString() }
+        snapshotFlow { textFieldState.text.toString() }
             .distinctUntilChanged()
+            .onEach { query ->
+                suggestionsJob?.cancel()
 
-        // 1. Instant local history suggestions
-        val localSuggestionsFlow = queryFlow.map { query ->
-            if (query.length < 2) emptyList()
-            else getSearchSuggestionsUseCase.getLocalSuggestions(query)
-                .filterIsInstance<SearchSuggestion.HistorySuggestion>()
-                .map { it.query }
-        }
+                if (query.length < 2) {
+                    _uiState.update { it.copy(suggestions = SearchSuggestionsUiModel()) }
+                    return@onEach
+                }
 
-        // 2. Remote suggestions with instant loading state and debounced fetch
-        val remoteSuggestionsFlow = queryFlow.flatMapLatest { query ->
-            if (query.length < 2) flowOf(SearchSuggestionsUiModel())
-            else flow {
-                // Signal loading state immediately
-                emit(SearchSuggestionsUiModel(isLoadingRemote = true))
+                suggestionsJob = viewModelScope.launch {
+                    // 1. Instant local history suggestions
+                    val local = getSearchSuggestionsUseCase.getLocalSuggestions(query)
+                        .filterIsInstance<SearchSuggestion.HistorySuggestion>()
+                        .map { it.query }
 
-                // Debounce manually before the API call
-                delay(300.milliseconds)
-
-                getSearchSuggestionsUseCase.getRemoteSuggestionsFlow(query)
-                    .collect { domainSuggestions ->
-                        val games = domainSuggestions
-                            .filterIsInstance<SearchSuggestion.GameSuggestion>()
-                            .map { it.game }
-                        emit(
-                            SearchSuggestionsUiModel(
-                                gameSuggestions = games.toSuggestionUiModels(),
-                                isLoadingRemote = false
-                            )
-                        )
+                    _uiState.update {
+                        it.copy(suggestions = it.suggestions.copy(historySuggestions = local))
                     }
-            }
-        }
 
-        // Combine both into a single SearchSuggestionsUiModel
-        combine(localSuggestionsFlow, remoteSuggestionsFlow) { local, remote ->
-            remote.copy(historySuggestions = local)
-        }.onEach { suggestions ->
-            _uiState.update { it.copy(suggestions = suggestions) }
-        }.launchIn(viewModelScope)
+                    // 2. Remote suggestions with instant loading state and debounced fetch
+                    _uiState.update { it.copy(suggestions = it.suggestions.copy(isLoadingRemote = true)) }
+
+                    delay(300.milliseconds)
+
+                    getSearchSuggestionsUseCase.getRemoteSuggestionsFlow(query)
+                        .collect { domainSuggestions ->
+                            val games = domainSuggestions
+                                .filterIsInstance<SearchSuggestion.GameSuggestion>()
+                                .map { it.game }
+                            _uiState.update {
+                                it.copy(
+                                    suggestions = it.suggestions.copy(
+                                        gameSuggestions = games.toSuggestionUiModels(),
+                                        isLoadingRemote = false
+                                    )
+                                )
+                            }
+                        }
+                }
+            }.launchIn(viewModelScope)
     }
 }
