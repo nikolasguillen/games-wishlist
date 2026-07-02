@@ -8,8 +8,14 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -111,6 +117,15 @@ fun MainContent() {
                 rememberSaveableStateHolderNavEntryDecorator(),
                 rememberViewModelStoreNavEntryDecorator()
             ),
+            predictivePopTransitionSpec = {
+                (slideInHorizontally { -it } + fadeIn(
+                    tween(
+                        durationMillis = 400,
+                        delayMillis = 200
+                    )
+                )) togetherWith
+                        (slideOutHorizontally { it } + fadeOut(tween(durationMillis = 200)))
+            },
             entryProvider = { key ->
                 when (key) {
                     is SearchRoute -> NavEntry(key) {
