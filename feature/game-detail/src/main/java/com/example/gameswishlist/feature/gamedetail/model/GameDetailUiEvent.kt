@@ -5,7 +5,7 @@ sealed interface GameDetailUiEvent {
     data class UpdateNotes(val notes: String) : GameDetailUiEvent
     data class UpdatePriority(val priorityId: Int) : GameDetailUiEvent
     data class UpdateStatus(val statusId: Int) : GameDetailUiEvent
-    data class AddGameToList(val listId: Long) : GameDetailUiEvent
+    data class ToggleGameInList(val listId: Long) : GameDetailUiEvent
     data object OpenListSelector : GameDetailUiEvent
     data object DismissListSelector : GameDetailUiEvent
     data object ToggleFavorite : GameDetailUiEvent

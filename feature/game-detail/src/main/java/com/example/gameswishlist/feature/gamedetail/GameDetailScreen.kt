@@ -13,7 +13,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
-import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.components.GameDetailMainContent
@@ -27,6 +26,7 @@ import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 import com.example.gameswishlist.feature.gamedetail.model.ReleaseInfoUiModel
+import com.example.gameswishlist.feature.gamedetail.model.WishlistListUiModel
 
 @Composable
 fun GameDetailScreen(
@@ -83,7 +83,7 @@ fun GameDetailContent(
                 lists = uiState.availableLists,
                 onDismiss = { onEvent(GameDetailUiEvent.DismissListSelector) },
                 onListSelected = { listId ->
-                    onEvent(GameDetailUiEvent.AddGameToList(listId))
+                    onEvent(GameDetailUiEvent.ToggleGameInList(listId))
                 }
             )
         }
@@ -117,7 +117,12 @@ fun GameDetailContentSuccessPreview() {
                             detailedMessage = null,
                             isExpandable = false
                         ),
-                        platforms = listOf("PC", "PS4", "Xbox One", "Switch").map { UiText.DynamicString(it) },
+                        platforms = listOf(
+                            "PC",
+                            "PS4",
+                            "Xbox One",
+                            "Switch"
+                        ).map { UiText.DynamicString(it) },
                         genres = listOf("RPG", "Action").map { UiText.DynamicString(it) },
                         companyInfo = UiText.DynamicString("CD Projekt Red, CD Projekt"),
                         isWishlisted = false,
@@ -133,7 +138,9 @@ fun GameDetailContentSuccessPreview() {
                         relatedGames = emptyList()
                     )
                 ),
-                availableLists = listOf(WishlistList(1, "Backlog"))
+                availableLists = listOf(
+                    WishlistListUiModel(1, UiText.DynamicString("Backlog")),
+                )
             ),
             onEvent = {},
             onBackClick = {}

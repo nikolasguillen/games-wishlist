@@ -1,6 +1,7 @@
 package com.example.gameswishlist.feature.gamedetail.mapper
 
 import com.example.gameswishlist.core.common.DateUtils
+import com.example.gameswishlist.core.domain.model.WishlistAssignment
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
@@ -18,6 +19,7 @@ import com.example.gameswishlist.feature.gamedetail.model.PriorityUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RelatedGamesUiModel
 import com.example.gameswishlist.feature.gamedetail.model.ReleaseInfoUiModel
+import com.example.gameswishlist.feature.gamedetail.model.WishlistListUiModel
 import java.util.Locale
 
 fun Game.toUiModel(): GameDetailUiModel {
@@ -162,5 +164,13 @@ fun Priority.toUiModel(selected: Boolean): PriorityUiModel {
     }
     return PriorityUiModel(
         id = this.id, label = UiText.StringResource(resId), selected = selected
+    )
+}
+
+fun WishlistAssignment.toUiModel(): WishlistListUiModel {
+    return WishlistListUiModel(
+        id = list.id,
+        name = UiText.DynamicString(list.name),
+        isSelected = isAssigned
     )
 }

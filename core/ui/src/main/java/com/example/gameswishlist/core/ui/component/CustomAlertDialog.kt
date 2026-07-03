@@ -13,11 +13,11 @@ import androidx.compose.ui.text.buildAnnotatedString
 @Composable
 fun CustomAlertDialog(
     title: String,
-    message: AnnotatedString,
-    confirmButtonText: String,
-    onConfirm: () -> Unit,
-    dismissButtonText: String,
-    onDismiss: () -> Unit,
+    confirmButtonText: String = "",
+    onConfirm: () -> Unit = {},
+    dismissButtonText: String = "",
+    onDismiss: () -> Unit = {},
+    content: @Composable () -> Unit
 ) {
     val dialogWidth = LocalWindowInfo.current.containerDpSize.width * 0.8f
 
@@ -26,12 +26,12 @@ fun CustomAlertDialog(
         title = {
             Text(text = title)
         },
-        text = {
-            Text(text = message)
-        },
+        text = content,
         confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(text = confirmButtonText)
+            if (confirmButtonText.isNotEmpty()) {
+                TextButton(onClick = onConfirm) {
+                    Text(text = confirmButtonText)
+                }
             }
         },
         dismissButton = if (dismissButtonText.isNotEmpty()) {
@@ -48,9 +48,30 @@ fun CustomAlertDialog(
 @Composable
 fun CustomAlertDialog(
     title: String,
+    message: AnnotatedString,
+    confirmButtonText: String = "",
+    onConfirm: () -> Unit = {},
+    dismissButtonText: String = "",
+    onDismiss: () -> Unit = {},
+) {
+    CustomAlertDialog(
+        title = title,
+        confirmButtonText = confirmButtonText,
+        onConfirm = onConfirm,
+        dismissButtonText = dismissButtonText,
+        onDismiss = onDismiss,
+        content = {
+            Text(text = message)
+        }
+    )
+}
+
+@Composable
+fun CustomAlertDialog(
+    title: String,
     message: String,
-    confirmButtonText: String,
-    onConfirm: () -> Unit,
+    confirmButtonText: String = "",
+    onConfirm: () -> Unit = {},
     dismissButtonText: String = "",
     onDismiss: () -> Unit = {}
 ) {

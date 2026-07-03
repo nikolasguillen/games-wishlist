@@ -22,6 +22,7 @@ interface GameRepository {
     suspend fun updateGameDetails(game: Game)
 
     fun getAllLists(): Flow<List<WishlistList>>
+    fun getListIdsForGame(gameId: Int): Flow<List<Long>>
     suspend fun createList(name: String, description: String)
     suspend fun addGameToList(gameId: Int, listId: Long)
     suspend fun removeGameFromList(gameId: Int, listId: Long)

@@ -190,6 +190,10 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getListIdsForGame(gameId: Int): Flow<List<Long>> {
+        return gameDao.getListIdsForGame(gameId)
+    }
+
     override suspend fun createList(name: String, description: String) {
         listDao.insertList(ListEntity(name = name, description = description))
     }

@@ -6,7 +6,8 @@ import com.example.gameswishlist.core.domain.usecase.GetGameDetailUseCase
 import com.example.gameswishlist.core.domain.usecase.ToggleWishlistUseCase
 import com.example.gameswishlist.core.domain.usecase.UpdateGameUseCase
 import com.example.gameswishlist.core.domain.usecase.list.AddGameToListUseCase
-import com.example.gameswishlist.core.domain.usecase.list.GetListsUseCase
+import com.example.gameswishlist.core.domain.usecase.list.GetWishlistAssignmentsUseCase
+import com.example.gameswishlist.core.domain.usecase.list.RemoveGameFromListUseCase
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
@@ -35,8 +36,9 @@ class GameDetailViewModel @AssistedInject constructor(
     private val getGameDetailUseCase: GetGameDetailUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
     private val toggleWishlistUseCase: ToggleWishlistUseCase,
-    private val getListsUseCase: GetListsUseCase,
-    private val addGameToListUseCase: AddGameToListUseCase
+    private val getWishlistAssignmentsUseCase: GetWishlistAssignmentsUseCase,
+    private val addGameToListUseCase: AddGameToListUseCase,
+    private val removeGameFromListUseCase: RemoveGameFromListUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(GameDetailUiState())
@@ -49,9 +51,12 @@ class GameDetailViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch {
-            getListsUseCase().collect { lists ->
-                _uiState.update { it.copy(availableLists = lists) }
-            }
+            getWishlistAssignmentsUseCase(gameId)
+                .collect { assignments ->
+                    _uiState.update { state ->
+                        state.copy(availableLists = assignments.map { it.toUiModel() })
+                    }
+                }
         }
 
         loadGame(gameId)
@@ -63,7 +68,7 @@ class GameDetailViewModel @AssistedInject constructor(
             is GameDetailUiEvent.UpdateNotes -> updateNotes(event.notes)
             is GameDetailUiEvent.UpdatePriority -> updatePriority(event.priorityId)
             is GameDetailUiEvent.UpdateStatus -> updateStatus(event.statusId)
-            is GameDetailUiEvent.AddGameToList -> addGameToList(event.listId)
+            is GameDetailUiEvent.ToggleGameInList -> toggleGameInList(event.listId)
             GameDetailUiEvent.OpenListSelector -> _uiState.update { it.copy(isListSelectorVisible = true) }
             GameDetailUiEvent.DismissListSelector -> _uiState.update { it.copy(isListSelectorVisible = false) }
             GameDetailUiEvent.ToggleFavorite -> toggleFavorite()
@@ -131,11 +136,17 @@ class GameDetailViewModel @AssistedInject constructor(
         }
     }
 
-    private fun addGameToList(listId: Long) {
+    private fun toggleGameInList(listId: Long) {
         currentGame?.let { game ->
             viewModelScope.launch {
-                updateGameUseCase(game)
-                addGameToListUseCase(game.id, listId)
+                val isAlreadyInList = _uiState.value.availableLists.find { it.id == listId }?.isSelected ?: false
+                
+                if (isAlreadyInList) {
+                    removeGameFromListUseCase(game.id, listId)
+                } else {
+                    updateGameUseCase(game)
+                    addGameToListUseCase(game.id, listId)
+                }
 
                 _uiState.update {
                     it.copy(isListSelectorVisible = false)

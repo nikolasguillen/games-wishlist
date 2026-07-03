@@ -63,6 +63,9 @@ interface GameDao {
     @Query("SELECT gameId FROM game_list_cross_ref WHERE listId = :listId")
     fun getGameIdsInList(listId: Long): Flow<List<Int>>
 
+    @Query("SELECT listId FROM game_list_cross_ref WHERE gameId = :gameId")
+    fun getListIdsForGame(gameId: Int): Flow<List<Long>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGameListCrossRef(crossRef: GameListCrossRef)
 
