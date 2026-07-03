@@ -6,5 +6,3 @@ data class WishlistList(
     val description: String = "",
     val gameCount: Int = 0
 )
-
-// TODO creare UI model con spunta se lista contiene già il gioco ed eventualmente una leading icon a scelta dell'utente
