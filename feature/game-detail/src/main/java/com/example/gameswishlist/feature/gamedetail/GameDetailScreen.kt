@@ -16,7 +16,7 @@ import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.components.GameDetailMainContent
-import com.example.gameswishlist.feature.gamedetail.components.ListSelectorDialog
+import com.example.gameswishlist.feature.gamedetail.components.ListSelectorSheet
 import com.example.gameswishlist.feature.gamedetail.mapper.toUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailContentState
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiModel
@@ -79,7 +79,7 @@ fun GameDetailContent(
         )
 
         if (uiState.isListSelectorVisible) {
-            ListSelectorDialog(
+            ListSelectorSheet(
                 lists = uiState.availableLists,
                 onDismiss = { onEvent(GameDetailUiEvent.DismissListSelector) },
                 onListSelected = { listId ->
