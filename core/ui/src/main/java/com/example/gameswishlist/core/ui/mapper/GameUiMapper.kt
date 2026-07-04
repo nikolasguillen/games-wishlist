@@ -33,7 +33,7 @@ fun Game.getDisplayRating(): Int = when {
 fun Game.getRatingUiText(): UiText {
     return when {
         metaCritic != null && metaCritic!! > 0 -> {
-            UiText.StringResource(R.string.metacritic_title)
+            UiText.StringResource(R.string.score_title)
         }
 
         rating > 0.0 -> {
