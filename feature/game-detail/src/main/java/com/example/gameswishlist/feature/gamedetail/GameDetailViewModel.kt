@@ -18,6 +18,7 @@ import com.example.gameswishlist.feature.gamedetail.model.GameDetailContentState
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEffect
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
+import com.example.gameswishlist.feature.gamedetail.model.WishlistSelectorState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -50,15 +52,6 @@ class GameDetailViewModel @AssistedInject constructor(
     private var currentGame: Game? = null
 
     init {
-        viewModelScope.launch {
-            getWishlistAssignmentsUseCase(gameId)
-                .collect { assignments ->
-                    _uiState.update { state ->
-                        state.copy(availableLists = assignments.map { it.toUiModel() })
-                    }
-                }
-        }
-
         loadGame(gameId)
     }
 
@@ -69,8 +62,9 @@ class GameDetailViewModel @AssistedInject constructor(
             is GameDetailUiEvent.UpdatePriority -> updatePriority(event.priorityId)
             is GameDetailUiEvent.UpdateStatus -> updateStatus(event.statusId)
             is GameDetailUiEvent.ToggleGameInList -> toggleGameInList(event.listId)
-            GameDetailUiEvent.OpenListSelector -> _uiState.update { it.copy(isListSelectorVisible = true) }
-            GameDetailUiEvent.DismissListSelector -> _uiState.update { it.copy(isListSelectorVisible = false) }
+            GameDetailUiEvent.ConfirmListSelection -> confirmListSelection()
+            GameDetailUiEvent.OpenListSelector -> openListSelector()
+            GameDetailUiEvent.DismissListSelector -> _uiState.update { it.copy(wishlistSelectorState = null) }
             GameDetailUiEvent.ToggleFavorite -> toggleFavorite()
             GameDetailUiEvent.ShareGame -> shareGame()
             is GameDetailUiEvent.NavigateToGame -> viewModelScope.launch {
@@ -136,21 +130,62 @@ class GameDetailViewModel @AssistedInject constructor(
         }
     }
 
+    private fun openListSelector() {
+        val gameId =
+            (uiState.value.contentState as? GameDetailContentState.Success)?.game?.id ?: return
+        viewModelScope.launch {
+            val assignments = getWishlistAssignmentsUseCase(gameId).first()
+            val uiAssignments = assignments.map { it.toUiModel() }
+
+            _uiState.update { state ->
+                state.copy(
+                    wishlistSelectorState = WishlistSelectorState(
+                        availableLists = uiAssignments,
+                        selectedListIds = uiAssignments.filter { it.isSelected }.map { it.id }
+                            .toSet()
+                    )
+                )
+            }
+        }
+    }
+
     private fun toggleGameInList(listId: Long) {
+        _uiState.update { state ->
+            state.wishlistSelectorState?.let { selectorState ->
+                val currentSelected = selectorState.selectedListIds
+                val newSelected = if (listId in currentSelected) {
+                    currentSelected - listId
+                } else {
+                    currentSelected + listId
+                }
+                state.copy(
+                    wishlistSelectorState = selectorState.copy(selectedListIds = newSelected)
+                )
+            } ?: state
+        }
+    }
+
+    private fun confirmListSelection() {
+        val selectorState = _uiState.value.wishlistSelectorState ?: return
         currentGame?.let { game ->
             viewModelScope.launch {
-                val isAlreadyInList = _uiState.value.availableLists.find { it.id == listId }?.isSelected ?: false
-                
-                if (isAlreadyInList) {
-                    removeGameFromListUseCase(game.id, listId)
-                } else {
-                    updateGameUseCase(game)
+                val finalSelectedIds = selectorState.selectedListIds
+                val initialSelectedIds = selectorState.availableLists
+                    .filter { it.isSelected }
+                    .map { it.id }
+                    .toSet()
+
+                val toAdd = finalSelectedIds - initialSelectedIds
+                val toRemove = initialSelectedIds - finalSelectedIds
+
+                toAdd.forEach { listId ->
                     addGameToListUseCase(game.id, listId)
                 }
-
-                _uiState.update {
-                    it.copy(isListSelectorVisible = false)
+                toRemove.forEach { listId ->
+                    removeGameFromListUseCase(game.id, listId)
                 }
+
+                _uiState.update { it.copy(wishlistSelectorState = null) }
             }
         }
     }

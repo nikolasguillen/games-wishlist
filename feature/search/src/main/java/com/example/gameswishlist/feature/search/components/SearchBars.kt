@@ -50,6 +50,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
+import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.component.CustomAlertDialog
 import com.example.gameswishlist.core.ui.component.RecentGameCard
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
@@ -284,12 +285,12 @@ fun ExpandedSearchBar(
                     SearchR.string.remove_history_item_message,
                     query
                 ),
-                confirmButtonText = stringResource(SearchR.string.proceed_label),
+                confirmButtonText = stringResource(R.string.proceed_label),
                 onConfirm = {
                     onRemoveRecentSearchItem(query)
                     queryToRemove = null
                 },
-                dismissButtonText = stringResource(SearchR.string.cancel),
+                dismissButtonText = stringResource(R.string.cancel),
                 onDismiss = { queryToRemove = null }
             )
         }
@@ -298,12 +299,12 @@ fun ExpandedSearchBar(
             CustomAlertDialog(
                 title = stringResource(SearchR.string.clear_history_title),
                 message = stringResource(SearchR.string.clear_history_message),
-                confirmButtonText = stringResource(SearchR.string.proceed_label),
+                confirmButtonText = stringResource(R.string.proceed_label),
                 onConfirm = {
                     onClearRecentSearches()
                     showClearHistoryDialog = false
                 },
-                dismissButtonText = stringResource(SearchR.string.cancel),
+                dismissButtonText = stringResource(R.string.cancel),
                 onDismiss = { showClearHistoryDialog = false }
             )
         }
@@ -378,14 +379,13 @@ private fun RecentSearchesSection(
             contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large)
         ) {
             items(items = recentSearches, key = { it.hashCode() }) { recentSearch ->
-                val query = recentSearch
                 val inputChipInteractionSource = remember { MutableInteractionSource() }
                 Box {
                     SuggestionChip(
-                        onClick = { onHistoryItemClicked(query) },
+                        onClick = { onHistoryItemClicked(recentSearch) },
                         label = {
                             Text(
-                                text = query,
+                                text = recentSearch,
                                 maxLines = 1
                             )
                         },
@@ -402,8 +402,8 @@ private fun RecentSearchesSection(
                         modifier = Modifier
                             .matchParentSize()
                             .combinedClickable(
-                                onLongClick = { onShowRemovalDialog(query) },
-                                onClick = { onHistoryItemClicked(query) },
+                                onLongClick = { onShowRemovalDialog(recentSearch) },
+                                onClick = { onHistoryItemClicked(recentSearch) },
                                 interactionSource = inputChipInteractionSource,
                                 indication = null
                             )

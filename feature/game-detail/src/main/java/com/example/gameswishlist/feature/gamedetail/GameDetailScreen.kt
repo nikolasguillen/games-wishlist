@@ -78,11 +78,16 @@ fun GameDetailContent(
             onBackClick = onBackClick
         )
 
-        if (uiState.isListSelectorVisible) {
+        uiState.wishlistSelectorState?.let { selectorState ->
             ListSelectorSheet(
-                lists = uiState.availableLists,
+                gameName = (uiState.contentState as? GameDetailContentState.Success)?.game?.name?.asString()
+                    ?: "",
+                list = selectorState.availableLists.map {
+                    it.copy(isSelected = it.id in selectorState.selectedListIds)
+                },
                 onDismiss = { onEvent(GameDetailUiEvent.DismissListSelector) },
-                onListSelected = { listId ->
+                onConfirm = { onEvent(GameDetailUiEvent.ConfirmListSelection) },
+                onToggleList = { listId ->
                     onEvent(GameDetailUiEvent.ToggleGameInList(listId))
                 }
             )
@@ -137,9 +142,6 @@ fun GameDetailContentSuccessPreview() {
                         ),
                         relatedGames = emptyList()
                     )
-                ),
-                availableLists = listOf(
-                    WishlistListUiModel(1, UiText.DynamicString("Backlog")),
                 )
             ),
             onEvent = {},
