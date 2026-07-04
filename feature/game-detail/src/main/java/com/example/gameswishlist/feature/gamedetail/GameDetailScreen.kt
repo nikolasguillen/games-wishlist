@@ -79,11 +79,8 @@ fun GameDetailContent(
 
         uiState.wishlistSelectorState?.let { selectorState ->
             ListSelectorSheet(
-                gameName = (uiState.contentState as? GameDetailContentState.Success)?.game?.name?.asString()
-                    ?: "",
-                list = selectorState.availableLists.map {
-                    it.copy(isSelected = it.id in selectorState.selectedListIds)
-                },
+                gameName = selectorState.gameName,
+                list = selectorState.availableLists,
                 onDismiss = { onEvent(GameDetailUiEvent.DismissListSelector) },
                 onConfirm = { onEvent(GameDetailUiEvent.ConfirmListSelection) },
                 onToggleList = { listId ->

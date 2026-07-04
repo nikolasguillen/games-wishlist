@@ -131,8 +131,10 @@ class GameDetailViewModel @AssistedInject constructor(
     }
 
     private fun openListSelector() {
-        val gameId =
-            (uiState.value.contentState as? GameDetailContentState.Success)?.game?.id ?: return
+        val successState = uiState.value.contentState as? GameDetailContentState.Success ?: return
+        val gameId = successState.game.id
+        val gameName = successState.game.name
+        
         viewModelScope.launch {
             val assignments = getWishlistAssignmentsUseCase(gameId).first()
             val uiAssignments = assignments.map { it.toUiModel() }
@@ -140,9 +142,8 @@ class GameDetailViewModel @AssistedInject constructor(
             _uiState.update { state ->
                 state.copy(
                     wishlistSelectorState = WishlistSelectorState(
-                        availableLists = uiAssignments,
-                        selectedListIds = uiAssignments.filter { it.isSelected }.map { it.id }
-                            .toSet()
+                        gameName = gameName,
+                        availableLists = uiAssignments
                     )
                 )
             }
@@ -152,14 +153,11 @@ class GameDetailViewModel @AssistedInject constructor(
     private fun toggleGameInList(listId: Long) {
         _uiState.update { state ->
             state.wishlistSelectorState?.let { selectorState ->
-                val currentSelected = selectorState.selectedListIds
-                val newSelected = if (listId in currentSelected) {
-                    currentSelected - listId
-                } else {
-                    currentSelected + listId
+                val updatedLists = selectorState.availableLists.map { 
+                    if (it.id == listId) it.copy(isSelected = !it.isSelected) else it
                 }
                 state.copy(
-                    wishlistSelectorState = selectorState.copy(selectedListIds = newSelected)
+                    wishlistSelectorState = selectorState.copy(availableLists = updatedLists)
                 )
             } ?: state
         }
@@ -167,26 +165,25 @@ class GameDetailViewModel @AssistedInject constructor(
 
     private fun confirmListSelection() {
         val selectorState = _uiState.value.wishlistSelectorState ?: return
-        currentGame?.let { game ->
-            viewModelScope.launch {
-                val finalSelectedIds = selectorState.selectedListIds
-                val initialSelectedIds = selectorState.availableLists
-                    .filter { it.isSelected }
-                    .map { it.id }
-                    .toSet()
+        val gameId = (uiState.value.contentState as? GameDetailContentState.Success)?.game?.id ?: return
+        
+        viewModelScope.launch {
+            // Get original state to calculate delta
+            val originalAssignments = getWishlistAssignmentsUseCase(gameId).first()
+            val initialSelectedIds = originalAssignments.filter { it.isAssigned }.map { it.list.id }.toSet()
+            val finalSelectedIds = selectorState.availableLists.filter { it.isSelected }.map { it.id }.toSet()
 
-                val toAdd = finalSelectedIds - initialSelectedIds
-                val toRemove = initialSelectedIds - finalSelectedIds
+            val toAdd = finalSelectedIds - initialSelectedIds
+            val toRemove = initialSelectedIds - finalSelectedIds
 
-                toAdd.forEach { listId ->
-                    addGameToListUseCase(game.id, listId)
-                }
-                toRemove.forEach { listId ->
-                    removeGameFromListUseCase(game.id, listId)
-                }
-
-                _uiState.update { it.copy(wishlistSelectorState = null) }
+            toAdd.forEach { listId ->
+                addGameToListUseCase(gameId, listId)
             }
+            toRemove.forEach { listId ->
+                removeGameFromListUseCase(gameId, listId)
+            }
+
+            _uiState.update { it.copy(wishlistSelectorState = null) }
         }
     }
 

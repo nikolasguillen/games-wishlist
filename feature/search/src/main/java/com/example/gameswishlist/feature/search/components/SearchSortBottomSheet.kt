@@ -1,6 +1,5 @@
 package com.example.gameswishlist.feature.search.components
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -49,11 +48,6 @@ fun SearchSortBottomSheet(
             sheetState = sheetState,
             modifier = modifier
         ) {
-            // Disable predictive back for this BS to avoid horizontal sliding animation
-            BackHandler(enabled = true) {
-                onEvent(SearchUiEvent.OnDismissSort)
-            }
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

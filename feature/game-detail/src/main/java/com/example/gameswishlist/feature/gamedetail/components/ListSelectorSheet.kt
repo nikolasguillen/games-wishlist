@@ -1,5 +1,6 @@
 package com.example.gameswishlist.feature.gamedetail.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,7 +41,7 @@ import com.example.gameswishlist.feature.gamedetail.model.WishlistListUiModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListSelectorSheet(
-    gameName: String,
+    gameName: UiText,
     list: List<WishlistListUiModel>,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
@@ -61,7 +62,7 @@ fun ListSelectorSheet(
                 modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium)
             )
             Text(
-                text = stringResource(R.string.select_list_subtitle, gameName),
+                text = stringResource(R.string.select_list_subtitle, gameName.asString()),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium)
@@ -96,7 +97,7 @@ fun ListSelectorSheet(
                 }
                 Spacer(modifier = Modifier.width(MaterialTheme.spacing.large))
                 Button(onClick = onConfirm) {
-                    Text(text = stringResource(R.string.add_label))
+                    Text(text = stringResource(R.string.save_label))
                 }
             }
         }
@@ -105,9 +106,15 @@ fun ListSelectorSheet(
 
 @Composable
 private fun WishlistItem(
-    model: WishlistListUiModel, onCheckedChange: () -> Unit, modifier: Modifier = Modifier
+    model: WishlistListUiModel,
+    onCheckedChange: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     OutlinedCard(
+        border = BorderStroke(
+            1.dp,
+            if (model.isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+        ),
         modifier = modifier
             .padding(MaterialTheme.spacing.small)
             .clip(MaterialTheme.shapes.medium)
@@ -143,7 +150,7 @@ private fun WishlistItem(
 fun ListSelectorSheetPreview() {
     GamesWishlistTheme {
         ListSelectorSheet(
-            gameName = "The Witcher 3", list = listOf(
+            gameName = UiText.DynamicString("The Witcher 3"), list = listOf(
                 WishlistListUiModel(1, UiText.DynamicString("Playing"), isSelected = true),
                 WishlistListUiModel(2, UiText.DynamicString("Completed"), isSelected = false),
                 WishlistListUiModel(3, UiText.DynamicString("Backlog"), isSelected = false)

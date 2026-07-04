@@ -1,6 +1,5 @@
 package com.example.gameswishlist.feature.search.components
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -65,10 +64,6 @@ fun SearchFilterBottomSheet(
             sheetState = sheetState,
             modifier = modifier
         ) {
-            BackHandler(enabled = true) {
-                onEvent(SearchUiEvent.OnDismissFilters)
-            }
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
