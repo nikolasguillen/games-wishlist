@@ -26,7 +26,6 @@ import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 import com.example.gameswishlist.feature.gamedetail.model.ReleaseInfoUiModel
-import com.example.gameswishlist.feature.gamedetail.model.WishlistListUiModel
 
 @Composable
 fun GameDetailScreen(
