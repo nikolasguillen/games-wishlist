@@ -78,14 +78,23 @@ fun MainContent() {
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             AnimatedVisibility(
-                visible = backStack.last() is SearchRoute || backStack.last() is ListsRoute,
+                visible = backStack.last() !is GameDetailRoute,
                 enter = slideInVertically(initialOffsetY = { it }),
                 exit = slideOutVertically(targetOffsetY = { it })
             ) {
                 GamesWishlistBottomBar(
                     backStack = backStack,
                     onNavigateToRoute = { route ->
-                        backStack.add(route)
+                        if (backStack.lastOrNull() != route) {
+                            // Pop everything back to the root (SearchRoute)
+                            while (backStack.size > 1) {
+                                backStack.removeLastOrNull()
+                            }
+                            // If the new route is not the root, add it
+                            if (route != SearchRoute) {
+                                backStack.add(route)
+                            }
+                        }
                     }
                 )
             }
