@@ -1,7 +1,6 @@
 package com.example.gameswishlist.feature.gamedetail.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
@@ -128,10 +128,11 @@ private fun WishlistItem(
                     MaterialTheme.spacing.medium
                 )
         ) {
-            Image(
-                painter = painterResource(R.drawable.placeholder),
+            Icon(
+                painter = painterResource(model.iconRes),
                 contentDescription = null,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(24.dp),
+                tint = if (model.isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = model.name.asString(),
@@ -151,9 +152,9 @@ fun ListSelectorSheetPreview() {
     GamesWishlistTheme {
         ListSelectorSheet(
             gameName = UiText.DynamicString("The Witcher 3"), list = listOf(
-                WishlistListUiModel(1, UiText.DynamicString("Playing"), isSelected = true),
-                WishlistListUiModel(2, UiText.DynamicString("Completed"), isSelected = false),
-                WishlistListUiModel(3, UiText.DynamicString("Backlog"), isSelected = false)
+                WishlistListUiModel(1, UiText.DynamicString("Playing"), R.drawable.ic_wishlist_playing, isSelected = true),
+                WishlistListUiModel(2, UiText.DynamicString("Completed"), R.drawable.ic_wishlist_completed, isSelected = false),
+                WishlistListUiModel(3, UiText.DynamicString("Backlog"), R.drawable.ic_wishlist_backlog, isSelected = false)
             ), onDismiss = {}, onConfirm = {}, onToggleList = {})
     }
 }

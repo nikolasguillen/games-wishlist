@@ -2,6 +2,7 @@ package com.example.gameswishlist.core.database.util
 
 import androidx.room.TypeConverter
 import com.example.gameswishlist.core.model.GameStatus
+import com.example.gameswishlist.core.model.WishlistIcon
 
 class Converters {
     @TypeConverter
@@ -12,6 +13,16 @@ class Converters {
     @TypeConverter
     fun toGameStatus(status: String?): GameStatus? {
         return status?.let { GameStatus.valueOf(it) }
+    }
+
+    @TypeConverter
+    fun fromWishlistIcon(icon: WishlistIcon?): String? {
+        return icon?.name
+    }
+
+    @TypeConverter
+    fun toWishlistIcon(icon: String?): WishlistIcon? {
+        return icon?.let { WishlistIcon.valueOf(it) }
     }
 
     @TypeConverter

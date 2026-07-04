@@ -8,7 +8,9 @@ import com.example.gameswishlist.core.database.GamesWishlistDatabase
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
 import com.example.gameswishlist.core.database.dao.SearchHistoryDao
+import com.example.gameswishlist.core.database.util.Converters
 import com.example.gameswishlist.core.model.WishlistConstants
+import com.example.gameswishlist.core.model.WishlistIcon
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -35,8 +37,9 @@ object DatabaseModule {
                     val defaultName = context.getString(DatabaseR.string.default_wishlist_name)
                     val defaultDescription =
                         context.getString(DatabaseR.string.default_wishlist_description)
+                    val defaultIcon = Converters().fromWishlistIcon(WishlistIcon.HEART)
                     db.execSQL(
-                        "INSERT INTO wishlists (id, name, description) VALUES (${WishlistConstants.DEFAULT_WISHLIST_ID}, '$defaultName', '$defaultDescription')"
+                        "INSERT INTO wishlists (id, name, description, icon) VALUES (${WishlistConstants.DEFAULT_WISHLIST_ID}, '$defaultName', '$defaultDescription', '$defaultIcon')"
                     )
                 }
             })

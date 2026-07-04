@@ -4,5 +4,6 @@ data class WishlistList(
     val id: Long = 0,
     val name: String,
     val description: String = "",
+    val icon: WishlistIcon? = null,
     val gameCount: Int = 0
 )

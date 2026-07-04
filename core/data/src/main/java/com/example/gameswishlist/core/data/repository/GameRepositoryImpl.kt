@@ -186,7 +186,7 @@ class GameRepositoryImpl @Inject constructor(
 
     override fun getAllLists(): Flow<List<WishlistList>> {
         return listDao.getAllLists().map { entities ->
-            entities.map { WishlistList(it.id, it.name, it.description) }
+            entities.map { WishlistList(it.id, it.name, it.description, it.icon) }
         }
     }
 
