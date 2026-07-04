@@ -11,6 +11,7 @@ import com.example.gameswishlist.core.domain.usecase.list.RemoveGameFromListUseC
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
+import com.example.gameswishlist.core.model.WishlistConstants
 import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.mapper.toUiModel
@@ -181,6 +182,16 @@ class GameDetailViewModel @AssistedInject constructor(
             }
             toRemove.forEach { listId ->
                 removeGameFromListUseCase(gameId, listId)
+            }
+
+            // Sync isWishlisted flag if the default wishlist status changed
+            val isDefaultWishlisted = finalSelectedIds.contains(WishlistConstants.DEFAULT_WISHLIST_ID)
+            currentGame?.let { game ->
+                if (game.isWishlisted != isDefaultWishlisted) {
+                    val updatedGame = game.copy(isWishlisted = isDefaultWishlisted)
+                    currentGame = updatedGame
+                    updateContentState(updatedGame)
+                }
             }
 
             _uiState.update { it.copy(wishlistSelectorState = null) }

@@ -1,8 +1,11 @@
 package com.example.gameswishlist.feature.gamedetail.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -110,10 +113,13 @@ private fun WishlistItem(
     onCheckedChange: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val outlineColor =
+        if (model.isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+
     OutlinedCard(
         border = BorderStroke(
             1.dp,
-            if (model.isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+            outlineColor
         ),
         modifier = modifier
             .padding(MaterialTheme.spacing.small)
@@ -128,18 +134,35 @@ private fun WishlistItem(
                     MaterialTheme.spacing.medium
                 )
         ) {
-            Icon(
-                painter = painterResource(model.iconRes),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = if (model.isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(48.dp)
+                    .border(
+                        width = 1.dp,
+                        color = outlineColor,
+                        shape = MaterialTheme.shapes.small
+                    )
+                    .background(
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f),
+                        shape = MaterialTheme.shapes.small
+                    )
+            ) {
+                Icon(
+                    painter = painterResource(model.iconRes),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = if (model.isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.width(MaterialTheme.spacing.medium))
             Text(
                 text = model.name.asString(),
                 modifier = Modifier
                     .padding(MaterialTheme.spacing.medium)
                     .weight(1f)
             )
+            Spacer(modifier = Modifier.width(MaterialTheme.spacing.medium))
             Checkbox(
                 checked = model.isSelected, onCheckedChange = { onCheckedChange() })
         }
@@ -152,9 +175,24 @@ fun ListSelectorSheetPreview() {
     GamesWishlistTheme {
         ListSelectorSheet(
             gameName = UiText.DynamicString("The Witcher 3"), list = listOf(
-                WishlistListUiModel(1, UiText.DynamicString("Playing"), R.drawable.ic_wishlist_playing, isSelected = true),
-                WishlistListUiModel(2, UiText.DynamicString("Completed"), R.drawable.ic_wishlist_completed, isSelected = false),
-                WishlistListUiModel(3, UiText.DynamicString("Backlog"), R.drawable.ic_wishlist_backlog, isSelected = false)
+                WishlistListUiModel(
+                    1,
+                    UiText.DynamicString("Playing"),
+                    R.drawable.ic_wishlist_playing,
+                    isSelected = true
+                ),
+                WishlistListUiModel(
+                    2,
+                    UiText.DynamicString("Completed"),
+                    R.drawable.ic_wishlist_completed,
+                    isSelected = false
+                ),
+                WishlistListUiModel(
+                    3,
+                    UiText.DynamicString("Backlog"),
+                    R.drawable.ic_wishlist_backlog,
+                    isSelected = false
+                )
             ), onDismiss = {}, onConfirm = {}, onToggleList = {})
     }
 }
