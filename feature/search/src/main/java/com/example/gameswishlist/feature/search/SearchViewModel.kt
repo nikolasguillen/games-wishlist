@@ -16,6 +16,7 @@ import com.example.gameswishlist.core.domain.usecase.search.RemoveRecentGameUseC
 import com.example.gameswishlist.core.domain.usecase.search.SearchGamesUseCase
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.SearchSuggestion
+import com.example.gameswishlist.core.ui.mapper.getDisplayRating
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
 import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.feature.search.mapper.getInitialGameTypeFilters
@@ -355,8 +356,17 @@ class SearchViewModel @Inject constructor(
             }
 
             SearchSort.RATING -> {
-                if (currentSort.descending) games.sortedByDescending { it.rating }
-                else games.sortedBy { it.rating }
+                if (currentSort.descending) {
+                    games.sortedWith(
+                        compareByDescending<Game> { it.getDisplayRating() }
+                            .thenByDescending { it.ratingCount }
+                    )
+                } else {
+                    games.sortedWith(
+                        compareBy<Game> { it.getDisplayRating() }
+                            .thenBy { it.ratingCount }
+                    )
+                }
             }
 
             SearchSort.RELEASE_DATE -> {
