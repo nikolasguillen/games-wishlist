@@ -1,89 +1,89 @@
 # Games Wishlist 🎮
 
-**Games Wishlist** è un'applicazione Android moderna e modulare progettata per tracciare la propria collezione di videogiochi, gestire il proprio backlog e scoprire nuovi titoli sfruttando le API di **IGDB**.
+**Games Wishlist** is a modern and modular Android application designed to track your video game collection, manage your backlog, and discover new titles using the **IGDB** APIs.
 
-Il progetto è costruito seguendo i più alti standard di sviluppo Android, con un'architettura **Clean** e un flusso di dati unidirezionale (**UDF**).
+The project is built following the highest Android development standards, with a **Clean Architecture** and unidirectional data flow (**UDF**).
 
 ---
 
-## ✨ Caratteristiche
+## ✨ Features
 
-- **Ricerca Avanzata**: Esplora il database IGDB per trovare i tuoi titoli preferiti.
-- **Gestione Backlog**: Salva i giochi nella tua Wishlist personale.
-- **Dettagli Personalizzati**: Aggiungi note, imposta la priorità e aggiorna lo stato di completamento per ogni gioco.
-- **Persistenza Locale**: Tutti i tuoi dati sono salvati localmente per una consultazione offline rapida.
-- **UI Moderna**: Interfaccia interamente in **Jetpack Compose** con supporto a Material Design 3 e animazioni fluide.
-- **Cronologia di Ricerca**: Accesso rapido alle tue ultime ricerche effettuate.
+- **Advanced Search**: Explore the IGDB database to find your favorite titles.
+- **Backlog Management**: Save games to your personal Wishlist.
+- **Customized Details**: Add notes, set priority, and update the completion status for each game.
+- **Local Persistence**: All your data is saved locally for quick offline consultation.
+- **Modern UI**: Interface built entirely with **Jetpack Compose**, featuring Material Design 3 and smooth animations.
+- **Search History**: Quick access to your latest searches.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Linguaggio**: [Kotlin](https://kotlinlang.org/)
+- **Language**: [Kotlin](https://kotlinlang.org/)
 - **UI**: [Jetpack Compose](https://developer.android.com/jetpack/compose)
 - **Dependency Injection**: [Hilt](https://developer.android.com/training/dependency-injection/hilt-android)
 - **Networking**: [Retrofit](https://square.github.io/retrofit/) & [Moshi](https://github.com/square/moshi)
 - **Database**: [Room](https://developer.android.com/training/data-storage/room)
-- **Navigazione**: [AndroidX Navigation 3](https://developer.android.com/guide/navigation)
-- **Asincronia**: Kotlin Coroutines & Flow
-- **Immagini**: [Coil](https://coil-kt.github.io/coil/)
+- **Navigation**: [AndroidX Navigation 3](https://developer.android.com/guide/navigation)
+- **Asynchrony**: Kotlin Coroutines & Flow
+- **Images**: [Coil](https://coil-kt.github.io/coil/)
 
 ---
 
-## 🏗️ Architettura e Modularizzazione
+## 🏗️ Architecture and Modularization
 
-Il progetto segue una struttura **multi-modulo** per garantire scalabilità e separazione delle responsabilità:
+The project follows a **multi-module** structure to ensure scalability and separation of concerns:
 
-### Moduli Feature
-- `:feature:search`: Gestione della ricerca e dei filtri.
-- `:feature:game-detail`: Visualizzazione dettagliata e gestione dei metadati personali (note, stato, priorità).
-- `:feature:wishlist` & `:feature:lists`: Organizzazione delle collezioni dell'utente.
+### Feature Modules
+- `:feature:search`: Search and filter management.
+- `:feature:game-detail`: Detailed view and personal metadata management (notes, status, priority).
+- `:feature:wishlist` & `:feature:lists`: Organization of user collections.
 
-### Moduli Core
-- `:core:domain`: Contiene la logica di business pura e gli Use Case.
-- `:core:data`: Implementazione dei repository e mappatura dei dati tra rete e database.
-- `:core:network`: Client per le API esterne (IGDB).
-- `:core:database`: Gestione della persistenza locale con Room.
-- `:core:ui`: Componenti Compose riutilizzabili e modelli UI.
-- `:core:designsystem`: Token di design, temi, colori e icone.
-- `:core:model`: Modelli di dominio condivisi tra i moduli.
-
----
-
-## 📐 Principi di Sviluppo
-
-- **Unidirectional Data Flow (UDF)**: Ogni schermata è gestita da un `UiState` unico esposto dal ViewModel tramite `StateFlow`.
-- **Clean Architecture**: Netta separazione tra i dati (Data), la logica di business (Domain) e la presentazione (UI).
-- **Mappers**: Trasformazione dei dati tra i vari livelli (Network -> Domain -> Database) per evitare accoppiamento.
-- **Localization Ready**: Utilizzo di `UiText` per gestire le stringhe in modo agnostico dal contesto, facilitando la localizzazione.
-- **Type Safety**: Navigazione basata su classi serializzabili per un passaggio di parametri sicuro tra le schermate.
+### Core Modules
+- `:core:domain`: Contains pure business logic and Use Cases.
+- `:core:data`: Repository implementation and data mapping between network and database.
+- `:core:network`: Client for external APIs (IGDB).
+- `:core:database`: Local persistence management with Room.
+- `:core:ui`: Reusable Compose components and UI models.
+- `:core:designsystem`: Design tokens, themes, colors, and icons.
+- `:core:model`: Shared domain models between modules.
 
 ---
 
-## 🚀 Come iniziare
+## 📐 Development Principles
 
-### Prerequisiti
-- Android Studio Ladybug o superiore.
-- Una API Key di [IGDB (Twitch Developers)](https://api-docs.igdb.com/).
+- **Unidirectional Data Flow (UDF)**: Each screen is managed by a unique `UiState` exposed by the ViewModel via `StateFlow`.
+- **Clean Architecture**: Clear separation between data (Data), business logic (Domain), and presentation (UI).
+- **Mappers**: Data transformation between layers (Network -> Domain -> Database) to avoid coupling.
+- **Localization Ready**: Use of `UiText` to manage strings context-agnostically, facilitating localization.
+- **Type Safety**: Navigation based on serializable classes for safe parameter passing between screens.
 
-### Installazione
-1. Clona il repository:
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Android Studio Ladybug or higher.
+- An API Key from [IGDB (Twitch Developers)](https://api-docs.igdb.com/).
+
+### Installation
+1. Clone the repository:
    ```bash
-   git clone https://github.com/tuo-username/games-wishlist.git
+   git clone https://github.com/nikolasguillen/games-wishlist
    ```
-2. Inserisci le tue credenziali IGDB nel file `local.properties`:
+2. Enter your IGDB credentials in the `local.properties` file:
    ```properties
-   IGDB_CLIENT_ID=tua_client_id
-   IGDB_CLIENT_SECRET=tuo_client_secret
+   IGDB_CLIENT_ID=your_client_id
+   IGDB_CLIENT_SECRET=your_client_secret
    ```
-3. Sincronizza il progetto con Gradle ed esegui l'app su un emulatore o dispositivo fisico.
+3. Sync the project with Gradle and run the app on an emulator or physical device.
 
 ---
 
-## 📄 Licenza
+## 📄 License
 
-Questo progetto è distribuito sotto la licenza MIT. Vedi il file `LICENSE` per dettagli.
+This project is distributed under the MIT license. See the `LICENSE` file for details.
 
 ---
 
-**Disclaimer**: *Questa app utilizza le API di IGDB ma non è ufficialmente affiliata o approvata da IGDB/Twitch.*
+**Disclaimer**: *This app uses the IGDB APIs but is not officially affiliated with or endorsed by IGDB/Twitch.*
