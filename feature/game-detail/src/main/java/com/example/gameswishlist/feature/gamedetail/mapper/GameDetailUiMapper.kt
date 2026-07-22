@@ -4,24 +4,25 @@ import com.example.gameswishlist.core.common.DateUtils
 import com.example.gameswishlist.core.domain.model.WishlistAssignment
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
+import com.example.gameswishlist.core.model.Platform
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.model.WishlistIcon
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.mapper.getDisplayRating
 import com.example.gameswishlist.core.ui.mapper.getRatingUiText
-import com.example.gameswishlist.core.ui.mapper.getShortPlatformLabel
 import com.example.gameswishlist.core.ui.mapper.toGameItem
 import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.PlatformVisuals
+import com.example.gameswishlist.feature.gamedetail.model.AvailabilityUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameStatusUiModel
+import com.example.gameswishlist.feature.gamedetail.model.PlatformReleaseDateUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PlatformTileUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PriorityUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RelatedGamesUiModel
-import com.example.gameswishlist.feature.gamedetail.model.ReleaseInfoUiModel
 import com.example.gameswishlist.feature.gamedetail.model.WishlistListUiModel
 import java.util.Locale
 
@@ -91,27 +92,36 @@ fun Game.toUiModel(): GameDetailUiModel {
         publishers.joinToString(", ") { it.name }.takeIf { it.isNotEmpty() }
     ).joinToString(", ")
 
-    val uiReleaseDates = releaseDates
-        .sortedBy { it.date }
+    val platformsById = platforms.associateBy { it.id }
+
+    val detailedReleaseDates = releaseDates
+        .sortedByDescending { platformsById[it.platformId]?.generation ?: Int.MIN_VALUE }
         .map {
-            val dateString = it.date?.let { date ->
-                UiText.DynamicString(DateUtils.formatUnixTimestamp(date))
-            } ?: run {
-                UiText.StringResource(com.example.gameswishlist.feature.gamedetail.R.string.tba)
-            }
-            UiText.StringResource(
-                R.string.platform_date_format,
-                it.platformName.getShortPlatformLabel(),
-                dateString
+            val platform = platformsById[it.platformId] ?: Platform(
+                id = it.platformId,
+                name = it.platformName
+            )
+            val style = PlatformVisuals.styleFor(platform)
+            PlatformReleaseDateUiModel(
+                platformId = platform.id,
+                platformName = UiText.DynamicString(platform.name),
+                code = style.code,
+                color = style.color,
+                date = it.date?.let { date -> UiText.DynamicString(DateUtils.formatUnixTimestamp(date)) }
+                    ?: UiText.StringResource(com.example.gameswishlist.feature.gamedetail.R.string.tba)
             )
         }
 
-    val releaseInfo = ReleaseInfoUiModel(
+    val availability = AvailabilityUiModel(
         mainDate = DateUtils.formatIsoDate(releaseDate)?.let { UiText.DynamicString(it) }
             ?: UiText.StringResource(com.example.gameswishlist.feature.gamedetail.R.string.tba),
-        detailedMessage = if (uiReleaseDates.isNotEmpty()) {
-            UiText.CompoundString(uiReleaseDates, separator = "\n")
-        } else null,
+        platforms = platforms
+            .sortedByDescending { it.generation ?: Int.MIN_VALUE }
+            .map {
+                val style = PlatformVisuals.styleFor(it)
+                PlatformTileUiModel(id = it.id, code = style.code, color = style.color)
+            },
+        detailedDates = detailedReleaseDates,
         isExpandable = releaseDates.map { it.date }.distinct().size > 1
     )
 
@@ -122,13 +132,7 @@ fun Game.toUiModel(): GameDetailUiModel {
         images = listOfNotNull(backgroundImage) + artworks,
         gameType = gameType.toUiText(),
         rating = ratingModel,
-        releaseInfo = releaseInfo,
-        platforms = platforms
-            .sortedByDescending { it.generation ?: Int.MIN_VALUE }
-            .map {
-                val style = PlatformVisuals.styleFor(it)
-                PlatformTileUiModel(id = it.id, code = style.code, color = style.color)
-            },
+        availability = availability,
         genres = genres.map { UiText.DynamicString(it.name) },
         companyInfo = UiText.DynamicString(companies),
         isWishlisted = isWishlisted,

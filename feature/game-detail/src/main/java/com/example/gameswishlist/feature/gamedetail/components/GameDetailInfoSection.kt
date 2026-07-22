@@ -12,9 +12,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.feature.gamedetail.model.AvailabilityUiModel
+import com.example.gameswishlist.feature.gamedetail.model.PlatformReleaseDateUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PlatformTileUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
-import com.example.gameswishlist.feature.gamedetail.model.ReleaseInfoUiModel
 
 /**
  * A section displaying detailed game information like description and ratings.
@@ -23,8 +24,7 @@ import com.example.gameswishlist.feature.gamedetail.model.ReleaseInfoUiModel
 fun GameDetailInfoSection(
     description: UiText,
     rating: RatingUiModel?,
-    releaseInfo: ReleaseInfoUiModel,
-    platforms: List<PlatformTileUiModel>,
+    availability: AvailabilityUiModel,
     modifier: Modifier = Modifier
 ) {
     val descriptionString = description.asString()
@@ -37,7 +37,7 @@ fun GameDetailInfoSection(
         }
 
         // Release Info Card (also carries the platform tile strip)
-        GameReleaseInfoCard(releaseInfo = releaseInfo, platforms = platforms)
+        GameReleaseInfoCard(availability = availability)
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
 
         // Description
@@ -66,15 +66,30 @@ private fun GameDetailInfoSectionPreview() {
                 ratingCount = UiText.DynamicString("450"),
                 ratingCountLabel = UiText.DynamicString("Ratings")
             ),
-            releaseInfo = ReleaseInfoUiModel(
+            availability = AvailabilityUiModel(
                 mainDate = UiText.DynamicString("May 20th, 2026"),
-                detailedMessage = UiText.DynamicString("May 20th, 2026\nMay 20th, 2026\nMay 20th, 2026"),
+                platforms = listOf(
+                    PlatformTileUiModel(id = 1, code = UiText.DynamicString("PC"), color = Color(0xFF5E5E5E)),
+                    PlatformTileUiModel(id = 2, code = UiText.DynamicString("PS5"), color = Color(0xFF2E4EA6)),
+                    PlatformTileUiModel(id = 3, code = UiText.DynamicString("XSX"), color = Color(0xFF107C10))
+                ),
+                detailedDates = listOf(
+                    PlatformReleaseDateUiModel(
+                        platformId = 1,
+                        platformName = UiText.DynamicString("PC (Microsoft Windows)"),
+                        code = UiText.DynamicString("PC"),
+                        color = Color(0xFF5E5E5E),
+                        date = UiText.DynamicString("May 20th, 2026")
+                    ),
+                    PlatformReleaseDateUiModel(
+                        platformId = 2,
+                        platformName = UiText.DynamicString("PlayStation 5"),
+                        code = UiText.DynamicString("PS5"),
+                        color = Color(0xFF2E4EA6),
+                        date = UiText.DynamicString("May 20th, 2026")
+                    )
+                ),
                 isExpandable = true
-            ),
-            platforms = listOf(
-                PlatformTileUiModel(id = 1, code = UiText.DynamicString("PC"), color = Color(0xFF5E5E5E)),
-                PlatformTileUiModel(id = 2, code = UiText.DynamicString("PS5"), color = Color(0xFF2E4EA6)),
-                PlatformTileUiModel(id = 3, code = UiText.DynamicString("XSX"), color = Color(0xFF107C10))
             )
         )
     }

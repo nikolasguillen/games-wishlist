@@ -19,6 +19,7 @@ import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.components.GameDetailMainContent
 import com.example.gameswishlist.feature.gamedetail.components.ListSelectorSheet
 import com.example.gameswishlist.feature.gamedetail.mapper.toUiModel
+import com.example.gameswishlist.feature.gamedetail.model.AvailabilityUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailContentState
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEffect
@@ -27,7 +28,6 @@ import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
 import com.example.gameswishlist.feature.gamedetail.model.PlatformTileUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
-import com.example.gameswishlist.feature.gamedetail.model.ReleaseInfoUiModel
 
 @Composable
 fun GameDetailScreen(
@@ -115,16 +115,16 @@ fun GameDetailContentSuccessPreview() {
                             ratingCount = UiText.DynamicString("450"),
                             ratingCountLabel = UiText.StringResource(R.string.rating_count_title)
                         ),
-                        releaseInfo = ReleaseInfoUiModel(
+                        availability = AvailabilityUiModel(
                             mainDate = UiText.DynamicString("May 19, 2015"),
-                            detailedMessage = null,
+                            platforms = listOf(
+                                PlatformTileUiModel(id = 1, code = UiText.DynamicString("PC"), color = Color(0xFF5E5E5E)),
+                                PlatformTileUiModel(id = 2, code = UiText.DynamicString("PS4"), color = Color(0xFF2E4EA6)),
+                                PlatformTileUiModel(id = 3, code = UiText.DynamicString("XB1"), color = Color(0xFF107C10)),
+                                PlatformTileUiModel(id = 4, code = UiText.DynamicString("SWI"), color = Color(0xFFE60012))
+                            ),
+                            detailedDates = emptyList(),
                             isExpandable = false
-                        ),
-                        platforms = listOf(
-                            PlatformTileUiModel(id = 1, code = UiText.DynamicString("PC"), color = Color(0xFF5E5E5E)),
-                            PlatformTileUiModel(id = 2, code = UiText.DynamicString("PS4"), color = Color(0xFF2E4EA6)),
-                            PlatformTileUiModel(id = 3, code = UiText.DynamicString("XB1"), color = Color(0xFF107C10)),
-                            PlatformTileUiModel(id = 4, code = UiText.DynamicString("SWI"), color = Color(0xFFE60012))
                         ),
                         genres = listOf("RPG", "Action").map { UiText.DynamicString(it) },
                         companyInfo = UiText.DynamicString("CD Projekt Red, CD Projekt"),

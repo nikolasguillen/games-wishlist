@@ -6,7 +6,6 @@
     <string name="developer_format">Developed by: %1s</string>
     <string name="publisher_format">Published by: %1s</string>
     <string name="platforms_format">Platforms: %1s</string>
-    <string name="platform_date_format">%1$s: %2$s</string>
     <string name="rating_not_defined">Rating: N/A</string>
 
     <!-- Date Suffixes -->

@@ -164,8 +164,7 @@ private fun GameDetailSheetContent(
             GameDetailInfoSection(
                 description = game.description,
                 rating = game.rating,
-                releaseInfo = game.releaseInfo,
-                platforms = game.platforms,
+                availability = game.availability,
                 modifier = horizontalPadding
             )
 

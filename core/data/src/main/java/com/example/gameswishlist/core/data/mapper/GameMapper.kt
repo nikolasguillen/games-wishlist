@@ -93,6 +93,7 @@ fun IgdbPlatform.toPlatform(): Platform {
 fun IgdbReleaseDate.toReleaseDate(): ReleaseDate {
     return ReleaseDate(
         date = date,
+        platformId = platform?.id ?: 0,
         platformName = platform?.name ?: "Unknown"
     )
 }
@@ -165,6 +166,7 @@ fun GameWithAllDetails.toGame(): Game {
         platforms = platformRefs.map { it.platform.toPlatform() },
         releaseDates = platformRefs.map {
             ReleaseDate(
+                platformId = it.platform.id,
                 platformName = it.platform.name,
                 date = it.crossRef.releaseDate
             )

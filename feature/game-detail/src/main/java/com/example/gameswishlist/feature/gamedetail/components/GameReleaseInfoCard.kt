@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
@@ -36,8 +37,11 @@ import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.component.CustomAlertDialog
 import com.example.gameswishlist.core.ui.component.CustomContentCard
 import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.feature.gamedetail.model.AvailabilityUiModel
+import com.example.gameswishlist.feature.gamedetail.model.PlatformReleaseDateUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PlatformTileUiModel
-import com.example.gameswishlist.feature.gamedetail.model.ReleaseInfoUiModel
+
+private val DIALOG_PLATFORM_TILE_SIZE = 24.dp
 
 private const val MAX_VISIBLE_PLATFORM_TILES = 4
 
@@ -47,15 +51,14 @@ private const val MAX_VISIBLE_PLATFORM_TILES = 4
  */
 @Composable
 internal fun GameReleaseInfoCard(
-    releaseInfo: ReleaseInfoUiModel,
-    platforms: List<PlatformTileUiModel>,
+    availability: AvailabilityUiModel,
     modifier: Modifier = Modifier
 ) {
     var showReleaseDatesDialog by rememberSaveable { mutableStateOf(false) }
 
     CustomContentCard(
         modifier = modifier.then(
-            if (releaseInfo.isExpandable) {
+            if (availability.isExpandable) {
                 Modifier.clickable { showReleaseDatesDialog = true }
             } else {
                 Modifier
@@ -74,17 +77,17 @@ internal fun GameReleaseInfoCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = releaseInfo.mainDate.asString(),
+                    text = availability.mainDate.asString(),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (platforms.isNotEmpty()) {
+                if (availability.platforms.isNotEmpty()) {
                     Spacer(modifier = Modifier.width(MaterialTheme.spacing.medium))
-                    PlatformTileRow(platforms = platforms)
+                    PlatformTileRow(platforms = availability.platforms)
                 }
-                if (releaseInfo.isExpandable) {
+                if (availability.isExpandable) {
                     Spacer(modifier = Modifier.width(MaterialTheme.spacing.small))
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
@@ -97,12 +100,48 @@ internal fun GameReleaseInfoCard(
         }
     }
 
-    if (showReleaseDatesDialog && releaseInfo.detailedMessage != null) {
+    if (showReleaseDatesDialog && availability.detailedDates.isNotEmpty()) {
         CustomAlertDialog(
             title = stringResource(R.string.release_dates_title),
-            message = releaseInfo.detailedMessage.asString(),
             confirmButtonText = stringResource(android.R.string.ok),
             onConfirm = { showReleaseDatesDialog = false }
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
+                availability.detailedDates.forEach { platformReleaseDate ->
+                    PlatformReleaseDateRow(platformReleaseDate = platformReleaseDate)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * A single row in the expanded release dates dialog: platform tile, full platform name and date.
+ */
+@Composable
+private fun PlatformReleaseDateRow(
+    platformReleaseDate: PlatformReleaseDateUiModel,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.smallMedium),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        PlatformTile(
+            code = platformReleaseDate.code,
+            color = platformReleaseDate.color,
+            size = DIALOG_PLATFORM_TILE_SIZE
+        )
+        Text(
+            text = platformReleaseDate.platformName.asString(),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = platformReleaseDate.date.asString(),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -140,12 +179,13 @@ private fun PlatformTileRow(
 private fun PlatformTile(
     code: UiText,
     color: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    size: Dp = 32.dp
 ) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .size(32.dp)
+            .size(size)
             .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
             .background(color)
     ) {
@@ -164,37 +204,52 @@ private fun PlatformTile(
 private fun GameReleaseInfoCardPreview() {
     GamesWishlistTheme {
         GameReleaseInfoCard(
-            releaseInfo = ReleaseInfoUiModel(
+            availability = AvailabilityUiModel(
                 mainDate = UiText.DynamicString("May 20th, 2026"),
-                detailedMessage = UiText.DynamicString("PC: May 20th, 2026\nPS5: May 22nd, 2026"),
+                platforms = listOf(
+                    PlatformTileUiModel(
+                        id = 1,
+                        code = UiText.DynamicString("PC"),
+                        color = Color(0xFF5E5E5E)
+                    ),
+                    PlatformTileUiModel(
+                        id = 2,
+                        code = UiText.DynamicString("PS5"),
+                        color = Color(0xFF2E4EA6)
+                    ),
+                    PlatformTileUiModel(
+                        id = 3,
+                        code = UiText.DynamicString("XSX"),
+                        color = Color(0xFF107C10)
+                    ),
+                    PlatformTileUiModel(
+                        id = 4,
+                        code = UiText.DynamicString("SWI"),
+                        color = Color(0xFFE60012)
+                    ),
+                    PlatformTileUiModel(
+                        id = 5,
+                        code = UiText.DynamicString("MAC"),
+                        color = Color(0xFF8E8E93)
+                    )
+                ),
+                detailedDates = listOf(
+                    PlatformReleaseDateUiModel(
+                        platformId = 1,
+                        platformName = UiText.DynamicString("PC (Microsoft Windows)"),
+                        code = UiText.DynamicString("PC"),
+                        color = Color(0xFF5E5E5E),
+                        date = UiText.DynamicString("May 20th, 2026")
+                    ),
+                    PlatformReleaseDateUiModel(
+                        platformId = 2,
+                        platformName = UiText.DynamicString("PlayStation 5"),
+                        code = UiText.DynamicString("PS5"),
+                        color = Color(0xFF2E4EA6),
+                        date = UiText.DynamicString("May 22nd, 2026")
+                    )
+                ),
                 isExpandable = true
-            ),
-            platforms = listOf(
-                PlatformTileUiModel(
-                    id = 1,
-                    code = UiText.DynamicString("PC"),
-                    color = Color(0xFF5E5E5E)
-                ),
-                PlatformTileUiModel(
-                    id = 2,
-                    code = UiText.DynamicString("PS5"),
-                    color = Color(0xFF2E4EA6)
-                ),
-                PlatformTileUiModel(
-                    id = 3,
-                    code = UiText.DynamicString("XSX"),
-                    color = Color(0xFF107C10)
-                ),
-                PlatformTileUiModel(
-                    id = 4,
-                    code = UiText.DynamicString("SWI"),
-                    color = Color(0xFFE60012)
-                ),
-                PlatformTileUiModel(
-                    id = 5,
-                    code = UiText.DynamicString("MAC"),
-                    color = Color(0xFF8E8E93)
-                )
             ),
             modifier = Modifier.padding(MaterialTheme.spacing.medium)
         )
@@ -206,22 +261,22 @@ private fun GameReleaseInfoCardPreview() {
 private fun GameReleaseInfoCardNoDatePreview() {
     GamesWishlistTheme {
         GameReleaseInfoCard(
-            releaseInfo = ReleaseInfoUiModel(
+            availability = AvailabilityUiModel(
                 mainDate = UiText.DynamicString("TBA"),
-                detailedMessage = null,
-                isExpandable = false
-            ),
-            platforms = listOf(
-                PlatformTileUiModel(
-                    id = 1,
-                    code = UiText.DynamicString("PC"),
-                    color = Color(0xFF5E5E5E)
+                platforms = listOf(
+                    PlatformTileUiModel(
+                        id = 1,
+                        code = UiText.DynamicString("PC"),
+                        color = Color(0xFF5E5E5E)
+                    ),
+                    PlatformTileUiModel(
+                        id = 2,
+                        code = UiText.DynamicString("PS5"),
+                        color = Color(0xFF2E4EA6)
+                    )
                 ),
-                PlatformTileUiModel(
-                    id = 2,
-                    code = UiText.DynamicString("PS5"),
-                    color = Color(0xFF2E4EA6)
-                )
+                detailedDates = emptyList(),
+                isExpandable = false
             ),
             modifier = Modifier.padding(MaterialTheme.spacing.medium)
         )
