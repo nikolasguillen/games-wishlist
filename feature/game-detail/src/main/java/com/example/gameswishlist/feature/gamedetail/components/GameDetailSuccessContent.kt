@@ -31,6 +31,7 @@ import com.example.gameswishlist.core.ui.component.ImmersiveDetailLayout
 import com.example.gameswishlist.core.ui.component.StatusBarProtection
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
+import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
 
 /**
@@ -47,12 +48,14 @@ internal fun GameDetailSuccessContent(
     var fullScreenImageIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     val pagerState = rememberPagerState(pageCount = { game.images.size })
     val scope = rememberCoroutineScope()
+    val hazeState = rememberHazeState()
 
     Box(modifier = modifier.fillMaxSize()) {
         ImmersiveDetailLayout(
             title = game.name.asString(),
             onBackClick = onBackClick,
             headerHeight = headerHeight,
+            hazeState = hazeState,
             modifier = Modifier.fillMaxSize(),
             heroContent = { scrollOffsetProvider ->
                 GameDetailHeroHeader(
@@ -78,6 +81,7 @@ internal fun GameDetailSuccessContent(
             onFavoriteClick = { onEvent(GameDetailUiEvent.ToggleFavorite) },
             onManageListClick = { onEvent(GameDetailUiEvent.OpenListSelector) },
             onShareClick = { onEvent(GameDetailUiEvent.ShareGame) },
+            hazeState = hazeState,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(MaterialTheme.spacing.large)

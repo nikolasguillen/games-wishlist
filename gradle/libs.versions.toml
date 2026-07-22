@@ -27,6 +27,7 @@ kotlinxCoroutinesTest = "1.11.0"
 core = "1.7.0"
 runner = "1.7.0"
 coilCompose = "2.7.0"
+haze = "1.7.2"
 retrofit = "3.0.0"
 converterMoshi = "3.0.0"
 kotlinxCoroutinesAndroid = "1.11.0"
@@ -80,6 +81,7 @@ androidx-compose-material3-versioned = { group = "androidx.compose.material3", n
 androidx-compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coilCompose" }
+haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 converter-moshi = { group = "com.squareup.retrofit2", name = "converter-moshi", version.ref = "converterMoshi" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }

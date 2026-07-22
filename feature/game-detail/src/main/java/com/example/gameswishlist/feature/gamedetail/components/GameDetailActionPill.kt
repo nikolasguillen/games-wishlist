@@ -35,6 +35,16 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.util.animatedMetallicBorder
 import com.example.gameswishlist.core.ui.util.brushedMetal
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.rememberHazeState
+
+private val PILL_HEIGHT = 76.dp
+private val PILL_WIDTH = 248.dp
+private val PILL_ROW_HEIGHT = 90.dp
+private val MAIN_ACTION_SIZE = 90.dp
+private val PLUS_ICON_SIZE = 40.dp
 
 /**
  * A floating action pill for the Game Detail screen.
@@ -46,8 +56,11 @@ internal fun GameDetailActionPill(
     onFavoriteClick: () -> Unit,
     onManageListClick: () -> Unit,
     onShareClick: () -> Unit,
+    hazeState: HazeState,
     modifier: Modifier = Modifier
 ) {
+    val pillTintColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+
     Box(
         modifier = modifier
             .clickable(
@@ -58,18 +71,20 @@ internal fun GameDetailActionPill(
     ) {
         Box(
             modifier = Modifier
-                .height(60.dp)
+                .height(PILL_HEIGHT)
+                .width(PILL_WIDTH)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f))
+                .hazeEffect(state = hazeState) {
+                    tints = listOf(HazeTint(pillTintColor))
+                }
                 .animatedMetallicBorder(width = 2.dp, shape = CircleShape)
-                .width(200.dp)
                 .align(Alignment.Center)
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier
-                .height(72.dp)
+                .height(PILL_ROW_HEIGHT)
                 .align(Alignment.Center)
         ) {
             // Favorite Action
@@ -89,12 +104,12 @@ internal fun GameDetailActionPill(
                 onClick = onManageListClick,
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-                    .size(72.dp)
+                    .size(MAIN_ACTION_SIZE)
                     .animatedMetallicBorder(width = 2.dp, shape = CircleShape)
                     .padding(MaterialTheme.spacing.smallMedium)
                     .brushedMetal(shape = CircleShape, baseColor = Color.Gray, animateOnce = true)
             ) {
-                MachinedPlusIcon(color = Color.Black, modifier = Modifier.size(32.dp))
+                MachinedPlusIcon(color = Color.Black, modifier = Modifier.size(PLUS_ICON_SIZE))
             }
 
             // Share Action
@@ -150,7 +165,8 @@ private fun GameDetailActionPillPreview() {
             isFavorite = true,
             onFavoriteClick = {},
             onManageListClick = {},
-            onShareClick = {}
+            onShareClick = {},
+            hazeState = rememberHazeState()
         )
     }
 }
