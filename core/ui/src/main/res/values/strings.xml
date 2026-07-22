@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="rating_format">Rating: %1$d/100</string>
     <string name="release_date_format">Released on: %1$s</string>
     <string name="unknown_release_date">Unknown release date</string>
@@ -93,7 +93,7 @@
     <string name="main_release_date_title">Release date</string>
 
     <!-- Platform Codes (compact, max 3 characters, for icon tiles) -->
-    <string name="platform_code_ps1">PS1</string>
+    <string name="platform_code_ps1" tools:ignore="Typos">PS1</string>
     <string name="platform_code_ps3">PS3</string>
     <string name="platform_code_ps4">PS4</string>
     <string name="platform_code_ps5">PS5</string>
@@ -101,7 +101,7 @@
     <string name="platform_code_psv">PSV</string>
     <string name="platform_code_xbx">XBX</string>
     <string name="platform_code_x360">360</string>
-    <string name="platform_code_xb1">XB1</string>
+    <string name="platform_code_xb1" tools:ignore="Typos">XB1</string>
     <string name="platform_code_xsx">XSX</string>
     <string name="platform_code_n64">N64</string>
     <string name="platform_code_wii">WII</string>
