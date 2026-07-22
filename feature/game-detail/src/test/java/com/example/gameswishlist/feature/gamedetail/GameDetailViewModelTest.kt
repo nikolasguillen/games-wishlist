@@ -2,6 +2,7 @@ package com.example.gameswishlist.feature.gamedetail
 
 import com.example.gameswishlist.core.domain.model.WishlistAssignment
 import com.example.gameswishlist.core.domain.usecase.GetGameDetailUseCase
+import com.example.gameswishlist.core.domain.usecase.RefreshGameDetailUseCase
 import com.example.gameswishlist.core.domain.usecase.ToggleWishlistUseCase
 import com.example.gameswishlist.core.domain.usecase.UpdateGameUseCase
 import com.example.gameswishlist.core.domain.usecase.list.AddGameToListUseCase
@@ -12,7 +13,6 @@ import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.model.RepositoryError
-import com.example.gameswishlist.core.model.WishlistConstants
 import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailContentState
@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -41,12 +40,20 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+/**
+ * [GameDetailViewModel] observes the game reactively from [GetGameDetailUseCase] (a Flow) and
+ * only ever forwards mutations to the persistence use cases -- it does not mirror the game
+ * locally. Since these mocks don't simulate a real reactive repository, the mutation tests below
+ * verify the use case was called with the correctly computed argument, not a resulting uiState
+ * change: that reactive wiring belongs to GameRepositoryImpl, tested separately at the data layer.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 class GameDetailViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
 
     private val getGameDetailUseCase = mockk<GetGameDetailUseCase>()
+    private val refreshGameDetailUseCase = mockk<RefreshGameDetailUseCase>()
     private val updateGameUseCase = mockk<UpdateGameUseCase>(relaxed = true)
     private val toggleWishlistUseCase = mockk<ToggleWishlistUseCase>(relaxed = true)
     private val getWishlistAssignmentsUseCase = mockk<GetWishlistAssignmentsUseCase>()
@@ -56,6 +63,7 @@ class GameDetailViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+        coEvery { refreshGameDetailUseCase(any()) } returns AppResult.success(Unit)
     }
 
     @After
@@ -79,10 +87,11 @@ class GameDetailViewModelTest {
     )
 
     private fun TestScope.createViewModel(game: Game = testGame()): GameDetailViewModel {
-        coEvery { getGameDetailUseCase(game.id) } returns AppResult.Success(game)
+        every { getGameDetailUseCase(game.id) } returns flowOf(game)
         return GameDetailViewModel(
             gameId = game.id,
             getGameDetailUseCase = getGameDetailUseCase,
+            refreshGameDetailUseCase = refreshGameDetailUseCase,
             updateGameUseCase = updateGameUseCase,
             toggleWishlistUseCase = toggleWishlistUseCase,
             getWishlistAssignmentsUseCase = getWishlistAssignmentsUseCase,
@@ -95,7 +104,7 @@ class GameDetailViewModelTest {
         uiState.value.contentState as GameDetailContentState.Success
 
     @Test
-    fun `loadGame maps a successful result into Success content state`() = runTest(testDispatcher) {
+    fun `observing the game maps a cached value into Success content state`() = runTest(testDispatcher) {
         val game = testGame()
 
         val viewModel = createViewModel(game)
@@ -106,12 +115,14 @@ class GameDetailViewModelTest {
     }
 
     @Test
-    fun `loadGame maps a failure into Error content state`() = runTest(testDispatcher) {
-        coEvery { getGameDetailUseCase(GAME_ID) } returns AppResult.Failure(RepositoryError.NoNetwork)
+    fun `Error content state is shown when nothing is cached and refresh fails`() = runTest(testDispatcher) {
+        every { getGameDetailUseCase(GAME_ID) } returns flowOf(null)
+        coEvery { refreshGameDetailUseCase(GAME_ID) } returns AppResult.failure(RepositoryError.NoNetwork)
 
         val viewModel = GameDetailViewModel(
             gameId = GAME_ID,
             getGameDetailUseCase = getGameDetailUseCase,
+            refreshGameDetailUseCase = refreshGameDetailUseCase,
             updateGameUseCase = updateGameUseCase,
             toggleWishlistUseCase = toggleWishlistUseCase,
             getWishlistAssignmentsUseCase = getWishlistAssignmentsUseCase,
@@ -124,14 +135,22 @@ class GameDetailViewModelTest {
     }
 
     @Test
-    fun `updatePriority sets the selected priority and persists it`() = runTest(testDispatcher) {
+    fun `Success is kept when a refresh fails but the game is already cached`() = runTest(testDispatcher) {
+        val game = testGame()
+        coEvery { refreshGameDetailUseCase(game.id) } returns AppResult.failure(RepositoryError.NoNetwork)
+
+        val viewModel = createViewModel(game)
+
+        assertTrue(viewModel.uiState.value.contentState is GameDetailContentState.Success)
+    }
+
+    @Test
+    fun `updatePriority persists the newly selected priority`() = runTest(testDispatcher) {
         val viewModel = createViewModel(testGame(priority = null))
 
         viewModel.onEvent(GameDetailUiEvent.UpdatePriority(Priority.HIGH.id))
         advanceUntilIdle()
 
-        val priorities = viewModel.successState().game.personalDetails.availablePriorities
-        assertTrue(priorities.first { it.id == Priority.HIGH.id }.selected)
         coVerify { updateGameUseCase(match { it.priority == Priority.HIGH }) }
     }
 
@@ -142,8 +161,6 @@ class GameDetailViewModelTest {
         viewModel.onEvent(GameDetailUiEvent.UpdatePriority(Priority.HIGH.id))
         advanceUntilIdle()
 
-        val priorities = viewModel.successState().game.personalDetails.availablePriorities
-        assertTrue(priorities.none { it.selected })
         coVerify { updateGameUseCase(match { it.priority == null }) }
     }
 
@@ -154,35 +171,28 @@ class GameDetailViewModelTest {
         viewModel.onEvent(GameDetailUiEvent.UpdateStatus(GameStatus.PLAYING.id))
         advanceUntilIdle()
 
-        val statuses = viewModel.successState().game.personalDetails.availableStatuses
-        assertTrue(statuses.none { it.selected })
         coVerify { updateGameUseCase(match { it.status == null }) }
     }
 
     @Test
-    fun `toggleFavorite flips isWishlisted and calls the use case with the previous state`() = runTest(testDispatcher) {
-        val viewModel = createViewModel(testGame(isWishlisted = false))
+    fun `updateNotes persists the new notes`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onEvent(GameDetailUiEvent.UpdateNotes("new notes"))
+        advanceUntilIdle()
+
+        coVerify { updateGameUseCase(match { it.notes == "new notes" }) }
+    }
+
+    @Test
+    fun `toggleFavorite calls the use case with the current game`() = runTest(testDispatcher) {
+        val game = testGame(isWishlisted = false)
+        val viewModel = createViewModel(game)
 
         viewModel.onEvent(GameDetailUiEvent.ToggleFavorite)
         advanceUntilIdle()
 
-        assertTrue(viewModel.successState().game.isWishlisted)
         coVerify { toggleWishlistUseCase(match { !it.isWishlisted }) }
-    }
-
-    @Test
-    fun `updateNotes debounces persistence and coalesces rapid edits`() = runTest(testDispatcher) {
-        val viewModel = createViewModel()
-
-        viewModel.onEvent(GameDetailUiEvent.UpdateNotes("h"))
-        viewModel.onEvent(GameDetailUiEvent.UpdateNotes("he"))
-        viewModel.onEvent(GameDetailUiEvent.UpdateNotes("hel"))
-        advanceTimeBy(499)
-        coVerify(exactly = 0) { updateGameUseCase(any()) }
-
-        advanceTimeBy(2)
-        advanceUntilIdle()
-        coVerify(exactly = 1) { updateGameUseCase(match { it.notes == "hel" }) }
     }
 
     @Test
@@ -207,23 +217,6 @@ class GameDetailViewModelTest {
         coVerify { removeGameFromListUseCase(GAME_ID, listA.id) }
         coVerify { addGameToListUseCase(GAME_ID, listB.id) }
         assertNull(viewModel.uiState.value.wishlistSelectorState)
-    }
-
-    @Test
-    fun `confirmListSelection syncs isWishlisted when the default list is toggled on`() = runTest(testDispatcher) {
-        val defaultList = WishlistList(id = WishlistConstants.DEFAULT_WISHLIST_ID, name = "Wishlist")
-        every { getWishlistAssignmentsUseCase(GAME_ID) } returns flowOf(
-            listOf(WishlistAssignment(list = defaultList, isAssigned = false))
-        )
-        val viewModel = createViewModel(testGame(isWishlisted = false))
-
-        viewModel.onEvent(GameDetailUiEvent.OpenListSelector)
-        advanceUntilIdle()
-        viewModel.onEvent(GameDetailUiEvent.ToggleGameInList(defaultList.id))
-        viewModel.onEvent(GameDetailUiEvent.ConfirmListSelection)
-        advanceUntilIdle()
-
-        assertTrue(viewModel.successState().game.isWishlisted)
     }
 
     @Test

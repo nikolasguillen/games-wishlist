@@ -14,20 +14,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +52,12 @@ import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameStatusUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PriorityUiModel
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.drop
+import kotlin.time.Duration.Companion.milliseconds
+
+private val NOTES_CHANGE_DEBOUNCE = 500.milliseconds
 
 @Composable
 internal fun GameDetailPersonalCard(
@@ -141,6 +151,7 @@ private fun PersonalCardCollapsedContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
 private fun PersonalCardExpandedContent(
     uiModel: GameDetailPersonalUiModel,
@@ -149,6 +160,15 @@ private fun PersonalCardExpandedContent(
     onPriorityChange: (id: Int) -> Unit,
     onNotesChange: (String) -> Unit
 ) {
+    val notesFieldState = rememberTextFieldState(initialText = uiModel.notes.asString())
+
+    LaunchedEffect(notesFieldState) {
+        snapshotFlow { notesFieldState.text.toString() }
+            .drop(1) // the initial emission just mirrors initialText, not a user edit
+            .debounce(NOTES_CHANGE_DEBOUNCE)
+            .collect { onNotesChange(it) }
+    }
+
     Column(modifier = Modifier.padding(MaterialTheme.spacing.large)) {
         // Header Row
         Row(
@@ -218,8 +238,7 @@ private fun PersonalCardExpandedContent(
 
         // Notes
         OutlinedTextField(
-            value = uiModel.notes.asString(),
-            onValueChange = onNotesChange,
+            state = notesFieldState,
             label = { Text(stringResource(R.string.personal_notes_label)) },
             modifier = Modifier.fillMaxWidth(),
             textStyle = MaterialTheme.typography.bodyMedium

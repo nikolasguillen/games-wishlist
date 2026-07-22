@@ -35,6 +35,10 @@ interface GameDao {
     suspend fun getGameById(id: Int): GameWithAllDetails?
 
     @Transaction
+    @Query("SELECT * FROM games WHERE id = :id")
+    fun observeGameById(id: Int): Flow<GameWithAllDetails?>
+
+    @Transaction
     @Query("SELECT * FROM games WHERE lastViewedAt IS NOT NULL ORDER BY lastViewedAt DESC LIMIT 10")
     fun getRecentlyViewedGames(): Flow<List<GameWithAllDetails>>
 

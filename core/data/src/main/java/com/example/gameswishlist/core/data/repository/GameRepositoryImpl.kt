@@ -94,7 +94,16 @@ class GameRepositoryImpl @Inject constructor(
         searchHistoryDao.deleteAll()
     }
 
-    override suspend fun getGameDetail(id: Int): AppResult<Game> {
+    override fun observeGameDetail(id: Int): Flow<Game?> {
+        return combine(
+            gameDao.observeGameById(id),
+            gameDao.getGameIdsInList(WishlistConstants.DEFAULT_WISHLIST_ID)
+        ) { entity, wishlistIds ->
+            entity?.toGame()?.copy(isWishlisted = id in wishlistIds)
+        }
+    }
+
+    override suspend fun refreshGameDetail(id: Int): AppResult<Unit> {
         return try {
             // Try local first
             val localGame = gameDao.getGameById(id)
@@ -117,7 +126,7 @@ class GameRepositoryImpl @Inject constructor(
             // Update last viewed timestamp and save local
             val updatedGame = game.copy(lastViewedAt = System.currentTimeMillis())
             saveGameLocal(updatedGame)
-            AppResult.success(updatedGame)
+            AppResult.success(Unit)
         } catch (e: Exception) {
             AppResult.failure(e.toRepositoryError())
         }
