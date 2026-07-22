@@ -24,14 +24,17 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel(assistedFactory = GameDetailViewModel.Factory::class)
 class GameDetailViewModel @AssistedInject constructor(
@@ -52,8 +55,20 @@ class GameDetailViewModel @AssistedInject constructor(
 
     private var currentGame: Game? = null
 
+    private val notesUpdateTrigger = Channel<Unit>(Channel.CONFLATED)
+
     init {
         loadGame(gameId)
+        observeNotesUpdates()
+    }
+
+    @OptIn(FlowPreview::class)
+    private fun observeNotesUpdates() {
+        viewModelScope.launch {
+            notesUpdateTrigger.receiveAsFlow().debounce(NOTES_SAVE_DEBOUNCE).collect {
+                currentGame?.let { game -> updateGameUseCase(game) }
+            }
+        }
     }
 
     fun onEvent(event: GameDetailUiEvent) {
@@ -98,9 +113,7 @@ class GameDetailViewModel @AssistedInject constructor(
             val updatedGame = game.copy(notes = notes)
             currentGame = updatedGame
             updateContentState(updatedGame)
-            viewModelScope.launch {
-                updateGameUseCase(updatedGame)
-            }
+            notesUpdateTrigger.trySend(Unit)
         }
     }
 
@@ -235,5 +248,9 @@ class GameDetailViewModel @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(gameId: Int): GameDetailViewModel
+    }
+
+    private companion object {
+        val NOTES_SAVE_DEBOUNCE = 500.milliseconds
     }
 }
