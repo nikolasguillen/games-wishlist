@@ -2,7 +2,9 @@ package com.example.gameswishlist.core.ui.component
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
@@ -27,8 +29,9 @@ fun CustomModalBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        dragHandle = { androidx.compose.material3.BottomSheetDefaults.DragHandle() },
-        contentWindowInsets = { WindowInsets(0) },
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
         modifier = modifier
     ) {
         content()

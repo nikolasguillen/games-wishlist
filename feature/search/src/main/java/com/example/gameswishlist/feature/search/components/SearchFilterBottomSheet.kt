@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -20,11 +21,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomFilterChip
+import com.example.gameswishlist.core.ui.component.CustomModalBottomSheet
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.R
 import com.example.gameswishlist.feature.search.model.FilterBottomSheetState
@@ -53,20 +52,15 @@ fun SearchFilterBottomSheet(
     onEvent: (SearchUiEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val sheetState = rememberBottomSheetState(
-        initialValue = SheetValue.Hidden,
-        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
-    )
-
     if (state.isVisible) {
-        ModalBottomSheet(
-            onDismissRequest = { onEvent(SearchUiEvent.OnDismissFilters) },
-            sheetState = sheetState,
+        CustomModalBottomSheet(
+            onDismiss = { onEvent(SearchUiEvent.OnDismissFilters) },
             modifier = modifier
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .navigationBarsPadding()
                     .padding(bottom = MaterialTheme.spacing.extraLarge)
             ) {
                 // Header
@@ -80,7 +74,8 @@ fun SearchFilterBottomSheet(
                     Text(
                         text = stringResource(R.string.filters_title),
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     TextButton(onClick = { onEvent(SearchUiEvent.OnClearFilters) }) {
                         Text(text = stringResource(R.string.clear_all))
@@ -150,6 +145,7 @@ private fun FilterSection(
             text = title,
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
         )
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))

@@ -1,5 +1,6 @@
 package com.example.gameswishlist.core.ui.component
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +17,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.ImageNotSupported
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,10 +38,10 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
+import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
-import com.example.gameswishlist.core.ui.util.ColorUtils
 import com.example.gameswishlist.core.ui.util.fadingEdge
 
 @Composable
@@ -52,6 +52,7 @@ fun VerticalGameCard(
 ) {
     val cardHeight = 250.dp
     OutlinedCard(
+        border = BorderStroke(1.dp, MaterialTheme.appColors.cardContainerColor),
         modifier = modifier
             .width(180.dp)
             .height(cardHeight)
@@ -108,6 +109,7 @@ fun RecentGameCard(
             .height(cardHeight)
     ) {
         OutlinedCard(
+            border = BorderStroke(1.dp, MaterialTheme.appColors.cardContainerColor),
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
@@ -179,6 +181,7 @@ fun GameCompactCard(
 ) {
     val cardHeight = 150.dp
     OutlinedCard(
+        border = BorderStroke(1.dp, MaterialTheme.appColors.cardContainerColor),
         modifier = modifier
             .height(cardHeight)
             .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
@@ -329,40 +332,6 @@ private fun GameMetadataRow(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                 maxLines = 1
-            )
-        }
-    }
-}
-
-@Composable
-private fun RatingBadge(
-    rating: Int,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        color = Color.Black.copy(alpha = 0.6f),
-        shape = RoundedCornerShape(MaterialTheme.spacing.small),
-        modifier = modifier
-    ) {
-        Row(
-            modifier = Modifier.padding(
-                horizontal = MaterialTheme.spacing.medium,
-                vertical = MaterialTheme.spacing.small
-            ),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Star,
-                contentDescription = null,
-                modifier = Modifier.size(14.dp),
-                tint = ColorUtils.getScoreColor(rating)
-            )
-            Text(
-                text = rating.toString(),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
             )
         }
     }

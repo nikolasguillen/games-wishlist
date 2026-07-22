@@ -44,7 +44,8 @@ dependencies {
     // Required for Compose Previews in Android Studio
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(libs.coil.compose)
-    
+    api(libs.haze)
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 }

@@ -34,7 +34,8 @@ fun GamesWishlistTheme(
         surface = SurfaceDark,
         onSurface = OnSurfaceDark,
         surfaceVariant = SpotifyMediumGrey,
-        onSurfaceVariant = SpotifyLightGrey
+        onSurfaceVariant = SpotifyLightGrey,
+        surfaceContainer = SpotifyMediumGrey
     )
 
     val appColors = AppColors(

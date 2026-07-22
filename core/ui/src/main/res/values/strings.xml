@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="rating_format">Rating: %1$d/100</string>
     <string name="release_date_format">Released on: %1$s</string>
     <string name="unknown_release_date">Unknown release date</string>
@@ -6,7 +6,6 @@
     <string name="developer_format">Developed by: %1s</string>
     <string name="publisher_format">Published by: %1s</string>
     <string name="platforms_format">Platforms: %1s</string>
-    <string name="platform_date_format">%1$s: %2$s</string>
     <string name="rating_not_defined">Rating: N/A</string>
 
     <!-- Date Suffixes -->
@@ -91,6 +90,35 @@
     <string name="show_more">Show more</string>
     <string name="show_less">Show less</string>
     <string name="main_release_date_title">Release date</string>
+
+    <!-- Platform Codes (compact, max 3 characters, for icon tiles) -->
+    <string name="platform_code_ps1" tools:ignore="Typos">PS1</string>
+    <string name="platform_code_ps3">PS3</string>
+    <string name="platform_code_ps4">PS4</string>
+    <string name="platform_code_ps5">PS5</string>
+    <string name="platform_code_psp">PSP</string>
+    <string name="platform_code_psv">PSV</string>
+    <string name="platform_code_xbx">XBX</string>
+    <string name="platform_code_x360">360</string>
+    <string name="platform_code_xb1" tools:ignore="Typos">XB1</string>
+    <string name="platform_code_xsx">XSX</string>
+    <string name="platform_code_n64">N64</string>
+    <string name="platform_code_wii">WII</string>
+    <string name="platform_code_nes">NES</string>
+    <string name="platform_code_snes">SNS</string>
+    <string name="platform_code_nds">NDS</string>
+    <string name="platform_code_ngc">NGC</string>
+    <string name="platform_code_3ds">3DS</string>
+    <string name="platform_code_wiiu">WIU</string>
+    <string name="platform_code_switch">SWI</string>
+    <string name="platform_code_switch2">SW2</string>
+    <string name="platform_code_pc">PC</string>
+    <string name="platform_code_mac">MAC</string>
+    <string name="platform_code_linux">LNX</string>
+    <string name="platform_code_ios">iOS</string>
+    <string name="platform_code_android">AND</string>
+    <string name="platform_code_arcade">ARC</string>
+    <string name="platform_overflow_format">+%1$d</string>
     <string name="apply_button">Apply</string>
     <string name="proceed_label">Proceed</string>
     <string name="cancel">Cancel</string>

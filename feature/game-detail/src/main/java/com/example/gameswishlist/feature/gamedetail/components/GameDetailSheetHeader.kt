@@ -65,16 +65,12 @@ fun GameDetailSheetHeader(
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)
         ) {
             // Game Type Chip
-            CustomInfoChip(text = gameType.asString(), isLarge = false)
+            CustomInfoChip(text = gameType.asString())
 
             // Genre Chips
             genres.forEach { genre ->
                 CustomInfoChip(
-                    text = genre.asString(),
-                    isLarge = false,
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                )
+                    text = genre.asString())
             }
         }
     }
