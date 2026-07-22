@@ -10,7 +10,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
@@ -38,20 +41,23 @@ fun GameDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
 
-    LaunchedEffect(viewModel.uiEffect) {
-        viewModel.uiEffect.collect { effect ->
-            when (effect) {
-                is GameDetailUiEffect.ShareGame -> {
-                    val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, effect.text.asString(context))
+    LaunchedEffect(viewModel, lifecycle) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.uiEffect.collect { effect ->
+                when (effect) {
+                    is GameDetailUiEffect.ShareGame -> {
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, effect.text.asString(context))
+                        }
+                        context.startActivity(Intent.createChooser(intent, null))
                     }
-                    context.startActivity(Intent.createChooser(intent, null))
-                }
 
-                is GameDetailUiEffect.NavigateToGame -> {
-                    onGameClick(effect.id)
+                    is GameDetailUiEffect.NavigateToGame -> {
+                        onGameClick(effect.id)
+                    }
                 }
             }
         }
