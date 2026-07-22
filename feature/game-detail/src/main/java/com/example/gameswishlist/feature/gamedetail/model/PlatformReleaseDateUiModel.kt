@@ -12,7 +12,7 @@ import com.example.gameswishlist.core.ui.model.UiText
  * @property color A distinguishing background color for the tile, matching the platform tile strip.
  * @property date The formatted release date for this platform.
  */
-data class PlatformReleaseDateUiModel(
+internal data class PlatformReleaseDateUiModel(
     val platformId: Int,
     val platformName: UiText,
     val code: UiText,

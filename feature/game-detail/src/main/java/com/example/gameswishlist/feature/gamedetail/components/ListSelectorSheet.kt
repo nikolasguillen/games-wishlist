@@ -43,7 +43,7 @@ import com.example.gameswishlist.feature.gamedetail.model.WishlistListUiModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListSelectorSheet(
+internal fun ListSelectorSheet(
     gameName: UiText,
     list: List<WishlistListUiModel>,
     onDismiss: () -> Unit,
@@ -171,7 +171,7 @@ private fun WishlistItem(
 
 @Preview(showBackground = true)
 @Composable
-fun ListSelectorSheetPreview() {
+private fun ListSelectorSheetPreview() {
     GamesWishlistTheme {
         ListSelectorSheet(
             gameName = UiText.DynamicString("The Witcher 3"), list = listOf(

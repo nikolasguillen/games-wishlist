@@ -49,7 +49,7 @@ import com.example.gameswishlist.feature.gamedetail.model.GameStatusUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PriorityUiModel
 
 @Composable
-fun GameDetailPersonalCard(
+internal fun GameDetailPersonalCard(
     uiModel: GameDetailPersonalUiModel,
     onStatusChange: (id: Int) -> Unit,
     onPriorityChange: (id: Int) -> Unit,
@@ -244,7 +244,7 @@ private fun SummaryBadge(
 
 @Preview(showBackground = true)
 @Composable
-fun GameDetailPersonalCardPreview() {
+private fun GameDetailPersonalCardPreview() {
     GamesWishlistTheme {
         GameDetailPersonalCard(
             uiModel = GameDetailPersonalUiModel(

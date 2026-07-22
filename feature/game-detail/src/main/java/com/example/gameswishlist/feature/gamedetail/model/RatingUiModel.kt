@@ -2,7 +2,7 @@ package com.example.gameswishlist.feature.gamedetail.model
 
 import com.example.gameswishlist.core.ui.model.UiText
 
-data class RatingUiModel(
+internal data class RatingUiModel(
     val score: Int,
     val scoreText: UiText,
     val scoreLabel: UiText,

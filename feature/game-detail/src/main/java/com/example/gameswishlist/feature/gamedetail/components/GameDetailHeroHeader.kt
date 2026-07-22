@@ -21,7 +21,7 @@ import com.example.gameswishlist.core.ui.component.ImageGalleryPager
  * @param onImageClick Optional callback when an image is clicked.
  */
 @Composable
-fun GameDetailHeroHeader(
+internal fun GameDetailHeroHeader(
     images: List<String>,
     scrollOffsetProvider: () -> Int,
     height: Dp,

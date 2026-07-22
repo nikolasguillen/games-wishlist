@@ -13,7 +13,7 @@ import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
  * Handles Loading, Error, and Success states.
  */
 @Composable
-fun GameDetailMainContent(
+internal fun GameDetailMainContent(
     uiState: GameDetailUiState,
     onEvent: (GameDetailUiEvent) -> Unit,
     onBackClick: () -> Unit,

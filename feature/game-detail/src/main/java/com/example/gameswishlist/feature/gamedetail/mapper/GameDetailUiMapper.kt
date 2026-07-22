@@ -26,7 +26,7 @@ import com.example.gameswishlist.feature.gamedetail.model.RelatedGamesUiModel
 import com.example.gameswishlist.feature.gamedetail.model.WishlistListUiModel
 import java.util.Locale
 
-fun Game.toUiModel(): GameDetailUiModel {
+internal fun Game.toUiModel(): GameDetailUiModel {
     val related = mutableListOf<RelatedGamesUiModel>()
 
     parentGame?.let {
@@ -153,7 +153,7 @@ private fun formatLargeNumber(number: Int): String {
     }
 }
 
-fun GameStatus.toUiModel(selected: Boolean): GameStatusUiModel {
+internal fun GameStatus.toUiModel(selected: Boolean): GameStatusUiModel {
     val resId = when (this) {
         GameStatus.WANT_TO_BUY -> R.string.status_want_to_buy
         GameStatus.BOUGHT -> R.string.status_bought
@@ -166,7 +166,7 @@ fun GameStatus.toUiModel(selected: Boolean): GameStatusUiModel {
     )
 }
 
-fun Priority.toUiModel(selected: Boolean): PriorityUiModel {
+internal fun Priority.toUiModel(selected: Boolean): PriorityUiModel {
     val resId = when (this) {
         Priority.LOW -> R.string.priority_low
         Priority.MEDIUM -> R.string.priority_medium
@@ -177,7 +177,7 @@ fun Priority.toUiModel(selected: Boolean): PriorityUiModel {
     )
 }
 
-fun WishlistAssignment.toUiModel(): WishlistListUiModel {
+internal fun WishlistAssignment.toUiModel(): WishlistListUiModel {
     return WishlistListUiModel(
         id = list.id,
         name = UiText.DynamicString(list.name),
@@ -186,7 +186,7 @@ fun WishlistAssignment.toUiModel(): WishlistListUiModel {
     )
 }
 
-fun WishlistIcon?.toDrawableRes(): Int {
+internal fun WishlistIcon?.toDrawableRes(): Int {
     return when (this) {
         WishlistIcon.PLAYING -> R.drawable.ic_wishlist_playing
         WishlistIcon.COMPLETED -> R.drawable.ic_wishlist_completed

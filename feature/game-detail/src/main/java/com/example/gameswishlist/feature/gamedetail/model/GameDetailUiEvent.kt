@@ -1,6 +1,6 @@
 package com.example.gameswishlist.feature.gamedetail.model
 
-sealed interface GameDetailUiEvent {
+internal sealed interface GameDetailUiEvent {
     data class LoadGame(val id: Int) : GameDetailUiEvent
     data class UpdateNotes(val notes: String) : GameDetailUiEvent
     data class UpdatePriority(val priorityId: Int) : GameDetailUiEvent

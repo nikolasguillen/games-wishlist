@@ -21,7 +21,7 @@ import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
  * A section displaying detailed game information like description and ratings.
  */
 @Composable
-fun GameDetailInfoSection(
+internal fun GameDetailInfoSection(
     description: UiText,
     rating: RatingUiModel?,
     availability: AvailabilityUiModel,

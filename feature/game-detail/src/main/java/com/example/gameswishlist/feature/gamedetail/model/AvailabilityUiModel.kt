@@ -10,7 +10,7 @@ import com.example.gameswishlist.core.ui.model.UiText
  * @property detailedDates Per-platform release dates for the expanded dialog view.
  * @property isExpandable Whether there are multiple different release dates that justify a detailed view.
  */
-data class AvailabilityUiModel(
+internal data class AvailabilityUiModel(
     val mainDate: UiText,
     val platforms: List<PlatformTileUiModel>,
     val detailedDates: List<PlatformReleaseDateUiModel>,

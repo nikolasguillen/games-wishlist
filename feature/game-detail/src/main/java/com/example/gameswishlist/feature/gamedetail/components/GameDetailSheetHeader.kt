@@ -31,7 +31,7 @@ import com.example.gameswishlist.core.ui.model.UiText
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun GameDetailSheetHeader(
+internal fun GameDetailSheetHeader(
     name: UiText,
     gameType: UiText,
     companyInfo: UiText,

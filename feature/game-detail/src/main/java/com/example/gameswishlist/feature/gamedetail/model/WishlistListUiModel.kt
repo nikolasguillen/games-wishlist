@@ -11,7 +11,7 @@ import com.example.gameswishlist.core.ui.model.UiText
  * @property iconRes The drawable resource ID for the wishlist icon.
  * @property isSelected Whether the current game is already in this list.
  */
-data class WishlistListUiModel(
+internal data class WishlistListUiModel(
     val id: Long,
     val name: UiText,
     @DrawableRes val iconRes: Int,

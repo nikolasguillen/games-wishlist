@@ -48,10 +48,10 @@ class GameDetailViewModel @AssistedInject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(GameDetailUiState())
-    val uiState: StateFlow<GameDetailUiState> = _uiState.asStateFlow()
+    internal val uiState: StateFlow<GameDetailUiState> = _uiState.asStateFlow()
 
     private val _uiEffect = Channel<GameDetailUiEffect>(Channel.BUFFERED)
-    val uiEffect = _uiEffect.receiveAsFlow()
+    internal val uiEffect = _uiEffect.receiveAsFlow()
 
     private var currentGame: Game? = null
 
@@ -71,7 +71,7 @@ class GameDetailViewModel @AssistedInject constructor(
         }
     }
 
-    fun onEvent(event: GameDetailUiEvent) {
+    internal fun onEvent(event: GameDetailUiEvent) {
         when (event) {
             is GameDetailUiEvent.LoadGame -> loadGame(event.id)
             is GameDetailUiEvent.UpdateNotes -> updateNotes(event.notes)

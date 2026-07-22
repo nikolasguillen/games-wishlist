@@ -72,7 +72,7 @@ fun GameDetailScreen(
 }
 
 @Composable
-fun GameDetailContent(
+internal fun GameDetailContent(
     uiState: GameDetailUiState,
     onEvent: (GameDetailUiEvent) -> Unit,
     onBackClick: () -> Unit,

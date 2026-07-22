@@ -9,7 +9,7 @@ import com.example.gameswishlist.core.ui.model.UiText
  * @property gameName The name of the game being added to a list.
  * @property availableLists The list of all wishlist categories available for the user (working state).
  */
-data class WishlistSelectorState(
+internal data class WishlistSelectorState(
     val gameName: UiText,
     val availableLists: List<WishlistListUiModel> = emptyList()
 )

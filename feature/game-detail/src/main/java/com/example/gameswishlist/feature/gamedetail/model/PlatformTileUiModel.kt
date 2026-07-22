@@ -10,7 +10,7 @@ import com.example.gameswishlist.core.ui.model.UiText
  * @property code A short, display-ready code (max 3 characters).
  * @property color A distinguishing background color for the tile.
  */
-data class PlatformTileUiModel(
+internal data class PlatformTileUiModel(
     val id: Int,
     val code: UiText,
     val color: Color

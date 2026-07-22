@@ -21,7 +21,7 @@ import com.example.gameswishlist.core.ui.component.GameCompactCard
 import com.example.gameswishlist.feature.gamedetail.model.RelatedGamesUiModel
 
 @Composable
-fun RelatedGamesSection(
+internal fun RelatedGamesSection(
     relatedGames: List<RelatedGamesUiModel>,
     onGameClick: (Int) -> Unit,
     modifier: Modifier = Modifier
