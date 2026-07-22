@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -69,6 +70,9 @@ internal fun GameDetailPersonalCard(
             .animateContentSize()
             .clip(MaterialTheme.shapes.medium)
             .height(IntrinsicSize.Min)
+            // Only merge when collapsed: expanded content holds filter chips and a text
+            // field that must stay individually focusable for TalkBack.
+            .then(if (!expanded) Modifier.semantics(mergeDescendants = true) {} else Modifier)
             .clickable(
                 onClick = { expanded = !expanded },
                 indication = null,
