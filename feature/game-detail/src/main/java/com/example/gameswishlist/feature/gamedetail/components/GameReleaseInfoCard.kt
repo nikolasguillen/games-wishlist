@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -196,7 +195,7 @@ private fun PlatformTile(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .size(32.dp)
-            .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
+            .clip(MaterialTheme.shapes.small)
             .background(color)
     ) {
         Text(
