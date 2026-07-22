@@ -13,9 +13,11 @@ import com.example.gameswishlist.core.ui.mapper.getShortPlatformLabel
 import com.example.gameswishlist.core.ui.mapper.toGameItem
 import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.core.ui.util.PlatformVisuals
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameStatusUiModel
+import com.example.gameswishlist.feature.gamedetail.model.PlatformTileUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PriorityUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RelatedGamesUiModel
@@ -104,16 +106,14 @@ fun Game.toUiModel(): GameDetailUiModel {
             )
         }
 
-    val releaseInfo = if (releaseDate != null || uiReleaseDates.isNotEmpty()) {
-        ReleaseInfoUiModel(
-            mainDate = DateUtils.formatIsoDate(releaseDate)?.let { UiText.DynamicString(it) }
-                ?: UiText.StringResource(com.example.gameswishlist.feature.gamedetail.R.string.tba),
-            detailedMessage = if (uiReleaseDates.isNotEmpty()) {
-                UiText.CompoundString(uiReleaseDates, separator = "\n")
-            } else null,
-            isExpandable = releaseDates.map { it.date }.distinct().size > 1
-        )
-    } else null
+    val releaseInfo = ReleaseInfoUiModel(
+        mainDate = DateUtils.formatIsoDate(releaseDate)?.let { UiText.DynamicString(it) }
+            ?: UiText.StringResource(com.example.gameswishlist.feature.gamedetail.R.string.tba),
+        detailedMessage = if (uiReleaseDates.isNotEmpty()) {
+            UiText.CompoundString(uiReleaseDates, separator = "\n")
+        } else null,
+        isExpandable = releaseDates.map { it.date }.distinct().size > 1
+    )
 
     return GameDetailUiModel(
         id = id,
@@ -123,7 +123,12 @@ fun Game.toUiModel(): GameDetailUiModel {
         gameType = gameType.toUiText(),
         rating = ratingModel,
         releaseInfo = releaseInfo,
-        platforms = platforms.map { UiText.DynamicString(it.name.getShortPlatformLabel()) },
+        platforms = platforms
+            .sortedByDescending { it.generation ?: Int.MIN_VALUE }
+            .map {
+                val style = PlatformVisuals.styleFor(it)
+                PlatformTileUiModel(id = it.id, code = style.code, color = style.color)
+            },
         genres = genres.map { UiText.DynamicString(it.name) },
         companyInfo = UiText.DynamicString(companies),
         isWishlisted = isWishlisted,

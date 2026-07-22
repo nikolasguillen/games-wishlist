@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -24,6 +25,7 @@ import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEffect
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
+import com.example.gameswishlist.feature.gamedetail.model.PlatformTileUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 import com.example.gameswishlist.feature.gamedetail.model.ReleaseInfoUiModel
 
@@ -119,11 +121,11 @@ fun GameDetailContentSuccessPreview() {
                             isExpandable = false
                         ),
                         platforms = listOf(
-                            "PC",
-                            "PS4",
-                            "Xbox One",
-                            "Switch"
-                        ).map { UiText.DynamicString(it) },
+                            PlatformTileUiModel(id = 1, code = UiText.DynamicString("PC"), color = Color(0xFF5E5E5E)),
+                            PlatformTileUiModel(id = 2, code = UiText.DynamicString("PS4"), color = Color(0xFF2E4EA6)),
+                            PlatformTileUiModel(id = 3, code = UiText.DynamicString("XB1"), color = Color(0xFF107C10)),
+                            PlatformTileUiModel(id = 4, code = UiText.DynamicString("SWI"), color = Color(0xFFE60012))
+                        ),
                         genres = listOf("RPG", "Action").map { UiText.DynamicString(it) },
                         companyInfo = UiText.DynamicString("CD Projekt Red, CD Projekt"),
                         isWishlisted = false,

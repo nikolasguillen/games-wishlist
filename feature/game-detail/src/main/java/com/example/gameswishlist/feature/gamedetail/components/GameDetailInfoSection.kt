@@ -1,33 +1,30 @@
 package com.example.gameswishlist.feature.gamedetail.components
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.component.CustomInfoChip
 import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.feature.gamedetail.model.PlatformTileUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 import com.example.gameswishlist.feature.gamedetail.model.ReleaseInfoUiModel
 
 /**
  * A section displaying detailed game information like description and ratings.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun GameDetailInfoSection(
     description: UiText,
     rating: RatingUiModel?,
-    releaseInfo: ReleaseInfoUiModel?,
-    platforms: List<UiText>,
+    releaseInfo: ReleaseInfoUiModel,
+    platforms: List<PlatformTileUiModel>,
     modifier: Modifier = Modifier
 ) {
     val descriptionString = description.asString()
@@ -39,17 +36,9 @@ fun GameDetailInfoSection(
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
         }
 
-        // Release Info Card
-        if (releaseInfo != null) {
-            GameReleaseInfoCard(releaseInfo = releaseInfo)
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
-        }
-
-        // Platforms
-        if (platforms.isNotEmpty()) {
-            GamePlatformsFlowRow(platforms = platforms)
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
-        }
+        // Release Info Card (also carries the platform tile strip)
+        GameReleaseInfoCard(releaseInfo = releaseInfo, platforms = platforms)
+        Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
 
         // Description
         if (descriptionString.isNotEmpty()) {
@@ -58,23 +47,6 @@ fun GameDetailInfoSection(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun GamePlatformsFlowRow(
-    platforms: List<UiText>,
-    modifier: Modifier = Modifier
-) {
-    FlowRow(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)
-    ) {
-        platforms.forEach { platform ->
-            CustomInfoChip(text = platform.asString())
         }
     }
 }
@@ -100,9 +72,9 @@ private fun GameDetailInfoSectionPreview() {
                 isExpandable = true
             ),
             platforms = listOf(
-                UiText.DynamicString("PC"),
-                UiText.DynamicString("PS5"),
-                UiText.DynamicString("Xbox Series X")
+                PlatformTileUiModel(id = 1, code = UiText.DynamicString("PC"), color = Color(0xFF5E5E5E)),
+                PlatformTileUiModel(id = 2, code = UiText.DynamicString("PS5"), color = Color(0xFF2E4EA6)),
+                PlatformTileUiModel(id = 3, code = UiText.DynamicString("XSX"), color = Color(0xFF107C10))
             )
         )
     }
