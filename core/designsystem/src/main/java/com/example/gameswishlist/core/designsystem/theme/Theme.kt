@@ -5,6 +5,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 
 
@@ -53,7 +54,9 @@ fun GamesWishlistTheme(
         segmentedButtonSelectedColor = PrimaryContainerDark,
         segmentedButtonSelectedContentColor = OnPrimaryContainerDark,
         fabContainerColor = SpotifyGreen,
-        fabContentColor = SpotifyBlack
+        fabContentColor = SpotifyBlack,
+        hypeColor = Color(0xFFF44336),
+        ratingCountColor = Color(0xFFFFB300)
     )
 
     CompositionLocalProvider(

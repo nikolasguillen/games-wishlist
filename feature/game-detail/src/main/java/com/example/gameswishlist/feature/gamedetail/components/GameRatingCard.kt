@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
+import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomContentCard
 import com.example.gameswishlist.core.ui.model.UiText
@@ -64,7 +65,7 @@ internal fun GameRatingCard(
                     label = rating.hypesLabel.asString(),
                     value = rating.hypes.asString(),
                     icon = Icons.Default.Whatshot,
-                    iconColor = Color(0xFFF44336),
+                    iconColor = MaterialTheme.appColors.hypeColor,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -76,7 +77,7 @@ internal fun GameRatingCard(
                     label = rating.ratingCountLabel.asString(),
                     value = rating.ratingCount.asString(),
                     icon = Icons.Default.Star,
-                    iconColor = Color(0xFFFFB300),
+                    iconColor = MaterialTheme.appColors.ratingCountColor,
                     modifier = Modifier.weight(1f)
                 )
             }
