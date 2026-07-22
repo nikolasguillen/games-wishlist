@@ -17,8 +17,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -47,6 +44,7 @@ import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.ui.R
+import com.example.gameswishlist.core.ui.component.CustomContentCard
 import com.example.gameswishlist.core.ui.component.CustomFilterChip
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiModel
@@ -73,12 +71,10 @@ internal fun GameDetailPersonalCard(
         label = "chevronRotation"
     )
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+    CustomContentCard(
         modifier = modifier
             .fillMaxWidth()
             .animateContentSize()
-            .clip(MaterialTheme.shapes.medium)
             .height(IntrinsicSize.Min)
             // Only merge when collapsed: expanded content holds filter chips and a text
             // field that must stay individually focusable for TalkBack.
@@ -111,7 +107,7 @@ private fun PersonalCardCollapsedContent(
     uiModel: GameDetailPersonalUiModel,
     rotationState: Float
 ) {
-    Column(modifier = Modifier.padding(MaterialTheme.spacing.large)) {
+    Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -121,7 +117,8 @@ private fun PersonalCardCollapsedContent(
                 Text(
                     text = stringResource(R.string.personal_progress_title),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Row(
@@ -169,7 +166,7 @@ private fun PersonalCardExpandedContent(
             .collect { onNotesChange(it) }
     }
 
-    Column(modifier = Modifier.padding(MaterialTheme.spacing.large)) {
+    Column {
         // Header Row
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -179,7 +176,8 @@ private fun PersonalCardExpandedContent(
             Text(
                 text = stringResource(R.string.personal_progress_title),
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Icon(
