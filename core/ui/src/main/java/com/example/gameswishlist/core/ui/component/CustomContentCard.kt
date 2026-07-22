@@ -24,7 +24,7 @@ fun CustomContentCard(
 ) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.outlinedCardColors(
+        colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
             contentColor = MaterialTheme.colorScheme.onSurface
         )
