@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,19 +31,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.R
-import com.example.gameswishlist.core.ui.component.CustomAlertDialog
 import com.example.gameswishlist.core.ui.component.CustomContentCard
+import com.example.gameswishlist.core.ui.component.CustomModalBottomSheet
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.model.AvailabilityUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PlatformReleaseDateUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PlatformTileUiModel
-
-private val DIALOG_PLATFORM_TILE_SIZE = 24.dp
 
 private const val MAX_VISIBLE_PLATFORM_TILES = 4
 
@@ -49,17 +48,18 @@ private const val MAX_VISIBLE_PLATFORM_TILES = 4
  * A card displaying the main release date of a game alongside a compact strip of platform
  * tiles, with an option to show detailed per-platform dates in a dialog.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun GameReleaseInfoCard(
     availability: AvailabilityUiModel,
     modifier: Modifier = Modifier
 ) {
-    var showReleaseDatesDialog by rememberSaveable { mutableStateOf(false) }
+    var showReleaseDatesSheet by rememberSaveable { mutableStateOf(false) }
 
     CustomContentCard(
         modifier = modifier.then(
             if (availability.isExpandable) {
-                Modifier.clickable { showReleaseDatesDialog = true }
+                Modifier.clickable { showReleaseDatesSheet = true }
             } else {
                 Modifier
             }
@@ -100,15 +100,27 @@ internal fun GameReleaseInfoCard(
         }
     }
 
-    if (showReleaseDatesDialog && availability.detailedDates.isNotEmpty()) {
-        CustomAlertDialog(
-            title = stringResource(R.string.release_dates_title),
-            confirmButtonText = stringResource(android.R.string.ok),
-            onConfirm = { showReleaseDatesDialog = false }
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
+    if (showReleaseDatesSheet && availability.detailedDates.isNotEmpty()) {
+        CustomModalBottomSheet(onDismiss = { showReleaseDatesSheet = false }) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(MaterialTheme.spacing.medium)
+            ) {
+                Text(
+                    text = stringResource(R.string.release_dates_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium)
+                )
                 availability.detailedDates.forEach { platformReleaseDate ->
-                    PlatformReleaseDateRow(platformReleaseDate = platformReleaseDate)
+                    PlatformReleaseDateRow(
+                        platformReleaseDate = platformReleaseDate,
+                        modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium)
+                    )
                 }
             }
         }
@@ -130,8 +142,7 @@ private fun PlatformReleaseDateRow(
     ) {
         PlatformTile(
             code = platformReleaseDate.code,
-            color = platformReleaseDate.color,
-            size = DIALOG_PLATFORM_TILE_SIZE
+            color = platformReleaseDate.color
         )
         Text(
             text = platformReleaseDate.platformName.asString(),
@@ -179,13 +190,12 @@ private fun PlatformTileRow(
 private fun PlatformTile(
     code: UiText,
     color: Color,
-    modifier: Modifier = Modifier,
-    size: Dp = 32.dp
+    modifier: Modifier = Modifier
 ) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .size(size)
+            .size(32.dp)
             .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
             .background(color)
     ) {
