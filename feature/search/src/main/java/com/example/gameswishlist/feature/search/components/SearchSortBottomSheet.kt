@@ -3,9 +3,7 @@ package com.example.gameswishlist.feature.search.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -13,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,7 +36,8 @@ fun SearchSortBottomSheet(
     if (state.isVisible) {
         CustomModalBottomSheet(
             onDismiss = { onEvent(SearchUiEvent.OnDismissSort) },
-            modifier = modifier
+            modifier = modifier,
+            title = stringResource(R.string.sort_label)
         ) {
             Column(
                 modifier = Modifier
@@ -47,18 +45,6 @@ fun SearchSortBottomSheet(
                     .navigationBarsPadding()
                     .padding(bottom = MaterialTheme.spacing.extraLarge)
             ) {
-                Text(
-                    text = stringResource(R.string.sort_label),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
-                )
-
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
-                HorizontalDivider(modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large))
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
-
                 state.sorting.forEach { sortingUiModel ->
                     val isSelected = sortingUiModel.selected
                     Row(

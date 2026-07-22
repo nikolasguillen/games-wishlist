@@ -18,7 +18,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -55,7 +54,13 @@ fun SearchFilterBottomSheet(
     if (state.isVisible) {
         CustomModalBottomSheet(
             onDismiss = { onEvent(SearchUiEvent.OnDismissFilters) },
-            modifier = modifier
+            modifier = modifier,
+            title = stringResource(R.string.filters_title),
+            titleTrailingContent = {
+                TextButton(onClick = { onEvent(SearchUiEvent.OnClearFilters) }) {
+                    Text(text = stringResource(R.string.clear_all))
+                }
+            }
         ) {
             Column(
                 modifier = Modifier
@@ -63,29 +68,6 @@ fun SearchFilterBottomSheet(
                     .navigationBarsPadding()
                     .padding(bottom = MaterialTheme.spacing.extraLarge)
             ) {
-                // Header
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = MaterialTheme.spacing.large),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.filters_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    TextButton(onClick = { onEvent(SearchUiEvent.OnClearFilters) }) {
-                        Text(text = stringResource(R.string.clear_all))
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
-                HorizontalDivider(modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large))
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
-
                 Column(
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
                     modifier = Modifier

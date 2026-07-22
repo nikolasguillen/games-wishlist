@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -31,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
@@ -50,7 +48,11 @@ internal fun ListSelectorSheet(
     onConfirm: () -> Unit,
     onToggleList: (Long) -> Unit
 ) {
-    CustomModalBottomSheet(onDismiss = onDismiss) {
+    CustomModalBottomSheet(
+        onDismiss = onDismiss,
+        title = stringResource(R.string.add_to_list),
+        subtitle = stringResource(R.string.select_list_subtitle, gameName.asString())
+    ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
             modifier = Modifier
@@ -58,21 +60,6 @@ internal fun ListSelectorSheet(
                 .navigationBarsPadding()
                 .padding(all = MaterialTheme.spacing.medium)
         ) {
-            Text(
-                text = stringResource(R.string.add_to_list),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium)
-            )
-            Text(
-                text = stringResource(R.string.select_list_subtitle, gameName.asString()),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium)
-            )
-
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
-
             if (list.isEmpty()) {
                 Text(
                     text = stringResource(R.string.no_lists_found_message),

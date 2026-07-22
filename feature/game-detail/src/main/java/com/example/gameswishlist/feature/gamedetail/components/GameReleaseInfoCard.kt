@@ -100,7 +100,10 @@ internal fun GameReleaseInfoCard(
     }
 
     if (showReleaseDatesSheet && availability.detailedDates.isNotEmpty()) {
-        CustomModalBottomSheet(onDismiss = { showReleaseDatesSheet = false }) {
+        CustomModalBottomSheet(
+            onDismiss = { showReleaseDatesSheet = false },
+            title = stringResource(R.string.release_dates_title)
+        ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
                 modifier = Modifier
@@ -108,13 +111,6 @@ internal fun GameReleaseInfoCard(
                     .navigationBarsPadding()
                     .padding(MaterialTheme.spacing.medium)
             ) {
-                Text(
-                    text = stringResource(R.string.release_dates_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium)
-                )
                 availability.detailedDates.forEach { platformReleaseDate ->
                     PlatformReleaseDateRow(
                         platformReleaseDate = platformReleaseDate,
