@@ -24,12 +24,12 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -47,8 +47,8 @@ class GameDetailViewModel @AssistedInject constructor(
     private val _uiState = MutableStateFlow(GameDetailUiState())
     val uiState: StateFlow<GameDetailUiState> = _uiState.asStateFlow()
 
-    private val _uiEffect = MutableSharedFlow<GameDetailUiEffect>()
-    val uiEffect = _uiEffect.asSharedFlow()
+    private val _uiEffect = Channel<GameDetailUiEffect>(Channel.BUFFERED)
+    val uiEffect = _uiEffect.receiveAsFlow()
 
     private var currentGame: Game? = null
 
@@ -68,9 +68,8 @@ class GameDetailViewModel @AssistedInject constructor(
             GameDetailUiEvent.DismissListSelector -> _uiState.update { it.copy(wishlistSelectorState = null) }
             GameDetailUiEvent.ToggleFavorite -> toggleFavorite()
             GameDetailUiEvent.ShareGame -> shareGame()
-            is GameDetailUiEvent.NavigateToGame -> viewModelScope.launch {
-                _uiEffect.emit(GameDetailUiEffect.NavigateToGame(event.id))
-            }
+            is GameDetailUiEvent.NavigateToGame ->
+                _uiEffect.trySend(GameDetailUiEffect.NavigateToGame(event.id))
         }
     }
 
@@ -211,21 +210,19 @@ class GameDetailViewModel @AssistedInject constructor(
 
     private fun shareGame() {
         currentGame?.let { game ->
-            viewModelScope.launch {
-                val message = game.url?.let {
-                    UiText.StringResource(
-                        R.string.share_game_with_url_message,
-                        game.name,
-                        it
-                    )
-                } ?: run {
-                    UiText.StringResource(
-                        R.string.share_game_message,
-                        game.name
-                    )
-                }
-                _uiEffect.emit(GameDetailUiEffect.ShareGame(message))
+            val message = game.url?.let {
+                UiText.StringResource(
+                    R.string.share_game_with_url_message,
+                    game.name,
+                    it
+                )
+            } ?: run {
+                UiText.StringResource(
+                    R.string.share_game_message,
+                    game.name
+                )
             }
+            _uiEffect.trySend(GameDetailUiEffect.ShareGame(message))
         }
     }
 
