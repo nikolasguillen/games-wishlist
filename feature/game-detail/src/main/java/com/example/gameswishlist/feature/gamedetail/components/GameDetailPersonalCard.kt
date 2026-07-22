@@ -2,7 +2,6 @@ package com.example.gameswishlist.feature.gamedetail.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -17,9 +16,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -43,9 +43,7 @@ import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.component.CustomFilterChip
-import com.example.gameswishlist.core.ui.component.CustomSegmentedButton
 import com.example.gameswishlist.core.ui.model.UiText
-import com.example.gameswishlist.core.ui.util.rememberAnimatedMetallicGradient
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameStatusUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PriorityUiModel
@@ -64,7 +62,8 @@ fun GameDetailPersonalCard(
         label = "chevronRotation"
     )
 
-    OutlinedCard(
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         modifier = modifier
             .fillMaxWidth()
             .animateContentSize()
@@ -74,8 +73,7 @@ fun GameDetailPersonalCard(
                 onClick = { expanded = !expanded },
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
-            ),
-        border = BorderStroke(2.dp, rememberAnimatedMetallicGradient())
+            )
     ) {
         if (expanded) {
             PersonalCardExpandedContent(
@@ -199,22 +197,18 @@ private fun PersonalCardExpandedContent(
         )
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
 
-        val selectedPriorityIndex = uiModel.availablePriorities.indexOfFirst { it.selected }
-
-        CustomSegmentedButton(
-            options = uiModel.availablePriorities,
-            selectedIndex = selectedPriorityIndex,
-            onOptionSelected = { index ->
-                onPriorityChange(uiModel.availablePriorities[index].id)
-            },
+        FlowRow(
             modifier = Modifier.fillMaxWidth(),
-            label = { priorityUi ->
-                Text(
-                    text = priorityUi.label.asString(),
-                    style = MaterialTheme.typography.labelMedium
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+        ) {
+            uiModel.availablePriorities.forEach { priorityUi ->
+                CustomFilterChip(
+                    label = priorityUi.label.asString(),
+                    selected = priorityUi.selected,
+                    onFilterClick = { onPriorityChange(priorityUi.id) }
                 )
             }
-        )
+        }
 
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
 

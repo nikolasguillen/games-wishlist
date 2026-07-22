@@ -36,19 +36,19 @@ fun GameDetailInfoSection(
         // Rating Card
         if (rating != null) {
             GameRatingCard(rating = rating)
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
         }
 
         // Release Info Card
         if (releaseInfo != null) {
             GameReleaseInfoCard(releaseInfo = releaseInfo)
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
         }
 
         // Platforms
         if (platforms.isNotEmpty()) {
             GamePlatformsFlowRow(platforms = platforms)
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
         }
 
         // Description
@@ -57,7 +57,7 @@ fun GameDetailInfoSection(
                 description = descriptionString,
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
         }
     }
 }
@@ -74,12 +74,7 @@ private fun GamePlatformsFlowRow(
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)
     ) {
         platforms.forEach { platform ->
-            CustomInfoChip(
-                text = platform.asString(),
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-            )
+            CustomInfoChip(text = platform.asString())
         }
     }
 }

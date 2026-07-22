@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 
 @Composable
@@ -17,8 +16,8 @@ fun CustomInfoChip(
     text: String,
     modifier: Modifier = Modifier,
     isLarge: Boolean = true,
-    containerColor: Color = MaterialTheme.appColors.filterChipSelectedContainerColor,
-    contentColor: Color = MaterialTheme.appColors.filterChipSelectedContentColor,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
     borderColor: Color? = null
 ) {
     val style =
@@ -28,7 +27,7 @@ fun CustomInfoChip(
         modifier = modifier,
         color = containerColor,
         contentColor = contentColor,
-        shape = MaterialTheme.shapes.extraSmall,
+        shape = MaterialTheme.shapes.small,
         border = if (borderColor != null) BorderStroke(1.dp, borderColor) else null
     ) {
         Text(

@@ -1,7 +1,6 @@
 package com.example.gameswishlist.feature.gamedetail.components
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,43 +9,39 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Whatshot
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.component.CustomContentCard
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.ColorUtils
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 
 /**
- * A card displaying various rating metrics for a game, such as Metascore, hypes, and ratings count.
+ * A card displaying a unified row of rating metrics for a game (Metascore, hypes, ratings count).
+ * Only the score metric carries a tier icon (full/half/outline star) alongside its color.
  */
 @Composable
 internal fun GameRatingCard(
     rating: RatingUiModel,
     modifier: Modifier = Modifier
 ) {
-    CustomContentCard(
-        title = stringResource(R.string.rating_title),
-        modifier = modifier
-    ) {
+    CustomContentCard(modifier = modifier) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -55,7 +50,7 @@ internal fun GameRatingCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Metascore
-            RatingMetricItem(
+            RatingStatItem(
                 label = rating.scoreLabel.asString(),
                 value = rating.scoreText.asString(),
                 score = rating.score,
@@ -64,7 +59,8 @@ internal fun GameRatingCard(
 
             // Hypes
             if (rating.hypes != null && rating.hypesLabel != null) {
-                RatingMetricItem(
+                VerticalDivider(modifier = Modifier.height(40.dp))
+                RatingStatItem(
                     label = rating.hypesLabel.asString(),
                     value = rating.hypes.asString(),
                     icon = Icons.Default.Whatshot,
@@ -75,7 +71,8 @@ internal fun GameRatingCard(
 
             // Rating Count
             if (rating.ratingCount != null && rating.ratingCountLabel != null) {
-                RatingMetricItem(
+                VerticalDivider(modifier = Modifier.height(40.dp))
+                RatingStatItem(
                     label = rating.ratingCountLabel.asString(),
                     value = rating.ratingCount.asString(),
                     icon = Icons.Default.Star,
@@ -88,7 +85,7 @@ internal fun GameRatingCard(
 }
 
 @Composable
-private fun RatingMetricItem(
+private fun RatingStatItem(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
@@ -96,48 +93,28 @@ private fun RatingMetricItem(
     icon: ImageVector? = null,
     iconColor: Color = MaterialTheme.colorScheme.primary
 ) {
+    val resolvedIcon = if (score != null) Icons.Default.Speed else icon
+    val resolvedIconColor = if (score != null) ColorUtils.getScoreColor(score) else iconColor
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        if (score != null) {
-            val scoreColor = ColorUtils.getScoreColor(score)
-            Box(contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(
-                    progress = { score / 100f },
-                    modifier = Modifier.size(48.dp),
-                    color = scoreColor,
-                    strokeWidth = 4.dp,
-                    trackColor = scoreColor.copy(alpha = 0.1f),
-                    strokeCap = StrokeCap.Round,
-                )
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        } else {
-            if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconColor,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraSmall))
-            }
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+        if (resolvedIcon != null) {
+            Icon(
+                imageVector = resolvedIcon,
+                contentDescription = null,
+                tint = resolvedIconColor,
+                modifier = Modifier.size(20.dp)
             )
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraSmall))
         }
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurface
+        )
 
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraSmall))
 

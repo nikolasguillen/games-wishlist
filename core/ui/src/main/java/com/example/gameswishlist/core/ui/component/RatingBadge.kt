@@ -5,10 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.StarHalf
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -33,11 +29,7 @@ fun RatingBadge(
     rating: Int,
     modifier: Modifier = Modifier
 ) {
-    val scoreIcon = when {
-        rating >= 80 -> Icons.Filled.Star
-        rating >= 60 -> Icons.AutoMirrored.Filled.StarHalf
-        else -> Icons.Outlined.StarBorder
-    }
+    val scoreIcon = ColorUtils.getScoreIcon(rating)
     Surface(
         color = Color.Black.copy(alpha = 0.6f),
         shape = RoundedCornerShape(MaterialTheme.spacing.small),
