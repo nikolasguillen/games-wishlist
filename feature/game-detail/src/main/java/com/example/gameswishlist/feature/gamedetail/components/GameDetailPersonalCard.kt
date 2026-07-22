@@ -130,7 +130,7 @@ private fun PersonalCardCollapsedContent(
 
             Icon(
                 imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = "Expand",
+                contentDescription = stringResource(R.string.expand_content_description),
                 modifier = Modifier.rotate(rotationState)
             )
         }
@@ -160,7 +160,7 @@ private fun PersonalCardExpandedContent(
 
             Icon(
                 imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = "Collapse",
+                contentDescription = stringResource(R.string.collapse_content_description),
                 modifier = Modifier.rotate(rotationState)
             )
         }
