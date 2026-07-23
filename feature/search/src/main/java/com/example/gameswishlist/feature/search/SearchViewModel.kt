@@ -37,21 +37,22 @@ import com.example.gameswishlist.feature.search.model.SortBottomSheetState
 import com.example.gameswishlist.feature.search.model.SortingUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+private val SUGGESTIONS_DEBOUNCE = 300.milliseconds
+
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val searchGamesUseCase: SearchGamesUseCase,
@@ -75,7 +76,11 @@ class SearchViewModel @Inject constructor(
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
     val textFieldState = TextFieldState()
-    private var suggestionsJob: Job? = null
+
+    // Forces initSearchSuggestions' collectLatest to cancel any in-flight suggestions
+    // fetch even when textFieldState's value doesn't change (e.g. committing a search
+    // for the exact text that's already typed).
+    private val suggestionsResetTrigger = MutableSharedFlow<String>(extraBufferCapacity = 1)
 
     init {
         initSearchHistory()
@@ -395,8 +400,8 @@ class SearchViewModel @Inject constructor(
 
     private fun performSearch(query: String) {
         if (query.isBlank()) return
-        suggestionsJob?.cancel()
         _uiState.update { it.copy(suggestions = SearchSuggestionsUiModel()) }
+        suggestionsResetTrigger.tryEmit("")
 
         viewModelScope.launch {
             addSearchToHistoryUseCase(query)
@@ -447,50 +452,49 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun initSearchSuggestions() {
-        snapshotFlow { textFieldState.text.toString() }
-            .distinctUntilChanged()
-            .onEach { query ->
-                suggestionsJob?.cancel()
-
+        viewModelScope.launch {
+            merge(
+                snapshotFlow { textFieldState.text.toString() }.distinctUntilChanged(),
+                suggestionsResetTrigger
+            ).collectLatest { query ->
                 if (query.length < 2) {
                     _uiState.update { it.copy(suggestions = SearchSuggestionsUiModel()) }
-                    return@onEach
+                    return@collectLatest
                 }
 
-                suggestionsJob = viewModelScope.launch {
-                    // 1. Instant local history suggestions
-                    val local = getSearchSuggestionsUseCase.getLocalSuggestions(query)
-                        .filterIsInstance<SearchSuggestion.HistorySuggestion>()
-                        .map { it.query }
+                // 1. Instant local history suggestions
+                val local = getSearchSuggestionsUseCase.getLocalSuggestions(query)
+                    .filterIsInstance<SearchSuggestion.HistorySuggestion>()
+                    .map { it.query }
 
-                    _uiState.update {
-                        it.copy(suggestions = it.suggestions.copy(historySuggestions = local))
-                    }
+                _uiState.update {
+                    it.copy(
+                        suggestions = it.suggestions.copy(
+                            historySuggestions = local,
+                            isLoadingRemote = true
+                        )
+                    )
+                }
 
-                    // 2. Remote suggestions with instant loading state and debounced fetch
-                    _uiState.update { it.copy(suggestions = it.suggestions.copy(isLoadingRemote = true)) }
+                // 2. Debounced remote fetch -- collectLatest cancels this automatically
+                // as soon as the query changes again, replacing manual job tracking.
+                delay(SUGGESTIONS_DEBOUNCE)
 
-                    delay(300.milliseconds)
-
-                    getSearchSuggestionsUseCase.getRemoteSuggestionsFlow(query)
-                        .collect { domainSuggestions ->
-                            val games = domainSuggestions
-                                .filterIsInstance<SearchSuggestion.GameSuggestion>()
-                                .map { it.game }
-                            _uiState.update {
-                                it.copy(
-                                    suggestions = it.suggestions.copy(
-                                        gameSuggestions = games.toSuggestionUiModels(),
-                                        isLoadingRemote = false
-                                    )
+                getSearchSuggestionsUseCase.getRemoteSuggestionsFlow(query)
+                    .collect { domainSuggestions ->
+                        val games = domainSuggestions
+                            .filterIsInstance<SearchSuggestion.GameSuggestion>()
+                            .map { it.game }
+                        _uiState.update {
+                            it.copy(
+                                suggestions = it.suggestions.copy(
+                                    gameSuggestions = games.toSuggestionUiModels(),
+                                    isLoadingRemote = false
                                 )
-                            }
+                            )
                         }
-                }
-            }.launchIn(viewModelScope)
-    }
-
-    override fun onCleared() {
-        suggestionsJob?.cancel()
+                    }
+            }
+        }
     }
 }
