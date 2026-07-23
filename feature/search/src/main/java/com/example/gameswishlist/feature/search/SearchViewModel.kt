@@ -466,20 +466,17 @@ class SearchViewModel @Inject constructor(
                 // as soon as the query changes again, replacing manual job tracking.
                 delay(SUGGESTIONS_DEBOUNCE)
 
-                getSearchSuggestionsUseCase.getRemoteSuggestionsFlow(query)
-                    .collect { domainSuggestions ->
-                        val games = domainSuggestions
-                            .filterIsInstance<SearchSuggestion.GameSuggestion>()
-                            .map { it.game }
-                        _uiState.update {
-                            it.copy(
-                                suggestions = it.suggestions.copy(
-                                    gameSuggestions = games.toSuggestionUiModels(),
-                                    isLoadingRemote = false
-                                )
-                            )
-                        }
-                    }
+                val games = getSearchSuggestionsUseCase.getRemoteSuggestions(query)
+                    .filterIsInstance<SearchSuggestion.GameSuggestion>()
+                    .map { it.game }
+                _uiState.update {
+                    it.copy(
+                        suggestions = it.suggestions.copy(
+                            gameSuggestions = games.toSuggestionUiModels(),
+                            isLoadingRemote = false
+                        )
+                    )
+                }
             }
         }
     }

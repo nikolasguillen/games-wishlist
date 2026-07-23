@@ -67,7 +67,7 @@ class SearchViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { getRecentSearchActivityUseCase() } returns flowOf(RecentSearchActivity())
         coEvery { getSearchSuggestionsUseCase.getLocalSuggestions(any()) } returns emptyList()
-        every { getSearchSuggestionsUseCase.getRemoteSuggestionsFlow(any()) } returns flowOf(emptyList())
+        coEvery { getSearchSuggestionsUseCase.getRemoteSuggestions(any()) } returns emptyList()
     }
 
     @After
@@ -290,8 +290,8 @@ class SearchViewModelTest {
         runTest(testDispatcher) {
             coEvery { getSearchSuggestionsUseCase.getLocalSuggestions("ze") } returns
                 listOf(SearchSuggestion.HistorySuggestion("zelda"))
-            every { getSearchSuggestionsUseCase.getRemoteSuggestionsFlow("ze") } returns
-                flowOf(listOf(SearchSuggestion.GameSuggestion(testGame(id = 1, name = "Zelda"))))
+            coEvery { getSearchSuggestionsUseCase.getRemoteSuggestions("ze") } returns
+                listOf(SearchSuggestion.GameSuggestion(testGame(id = 1, name = "Zelda")))
             val viewModel = createViewModel()
 
             viewModel.setQuery("ze")
@@ -311,8 +311,8 @@ class SearchViewModelTest {
     @Test
     fun `committing a search cancels an in-flight suggestions fetch even for unchanged text`() =
         runTest(testDispatcher) {
-            every { getSearchSuggestionsUseCase.getRemoteSuggestionsFlow("ze") } returns
-                flowOf(listOf(SearchSuggestion.GameSuggestion(testGame(id = 1, name = "Zelda"))))
+            coEvery { getSearchSuggestionsUseCase.getRemoteSuggestions("ze") } returns
+                listOf(SearchSuggestion.GameSuggestion(testGame(id = 1, name = "Zelda")))
             coEvery { searchGamesUseCase("ze") } returns AppResult.success(
                 SearchResult(games = listOf(testGame(id = 2)), platforms = emptyList(), genres = emptyList())
             )

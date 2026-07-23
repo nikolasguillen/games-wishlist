@@ -3,8 +3,6 @@ package com.example.gameswishlist.core.domain.usecase.search
 import com.example.gameswishlist.core.domain.repository.GameRepository
 import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.SearchSuggestion
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 /**
@@ -20,16 +18,13 @@ class GetSearchSuggestionsUseCase @Inject constructor(
             .map { SearchSuggestion.HistorySuggestion(it) }
     }
 
-    fun getRemoteSuggestionsFlow(query: String): Flow<List<SearchSuggestion>> = flow {
-        if (query.isNotBlank()) {
-            val remoteResult = repository.getRemoteSearchSuggestions(query)
-            if (remoteResult is AppResult.Success) {
-                emit(remoteResult.data.map { SearchSuggestion.GameSuggestion(it) })
-            } else {
-                emit(emptyList())
-            }
+    suspend fun getRemoteSuggestions(query: String): List<SearchSuggestion> {
+        if (query.isBlank()) return emptyList()
+        val remoteResult = repository.getRemoteSearchSuggestions(query)
+        return if (remoteResult is AppResult.Success) {
+            remoteResult.data.map { SearchSuggestion.GameSuggestion(it) }
         } else {
-            emit(emptyList())
+            emptyList()
         }
     }
 }
