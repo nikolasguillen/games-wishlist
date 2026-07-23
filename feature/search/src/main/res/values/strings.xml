@@ -29,4 +29,7 @@
     <string name="sort_label">Sort</string>
     <string name="filter_label">Filter</string>
     <string name="scroll_to_top_content_description">Scroll to top</string>
+    <string name="clear_search_content_description">Clear search</string>
+    <string name="search_content_description">Search</string>
+    <string name="remove_filter_content_description">Remove %1$s filter</string>
 </resources>

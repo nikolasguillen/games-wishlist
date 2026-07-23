@@ -22,11 +22,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomFilterChip
 import com.example.gameswishlist.core.ui.component.VerticalGameCard
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
+import com.example.gameswishlist.feature.search.R
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 
 @Composable
@@ -115,7 +117,10 @@ private fun ActiveFiltersRow(
                 trailingIcon = {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = null,
+                        contentDescription = stringResource(
+                            R.string.remove_filter_content_description,
+                            gameFilter.label.asString()
+                        ),
                         modifier = Modifier.requiredSize(FilterChipDefaults.IconSize)
                     )
                 }

@@ -176,11 +176,17 @@ internal fun SearchInputField(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (searchBarState.currentValue == SearchBarValue.Expanded && textFieldState.text.isNotEmpty()) {
                     IconButton(onClick = { textFieldState.edit { replace(0, length, "") } }) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(SearchR.string.clear_search_content_description)
+                        )
                     }
                 }
                 IconButton(onClick = onSearch) {
-                    Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = stringResource(SearchR.string.search_content_description)
+                    )
                 }
             }
         }
