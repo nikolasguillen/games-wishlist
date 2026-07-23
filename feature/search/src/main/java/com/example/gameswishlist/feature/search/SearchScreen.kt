@@ -51,6 +51,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
+/** Lets the game-click navigation start before the search bar collapses behind it. */
+private val SEARCH_BAR_COLLAPSE_DELAY = 300.milliseconds
+
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel,
@@ -135,7 +138,7 @@ fun SearchScreenContent(
             { gameId ->
                 scope.launch {
                     onGameClick(gameId)
-                    delay(300.milliseconds)
+                    delay(SEARCH_BAR_COLLAPSE_DELAY)
                     searchBarState.snapTo(0F)
                 }
             }

@@ -26,6 +26,9 @@ import com.example.gameswishlist.feature.search.R
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SortBottomSheetState
 
+/** Android's recommended minimum touch target size for accessibility. */
+private val MIN_TOUCH_TARGET_HEIGHT = 48.dp
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchSortBottomSheet(
@@ -55,7 +58,7 @@ fun SearchSortBottomSheet(
                                 horizontal = MaterialTheme.spacing.large,
                                 vertical = MaterialTheme.spacing.default
                             )
-                            .heightIn(min = 48.dp),
+                            .heightIn(min = MIN_TOUCH_TARGET_HEIGHT),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(

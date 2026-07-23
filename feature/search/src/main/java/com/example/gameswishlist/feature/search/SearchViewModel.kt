@@ -51,6 +51,7 @@ import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
 private val SUGGESTIONS_DEBOUNCE = 300.milliseconds
+private const val MIN_SUGGESTION_QUERY_LENGTH = 2
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -442,7 +443,7 @@ class SearchViewModel @Inject constructor(
                 snapshotFlow { textFieldState.text.toString() }.distinctUntilChanged(),
                 suggestionsResetTrigger
             ).collectLatest { query ->
-                if (query.length < 2) {
+                if (query.length < MIN_SUGGESTION_QUERY_LENGTH) {
                     _uiState.update { it.copy(suggestions = SearchSuggestionsUiModel()) }
                     return@collectLatest
                 }

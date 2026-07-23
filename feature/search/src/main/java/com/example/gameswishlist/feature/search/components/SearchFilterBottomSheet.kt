@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomFilterChip
@@ -138,7 +137,7 @@ private fun FilterSection(
                 .fillMaxWidth()
                 .animateContentSize(),
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
-            verticalArrangement = Arrangement.spacedBy((-8).dp),
+            verticalArrangement = Arrangement.spacedBy(-MaterialTheme.spacing.medium),
             maxItemsInEachRow = Int.MAX_VALUE,
             maxLines = maxRows
         ) {
