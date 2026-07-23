@@ -239,27 +239,7 @@ class SearchViewModel @Inject constructor(
         val contentState = _uiState.value.contentState
         if (contentState !is SearchContentState.Success) return
 
-        val newFilters = contentState.filters.map { filter ->
-            when (filter) {
-                is GameFilterUiModel.Platform -> {
-                    if (eventFilter is GameFilterUiModel.Platform && filter.id == eventFilter.id) {
-                        filter.copy(selected = !filter.selected)
-                    } else filter
-                }
-
-                is GameFilterUiModel.Genre -> {
-                    if (eventFilter is GameFilterUiModel.Genre && filter.id == eventFilter.id) {
-                        filter.copy(selected = !filter.selected)
-                    } else filter
-                }
-
-                is GameFilterUiModel.GameType -> {
-                    if (eventFilter is GameFilterUiModel.GameType && filter.id == eventFilter.id) {
-                        filter.copy(selected = !filter.selected)
-                    } else filter
-                }
-            }
-        }
+        val newFilters = toggleFilterSelection(contentState.filters, eventFilter)
         updateSearchContent(contentState, newFilters)
     }
 
@@ -268,27 +248,7 @@ class SearchViewModel @Inject constructor(
         val contentState = _uiState.value.contentState
         if (contentState !is SearchContentState.Success) return
 
-        val newFilters = bsState.filters.map { filter ->
-            when (filter) {
-                is GameFilterUiModel.Platform -> {
-                    if (eventFilter is GameFilterUiModel.Platform && filter.id == eventFilter.id) {
-                        filter.copy(selected = !filter.selected)
-                    } else filter
-                }
-
-                is GameFilterUiModel.Genre -> {
-                    if (eventFilter is GameFilterUiModel.Genre && filter.id == eventFilter.id) {
-                        filter.copy(selected = !filter.selected)
-                    } else filter
-                }
-
-                is GameFilterUiModel.GameType -> {
-                    if (eventFilter is GameFilterUiModel.GameType && filter.id == eventFilter.id) {
-                        filter.copy(selected = !filter.selected)
-                    } else filter
-                }
-            }
-        }
+        val newFilters = toggleFilterSelection(bsState.filters, eventFilter)
 
         val matchCount = calculateMatchCount(contentState.allGames, newFilters)
         _uiState.update {
@@ -297,6 +257,31 @@ class SearchViewModel @Inject constructor(
                     filters = newFilters, matchCount = matchCount
                 )
             )
+        }
+    }
+
+    private fun toggleFilterSelection(
+        filters: List<GameFilterUiModel>,
+        eventFilter: GameFilterUiModel
+    ): List<GameFilterUiModel> = filters.map { filter ->
+        when (filter) {
+            is GameFilterUiModel.Platform -> {
+                if (eventFilter is GameFilterUiModel.Platform && filter.id == eventFilter.id) {
+                    filter.copy(selected = !filter.selected)
+                } else filter
+            }
+
+            is GameFilterUiModel.Genre -> {
+                if (eventFilter is GameFilterUiModel.Genre && filter.id == eventFilter.id) {
+                    filter.copy(selected = !filter.selected)
+                } else filter
+            }
+
+            is GameFilterUiModel.GameType -> {
+                if (eventFilter is GameFilterUiModel.GameType && filter.id == eventFilter.id) {
+                    filter.copy(selected = !filter.selected)
+                } else filter
+            }
         }
     }
 
