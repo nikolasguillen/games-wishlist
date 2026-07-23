@@ -73,9 +73,9 @@ class SearchViewModel @Inject constructor(
             )
         )
     )
-    val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
+    internal val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
-    val textFieldState = TextFieldState()
+    internal val textFieldState = TextFieldState()
 
     // Forces initSearchSuggestions' collectLatest to cancel any in-flight suggestions
     // fetch even when textFieldState's value doesn't change (e.g. committing a search
@@ -87,7 +87,7 @@ class SearchViewModel @Inject constructor(
         initSearchSuggestions()
     }
 
-    fun onEvent(event: SearchUiEvent) {
+    internal fun onEvent(event: SearchUiEvent) {
         when (event) {
             is SearchUiEvent.OnSearchTriggered -> {
                 textFieldState.setTextAndPlaceCursorAtEnd(event.query)
