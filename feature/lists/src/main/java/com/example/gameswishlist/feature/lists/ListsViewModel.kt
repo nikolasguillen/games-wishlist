@@ -5,10 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.domain.usecase.list.CreateListUseCase
 import com.example.gameswishlist.core.domain.usecase.list.GetListsUseCase
 import com.example.gameswishlist.core.model.WishlistIcon
-import com.example.gameswishlist.core.model.WishlistList
+import com.example.gameswishlist.feature.lists.mapper.toUiModel
+import com.example.gameswishlist.feature.lists.model.WishlistListUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,7 +21,8 @@ class ListsViewModel @Inject constructor(
     private val createListUseCase: CreateListUseCase
 ) : ViewModel() {
 
-    val lists: StateFlow<List<WishlistList>> = getListsUseCase()
+    internal val lists: StateFlow<List<WishlistListUiModel>> = getListsUseCase()
+        .map { lists -> lists.map { it.toUiModel() } }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

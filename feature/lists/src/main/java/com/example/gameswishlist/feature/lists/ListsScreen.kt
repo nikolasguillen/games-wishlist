@@ -1,9 +1,8 @@
 package com.example.gameswishlist.feature.lists
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,7 +21,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -37,6 +37,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -59,10 +61,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.model.WishlistIcon
-import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.ui.component.CustomModalBottomSheet
 import com.example.gameswishlist.core.ui.mapper.toDrawableRes
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.dashedBorder
+import com.example.gameswishlist.feature.lists.model.WishlistListUiModel
 import com.example.gameswishlist.core.ui.R as CoreUiR
 
 @Composable
@@ -83,7 +86,10 @@ fun ListsScreen(
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold
                     )
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
             )
         },
         contentWindowInsets = WindowInsets.systemBars,
@@ -157,10 +163,10 @@ private fun CreateWishlistCard(onClick: () -> Unit, modifier: Modifier = Modifie
 }
 
 @Composable
-private fun WishlistRow(list: WishlistList, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun WishlistRow(list: WishlistListUiModel, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.large)
@@ -171,7 +177,7 @@ private fun WishlistRow(list: WishlistList, onClick: () -> Unit, modifier: Modif
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large),
             modifier = Modifier.padding(MaterialTheme.spacing.mediumLarge)
         ) {
-            WishlistAvatar(icon = list.icon, count = list.gameCount)
+            WishlistAvatar(iconRes = list.iconRes, gameCountText = list.gameCountText)
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = list.name,
@@ -200,34 +206,40 @@ private fun WishlistRow(list: WishlistList, onClick: () -> Unit, modifier: Modif
 }
 
 @Composable
-private fun WishlistAvatar(icon: WishlistIcon?, count: Int, modifier: Modifier = Modifier) {
+private fun WishlistAvatar(
+    @DrawableRes iconRes: Int,
+    gameCountText: UiText,
+    modifier: Modifier = Modifier
+) {
     Box(modifier = modifier.size(56.dp)) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(56.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .background(MaterialTheme.colorScheme.surface)
         ) {
             Icon(
-                painter = painterResource(icon.toDrawableRes()),
+                painter = painterResource(iconRes),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(28.dp)
             )
         }
-        Surface(
-            shape = RoundedCornerShape(MaterialTheme.spacing.medium),
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.align(Alignment.BottomEnd)
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .size(20.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary)
         ) {
             Text(
-                text = count.toString(),
+                text = gameCountText.asString(),
                 style = MaterialTheme.typography.labelSmall,
-                fontSize = 10.5.sp,
+                fontSize = 9.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.padding(horizontal = MaterialTheme.spacing.small, vertical = 2.dp)
+                color = MaterialTheme.colorScheme.onPrimary
             )
         }
     }
@@ -349,12 +361,12 @@ private fun IconOption(
 private fun WishlistRowPreview() {
     GamesWishlistTheme {
         WishlistRow(
-            list = WishlistList(
+            list = WishlistListUiModel(
                 id = 1,
                 name = "RPGs to Try",
                 description = "Long ones, for when I have time off",
-                icon = WishlistIcon.BACKLOG,
-                gameCount = 8
+                iconRes = WishlistIcon.BACKLOG.toDrawableRes(),
+                gameCountText = UiText.DynamicString("8")
             ),
             onClick = {}
         )
