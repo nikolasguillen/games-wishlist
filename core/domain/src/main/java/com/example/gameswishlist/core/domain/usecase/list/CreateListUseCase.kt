@@ -1,6 +1,7 @@
 package com.example.gameswishlist.core.domain.usecase.list
 
 import com.example.gameswishlist.core.domain.repository.GameRepository
+import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.WishlistIcon
 import javax.inject.Inject
 
@@ -17,14 +18,15 @@ class CreateListUseCase @Inject constructor(
      * @param description An optional description explaining the purpose of the list.
      * @param icon An optional predefined icon representing the list.
      * @param coverImageUri An optional content URI for a cover image picked from the gallery.
-     * @return `true` if [coverImageUri] was provided but failed to be persisted, `false` otherwise.
+     * @return The list itself is always created; a [AppResult.Failure] only indicates that
+     * [coverImageUri] was provided but failed to be persisted.
      */
     suspend operator fun invoke(
         name: String,
         description: String,
         icon: WishlistIcon? = null,
         coverImageUri: String? = null
-    ): Boolean {
+    ): AppResult<Unit> {
         return repository.createList(name, description, icon, coverImageUri)
     }
 }

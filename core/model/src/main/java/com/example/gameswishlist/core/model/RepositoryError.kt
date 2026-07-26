@@ -4,6 +4,7 @@ sealed interface RepositoryError {
     data object NoNetwork : RepositoryError
     data object RequestTimeout : RepositoryError
     data class Http(val code: Int, val message: String? = null) : RepositoryError
+    data object FileStorage : RepositoryError
     data class Unknown(val cause: Throwable? = null) : RepositoryError
 }
 

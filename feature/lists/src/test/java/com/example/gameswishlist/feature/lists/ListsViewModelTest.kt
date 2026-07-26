@@ -2,6 +2,8 @@ package com.example.gameswishlist.feature.lists
 
 import com.example.gameswishlist.core.domain.usecase.list.CreateListUseCase
 import com.example.gameswishlist.core.domain.usecase.list.GetListsUseCase
+import com.example.gameswishlist.core.model.AppResult
+import com.example.gameswishlist.core.model.RepositoryError
 import com.example.gameswishlist.core.model.WishlistIcon
 import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.ui.model.UiText
@@ -89,6 +91,7 @@ class ListsViewModelTest {
 
     @Test
     fun `createList delegates to the use case with the given parameters`() = runTest(testDispatcher) {
+        coEvery { createListUseCase(any(), any(), any(), any()) } returns AppResult.success(Unit)
         val viewModel = createViewModel()
 
         viewModel.createList("New List", "Description", WishlistIcon.HEART)
@@ -100,7 +103,9 @@ class ListsViewModelTest {
     @Test
     fun `createList emits a snackbar effect when the use case reports a failed cover save`() =
         runTest(testDispatcher) {
-            coEvery { createListUseCase(any(), any(), any(), any()) } returns true
+            coEvery {
+                createListUseCase(any(), any(), any(), any())
+            } returns AppResult.failure(RepositoryError.FileStorage)
             val viewModel = createViewModel()
             val effects = mutableListOf<ListsUiEffect>()
             val collectJob = launch { viewModel.uiEffect.toList(effects) }
@@ -115,7 +120,7 @@ class ListsViewModelTest {
 
     @Test
     fun `createList emits no effect when the cover image is saved successfully`() = runTest(testDispatcher) {
-        coEvery { createListUseCase(any(), any(), any(), any()) } returns false
+        coEvery { createListUseCase(any(), any(), any(), any()) } returns AppResult.success(Unit)
         val viewModel = createViewModel()
         val effects = mutableListOf<ListsUiEffect>()
         val collectJob = launch { viewModel.uiEffect.toList(effects) }

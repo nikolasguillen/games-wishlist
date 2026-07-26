@@ -9,6 +9,7 @@ fun RepositoryError.toUiText(): UiText {
         RepositoryError.NoNetwork -> UiText.StringResource(R.string.error_no_network)
         RepositoryError.RequestTimeout -> UiText.StringResource(R.string.error_request_timeout)
         is RepositoryError.Http -> UiText.StringResource(R.string.error_http, code)
+        RepositoryError.FileStorage -> UiText.StringResource(R.string.error_file_storage)
         is RepositoryError.Unknown -> UiText.StringResource(R.string.error_unknown)
     }
 }

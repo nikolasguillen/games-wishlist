@@ -21,6 +21,7 @@
     <string name="error_no_network">No internet connection.\nCheck your network and try again.</string>
     <string name="error_request_timeout">The request took too long.\nPlease try again.</string>
     <string name="error_http">The server returned an error (%1$d).\nPlease try again later.</string>
+    <string name="error_file_storage">Couldn\'t save the file.\nPlease try again.</string>
     <string name="error_unknown">An unexpected error occurred.\nPlease try again.</string>
 
     <!-- Game Types -->

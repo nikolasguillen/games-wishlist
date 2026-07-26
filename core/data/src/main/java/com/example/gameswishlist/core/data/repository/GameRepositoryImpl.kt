@@ -21,6 +21,7 @@ import com.example.gameswishlist.core.domain.repository.GameRepository
 import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameType
+import com.example.gameswishlist.core.model.RepositoryError
 import com.example.gameswishlist.core.model.WishlistConstants
 import com.example.gameswishlist.core.model.WishlistIcon
 import com.example.gameswishlist.core.model.WishlistList
@@ -212,7 +213,7 @@ class GameRepositoryImpl @Inject constructor(
         description: String,
         icon: WishlistIcon?,
         coverImageUri: String?
-    ): Boolean {
+    ): AppResult<Unit> {
         val coverImagePath = coverImageUri?.let { coverImageStorage.persist(it) }
         listDao.insertList(
             ListEntity(
@@ -222,7 +223,11 @@ class GameRepositoryImpl @Inject constructor(
                 coverImagePath = coverImagePath
             )
         )
-        return coverImageUri != null && coverImagePath == null
+        return if (coverImageUri != null && coverImagePath == null) {
+            AppResult.failure(RepositoryError.FileStorage)
+        } else {
+            AppResult.success(Unit)
+        }
     }
 
     override suspend fun addGameToList(gameId: Int, listId: Long) {
