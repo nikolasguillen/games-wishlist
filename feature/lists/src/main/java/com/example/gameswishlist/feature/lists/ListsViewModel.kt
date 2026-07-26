@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.domain.usecase.list.CreateListUseCase
 import com.example.gameswishlist.core.domain.usecase.list.GetListsUseCase
 import com.example.gameswishlist.core.model.WishlistIcon
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.lists.mapper.toUiModel
 import com.example.gameswishlist.feature.lists.model.ListsUiEffect
 import com.example.gameswishlist.feature.lists.model.WishlistListUiModel
@@ -39,7 +40,8 @@ class ListsViewModel @Inject constructor(
         viewModelScope.launch {
             val coverImageSaveFailed = createListUseCase(name, description, icon, coverImageUri)
             if (coverImageSaveFailed) {
-                _uiEffect.trySend(ListsUiEffect.CoverImageSaveFailed)
+                val message = UiText.StringResource(R.string.cover_image_save_failed_message)
+                _uiEffect.trySend(ListsUiEffect.ShowSnackbar(message))
             }
         }
     }

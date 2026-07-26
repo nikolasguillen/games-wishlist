@@ -4,6 +4,7 @@ import com.example.gameswishlist.core.domain.usecase.list.CreateListUseCase
 import com.example.gameswishlist.core.domain.usecase.list.GetListsUseCase
 import com.example.gameswishlist.core.model.WishlistIcon
 import com.example.gameswishlist.core.model.WishlistList
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.lists.model.ListsUiEffect
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -97,7 +98,7 @@ class ListsViewModelTest {
     }
 
     @Test
-    fun `createList emits CoverImageSaveFailed when the use case reports a failed cover save`() =
+    fun `createList emits a snackbar effect when the use case reports a failed cover save`() =
         runTest(testDispatcher) {
             coEvery { createListUseCase(any(), any(), any(), any()) } returns true
             val viewModel = createViewModel()
@@ -107,7 +108,8 @@ class ListsViewModelTest {
             viewModel.createList("New List", "Description", null, "content://picked-image")
             advanceUntilIdle()
 
-            assertEquals(ListsUiEffect.CoverImageSaveFailed, effects.single())
+            val effect = effects.single() as ListsUiEffect.ShowSnackbar
+            assertTrue(effect.message is UiText.StringResource)
             collectJob.cancel()
         }
 

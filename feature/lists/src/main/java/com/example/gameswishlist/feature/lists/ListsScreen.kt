@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.Lifecycle
@@ -45,14 +46,14 @@ fun ListsScreen(
     var showCreateSheet by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val coverImageSaveFailedMessage = stringResource(R.string.cover_image_save_failed_message)
+    val context = LocalContext.current
 
     LaunchedEffect(viewModel, lifecycle) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.uiEffect.collect { effect ->
                 when (effect) {
-                    ListsUiEffect.CoverImageSaveFailed -> {
-                        snackbarHostState.showSnackbar(coverImageSaveFailedMessage)
+                    is ListsUiEffect.ShowSnackbar -> {
+                        snackbarHostState.showSnackbar(effect.message.asString(context))
                     }
                 }
             }
