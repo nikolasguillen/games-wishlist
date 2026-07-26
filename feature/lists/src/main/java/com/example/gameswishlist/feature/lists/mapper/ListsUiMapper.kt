@@ -14,6 +14,7 @@ internal fun WishlistList.toUiModel(): WishlistListUiModel {
         name = name,
         description = description,
         iconRes = icon.toDrawableRes(),
+        coverImagePath = coverImagePath,
         gameCountText = UiText.DynamicString(gameCount.toGameCountLabel())
     )
 }

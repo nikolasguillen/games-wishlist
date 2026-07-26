@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -30,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.model.WishlistIcon
@@ -37,6 +39,7 @@ import com.example.gameswishlist.core.ui.mapper.toDrawableRes
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.lists.R
 import com.example.gameswishlist.feature.lists.model.WishlistListUiModel
+import java.io.File
 
 @Composable
 internal fun WishlistRow(list: WishlistListUiModel, onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -53,7 +56,11 @@ internal fun WishlistRow(list: WishlistListUiModel, onClick: () -> Unit, modifie
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large),
             modifier = Modifier.padding(MaterialTheme.spacing.mediumLarge)
         ) {
-            WishlistAvatar(iconRes = list.iconRes, gameCountText = list.gameCountText)
+            WishlistAvatar(
+                iconRes = list.iconRes,
+                coverImageFile = list.coverImageFile,
+                gameCountText = list.gameCountText
+            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = list.name,
@@ -84,6 +91,7 @@ internal fun WishlistRow(list: WishlistListUiModel, onClick: () -> Unit, modifie
 @Composable
 private fun WishlistAvatar(
     @DrawableRes iconRes: Int,
+    coverImageFile: File?,
     gameCountText: UiText,
     modifier: Modifier = Modifier
 ) {
@@ -95,12 +103,24 @@ private fun WishlistAvatar(
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surface)
         ) {
-            Icon(
-                painter = painterResource(iconRes),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(28.dp)
-            )
+            if (coverImageFile != null) {
+                AsyncImage(
+                    model = coverImageFile,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    error = painterResource(iconRes),
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                )
+            } else {
+                Icon(
+                    painter = painterResource(iconRes),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
         }
         val countLabel = gameCountText.asString()
         val countDescription = stringResource(R.string.wishlist_game_count_description, countLabel)
@@ -136,6 +156,7 @@ private fun WishlistRowPreview() {
                 name = "RPGs to Try",
                 description = "Long ones, for when I have time off",
                 iconRes = WishlistIcon.BACKLOG.toDrawableRes(),
+                coverImagePath = null,
                 gameCountText = UiText.DynamicString("8")
             ),
             onClick = {}

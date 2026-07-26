@@ -10,6 +10,7 @@ import com.example.gameswishlist.core.data.mapper.toGenreEntities
 import com.example.gameswishlist.core.data.mapper.toPlatformEntities
 import com.example.gameswishlist.core.data.mapper.toRelatedGameEntities
 import com.example.gameswishlist.core.data.mapper.toWishlistList
+import com.example.gameswishlist.core.data.local.WishlistCoverImageStorage
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
 import com.example.gameswishlist.core.database.dao.SearchHistoryDao
@@ -35,7 +36,8 @@ class GameRepositoryImpl @Inject constructor(
     private val apiService: IgdbApiService,
     private val gameDao: GameDao,
     private val listDao: ListDao,
-    private val searchHistoryDao: SearchHistoryDao
+    private val searchHistoryDao: SearchHistoryDao,
+    private val coverImageStorage: WishlistCoverImageStorage
 ) : GameRepository {
 
     override suspend fun searchGames(query: String): AppResult<List<Game>> {
@@ -205,8 +207,22 @@ class GameRepositoryImpl @Inject constructor(
         return gameDao.getListIdsForGame(gameId)
     }
 
-    override suspend fun createList(name: String, description: String, icon: WishlistIcon?) {
-        listDao.insertList(ListEntity(name = name, description = description, icon = icon))
+    override suspend fun createList(
+        name: String,
+        description: String,
+        icon: WishlistIcon?,
+        coverImageUri: String?
+    ): Boolean {
+        val coverImagePath = coverImageUri?.let { coverImageStorage.persist(it) }
+        listDao.insertList(
+            ListEntity(
+                name = name,
+                description = description,
+                icon = icon,
+                coverImagePath = coverImagePath
+            )
+        )
+        return coverImageUri != null && coverImagePath == null
     }
 
     override suspend fun addGameToList(gameId: Int, listId: Long) {

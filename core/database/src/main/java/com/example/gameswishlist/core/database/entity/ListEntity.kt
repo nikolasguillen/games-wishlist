@@ -11,7 +11,8 @@ data class ListEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
     val description: String,
-    val icon: WishlistIcon? = null
+    val icon: WishlistIcon? = null,
+    val coverImagePath: String? = null
 )
 
 data class ListWithGameCount(

@@ -5,5 +5,6 @@ data class WishlistList(
     val name: String,
     val description: String = "",
     val icon: WishlistIcon? = null,
+    val coverImagePath: String? = null,
     val gameCount: Int = 0
 )

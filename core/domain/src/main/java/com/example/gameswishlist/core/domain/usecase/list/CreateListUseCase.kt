@@ -16,8 +16,15 @@ class CreateListUseCase @Inject constructor(
      * @param name The display name of the new list.
      * @param description An optional description explaining the purpose of the list.
      * @param icon An optional predefined icon representing the list.
+     * @param coverImageUri An optional content URI for a cover image picked from the gallery.
+     * @return `true` if [coverImageUri] was provided but failed to be persisted, `false` otherwise.
      */
-    suspend operator fun invoke(name: String, description: String, icon: WishlistIcon? = null) {
-        repository.createList(name, description, icon)
+    suspend operator fun invoke(
+        name: String,
+        description: String,
+        icon: WishlistIcon? = null,
+        coverImageUri: String? = null
+    ): Boolean {
+        return repository.createList(name, description, icon, coverImageUri)
     }
 }

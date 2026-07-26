@@ -9,6 +9,7 @@ fun ListWithGameCount.toWishlistList(): WishlistList {
         name = list.name,
         description = list.description,
         icon = list.icon,
+        coverImagePath = list.coverImagePath,
         gameCount = gameCount
     )
 }

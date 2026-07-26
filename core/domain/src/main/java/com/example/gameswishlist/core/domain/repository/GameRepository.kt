@@ -25,7 +25,15 @@ interface GameRepository {
 
     fun getAllLists(): Flow<List<WishlistList>>
     fun getListIdsForGame(gameId: Int): Flow<List<Long>>
-    suspend fun createList(name: String, description: String, icon: WishlistIcon? = null)
+    /**
+     * @return `true` if [coverImageUri] was provided but failed to be persisted, `false` otherwise.
+     */
+    suspend fun createList(
+        name: String,
+        description: String,
+        icon: WishlistIcon? = null,
+        coverImageUri: String? = null
+    ): Boolean
     suspend fun addGameToList(gameId: Int, listId: Long)
     suspend fun removeGameFromList(gameId: Int, listId: Long)
     fun getGamesByList(listId: Long): Flow<List<Game>>

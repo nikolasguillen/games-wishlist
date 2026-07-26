@@ -7,6 +7,10 @@
     <string name="list_name_label">List name</string>
     <string name="description_optional_label">Description (optional)</string>
     <string name="icon_optional_label">Icon (optional)</string>
+    <string name="cover_image_optional_label">Cover image (optional)</string>
+    <string name="add_cover_image_content_description">Add cover image from gallery</string>
+    <string name="remove_cover_image_action">Remove cover image</string>
+    <string name="cover_image_save_failed_message">Couldn\'t save the cover image, so the list was created without it</string>
     <string name="create_action">Create</string>
     <string name="wishlist_game_count_description">%1$s games</string>
 </resources>

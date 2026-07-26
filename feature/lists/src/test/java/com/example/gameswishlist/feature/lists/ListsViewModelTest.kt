@@ -4,12 +4,15 @@ import com.example.gameswishlist.core.domain.usecase.list.CreateListUseCase
 import com.example.gameswishlist.core.domain.usecase.list.GetListsUseCase
 import com.example.gameswishlist.core.model.WishlistIcon
 import com.example.gameswishlist.core.model.WishlistList
+import com.example.gameswishlist.feature.lists.model.ListsUiEffect
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -19,6 +22,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -90,5 +94,34 @@ class ListsViewModelTest {
         advanceUntilIdle()
 
         coVerify { createListUseCase("New List", "Description", WishlistIcon.HEART) }
+    }
+
+    @Test
+    fun `createList emits CoverImageSaveFailed when the use case reports a failed cover save`() =
+        runTest(testDispatcher) {
+            coEvery { createListUseCase(any(), any(), any(), any()) } returns true
+            val viewModel = createViewModel()
+            val effects = mutableListOf<ListsUiEffect>()
+            val collectJob = launch { viewModel.uiEffect.toList(effects) }
+
+            viewModel.createList("New List", "Description", null, "content://picked-image")
+            advanceUntilIdle()
+
+            assertEquals(ListsUiEffect.CoverImageSaveFailed, effects.single())
+            collectJob.cancel()
+        }
+
+    @Test
+    fun `createList emits no effect when the cover image is saved successfully`() = runTest(testDispatcher) {
+        coEvery { createListUseCase(any(), any(), any(), any()) } returns false
+        val viewModel = createViewModel()
+        val effects = mutableListOf<ListsUiEffect>()
+        val collectJob = launch { viewModel.uiEffect.toList(effects) }
+
+        viewModel.createList("New List", "Description", null, "content://picked-image")
+        advanceUntilIdle()
+
+        assertTrue(effects.isEmpty())
+        collectJob.cancel()
     }
 }
