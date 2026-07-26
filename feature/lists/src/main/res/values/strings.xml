@@ -8,4 +8,5 @@
     <string name="description_optional_label">Description (optional)</string>
     <string name="icon_optional_label">Icon (optional)</string>
     <string name="create_action">Create</string>
+    <string name="wishlist_game_count_description">%1$s games</string>
 </resources>
