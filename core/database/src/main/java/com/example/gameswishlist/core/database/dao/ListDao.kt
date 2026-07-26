@@ -2,12 +2,20 @@ package com.example.gameswishlist.core.database.dao
 
 import androidx.room.*
 import com.example.gameswishlist.core.database.entity.ListEntity
+import com.example.gameswishlist.core.database.entity.ListWithGameCount
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ListDao {
-    @Query("SELECT * FROM wishlists")
-    fun getAllLists(): Flow<List<ListEntity>>
+    @Query(
+        """
+        SELECT wishlists.*, COUNT(game_list_cross_ref.gameId) AS gameCount
+        FROM wishlists
+        LEFT JOIN game_list_cross_ref ON wishlists.id = game_list_cross_ref.listId
+        GROUP BY wishlists.id
+        """
+    )
+    fun getAllLists(): Flow<List<ListWithGameCount>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertList(list: ListEntity)

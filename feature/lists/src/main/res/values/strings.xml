@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="create_list_content_description">Create List</string>
+    <string name="wishlist_hub_title">My Wishlists</string>
+    <string name="create_new_wishlist">Create New Wishlist</string>
+    <string name="new_wishlist_sheet_title">New Wishlist</string>
+    <string name="list_name_label">List name</string>
+    <string name="description_optional_label">Description (optional)</string>
+    <string name="icon_optional_label">Icon (optional)</string>
+    <string name="create_action">Create</string>
 </resources>

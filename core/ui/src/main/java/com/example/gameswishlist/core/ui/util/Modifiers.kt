@@ -14,11 +14,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.Dp
@@ -65,6 +68,28 @@ fun Modifier.fadingEdge(
             )
         }
     }
+
+/**
+ * Draws a dashed rounded-rect border around the composable, for affordances like
+ * "tap to create" cards where a solid border would look too permanent/filled-in.
+ */
+fun Modifier.dashedBorder(
+    color: Color,
+    cornerRadius: Dp,
+    strokeWidth: Dp = 1.5.dp,
+    dashLength: Dp = 8.dp,
+    gapLength: Dp = 6.dp
+): Modifier = drawWithContent {
+    drawContent()
+    drawRoundRect(
+        color = color,
+        style = Stroke(
+            width = strokeWidth.toPx(),
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(dashLength.toPx(), gapLength.toPx()))
+        ),
+        cornerRadius = CornerRadius(cornerRadius.toPx())
+    )
+}
 
 /**
  * A modifier that applies a shimmer effect to a composable.

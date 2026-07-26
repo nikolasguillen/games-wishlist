@@ -1,5 +1,6 @@
 package com.example.gameswishlist.core.database.entity
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -11,6 +12,11 @@ data class ListEntity(
     val name: String,
     val description: String,
     val icon: WishlistIcon? = null
+)
+
+data class ListWithGameCount(
+    @Embedded val list: ListEntity,
+    val gameCount: Int
 )
 
 @Entity(

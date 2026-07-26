@@ -6,10 +6,10 @@ import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Platform
 import com.example.gameswishlist.core.model.Priority
-import com.example.gameswishlist.core.model.WishlistIcon
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.mapper.getDisplayRating
 import com.example.gameswishlist.core.ui.mapper.getRatingUiText
+import com.example.gameswishlist.core.ui.mapper.toDrawableRes
 import com.example.gameswishlist.core.ui.mapper.toGameItem
 import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.core.ui.model.UiText
@@ -184,16 +184,4 @@ internal fun WishlistAssignment.toUiModel(): WishlistListUiModel {
         iconRes = list.icon.toDrawableRes(),
         isSelected = isAssigned
     )
-}
-
-internal fun WishlistIcon?.toDrawableRes(): Int {
-    return when (this) {
-        WishlistIcon.PLAYING -> R.drawable.ic_wishlist_playing
-        WishlistIcon.COMPLETED -> R.drawable.ic_wishlist_completed
-        WishlistIcon.BACKLOG -> R.drawable.ic_wishlist_backlog
-        WishlistIcon.HEART -> R.drawable.ic_wishlist_heart
-        WishlistIcon.COLLECTION -> R.drawable.ic_wishlist_collection
-        WishlistIcon.MULTIPLAYER -> R.drawable.ic_wishlist_multiplayer
-        null -> R.drawable.placeholder
-    }
 }

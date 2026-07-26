@@ -2,6 +2,7 @@ package com.example.gameswishlist.core.domain.repository
 
 import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.Game
+import com.example.gameswishlist.core.model.WishlistIcon
 import com.example.gameswishlist.core.model.WishlistList
 import kotlinx.coroutines.flow.Flow
 
@@ -24,7 +25,7 @@ interface GameRepository {
 
     fun getAllLists(): Flow<List<WishlistList>>
     fun getListIdsForGame(gameId: Int): Flow<List<Long>>
-    suspend fun createList(name: String, description: String)
+    suspend fun createList(name: String, description: String, icon: WishlistIcon? = null)
     suspend fun addGameToList(gameId: Int, listId: Long)
     suspend fun removeGameFromList(gameId: Int, listId: Long)
     fun getGamesByList(listId: Long): Flow<List<Game>>

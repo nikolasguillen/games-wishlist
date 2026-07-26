@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.domain.usecase.list.CreateListUseCase
 import com.example.gameswishlist.core.domain.usecase.list.GetListsUseCase
+import com.example.gameswishlist.core.model.WishlistIcon
 import com.example.gameswishlist.core.model.WishlistList
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,9 +26,9 @@ class ListsViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
-    fun createList(name: String, description: String) {
+    fun createList(name: String, description: String, icon: WishlistIcon?) {
         viewModelScope.launch {
-            createListUseCase(name, description)
+            createListUseCase(name, description, icon)
         }
     }
 }

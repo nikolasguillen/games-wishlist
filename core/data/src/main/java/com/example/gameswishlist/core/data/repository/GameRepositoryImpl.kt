@@ -9,6 +9,7 @@ import com.example.gameswishlist.core.data.mapper.toGamePlatformCrossRefs
 import com.example.gameswishlist.core.data.mapper.toGenreEntities
 import com.example.gameswishlist.core.data.mapper.toPlatformEntities
 import com.example.gameswishlist.core.data.mapper.toRelatedGameEntities
+import com.example.gameswishlist.core.data.mapper.toWishlistList
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
 import com.example.gameswishlist.core.database.dao.SearchHistoryDao
@@ -20,6 +21,7 @@ import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameType
 import com.example.gameswishlist.core.model.WishlistConstants
+import com.example.gameswishlist.core.model.WishlistIcon
 import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.network.IgdbApiService
 import kotlinx.coroutines.flow.Flow
@@ -195,7 +197,7 @@ class GameRepositoryImpl @Inject constructor(
 
     override fun getAllLists(): Flow<List<WishlistList>> {
         return listDao.getAllLists().map { entities ->
-            entities.map { WishlistList(it.id, it.name, it.description, it.icon) }
+            entities.map { it.toWishlistList() }
         }
     }
 
@@ -203,8 +205,8 @@ class GameRepositoryImpl @Inject constructor(
         return gameDao.getListIdsForGame(gameId)
     }
 
-    override suspend fun createList(name: String, description: String) {
-        listDao.insertList(ListEntity(name = name, description = description))
+    override suspend fun createList(name: String, description: String, icon: WishlistIcon?) {
+        listDao.insertList(ListEntity(name = name, description = description, icon = icon))
     }
 
     override suspend fun addGameToList(gameId: Int, listId: Long) {
