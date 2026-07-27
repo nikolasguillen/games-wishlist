@@ -17,6 +17,9 @@ interface ListDao {
     )
     fun getAllLists(): Flow<List<ListWithGameCount>>
 
+    @Query("SELECT * FROM wishlists WHERE id = :listId")
+    suspend fun getListById(listId: Long): ListEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertList(list: ListEntity)
 
@@ -25,4 +28,17 @@ interface ListDao {
 
     @Delete
     suspend fun deleteList(list: ListEntity)
+
+    @Query("DELETE FROM game_list_cross_ref WHERE listId = :listId")
+    suspend fun deleteGameRefsForList(listId: Long)
+
+    /**
+     * The cross-ref table has no foreign key on the list, so its rows have to be removed
+     * explicitly or they would outlive the list they point at.
+     */
+    @Transaction
+    suspend fun deleteListWithGameRefs(list: ListEntity) {
+        deleteGameRefsForList(list.id)
+        deleteList(list)
+    }
 }

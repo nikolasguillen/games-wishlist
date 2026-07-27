@@ -35,6 +35,11 @@ interface GameRepository {
         icon: WishlistIcon? = null,
         coverImageUri: String? = null
     ): AppResult<Unit>
+    /**
+     * Deletes the list along with its game references and its cover image file, if any.
+     * Deleting an unknown [listId] is a no-op.
+     */
+    suspend fun deleteList(listId: Long)
     suspend fun addGameToList(gameId: Int, listId: Long)
     suspend fun removeGameFromList(gameId: Int, listId: Long)
     fun getGamesByList(listId: Long): Flow<List<Game>>

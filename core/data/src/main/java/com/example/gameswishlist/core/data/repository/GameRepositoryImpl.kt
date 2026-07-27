@@ -230,6 +230,14 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun deleteList(listId: Long) {
+        val list = listDao.getListById(listId) ?: return
+        // The row goes first: an orphaned file is invisible, whereas a surviving row whose
+        // cover file is already gone would render as a broken list.
+        listDao.deleteListWithGameRefs(list)
+        list.coverImagePath?.let { coverImageStorage.delete(it) }
+    }
+
     override suspend fun addGameToList(gameId: Int, listId: Long) {
         gameDao.insertGameListCrossRef(GameListCrossRef(gameId, listId))
     }

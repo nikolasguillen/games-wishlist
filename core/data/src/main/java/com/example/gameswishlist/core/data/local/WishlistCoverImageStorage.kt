@@ -28,14 +28,15 @@ class WishlistCoverImageStorage @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
 
+    private val coversDir: File get() = File(context.filesDir, COVERS_DIR_NAME)
+
     suspend fun persist(sourceUri: String): String? = withContext(Dispatchers.IO) {
         var destinationFile: File? = null
         try {
             val bitmap = decodeDownscaled(sourceUri.toUri())
             // JPEG would flatten transparency to black, so keep alpha-bearing images lossless.
             val format = if (bitmap.hasAlpha()) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
-            val coversDir = File(context.filesDir, COVERS_DIR_NAME).apply { mkdirs() }
-            val file = File(coversDir, "${UUID.randomUUID()}.${format.fileExtension}")
+            val file = File(coversDir.apply { mkdirs() }, "${UUID.randomUUID()}.${format.fileExtension}")
             destinationFile = file
             val compressed = file.outputStream().use { output ->
                 bitmap.compress(format, COMPRESSION_QUALITY, output)
@@ -52,6 +53,17 @@ class WishlistCoverImageStorage @Inject constructor(
         } catch (_: SecurityException) {
             destinationFile?.delete()
             null
+        }
+    }
+
+    /**
+     * Removes a cover previously returned by [persist]. Paths outside the covers directory are
+     * ignored, so a stale or hand-edited value can never delete an unrelated file.
+     */
+    suspend fun delete(path: String): Unit = withContext(Dispatchers.IO) {
+        val file = File(path)
+        if (file.parentFile == coversDir) {
+            file.delete()
         }
     }
 

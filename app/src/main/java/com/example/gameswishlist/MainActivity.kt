@@ -185,6 +185,7 @@ fun MainContent() {
                                 }
                             },
                             onBackClick = { backStack.removeLastOrNull() },
+                            onListDeleted = { backStack.removeLastOrNull() },
                         )
                     }
 
