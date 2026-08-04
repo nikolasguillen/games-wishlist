@@ -1,5 +1,7 @@
 package com.example.gameswishlist.core.ui.model
 
+import com.example.gameswishlist.core.model.GameStatus
+
 data class GameItemUiModel(
     val id: Int,
     val name: String,
@@ -8,7 +10,8 @@ data class GameItemUiModel(
     val releaseDateText: UiText,
     val releaseYear: String?,
     val developer: String?,
-    val platforms: UiText?
+    val platforms: UiText?,
+    val status: GameStatus? = null
 ) {
     companion object {
         fun getDummy() = GameItemUiModel(
@@ -19,7 +22,8 @@ data class GameItemUiModel(
             releaseDateText = UiText.DynamicString("2015-05-19"),
             releaseYear = "2015",
             developer = "CD Projekt Red",
-            platforms = UiText.DynamicString("PC (Microsoft Windows), PlayStation 4, Xbox One")
+            platforms = UiText.DynamicString("PC (Microsoft Windows), PlayStation 4, Xbox One"),
+            status = GameStatus.WANT_TO_BUY
         )
     }
 }

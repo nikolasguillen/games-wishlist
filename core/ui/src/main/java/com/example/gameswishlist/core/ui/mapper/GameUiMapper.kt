@@ -2,6 +2,7 @@ package com.example.gameswishlist.core.ui.mapper
 
 import com.example.gameswishlist.core.common.DateUtils
 import com.example.gameswishlist.core.model.Game
+import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Platform
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
@@ -120,6 +121,21 @@ fun Game.toGameItem(): GameItemUiModel {
         } ?: UiText.StringResource(R.string.unknown_release_date),
         releaseYear = year,
         developer = if (developers.isNotEmpty()) developers.joinToString { it.name } else null,
-        platforms = platformsText
+        platforms = platformsText,
+        status = status
     )
+}
+
+/**
+ * Returns the [UiText] label for a [GameStatus] (e.g., "Playing", "Want to buy").
+ */
+fun GameStatus.toLabelUiText(): UiText {
+    val resId = when (this) {
+        GameStatus.WANT_TO_BUY -> R.string.status_want_to_buy
+        GameStatus.BOUGHT -> R.string.status_bought
+        GameStatus.PLAYING -> R.string.status_playing
+        GameStatus.COMPLETED -> R.string.status_completed
+        GameStatus.DROPPED -> R.string.status_dropped
+    }
+    return UiText.StringResource(resId)
 }

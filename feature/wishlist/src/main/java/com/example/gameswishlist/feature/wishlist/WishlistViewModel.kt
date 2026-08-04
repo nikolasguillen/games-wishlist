@@ -4,9 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.domain.usecase.list.DeleteListUseCase
 import com.example.gameswishlist.core.domain.usecase.list.GetGamesByListUseCase
+import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.WishlistConstants
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
+import com.example.gameswishlist.core.ui.mapper.toLabelUiText
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
+import com.example.gameswishlist.feature.wishlist.model.WishlistSectionUiModel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -26,8 +29,8 @@ class WishlistViewModel @AssistedInject constructor(
     private val deleteListUseCase: DeleteListUseCase,
 ) : ViewModel() {
 
-    private val _games = MutableStateFlow<List<GameItemUiModel>>(emptyList())
-    val games: StateFlow<List<GameItemUiModel>> = _games.asStateFlow()
+    private val _sections = MutableStateFlow<List<WishlistSectionUiModel>>(emptyList())
+    val sections: StateFlow<List<WishlistSectionUiModel>> = _sections.asStateFlow()
 
     /** The built-in wishlist is permanent, so the screen hides the action for it. */
     val canDeleteList: Boolean = listId != WishlistConstants.DEFAULT_WISHLIST_ID
@@ -50,9 +53,9 @@ class WishlistViewModel @AssistedInject constructor(
     private fun loadGames(listId: Long) {
         viewModelScope.launch {
             getGamesByListUseCase(listId)
-                .map { it.toGameItemList() }
-                .collect { games ->
-                    _games.value = games
+                .map { it.toGameItemList().toSections() }
+                .collect { sections ->
+                    _sections.value = sections
                 }
         }
     }
@@ -60,5 +63,33 @@ class WishlistViewModel @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(listId: Long): WishlistViewModel
+    }
+
+    private companion object {
+        /** Section order: active statuses first, finished/dropped last. */
+        val STATUS_ORDER = listOf(
+            GameStatus.PLAYING,
+            GameStatus.BOUGHT,
+            GameStatus.WANT_TO_BUY,
+            GameStatus.COMPLETED,
+            GameStatus.DROPPED
+        )
+
+        fun List<GameItemUiModel>.toSections(): List<WishlistSectionUiModel> {
+            val byStatus = groupBy { it.status }
+            val statusSections = STATUS_ORDER.mapNotNull { status ->
+                val games = byStatus[status]
+                if (games.isNullOrEmpty()) return@mapNotNull null
+                WishlistSectionUiModel(status = status, label = status.toLabelUiText(), games = games)
+            }
+            // Games without a personal status yet are shown without a section header.
+            val unstatusedGames = byStatus[null]
+            val unstatusedSection = if (unstatusedGames.isNullOrEmpty()) {
+                null
+            } else {
+                WishlistSectionUiModel(status = null, label = null, games = unstatusedGames)
+            }
+            return statusSections + listOfNotNull(unstatusedSection)
+        }
     }
 }
