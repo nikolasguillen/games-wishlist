@@ -60,6 +60,23 @@ class WishlistViewModel @AssistedInject constructor(
         }
     }
 
+    private fun List<GameItemUiModel>.toSections(): List<WishlistSectionUiModel> {
+        val byStatus = groupBy { it.status }
+        val statusSections = STATUS_ORDER.mapNotNull { status ->
+            val games = byStatus[status]
+            if (games.isNullOrEmpty()) return@mapNotNull null
+            WishlistSectionUiModel(status = status, label = status.toLabelUiText(), games = games)
+        }
+        // Games without a personal status yet are shown without a section header.
+        val unstatusedGames = byStatus[null]
+        val unstatusedSection = if (unstatusedGames.isNullOrEmpty()) {
+            null
+        } else {
+            WishlistSectionUiModel(status = null, label = null, games = unstatusedGames)
+        }
+        return statusSections + listOfNotNull(unstatusedSection)
+    }
+
     @AssistedFactory
     interface Factory {
         fun create(listId: Long): WishlistViewModel
@@ -74,22 +91,5 @@ class WishlistViewModel @AssistedInject constructor(
             GameStatus.COMPLETED,
             GameStatus.DROPPED
         )
-
-        fun List<GameItemUiModel>.toSections(): List<WishlistSectionUiModel> {
-            val byStatus = groupBy { it.status }
-            val statusSections = STATUS_ORDER.mapNotNull { status ->
-                val games = byStatus[status]
-                if (games.isNullOrEmpty()) return@mapNotNull null
-                WishlistSectionUiModel(status = status, label = status.toLabelUiText(), games = games)
-            }
-            // Games without a personal status yet are shown without a section header.
-            val unstatusedGames = byStatus[null]
-            val unstatusedSection = if (unstatusedGames.isNullOrEmpty()) {
-                null
-            } else {
-                WishlistSectionUiModel(status = null, label = null, games = unstatusedGames)
-            }
-            return statusSections + listOfNotNull(unstatusedSection)
-        }
     }
 }
