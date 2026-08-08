@@ -79,7 +79,7 @@ fun MainContent() {
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             AnimatedVisibility(
-                visible = backStack.last() !is GameDetailRoute,
+                visible = backStack.last() !is GameDetailRoute && backStack.last() !is WishlistRoute,
                 enter = slideInVertically(initialOffsetY = { it }),
                 exit = slideOutVertically(targetOffsetY = { it })
             ) {
