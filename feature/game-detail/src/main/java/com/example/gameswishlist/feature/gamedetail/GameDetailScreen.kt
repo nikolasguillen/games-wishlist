@@ -32,6 +32,8 @@ import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
 import com.example.gameswishlist.feature.gamedetail.model.PlatformTileUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 
+// viewModel is the same instance for the route's whole lifetime, so ref-comparison skips correctly.
+@Suppress("ParamsComparedByRef")
 @Composable
 fun GameDetailScreen(
     viewModel: GameDetailViewModel,

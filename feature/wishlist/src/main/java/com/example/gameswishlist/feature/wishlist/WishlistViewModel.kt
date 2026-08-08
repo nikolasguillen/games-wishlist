@@ -28,16 +28,16 @@ class WishlistViewModel @AssistedInject constructor(
     private val deleteListUseCase: DeleteListUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(WishlistUiState())
-    val uiState = _uiState.asStateFlow()
+    internal val uiState = _uiState.asStateFlow()
 
     private val _uiEffect = Channel<WishlistUiEffect>(Channel.BUFFERED)
-    val uiEffect = _uiEffect.receiveAsFlow()
+    internal val uiEffect = _uiEffect.receiveAsFlow()
 
     init {
         observeWishlistDetail(listId)
     }
 
-    fun onEvent(event: WishlistUiEvent) {
+    internal fun onEvent(event: WishlistUiEvent) {
         return when (event) {
             is WishlistUiEvent.OnWishlistDeleted -> deleteList()
         }

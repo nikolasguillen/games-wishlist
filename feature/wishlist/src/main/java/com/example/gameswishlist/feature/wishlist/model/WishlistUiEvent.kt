@@ -1,5 +1,5 @@
 package com.example.gameswishlist.feature.wishlist.model
 
-sealed interface WishlistUiEvent {
+internal sealed interface WishlistUiEvent {
     data object OnWishlistDeleted : WishlistUiEvent
 }

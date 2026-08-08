@@ -34,36 +34,41 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
+import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.ui.component.CustomAlertDialog
 import com.example.gameswishlist.core.ui.component.EmptyPage
+import com.example.gameswishlist.core.ui.model.GameItemUiModel
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.wishlist.components.StatusSectionHeader
 import com.example.gameswishlist.feature.wishlist.components.WishlistGameRow
+import com.example.gameswishlist.feature.wishlist.model.WishlistSectionUiModel
 import com.example.gameswishlist.feature.wishlist.model.WishlistUiEffect
 import com.example.gameswishlist.feature.wishlist.model.WishlistUiEvent
 import com.example.gameswishlist.feature.wishlist.model.WishlistUiState
-import kotlinx.coroutines.flow.Flow
 import com.example.gameswishlist.core.ui.R as CoreUiR
 
-@OptIn(ExperimentalMaterial3Api::class)
+// viewModel is the same instance for the route's whole lifetime, so ref-comparison skips correctly.
+@Suppress("ParamsComparedByRef")
 @Composable
 fun WishlistScreen(
-    state: WishlistUiState,
-    onEvent: (WishlistUiEvent) -> Unit,
-    effectFlow: Flow<WishlistUiEffect>,
+    viewModel: WishlistViewModel,
     onGameClick: (Int) -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    var showDeleteDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(lifecycle) {
+    LaunchedEffect(viewModel, lifecycle) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            effectFlow.collect { effect ->
+            viewModel.uiEffect.collect { effect ->
                 when (effect) {
                     WishlistUiEffect.NavigateBack -> onBackClick()
                     is WishlistUiEffect.ShowSnackbar -> {
@@ -73,6 +78,26 @@ fun WishlistScreen(
             }
         }
     }
+
+    WishlistContent(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onGameClick = onGameClick,
+        onBackClick = onBackClick,
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun WishlistContent(
+    state: WishlistUiState,
+    onEvent: (WishlistUiEvent) -> Unit,
+    onGameClick: (Int) -> Unit,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -147,7 +172,10 @@ fun WishlistScreen(
 
         if (showDeleteDialog) {
             CustomAlertDialog(
-                title = stringResource(R.string.delete_list_dialog_title, state.listName.asString()),
+                title = stringResource(
+                    R.string.delete_list_dialog_title,
+                    state.listName.asString()
+                ),
                 message = stringResource(R.string.delete_list_dialog_message),
                 confirmButtonText = stringResource(R.string.delete_action),
                 onConfirm = {
@@ -181,5 +209,48 @@ private fun ListOptionsMenu(onDeleteClick: () -> Unit, modifier: Modifier = Modi
                 }
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun WishlistContentPreview() {
+    GamesWishlistTheme {
+        WishlistContent(
+            state = WishlistUiState(
+                listName = UiText.DynamicString("My Wishlist"),
+                sections = listOf(
+                    WishlistSectionUiModel(
+                        status = GameStatus.PLAYING,
+                        label = UiText.DynamicString("PLAYING"),
+                        games = listOf(GameItemUiModel.getDummy())
+                    ),
+                    WishlistSectionUiModel(
+                        status = null,
+                        label = null,
+                        games = listOf(
+                            GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077")
+                        )
+                    )
+                ),
+                canDeleteList = true
+            ),
+            onEvent = {},
+            onGameClick = {},
+            onBackClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun WishlistContentEmptyPreview() {
+    GamesWishlistTheme {
+        WishlistContent(
+            state = WishlistUiState(listName = UiText.DynamicString("My Wishlist")),
+            onEvent = {},
+            onGameClick = {},
+            onBackClick = {}
+        )
     }
 }

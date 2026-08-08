@@ -54,6 +54,8 @@ import kotlin.time.Duration.Companion.milliseconds
 /** Lets the game-click navigation start before the search bar collapses behind it. */
 private val SEARCH_BAR_COLLAPSE_DELAY = 300.milliseconds
 
+// viewModel is the same instance for the route's whole lifetime, so ref-comparison skips correctly.
+@Suppress("ParamsComparedByRef")
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel,

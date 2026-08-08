@@ -13,7 +13,7 @@ import com.example.gameswishlist.core.ui.model.UiText
  * group renders without a section header, since there's no status to label it with.
  */
 @Immutable
-data class WishlistSectionUiModel(
+internal data class WishlistSectionUiModel(
     val status: GameStatus?,
     val label: UiText?,
     val games: List<GameItemUiModel>

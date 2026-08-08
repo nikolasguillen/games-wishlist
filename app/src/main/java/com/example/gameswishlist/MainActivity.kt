@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
@@ -178,12 +177,8 @@ fun MainContent() {
                             }
                         )
 
-                        val state by vm.uiState.collectAsStateWithLifecycle()
-
                         WishlistScreen(
-                            state = state,
-                            onEvent = vm::onEvent,
-                            effectFlow = vm.uiEffect,
+                            viewModel = vm,
                             onGameClick = { gameId: Int ->
                                 val nextRoute = GameDetailRoute(gameId)
                                 if (backStack.lastOrNull() != nextRoute) {
