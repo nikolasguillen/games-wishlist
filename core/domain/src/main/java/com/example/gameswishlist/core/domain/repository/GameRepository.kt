@@ -24,6 +24,8 @@ interface GameRepository {
     suspend fun updateGameDetails(game: Game)
 
     fun getAllLists(): Flow<List<WishlistList>>
+    /** Emits `null` when no list with [listId] exists (e.g. it was deleted). */
+    fun observeListById(listId: Long): Flow<WishlistList?>
     fun getListIdsForGame(gameId: Int): Flow<List<Long>>
     /**
      * The list itself is always created; a [AppResult.Failure] only indicates that

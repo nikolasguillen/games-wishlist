@@ -39,7 +39,7 @@ import com.example.gameswishlist.feature.lists.model.ListsUiEffect
 @Composable
 fun ListsScreen(
     viewModel: ListsViewModel,
-    onListClick: (Long, String) -> Unit,
+    onListClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val lists by viewModel.lists.collectAsStateWithLifecycle()
@@ -92,7 +92,7 @@ fun ListsScreen(
             items(lists, key = { it.id }) { list ->
                 WishlistRow(
                     list = list,
-                    onClick = { onListClick(list.id, list.name) }
+                    onClick = { onListClick(list.id) }
                 )
             }
         }

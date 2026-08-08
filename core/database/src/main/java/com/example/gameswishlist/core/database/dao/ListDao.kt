@@ -20,6 +20,9 @@ interface ListDao {
     @Query("SELECT * FROM wishlists WHERE id = :listId")
     suspend fun getListById(listId: Long): ListEntity?
 
+    @Query("SELECT * FROM wishlists WHERE id = :listId")
+    fun observeListById(listId: Long): Flow<ListEntity?>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertList(list: ListEntity)
 

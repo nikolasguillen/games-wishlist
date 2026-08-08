@@ -204,6 +204,10 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun observeListById(listId: Long): Flow<WishlistList?> {
+        return listDao.observeListById(listId).map { it?.toWishlistList() }
+    }
+
     override fun getListIdsForGame(gameId: Int): Flow<List<Long>> {
         return gameDao.getListIdsForGame(gameId)
     }

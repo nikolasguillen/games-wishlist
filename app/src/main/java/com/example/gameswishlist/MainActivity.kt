@@ -159,8 +159,8 @@ fun MainContent() {
                         val vm = hiltViewModel<ListsViewModel>()
                         ListsScreen(
                             viewModel = vm,
-                            onListClick = { listId: Long, listName: String ->
-                                val nextRoute = WishlistRoute(listId, listName)
+                            onListClick = { listId: Long ->
+                                val nextRoute = WishlistRoute(listId)
                                 if (backStack.lastOrNull() != nextRoute) {
                                     backStack.add(nextRoute)
                                 }

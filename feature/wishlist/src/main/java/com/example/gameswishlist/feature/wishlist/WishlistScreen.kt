@@ -147,7 +147,7 @@ fun WishlistScreen(
 
         if (showDeleteDialog) {
             CustomAlertDialog(
-                title = stringResource(R.string.delete_list_dialog_title, state.listName),
+                title = stringResource(R.string.delete_list_dialog_title, state.listName.asString()),
                 message = stringResource(R.string.delete_list_dialog_message),
                 confirmButtonText = stringResource(R.string.delete_action),
                 onConfirm = {
