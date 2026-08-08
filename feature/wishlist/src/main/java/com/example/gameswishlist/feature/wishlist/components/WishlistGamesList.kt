@@ -28,15 +28,12 @@ internal fun WishlistGamesList(
 ) {
     LazyColumn(modifier = modifier.fillMaxSize()) {
         sections.forEach { section ->
-            val label = section.label
-            if (label != null) {
-                item(key = "header_${section.status}") {
-                    StatusSectionHeader(
-                        label = label.asString(),
-                        count = section.games.size,
-                        modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
-                    )
-                }
+            item(key = "header_${section.status}") {
+                StatusSectionHeader(
+                    label = section.label.asString(),
+                    count = section.games.size,
+                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
+                )
             }
             itemsIndexed(
                 items = section.games,
@@ -72,7 +69,7 @@ private fun WishlistGamesListPreview() {
                 ),
                 WishlistSectionUiModel(
                     status = null,
-                    label = null,
+                    label = UiText.DynamicString("NO STATUS"),
                     games = listOf(GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077"))
                 )
             ),

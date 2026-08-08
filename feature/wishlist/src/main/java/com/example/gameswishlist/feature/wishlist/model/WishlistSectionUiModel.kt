@@ -9,12 +9,12 @@ import com.example.gameswishlist.core.ui.model.UiText
  * A group of games sharing the same [status], used to render the wishlist detail
  * screen as status-grouped sections (e.g., "Playing", "Want to buy").
  *
- * [status] and [label] are null for games with no personal status set yet: that
- * group renders without a section header, since there's no status to label it with.
+ * [status] is null for games with no personal status set yet; [label] is always
+ * present so every section renders with a header.
  */
 @Immutable
 internal data class WishlistSectionUiModel(
     val status: GameStatus?,
-    val label: UiText?,
+    val label: UiText,
     val games: List<GameItemUiModel>
 )

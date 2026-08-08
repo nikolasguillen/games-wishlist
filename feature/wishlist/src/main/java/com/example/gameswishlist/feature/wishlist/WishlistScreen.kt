@@ -141,7 +141,7 @@ private fun WishlistContentPreview() {
                     ),
                     WishlistSectionUiModel(
                         status = null,
-                        label = null,
+                        label = UiText.DynamicString("NO STATUS"),
                         games = listOf(
                             GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077")
                         )

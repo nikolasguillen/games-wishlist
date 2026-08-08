@@ -4,6 +4,8 @@ import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
 import com.example.gameswishlist.core.ui.mapper.toLabelUiText
+import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.feature.wishlist.R
 import com.example.gameswishlist.feature.wishlist.model.WishlistSectionUiModel
 
 /** Section order: active statuses first, finished/dropped last. */
@@ -24,12 +26,15 @@ internal fun List<Game>.toWishlistSectionUiModel(): List<WishlistSectionUiModel>
         if (filteredGames.isNullOrEmpty()) return@mapNotNull null
         WishlistSectionUiModel(status = status, label = status.toLabelUiText(), games = filteredGames)
     }
-    // Games without a personal status yet are shown without a section header.
     val unstatusedGames = byStatus[null]
     val unstatusedSection = if (unstatusedGames.isNullOrEmpty()) {
         null
     } else {
-        WishlistSectionUiModel(status = null, label = null, games = unstatusedGames)
+        WishlistSectionUiModel(
+            status = null,
+            label = UiText.StringResource(R.string.no_status_section_label),
+            games = unstatusedGames
+        )
     }
     return statusSections + listOfNotNull(unstatusedSection)
 }
