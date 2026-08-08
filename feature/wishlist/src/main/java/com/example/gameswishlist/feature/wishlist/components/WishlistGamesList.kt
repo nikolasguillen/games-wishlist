@@ -1,20 +1,31 @@
 package com.example.gameswishlist.feature.wishlist.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
+import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.feature.wishlist.R
 import com.example.gameswishlist.feature.wishlist.model.WishlistSectionUiModel
 
 // sections is always the same instance from WishlistUiState until it actually changes, so the
@@ -23,6 +34,7 @@ import com.example.gameswishlist.feature.wishlist.model.WishlistSectionUiModel
 internal fun WishlistGamesList(
     sections: List<WishlistSectionUiModel>,
     onGameClick: (Int) -> Unit,
+    onGameRemove: (GameItemUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(modifier = modifier.fillMaxSize()) {
@@ -36,10 +48,19 @@ internal fun WishlistGamesList(
             }
             section.games.forEachIndexed { index, game ->
                 item(key = "game_${section.status}_${game.id}", contentType = "game") {
-                    WishlistGameRow(
-                        game = game,
-                        onClick = { onGameClick(game.id) }
-                    )
+                    val dismissState = rememberSwipeToDismissBoxState()
+                    SwipeToDismissBox(
+                        state = dismissState,
+                        enableDismissFromStartToEnd = false,
+                        backgroundContent = { SwipeToRemoveBackground() },
+                        onDismiss = { onGameRemove(game) }
+                    ) {
+                        WishlistGameRow(
+                            game = game,
+                            onClick = { onGameClick(game.id) },
+                            modifier = Modifier.background(MaterialTheme.appColors.appBackground)
+                        )
+                    }
                 }
                 if (index != section.games.lastIndex) {
                     item(key = "divider_${section.status}_${game.id}", contentType = "divider") {
@@ -54,6 +75,23 @@ internal fun WishlistGamesList(
                 Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
             }
         }
+    }
+}
+
+@Composable
+private fun SwipeToRemoveBackground() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.errorContainer)
+            .padding(horizontal = MaterialTheme.spacing.large),
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Delete,
+            contentDescription = stringResource(R.string.remove_game_action),
+            tint = MaterialTheme.colorScheme.onErrorContainer
+        )
     }
 }
 
@@ -74,7 +112,8 @@ private fun WishlistGamesListPreview() {
                     games = listOf(GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077"))
                 )
             ),
-            onGameClick = {}
+            onGameClick = {},
+            onGameRemove = {}
         )
     }
 }

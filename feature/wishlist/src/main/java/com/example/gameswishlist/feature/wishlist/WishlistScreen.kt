@@ -9,6 +9,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -57,7 +58,13 @@ fun WishlistScreen(
                 when (effect) {
                     WishlistUiEffect.NavigateBack -> onBackClick()
                     is WishlistUiEffect.ShowSnackbar -> {
-                        snackbarHostState.showSnackbar(effect.message.asString(context))
+                        val result = snackbarHostState.showSnackbar(
+                            message = effect.message.asString(context),
+                            actionLabel = effect.actionLabel?.asString(context)
+                        )
+                        if (result == SnackbarResult.ActionPerformed) {
+                            effect.actionEvent?.let(viewModel::onEvent)
+                        }
                     }
                 }
             }
@@ -109,6 +116,7 @@ internal fun WishlistContent(
             WishlistGamesList(
                 sections = state.sections,
                 onGameClick = onGameClick,
+                onGameRemove = { game -> onEvent(WishlistUiEvent.OnGameRemoved(game.id)) },
                 modifier = Modifier.padding(innerPadding)
             )
         }
