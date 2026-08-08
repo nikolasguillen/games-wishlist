@@ -1,8 +1,10 @@
 package com.example.gameswishlist.feature.wishlist
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,35 +34,50 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomAlertDialog
 import com.example.gameswishlist.core.ui.component.EmptyPage
 import com.example.gameswishlist.feature.wishlist.components.StatusSectionHeader
 import com.example.gameswishlist.feature.wishlist.components.WishlistGameRow
+import com.example.gameswishlist.feature.wishlist.model.WishlistUiEffect
+import com.example.gameswishlist.feature.wishlist.model.WishlistUiEvent
+import com.example.gameswishlist.feature.wishlist.model.WishlistUiState
+import kotlinx.coroutines.flow.Flow
 import com.example.gameswishlist.core.ui.R as CoreUiR
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WishlistScreen(
-    listName: String,
-    viewModel: WishlistViewModel,
+    state: WishlistUiState,
+    onEvent: (WishlistUiEvent) -> Unit,
+    effectFlow: Flow<WishlistUiEffect>,
     onGameClick: (Int) -> Unit,
     onBackClick: () -> Unit,
-    onListDeleted: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val sections by viewModel.sections.collectAsStateWithLifecycle()
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(viewModel) {
-        viewModel.listDeleted.collect { onListDeleted() }
+    LaunchedEffect(lifecycle) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            effectFlow.collect { effect ->
+                when (effect) {
+                    WishlistUiEffect.NavigateBack -> onBackClick()
+                    is WishlistUiEffect.ShowSnackbar -> {
+                        // TODO implement snackbar
+                    }
+                }
+            }
+        }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(listName, fontWeight = FontWeight.Bold) },
+                title = { Text(state.listName.asString(), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -70,7 +87,7 @@ fun WishlistScreen(
                     }
                 },
                 actions = {
-                    if (viewModel.canDeleteList) {
+                    if (state.canDeleteList) {
                         ListOptionsMenu(onDeleteClick = { showDeleteDialog = true })
                     }
                 },
@@ -82,7 +99,7 @@ fun WishlistScreen(
         contentWindowInsets = WindowInsets.systemBars,
         modifier = modifier
     ) { innerPadding ->
-        if (sections.isEmpty()) {
+        if (state.sections.isEmpty()) {
             EmptyPage(
                 message = stringResource(CoreUiR.string.empty_list_message),
                 icon = Icons.Outlined.Inventory2,
@@ -94,7 +111,7 @@ fun WishlistScreen(
                     .padding(innerPadding)
                     .fillMaxSize()
             ) {
-                sections.forEach { section ->
+                state.sections.forEach { section ->
                     val label = section.label
                     if (label != null) {
                         item(key = "header_${section.status}") {
@@ -120,6 +137,8 @@ fun WishlistScreen(
                                 ),
                                 modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
                             )
+                        } else {
+                            Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
                         }
                     }
                 }
@@ -128,12 +147,12 @@ fun WishlistScreen(
 
         if (showDeleteDialog) {
             CustomAlertDialog(
-                title = stringResource(R.string.delete_list_dialog_title, listName),
+                title = stringResource(R.string.delete_list_dialog_title, state.listName),
                 message = stringResource(R.string.delete_list_dialog_message),
                 confirmButtonText = stringResource(R.string.delete_action),
                 onConfirm = {
                     showDeleteDialog = false
-                    viewModel.deleteList()
+                    onEvent(WishlistUiEvent.OnWishlistDeleted)
                 },
                 dismissButtonText = stringResource(CoreUiR.string.cancel),
                 onDismiss = { showDeleteDialog = false }

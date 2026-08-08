@@ -3,6 +3,7 @@ package com.example.gameswishlist.core.ui.model
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.res.stringResource
 
 /**
@@ -13,13 +14,26 @@ import androidx.compose.ui.res.stringResource
  * - asString(): String -> Returns the string as a plain String in a composable context
  * - asString(context: Context): String -> Returns the string as a String from the given Context
  */
+@Immutable
 sealed class UiText {
     data class DynamicString(val value: String) : UiText()
 
     class StringResource(
         @StringRes val resId: Int,
-        vararg val args: Any
-    ) : UiText()
+        vararg args: Any
+    ) : UiText() {
+        val args: List<Any> = args.toList()
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is StringResource) return false
+            return resId == other.resId && args == other.args
+        }
+
+        override fun hashCode(): Int = 31 * resId + args.hashCode()
+
+        override fun toString(): String = "StringResource(resId=$resId, args=$args)"
+    }
 
     data class CompoundString(
         val texts: List<UiText>,

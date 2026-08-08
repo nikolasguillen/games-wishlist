@@ -25,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -32,6 +33,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
@@ -175,17 +177,20 @@ fun MainContent() {
                                 factory.create(key.listId)
                             }
                         )
+
+                        val state by vm.uiState.collectAsStateWithLifecycle()
+
                         WishlistScreen(
-                            listName = key.listName,
-                            viewModel = vm,
+                            state = state,
+                            onEvent = vm::onEvent,
+                            effectFlow = vm.uiEffect,
                             onGameClick = { gameId: Int ->
                                 val nextRoute = GameDetailRoute(gameId)
                                 if (backStack.lastOrNull() != nextRoute) {
                                     backStack.add(nextRoute)
                                 }
                             },
-                            onBackClick = { backStack.removeLastOrNull() },
-                            onListDeleted = { backStack.removeLastOrNull() },
+                            onBackClick = { backStack.removeLastOrNull() }
                         )
                     }
 
