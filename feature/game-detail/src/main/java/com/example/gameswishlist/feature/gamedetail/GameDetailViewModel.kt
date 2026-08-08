@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = GameDetailViewModel.Factory::class)
 class GameDetailViewModel @AssistedInject constructor(
     @Assisted gameId: Int,
-    private val getGameDetailUseCase: GetGameDetailUseCase,
+    getGameDetailUseCase: GetGameDetailUseCase,
     private val refreshGameDetailUseCase: RefreshGameDetailUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
     private val toggleWishlistUseCase: ToggleWishlistUseCase,
