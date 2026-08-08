@@ -86,6 +86,8 @@ class GameDetailViewModelTest {
         url = url
     )
 
+    // uiState (and currentGameFlow) are shared with WhileSubscribed, so they only start collecting
+    // once they have a subscriber -- mirrors the screen's collectAsStateWithLifecycle.
     private fun TestScope.createViewModel(game: Game = testGame()): GameDetailViewModel {
         every { getGameDetailUseCase(game.id) } returns flowOf(game)
         return GameDetailViewModel(
@@ -97,7 +99,10 @@ class GameDetailViewModelTest {
             getWishlistAssignmentsUseCase = getWishlistAssignmentsUseCase,
             addGameToListUseCase = addGameToListUseCase,
             removeGameFromListUseCase = removeGameFromListUseCase
-        ).also { advanceUntilIdle() }
+        ).also { viewModel ->
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            advanceUntilIdle()
+        }
     }
 
     private fun GameDetailViewModel.successState(): GameDetailContentState.Success =
@@ -129,6 +134,7 @@ class GameDetailViewModelTest {
             addGameToListUseCase = addGameToListUseCase,
             removeGameFromListUseCase = removeGameFromListUseCase
         )
+        backgroundScope.launch { viewModel.uiState.collect {} }
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.contentState is GameDetailContentState.Error)

@@ -49,7 +49,7 @@ class GameDetailViewModel @AssistedInject constructor(
     // Single source of truth: reactively observes local storage. Mutations write through the
     // use cases below and this flow picks the change back up -- no manually mirrored copy.
     private val currentGameFlow = getGameDetailUseCase(gameId)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     private val _wishlistSelectorState = MutableStateFlow<WishlistSelectorState?>(null)
     private val _refreshError = MutableStateFlow<UiText?>(null)
@@ -67,7 +67,7 @@ class GameDetailViewModel @AssistedInject constructor(
             },
             wishlistSelectorState = selectorState
         )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, GameDetailUiState())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), GameDetailUiState())
 
     private val _uiEffect = Channel<GameDetailUiEffect>(Channel.BUFFERED)
     internal val uiEffect = _uiEffect.receiveAsFlow()
