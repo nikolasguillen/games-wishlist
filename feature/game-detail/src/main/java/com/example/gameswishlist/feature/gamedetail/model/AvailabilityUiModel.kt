@@ -1,5 +1,6 @@
 package com.example.gameswishlist.feature.gamedetail.model
 
+import androidx.compose.runtime.Immutable
 import com.example.gameswishlist.core.ui.model.UiText
 
 /**
@@ -10,6 +11,7 @@ import com.example.gameswishlist.core.ui.model.UiText
  * @property detailedDates Per-platform release dates for the expanded dialog view.
  * @property isExpandable Whether there are multiple different release dates that justify a detailed view.
  */
+@Immutable
 internal data class AvailabilityUiModel(
     val mainDate: UiText,
     val platforms: List<PlatformTileUiModel>,
