@@ -18,6 +18,9 @@ import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.wishlist.model.WishlistSectionUiModel
 
+// sections is always the same instance from WishlistUiState until it actually changes, so the
+// instability falls back to reference comparison, which already skips correctly.
+@Suppress("ComposeUnstableCollections")
 @Composable
 internal fun WishlistGamesList(
     sections: List<WishlistSectionUiModel>,
