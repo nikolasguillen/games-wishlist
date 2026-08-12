@@ -66,8 +66,6 @@ use for the same purpose.
 
 - **Release build type is not release-ready**: `app/build.gradle.kts` uses the **debug signing config** and
   `isMinifyEnabled = false`.
-- **`HttpLoggingInterceptor` is set to `BODY` unconditionally** in `core/network/di/NetworkModule.kt`,
-  including release builds — full request/response bodies land in logcat on user devices.
 - **Compose tooling ships in release**: `feature/search` and `feature/wishlist` declare
   `androidx.compose.ui.tooling` as `implementation`, while `core/ui` correctly uses `debugImplementation`.
   (`feature/lists` and `feature/game-detail` only pull `ui.tooling.preview`, which is fine.)

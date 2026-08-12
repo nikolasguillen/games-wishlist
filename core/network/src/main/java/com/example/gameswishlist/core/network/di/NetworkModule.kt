@@ -28,11 +28,20 @@ object NetworkModule {
         return Moshi.Builder().build()
     }
 
+    /**
+     * Full request/response logging is debug-only: at [HttpLoggingInterceptor.Level.BODY] OkHttp also
+     * dumps the headers, which carry the IGDB `Client-ID` and the `Authorization: Bearer` token. On
+     * release builds the interceptor stays wired but silent.
+     */
     @Provides
     @Singleton
     fun provideLoggingInterceptor(): HttpLoggingInterceptor {
         return HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = if (BuildConfig.DEBUG) {
+                HttpLoggingInterceptor.Level.BODY
+            } else {
+                HttpLoggingInterceptor.Level.NONE
+            }
         }
     }
 
