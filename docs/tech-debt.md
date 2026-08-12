@@ -16,7 +16,6 @@ Last audited: 2026-08-12.
 | File | Declarations |
 |---|---|
 | `core/network/model/IgdbModels.kt` | 9 |
-| `core/network/model/NetworkGame.kt` | 7 (dead code, see below) |
 | `core/database/entity/GameEntity.kt` | 5 (`RelatedGameEntity`, `GameWithAllDetails`, `GamePlatformWithDetails`, `GameCompanyWithDetails`) |
 | `core/navigation/Routes.kt` | 5 |
 | `core/database/entity/ListEntity.kt` | 3 (`ListWithGameCount`, `GameListCrossRef`) |
@@ -74,8 +73,6 @@ use for the same purpose.
   failures with `catch (e: Exception) { null }`.
 - **Room has no migration path**: `version = 1`, `exportSchema = false`,
   `.fallbackToDestructiveMigration(true)`. Any entity change wipes user data.
-- **Dead code**: `core/network/model/NetworkGame.kt` (7 `Network*` DTOs) is a RAWG-era leftover with zero
-  references.
 
 ## Infrastructure
 

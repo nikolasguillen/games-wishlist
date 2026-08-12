@@ -23,8 +23,6 @@ Do not add error handling here.
 - Prefix `Igdb*`, **no `Dto` suffix**: `IgdbGame`, `IgdbCover`, `IgdbPlatform`, `IgdbInvolvedCompany`, …
 - `@JsonClass(generateAdapter = true)` plus `@Json(name = "snake_case")` on renamed fields.
 - Class-level KDoc with `@property` tags is mandatory for network models.
-- **`model/NetworkGame.kt` is dead code** — a leftover from when the app used RAWG, with zero references
-  anywhere in the repo. Do not extend it, do not use it as a template, do not wire it into anything.
 
 ## Auth
 
