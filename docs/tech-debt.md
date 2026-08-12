@@ -66,9 +66,6 @@ use for the same purpose.
 
 - **Release build type is not release-ready**: `app/build.gradle.kts` uses the **debug signing config** and
   `isMinifyEnabled = false`.
-- **Compose tooling ships in release**: `feature/search` and `feature/wishlist` declare
-  `androidx.compose.ui.tooling` as `implementation`, while `core/ui` correctly uses `debugImplementation`.
-  (`feature/lists` and `feature/game-detail` only pull `ui.tooling.preview`, which is fine.)
 - **No IGDB token refresh**: `IgdbAuthManager` parses `expiresIn` but never uses it, and swallows auth
   failures with `catch (e: Exception) { null }`.
 - **Room has no migration path**: `version = 1`, `exportSchema = false`,
