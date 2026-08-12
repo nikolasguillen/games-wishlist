@@ -1,6 +1,13 @@
 # CLAUDE.md — core:database
 
-Room persistence layer. Classic Room 2.8.4 with KSP — **not** Room 3 / `SQLiteDriver`.
+Room persistence layer. Room 2.8.4 (the latest release — there is no Room 3) with KSP, on the **legacy
+`SupportSQLiteOpenHelper` path**: `Room.databaseBuilder(...)` without `.setDriver(...)`.
+
+The driver-based API (`BundledSQLiteDriver`, `androidx.sqlite`) has been available since Room 2.7.0 and is
+deliberately unused. It mainly buys KMP support and a SQLite version pinned by the app rather than by the
+device. **The project intends to migrate to KMP eventually** — when that happens, switching to the
+driver-based API is part of that work, not a standalone refactor. Until then, do not introduce
+`.setDriver(...)` piecemeal.
 
 ## No migration strategy — read this first
 
