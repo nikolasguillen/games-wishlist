@@ -9,6 +9,24 @@ these patterns as the house style. Mention the relevant item if it blocks you, t
 
 Last audited: 2026-08-12.
 
+## Cleanup pass in progress
+
+An ordered pass over this list is underway on `develop`, one fix per commit; `git log` is the record of
+what has already been done. Entries are deleted from this file as they are fixed, so whatever is still
+written below is still true. Agreed order for the rest:
+
+1. **IGDB token refresh** — the only remaining item that changes runtime behaviour, so it needs a device
+   check and not just a green build.
+2. **Room migrations** — turn `exportSchema` on *before* touching any entity, then drop
+   `fallbackToDestructiveMigration`. Worth doing together with the comma-separated list columns, since both
+   need a schema bump and the destructive fallback is what currently hides the problem.
+3. **Release signing** — blocked on the owner generating a keystore; the config reads it from a
+   git-ignored `keystore.properties`, like the IGDB credentials.
+4. Small and independent, any order: the `R` alias convention, the missing `LICENSE`.
+
+Convention plugins, CI and the test-coverage gaps are deliberately last — see the KMP section in the root
+`CLAUDE.md`, since a multiplatform move would rewrite the build logic anyway.
+
 ## Rule violations
 
 ### One declaration per file
