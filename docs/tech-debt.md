@@ -66,9 +66,6 @@ use for the same purpose.
 - **Release is signed with the debug key**: `app/build.gradle.kts` still uses
   `signingConfigs.getByName("debug")`, so the APK cannot be distributed. Needs a real keystore read from a
   git-ignored `keystore.properties`.
-- **The minified release has never been run**: R8 and resource shrinking are enabled and
-  `:app:assembleRelease` produces no missing rules, but no one has installed that APK and exercised search,
-  detail, lists and wishlist. Do that before trusting it.
 - **No IGDB token refresh**: `IgdbAuthManager` parses `expiresIn` but never uses it, and swallows auth
   failures with `catch (e: Exception) { null }`.
 - **Room has no migration path**: `version = 1`, `exportSchema = false`,
@@ -81,9 +78,8 @@ use for the same purpose.
 - **No CI** (`.github/` does not exist) and **no static analysis** (no detekt, ktlint, spotless,
   `.editorconfig`, or `lint {}` block).
 - **`gradle.properties` is unoptimized**: parallel builds commented out, no configuration cache, no build
-  cache, no `nonTransitiveRClass`.
-- **Unused dependencies pulled into `:app`**: CameraX, accompanist-permissions,
-  play-services-location.
+  cache, no `nonTransitiveRClass`. `org.gradle.jvmargs=-Xmx2048m` is also too tight — asking for
+  `assembleDebug` and `assembleRelease` in one invocation kills the daemon with a GC thrashing error.
 - **Test coverage gaps**: no tests at all for `:feature:wishlist`, `:core:domain` use cases,
   `:core:database` DAOs, `:core:network`, or `:core:ui` mappers. No Compose UI tests — `ui-test-junit4` is
   wired into `:app` but only the template `ExampleInstrumentedTest` exists. `app/src/test/ExampleUnitTest.kt`
