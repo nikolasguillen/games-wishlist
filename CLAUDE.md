@@ -96,6 +96,11 @@ Additional `CLAUDE.md` files are loaded automatically when you work inside these
 `feature/`, `core/data/`, `core/network/`, `core/database/`, `core/ui/`, `core/designsystem/`.
 Read them before changing code in those modules.
 
+**These files are instructions, not a changelog.** When a change deletes the thing a rule was about,
+delete the rule in the same commit — do not rewrite it into a note saying the thing is gone. Check whether
+a neighbouring rule already covers what is left. The same applies to `docs/tech-debt.md`: remove a
+resolved entry instead of annotating it as fixed. History belongs in commit messages.
+
 ## Planned direction: Kotlin Multiplatform
 
 The owner intends to migrate this project to KMP (with Compose Multiplatform for the UI) at some point.
