@@ -96,6 +96,23 @@ Additional `CLAUDE.md` files are loaded automatically when you work inside these
 `feature/`, `core/data/`, `core/network/`, `core/database/`, `core/ui/`, `core/designsystem/`.
 Read them before changing code in those modules.
 
+## Planned direction: Kotlin Multiplatform
+
+The owner intends to migrate this project to KMP (with Compose Multiplatform for the UI) at some point.
+No timeline, no work started — the repo is Android-only today, with zero `commonMain` source sets.
+
+**Do not start KMP restructuring, and do not swap libraries pre-emptively.** The rule is to avoid choices
+that would be expensive to reverse, not to migrate early:
+
+- Keep `:core:model` free of Android and Compose dependencies. It is already the most KMP-ready module and
+  the natural first candidate for `commonMain`.
+- Retrofit (`:core:network`) and Hilt are JVM/Android-only. Their KMP counterparts would be Ktor and Koin.
+  Leave both alone until the migration is actually scoped.
+- Room is on the legacy `SupportSQLiteOpenHelper` path. Moving to the driver-based API
+  (`BundledSQLiteDriver`) belongs to that migration — see `core/database/CLAUDE.md`.
+
+When a decision would be hard to undo after a KMP move, say so and let the owner choose.
+
 ## Known deviations
 
 `docs/tech-debt.md` lists the places where the codebase does **not** follow the rules above, plus known
