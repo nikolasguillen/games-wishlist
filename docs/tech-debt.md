@@ -64,8 +64,12 @@ use for the same purpose.
 
 ## Technical risks
 
-- **Release build type is not release-ready**: `app/build.gradle.kts` uses the **debug signing config** and
-  `isMinifyEnabled = false`.
+- **Release is signed with the debug key**: `app/build.gradle.kts` still uses
+  `signingConfigs.getByName("debug")`, so the APK cannot be distributed. Needs a real keystore read from a
+  git-ignored `keystore.properties`.
+- **The minified release has never been run**: R8 and resource shrinking are enabled and
+  `:app:assembleRelease` produces no missing rules, but no one has installed that APK and exercised search,
+  detail, lists and wishlist. Do that before trusting it.
 - **No IGDB token refresh**: `IgdbAuthManager` parses `expiresIn` but never uses it, and swallows auth
   failures with `catch (e: Exception) { null }`.
 - **Room has no migration path**: `version = 1`, `exportSchema = false`,
