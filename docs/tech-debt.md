@@ -77,9 +77,6 @@ use for the same purpose.
   are repeated by hand in all 14 module build files.
 - **No CI** (`.github/` does not exist) and **no static analysis** (no detekt, ktlint, spotless,
   `.editorconfig`, or `lint {}` block).
-- **`gradle.properties` is unoptimized**: parallel builds commented out, no configuration cache, no build
-  cache, no `nonTransitiveRClass`. `org.gradle.jvmargs=-Xmx2048m` is also too tight — asking for
-  `assembleDebug` and `assembleRelease` in one invocation kills the daemon with a GC thrashing error.
 - **Test coverage gaps**: no tests at all for `:feature:wishlist`, `:core:domain` use cases,
   `:core:database` DAOs, `:core:network`, or `:core:ui` mappers. No Compose UI tests — `ui-test-junit4` is
   wired into `:app` but only the template `ExampleInstrumentedTest` exists. `app/src/test/ExampleUnitTest.kt`
