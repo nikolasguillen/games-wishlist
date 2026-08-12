@@ -1,23 +1,6 @@
 # GamesWishlist Project Rules
 
-## Coding Standards
-- **Naming**: UI models MUST have the `UiModel` suffix. Domain models are clean.
-- **State**: Always use `sealed interface` for UI states (e.g., `SearchContentState`).
-- **Logic Location**:
-    - Business logic (formatting, thresholds) -> `Mappers` or `UseCases`.
-    - Filtering/Sorting logic -> `ViewModel` or `UseCase` using **IDs**, never names.
-    - Composables -> Strictly for rendering and event emission.
+The project rules live in `CLAUDE.md` at the repository root, plus directory-scoped `CLAUDE.md` files under
+`feature/` and `core/*`. Known deviations from those rules are tracked in `docs/tech-debt.md`.
 
-## Jetpack Compose
-- **Stability**: Prefer `alpha(0f)` over removing elements from the tree to avoid layout shifts.
-- **Performance**: Use `animateContentSize()` for elements that change dimensions.
-- **Lifecycle**: Always use `collectAsStateWithLifecycle()` to consume flows in Screens.
-
-## Data & Persistence
-- **Database**: Strictly NO comma-separated strings for lists. Use Many-to-Many relationships with `CrossRef` entities.
-- **Transactions**: Use `@Transaction` for operations involving multiple tables (e.g., `saveGame`).
-- **Models**: Use `GameWithAllDetails` when fetching a game to ensure all relations (Platforms, Genres, Companies) are loaded.
-
-## Architecture
-- **Mappers**: Maintain strict separation between Network -> Domain -> Database -> UI models.
-- **Use Cases**: Prefer composite Use Cases that return all necessary data for a screen state in one go.
+Read the root `CLAUDE.md` before changing any code.
