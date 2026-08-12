@@ -17,6 +17,10 @@ Jetpack Compose (BOM 2026.06.01) · Hilt 2.60.1 · Room 2.8.4 (KSP) · Retrofit 
 Prefer a single-module `compileDebugKotlin` for quick feedback; only run `:app:assembleDebug` when the
 change spans modules or touches DI wiring.
 
+This project is developed on both macOS and Windows. The commands above use the Unix wrapper; on Windows
+(PowerShell) use the batch wrapper instead — `.\gradlew.bat :app:assembleDebug`. Check the platform before
+suggesting a command.
+
 - **No detekt, ktlint, spotless, or CI are configured.** Do not propose a lint gate that does not exist.
 - Never edit anything under `**/build/generated/**`.
 - IGDB credentials (`IGDB_CLIENT_ID`, `IGDB_CLIENT_SECRET`) live in `local.properties` and are injected as
