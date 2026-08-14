@@ -53,7 +53,7 @@ class IgdbAuthManager @Inject constructor(
         throw e
     } catch (e: Exception) {
         // Deliberate: this runs inside an OkHttp interceptor, so throwing here would surface as a raw
-        // failure from the wrong layer. Reporting "no token" instead lets the request go out unauthorised
+        // failure from the wrong layer. Reporting "no token" instead lets the request go out unauthorized
         // and come back a 401, which :core:data — the error boundary — already maps to a typed
         // RepositoryError. Do not turn this into a rethrow without moving that boundary.
         clearToken()

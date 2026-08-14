@@ -16,7 +16,13 @@ interface IgdbApiService {
 
 Return types are bare `List<IgdbGame>` — **no `Response<T>`, no `Call`, no network-level result wrapper**.
 Failures surface as thrown exceptions and are converted into `AppResult`/`RepositoryError` in `:core:data`.
-Do not add error handling here.
+Do not add error *handling* here — no retries, no recovery, no result types.
+
+The one thing this module does do is **translate**: `IgdbHttpErrorInterceptor` turns every non-2xx
+response into an `IgdbHttpException`, which `:core:data` matches with a plain `is`. That is what keeps
+Retrofit out of `:core:data`, and it is the seam that would survive a swap to another HTTP client. The
+interceptor is registered **first** in `provideOkHttpClient` so `HttpLoggingInterceptor` still dumps the
+failed response before the exception replaces it.
 
 ## DTOs
 

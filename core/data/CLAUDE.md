@@ -36,15 +36,14 @@ look like mistakes but are deliberate:
 
 - It **rethrows `CancellationException`** before mapping anything, so coroutine cancellation is not
   swallowed into a `RepositoryError`.
-- It detects Retrofit's `HttpException` **by class name via reflection**
-  (`javaClass.name != "retrofit2.HttpException"`, then `getMethod("code")`) specifically so that
-  `:core:data` does not depend on Retrofit. **Retrofit is a `testImplementation` on purpose** — do not
-  promote it to `implementation` to "clean this up". `core/data/build.gradle.kts` carries a comment
-  explaining why, and `RepositoryErrorMapperTest.kt` covers the behaviour.
+- It matches `IgdbHttpException` — **`:core:network`'s own type, not Retrofit's `HttpException`** — so
+  that `:core:data` never depends on Retrofit. Keep it that way: Retrofit is JVM-only and this is the
+  module a KMP move would want in `commonMain`. `RepositoryErrorMapperTest.kt` covers the behaviour.
+  `IgdbHttpException` extends `IOException`, so its branch has to stay **above** the catch-all.
 
 Mapped cases: `UnknownHostException` / `ConnectException` / `SocketException` → `NoNetwork`,
-`SocketTimeoutException` → `RequestTimeout`, Retrofit HTTP → `Http(code, message)`, everything else →
-`Unknown(cause)`.
+`SocketTimeoutException` → `RequestTimeout`, `IgdbHttpException` → `Http(code, message)`, everything else
+→ `Unknown(cause)`.
 
 ## Mappers
 

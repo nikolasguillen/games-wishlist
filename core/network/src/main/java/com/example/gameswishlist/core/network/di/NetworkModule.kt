@@ -4,6 +4,7 @@ import com.example.gameswishlist.core.network.BuildConfig
 import com.example.gameswishlist.core.network.IgdbApiService
 import com.example.gameswishlist.core.network.IgdbAuthManager
 import com.example.gameswishlist.core.network.IgdbAuthService
+import com.example.gameswishlist.core.network.IgdbHttpErrorInterceptor
 import com.squareup.moshi.Moshi
 import dagger.Lazy
 import dagger.Module
@@ -69,6 +70,9 @@ object NetworkModule {
         authInterceptor: Interceptor
     ): OkHttpClient {
         return OkHttpClient.Builder()
+            // Outermost on purpose: the logging interceptor below sees the failed response and dumps it
+            // before this one throws it away in favour of an IgdbHttpException.
+            .addInterceptor(IgdbHttpErrorInterceptor())
             .addInterceptor(loggingInterceptor)
             .addInterceptor(authInterceptor)
             .build()
