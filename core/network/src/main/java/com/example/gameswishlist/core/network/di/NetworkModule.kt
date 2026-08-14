@@ -11,6 +11,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.runBlocking
+import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -21,6 +22,9 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
+    private const val HEADER_AUTHORIZATION = "Authorization"
+    private const val BEARER_PREFIX = "Bearer "
 
     @Provides
     @Singleton
@@ -45,6 +49,11 @@ object NetworkModule {
         }
     }
 
+    /**
+     * Attaches the token up front so the very first request of the process already carries it. A
+     * failure to obtain one fails the request instead of sending it unauthenticated, which IGDB would
+     * answer with an opaque 401.
+     */
     @Provides
     @Singleton
     fun provideAuthInterceptor(authManager: Lazy<IgdbAuthManager>): Interceptor {
@@ -52,13 +61,30 @@ object NetworkModule {
             val token = runBlocking { authManager.get().getAccessToken() }
             val request = chain.request().newBuilder()
                 .addHeader("Client-ID", BuildConfig.IGDB_CLIENT_ID)
-                .apply {
-                    if (token != null) {
-                        addHeader("Authorization", "Bearer $token")
-                    }
-                }
+                .addHeader(HEADER_AUTHORIZATION, "$BEARER_PREFIX$token")
                 .build()
             chain.proceed(request)
+        }
+    }
+
+    /**
+     * Covers the tokens IGDB rejects before their `expires_in` elapses — revoked credentials, a
+     * server-side reset. OkHttp calls this on a 401, and the request it returns is retried below the
+     * application interceptors, so the refreshed header has to be set here as well. Bailing out on a
+     * non-null `priorResponse` caps this at one retry per call.
+     */
+    @Provides
+    @Singleton
+    fun provideAuthAuthenticator(authManager: Lazy<IgdbAuthManager>): Authenticator {
+        return Authenticator { _, response ->
+            val staleToken = response.request.header(HEADER_AUTHORIZATION)
+                ?.removePrefix(BEARER_PREFIX)
+            if (staleToken == null || response.priorResponse != null) return@Authenticator null
+
+            val token = runBlocking { authManager.get().refreshAccessToken(staleToken) }
+            response.request.newBuilder()
+                .header(HEADER_AUTHORIZATION, "$BEARER_PREFIX$token")
+                .build()
         }
     }
 
@@ -66,11 +92,13 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(
         loggingInterceptor: HttpLoggingInterceptor,
-        authInterceptor: Interceptor
+        authInterceptor: Interceptor,
+        authenticator: Authenticator
     ): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
             .addInterceptor(authInterceptor)
+            .authenticator(authenticator)
             .build()
     }
 

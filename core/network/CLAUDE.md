@@ -28,12 +28,19 @@ Do not add error handling here.
 
 - `IgdbAuthService` is a separate Retrofit interface with a hardcoded absolute URL
   (`@POST("https://id.twitch.tv/oauth2/token")`).
-- `IgdbAuthManager` is a `@Singleton` caching the token in memory behind a `Mutex`.
+- `IgdbAuthManager` is a `@Singleton` caching the token in memory behind a `Mutex`. Nothing is persisted.
 - The DI cycle (client needs auth, auth needs a client) is broken two ways in `di/NetworkModule.kt`:
   `dagger.Lazy<IgdbAuthManager>` in the interceptor, and a **second inline Retrofit instance** built inside
   `provideIgdbAuthService` so the auth call does not go through the auth interceptor. Keep both if you
   touch that module.
-- **`expiresIn` is parsed but never used — there is no token refresh.** See `docs/tech-debt.md`.
+- The token is refreshed on two paths: proactively from `expiresIn` (minus a one-minute margin) in
+  `getAccessToken()`, and reactively from an OkHttp `Authenticator` that catches a 401 and calls
+  `refreshAccessToken(staleToken)`. The authenticator sets the header itself because the retried request
+  does **not** re-run the application interceptors, and gives up when `priorResponse` is non-null so a
+  permanently rejected token cannot loop.
+- **`IgdbAuthManager` fails with `IOException` and never returns null.** Interceptors and authenticators
+  may only throw `IOException`; any other exception escapes on the OkHttp dispatcher thread instead of
+  reaching the caller, so `fetchToken()` wraps everything that is not already one.
 
 ## Build config
 
