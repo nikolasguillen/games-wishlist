@@ -15,14 +15,14 @@ An ordered pass over this list is underway on `develop`, one fix per commit; `gi
 what has already been done. Entries are deleted from this file as they are fixed, so whatever is still
 written below is still true. Agreed order for the rest:
 
-1. **IGDB token refresh** — the only remaining item that changes runtime behaviour, so it needs a device
-   check and not just a green build.
-2. **Room migrations** — turn `exportSchema` on *before* touching any entity, then drop
+1. **Room migrations** — turn `exportSchema` on *before* touching any entity, then drop
    `fallbackToDestructiveMigration`. Worth doing together with the comma-separated list columns, since both
-   need a schema bump and the destructive fallback is what currently hides the problem.
-3. **Release signing** — blocked on the owner generating a keystore; the config reads it from a
+   need a schema bump and the destructive fallback is what currently hides the problem. The owner has
+   accepted a one-off data wipe: the app is not published, so a hand-written `Migration(1, 2)` is not
+   required.
+2. **Release signing** — blocked on the owner generating a keystore; the config reads it from a
    git-ignored `keystore.properties`, like the IGDB credentials.
-4. Small and independent, any order: the `R` alias convention, the missing `LICENSE`.
+3. Small and independent, any order: the `R` alias convention, the missing `LICENSE`.
 
 Convention plugins, CI and the test-coverage gaps are deliberately last — see the KMP section in the root
 `CLAUDE.md`, since a multiplatform move would rewrite the build logic anyway.
@@ -84,8 +84,6 @@ use for the same purpose.
 - **Release is signed with the debug key**: `app/build.gradle.kts` still uses
   `signingConfigs.getByName("debug")`, so the APK cannot be distributed. Needs a real keystore read from a
   git-ignored `keystore.properties`.
-- **No IGDB token refresh**: `IgdbAuthManager` parses `expiresIn` but never uses it, and swallows auth
-  failures with `catch (e: Exception) { null }`.
 - **Room has no migration path**: `version = 1`, `exportSchema = false`,
   `.fallbackToDestructiveMigration(true)`. Any entity change wipes user data.
 

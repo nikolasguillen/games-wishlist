@@ -28,12 +28,22 @@ Do not add error handling here.
 
 - `IgdbAuthService` is a separate Retrofit interface with a hardcoded absolute URL
   (`@POST("https://id.twitch.tv/oauth2/token")`).
-- `IgdbAuthManager` is a `@Singleton` caching the token in memory behind a `Mutex`.
+- `IgdbAuthManager` is a `@Singleton` caching the token in memory behind a `Mutex`, which also serves as
+  the single-flight guard: parallel requests on a cold cache mint one token, not one each. The token is
+  never persisted.
+- Expiry comes from `expiresIn` minus a 60 s margin, measured against **`SystemClock.elapsedRealtime()`**.
+  Do not switch that to the wall clock or to `System.nanoTime()`: the first can jump in either direction,
+  the second stops counting while the device sleeps.
+- `fetchToken()` swallows non-cancellation failures and returns `null` on purpose — the request then goes
+  out unauthorised and the 401 becomes a typed error in `:core:data`. Turning it into a rethrow means
+  moving the error boundary, which is a `:core:data` decision. `CancellationException` *is* rethrown.
+- There is no recovery from a 401 on a token IGDB rejects early (revoked server-side): it stays cached
+  until it expires or the process dies. An OkHttp `Authenticator` calling back into the manager is the fix
+  if that ever shows up in practice.
 - The DI cycle (client needs auth, auth needs a client) is broken two ways in `di/NetworkModule.kt`:
   `dagger.Lazy<IgdbAuthManager>` in the interceptor, and a **second inline Retrofit instance** built inside
   `provideIgdbAuthService` so the auth call does not go through the auth interceptor. Keep both if you
   touch that module.
-- **`expiresIn` is parsed but never used — there is no token refresh.** See `docs/tech-debt.md`.
 
 ## Build config
 
