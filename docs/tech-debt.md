@@ -94,7 +94,8 @@ use for the same purpose.
 - **No CI** (`.github/` does not exist) and **no static analysis** (no detekt, ktlint, spotless,
   `.editorconfig`, or `lint {}` block).
 - **Test coverage gaps**: no tests at all for `:feature:wishlist`, `:core:domain` use cases,
-  `:core:database` DAOs, `:core:network`, or `:core:ui` mappers. No Compose UI tests — `ui-test-junit4` is
+  `:core:database` DAOs, or `:core:ui` mappers. In `:core:network` only `IgdbAuthManager` is covered —
+  `IgdbHttpErrorInterceptor` and the API service are not. No Compose UI tests — `ui-test-junit4` is
   wired into `:app` but only the template `ExampleInstrumentedTest` exists. `app/src/test/ExampleUnitTest.kt`
   is also an untouched template.
 - **`README.md` claims an MIT license but there is no `LICENSE` file.**
