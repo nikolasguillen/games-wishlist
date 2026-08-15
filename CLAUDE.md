@@ -71,9 +71,14 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
 - A cross-module `R` import is always aliased **`<Module>R`**: `CoreUiR` for `:core:ui`, `SearchR` for
   `:feature:search`, `DatabaseR` for `:core:database`. Never a bare `R` or a shortened alias — the point is
   that the reader can tell which module owns the resource.
-- **User-facing text is always `UiText`** (`core/ui/model/UiText.kt`) in UiState and UiModels, never `String`.
-  Strings belong in `strings.xml`; never hardcode them in models, mappers, or logic. Domain models hold raw
-  data or enums only — display labels are resolved in the UI layer.
+- **Text that can come from `strings.xml` is `UiText`** (`core/ui/model/UiText.kt`) in UiState and
+  UiModels — anything formatted through a resource (`platforms_format`), given a resource fallback
+  (`unknown_release_date`), or derived from an enum (`GameStatus.toLabelUiText()`). A value that can only
+  ever come from the data source — a game's name, a studio, a year, the user's own search queries — stays
+  `String`: `UiText.DynamicString` around it buys nothing and only adds an unwrap at the call site.
+  The test is *could this string ever be a resource?*, not *is it shown on screen?*
+- Never hardcode display text in a model, mapper, composable or any other logic — it belongs in
+  `strings.xml`. Domain models hold raw data or enums only; labels are resolved in the UI layer.
 - Before writing a `dp` literal, look for the token in `MaterialTheme.spacing`.
 - Dialogs: use `CustomAlertDialog` from `:core:ui`, never Material's `AlertDialog`.
 - Filter and sort by **ID, never by name**. That logic belongs in a ViewModel, UseCase, or Mapper —

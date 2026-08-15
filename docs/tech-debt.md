@@ -28,14 +28,6 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
 
 ## Rule violations
 
-### UiText for all user-facing text
-
-- `core/ui/model/GameItemUiModel.kt` uses plain `String` for `name`, `developer`, `releaseYear`,
-  `coverImage`.
-- `SearchHistoryUiModel.queries` is `List<String>`.
-
-`feature/lists/WishlistListUiModel` and `WishlistUiState.listName` do use `UiText` correctly.
-
 ### `@Preview` on every composable
 
 Solid in `core/ui` and `feature/wishlist`. Several files in `feature/search/components/` and
