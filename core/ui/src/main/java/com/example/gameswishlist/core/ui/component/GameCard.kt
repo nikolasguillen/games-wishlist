@@ -31,6 +31,7 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
+import com.example.gameswishlist.core.ui.util.UiConstants
 
 @Composable
 fun GameCard(
@@ -106,7 +107,7 @@ fun GameCard(
                             modifier = Modifier.weight(1f, fill = false)
                         )
                         Text(
-                            text = "•",
+                            text = UiConstants.METADATA_SEPARATOR,
                             style = MaterialTheme.typography.bodySmall
                         )
                     }

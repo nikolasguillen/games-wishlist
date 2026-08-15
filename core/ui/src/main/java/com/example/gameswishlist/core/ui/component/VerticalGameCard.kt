@@ -42,6 +42,7 @@ import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
+import com.example.gameswishlist.core.ui.util.UiConstants
 import com.example.gameswishlist.core.ui.util.fadingEdge
 
 @Composable
@@ -320,7 +321,7 @@ private fun GameMetadataRow(
 
         if (developer != null && releaseYear != null) {
             Text(
-                text = "•",
+                text = UiConstants.METADATA_SEPARATOR,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
             )
