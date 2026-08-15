@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -36,6 +37,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,13 +50,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.component.CustomAlertDialog
 import com.example.gameswishlist.core.ui.component.RecentGameCard
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.annotatedStringResource
+import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
 import com.example.gameswishlist.feature.search.model.SearchSuggestionsUiModel
@@ -445,5 +451,110 @@ private fun RecentGamesSection(
                 )
             }
         }
+    }
+}
+
+private val previewHistory = SearchHistoryUiModel(
+    queries = listOf("The Witcher", "Cyberpunk 2077"),
+    games = listOf(
+        GameItemUiModel.getDummy(),
+        GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077")
+    )
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+private fun SearchTopBarPreview() {
+    GamesWishlistTheme {
+        SearchTopBar(
+            uiState = SearchUiState(
+                history = previewHistory,
+                contentState = SearchContentState.Success(
+                    games = listOf(GameItemUiModel.getDummy()),
+                    filters = listOf(
+                        GameFilterUiModel.Platform(
+                            id = 0,
+                            label = UiText.DynamicString("PC"),
+                            selected = true
+                        )
+                    )
+                )
+            ),
+            searchBarState = rememberContainedSearchBarState(),
+            textFieldState = rememberTextFieldState("The Witcher"),
+            scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(),
+            onSearch = {},
+            onHistorySuggestionClick = {},
+            onGameClick = {},
+            onEvent = {},
+            backgroundColor = Color.Transparent
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+private fun SearchInputFieldPreview() {
+    GamesWishlistTheme {
+        SearchInputField(
+            textFieldState = rememberTextFieldState("The Witcher"),
+            searchBarState = rememberContainedSearchBarState(),
+            onSearch = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+private fun CollapsedSearchBarPreview() {
+    GamesWishlistTheme {
+        val searchBarState = rememberContainedSearchBarState()
+        val textFieldState = rememberTextFieldState("The Witcher")
+
+        CollapsedSearchBar(
+            searchBarState = searchBarState,
+            scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(),
+            appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(),
+            inputField = {
+                SearchInputField(
+                    textFieldState = textFieldState,
+                    searchBarState = searchBarState,
+                    onSearch = {}
+                )
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+private fun ExpandedSearchBarPreview() {
+    GamesWishlistTheme {
+        val searchBarState = rememberContainedSearchBarState(SearchBarValue.Expanded)
+        val textFieldState = rememberTextFieldState()
+
+        ExpandedSearchBar(
+            searchBarState = searchBarState,
+            inputField = {
+                SearchInputField(
+                    textFieldState = textFieldState,
+                    searchBarState = searchBarState,
+                    onSearch = {}
+                )
+            },
+            history = previewHistory,
+            suggestions = SearchSuggestionsUiModel(),
+            searchQuery = "",
+            appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(),
+            onHistorySuggestionClick = {},
+            onGameClick = {},
+            onRemoveRecentGame = {},
+            onClearRecentSearches = {},
+            onRemoveRecentSearchItem = {}
+        )
     }
 }

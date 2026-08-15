@@ -28,11 +28,6 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
 
 ## Rule violations
 
-### `@Preview` on every composable
-
-Solid in `core/ui` and `feature/wishlist`. Several files in `feature/search/components/` and
-`feature/game-detail/components/` have none.
-
 ### Uniform UDF
 
 - `feature/lists` exposes a bare `lists: StateFlow<List<WishlistListUiModel>>` and a `createList(...)`

@@ -219,3 +219,13 @@ private fun SearchActionRowPreview() {
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun LoadingSuggestionRowPreview() {
+    GamesWishlistTheme {
+        Surface {
+            LoadingSuggestionRow()
+        }
+    }
+}

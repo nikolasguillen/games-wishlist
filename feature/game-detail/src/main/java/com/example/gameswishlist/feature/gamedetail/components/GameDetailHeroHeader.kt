@@ -6,7 +6,10 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.ui.component.ImageGalleryPager
 
 /**
@@ -37,4 +40,16 @@ internal fun GameDetailHeroHeader(
             .fillMaxWidth()
             .height(height)
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun GameDetailHeroHeaderPreview() {
+    GamesWishlistTheme {
+        GameDetailHeroHeader(
+            images = listOf("artwork-1", "artwork-2", "artwork-3"),
+            scrollOffsetProvider = { 0 },
+            height = 450.dp
+        )
+    }
 }

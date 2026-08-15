@@ -15,9 +15,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.GameCompactCard
+import com.example.gameswishlist.core.ui.model.GameItemUiModel
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.model.RelatedGamesUiModel
 
 @Composable
@@ -55,5 +59,30 @@ internal fun RelatedGamesSection(
 
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RelatedGamesSectionPreview() {
+    GamesWishlistTheme {
+        RelatedGamesSection(
+            relatedGames = listOf(
+                RelatedGamesUiModel(
+                    title = UiText.DynamicString("DLCs"),
+                    games = listOf(
+                        GameItemUiModel.getDummy(),
+                        GameItemUiModel.getDummy().copy(id = 2, name = "Hearts of Stone")
+                    )
+                ),
+                RelatedGamesUiModel(
+                    title = UiText.DynamicString("Expansions"),
+                    games = listOf(
+                        GameItemUiModel.getDummy().copy(id = 3, name = "Blood and Wine")
+                    )
+                )
+            ),
+            onGameClick = {}
+        )
     }
 }

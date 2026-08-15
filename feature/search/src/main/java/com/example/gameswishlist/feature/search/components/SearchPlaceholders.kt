@@ -7,6 +7,8 @@ import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.ui.component.EmptyPage
 import com.example.gameswishlist.feature.search.R as SearchR
 
@@ -35,4 +37,28 @@ fun NoFilteredResultsPlaceholder(modifier: Modifier = Modifier) {
         icon = Icons.Outlined.SearchOff,
         modifier = modifier
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun InitialSearchPlaceholderPreview() {
+    GamesWishlistTheme {
+        InitialSearchPlaceholder()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun EmptySearchPlaceholderPreview() {
+    GamesWishlistTheme {
+        EmptySearchPlaceholder()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun NoFilteredResultsPlaceholderPreview() {
+    GamesWishlistTheme {
+        NoFilteredResultsPlaceholder()
+    }
 }

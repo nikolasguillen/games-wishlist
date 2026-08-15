@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
@@ -15,22 +14,13 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
-import com.example.gameswishlist.core.model.GameStatus
-import com.example.gameswishlist.core.model.Priority
-import com.example.gameswishlist.core.ui.R
-import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.components.GameDetailMainContent
 import com.example.gameswishlist.feature.gamedetail.components.ListSelectorSheet
-import com.example.gameswishlist.feature.gamedetail.mapper.toUiModel
-import com.example.gameswishlist.feature.gamedetail.model.AvailabilityUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailContentState
-import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEffect
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiState
-import com.example.gameswishlist.feature.gamedetail.model.PlatformTileUiModel
-import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 
 // viewModel is the same instance for the route's whole lifetime, so ref-comparison skips correctly.
 @Suppress("ParamsComparedByRef")
@@ -107,48 +97,7 @@ fun GameDetailContentSuccessPreview() {
     GamesWishlistTheme {
         GameDetailContent(
             uiState = GameDetailUiState(
-                contentState = GameDetailContentState.Success(
-                    GameDetailUiModel(
-                        id = 1,
-                        name = UiText.DynamicString("The Witcher 3: Wild Hunt"),
-                        description = UiText.DynamicString("A legendary RPG with a rich story and vast open world."),
-                        images = emptyList(),
-                        gameType = UiText.DynamicString("Main Game"),
-                        rating = RatingUiModel(
-                            score = 95,
-                            scoreText = UiText.DynamicString("95"),
-                            scoreLabel = UiText.DynamicString("Metascore"),
-                            hypes = UiText.DynamicString("120"),
-                            hypesLabel = UiText.StringResource(R.string.hypes_title),
-                            ratingCount = UiText.DynamicString("450"),
-                            ratingCountLabel = UiText.StringResource(R.string.rating_count_title)
-                        ),
-                        availability = AvailabilityUiModel(
-                            mainDate = UiText.DynamicString("May 19, 2015"),
-                            platforms = listOf(
-                                PlatformTileUiModel(id = 1, code = UiText.DynamicString("PC"), color = Color(0xFF5E5E5E)),
-                                PlatformTileUiModel(id = 2, code = UiText.DynamicString("PS4"), color = Color(0xFF2E4EA6)),
-                                PlatformTileUiModel(id = 3, code = UiText.DynamicString("XB1"), color = Color(0xFF107C10)),
-                                PlatformTileUiModel(id = 4, code = UiText.DynamicString("SWI"), color = Color(0xFFE60012))
-                            ),
-                            detailedDates = emptyList(),
-                            isExpandable = false
-                        ),
-                        genres = listOf("RPG", "Action").map { UiText.DynamicString(it) },
-                        companyInfo = UiText.DynamicString("CD Projekt Red, CD Projekt"),
-                        isWishlisted = false,
-                        personalDetails = GameDetailPersonalUiModel(
-                            notes = UiText.DynamicString("Geralt's adventures are amazing!"),
-                            availableStatuses = GameStatus.entries.mapIndexed { index, status ->
-                                status.toUiModel(index == 1)
-                            },
-                            availablePriorities = Priority.entries.mapIndexed { index, priority ->
-                                priority.toUiModel(index == 1)
-                            }
-                        ),
-                        relatedGames = emptyList()
-                    )
-                )
+                contentState = GameDetailContentState.Success(GameDetailUiModel.getDummy())
             ),
             onEvent = {},
             onBackClick = {}
