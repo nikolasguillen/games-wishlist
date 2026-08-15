@@ -23,8 +23,6 @@ data class GameEntity(
     val priority: Int?,
     val status: GameStatus?,
     val url: String?,
-    val artworks: List<String> = emptyList(),
-    val engines: List<String> = emptyList(),
     val lastViewedAt: Long? = null
 )
 
@@ -68,7 +66,22 @@ data class GameWithAllDetails(
         parentColumn = "id",
         entityColumn = "parentId"
     )
-    val relatedGames: List<RelatedGameEntity>
+    val relatedGames: List<RelatedGameEntity>,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = GameEngineCrossRef::class,
+            parentColumn = "gameId",
+            entityColumn = "engineId"
+        )
+    )
+    val engines: List<EngineEntity>,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "gameId"
+    )
+    val artworks: List<GameArtworkEntity>
 )
 
 data class GamePlatformWithDetails(

@@ -15,14 +15,9 @@ An ordered pass over this list is underway on `develop`, one fix per commit; `gi
 what has already been done. Entries are deleted from this file as they are fixed, so whatever is still
 written below is still true. Agreed order for the rest:
 
-1. **Room migrations** — turn `exportSchema` on *before* touching any entity, then drop
-   `fallbackToDestructiveMigration`. Worth doing together with the comma-separated list columns, since both
-   need a schema bump and the destructive fallback is what currently hides the problem. The owner has
-   accepted a one-off data wipe: the app is not published, so a hand-written `Migration(1, 2)` is not
-   required.
-2. **Release signing** — blocked on the owner generating a keystore; the config reads it from a
+1. **Release signing** — blocked on the owner generating a keystore; the config reads it from a
    git-ignored `keystore.properties`, like the IGDB credentials.
-3. Small and independent, any order: the `R` alias convention, the missing `LICENSE`.
+2. Small and independent, any order: the `R` alias convention, the missing `LICENSE`.
 
 Convention plugins, CI and the test-coverage gaps are deliberately last — see the KMP section in the root
 `CLAUDE.md`, since a multiplatform move would rewrite the build logic anyway.
@@ -41,12 +36,6 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
 | `feature/search/model/SearchSuggestionUiModel.kt` | 2 |
 
 The rule *is* followed inside `feature/*/model/` for state/event/effect types.
-
-### No comma-separated list columns
-
-`core/database/util/Converters.kt` stores `List<String>` as a comma-joined string for
-`GameEntity.artworks` and `GameEntity.engines` — the exact pattern the persistence rule forbids. Fixing it
-requires either CrossRef tables or a JSON column, plus a destructive schema change.
 
 ### UiText for all user-facing text
 
@@ -81,11 +70,15 @@ use for the same purpose.
 
 ## Technical risks
 
+- **Room migrations are deferred until release**: the database is deliberately pinned to `version = 1`
+  with `.fallbackToDestructiveMigration(true)`, so every entity change wipes the device. That is the
+  owner's decision while the app is unpublished — **it is not a bug to fix, and the version must not be
+  bumped**. Before the first release: freeze the schema, decide where `Migration` objects live, and
+  replace the blanket fallback. `exportSchema` is already on and `schemas/1.json` is checked in, which is
+  the starting point.
 - **Release is signed with the debug key**: `app/build.gradle.kts` still uses
   `signingConfigs.getByName("debug")`, so the APK cannot be distributed. Needs a real keystore read from a
   git-ignored `keystore.properties`.
-- **Room has no migration path**: `version = 1`, `exportSchema = false`,
-  `.fallbackToDestructiveMigration(true)`. Any entity change wipes user data.
 
 ## Infrastructure
 

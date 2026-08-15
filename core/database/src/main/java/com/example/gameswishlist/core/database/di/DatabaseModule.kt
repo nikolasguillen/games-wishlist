@@ -43,6 +43,10 @@ object DatabaseModule {
                     )
                 }
             })
+            // The app is not published, so there are no installs whose data is worth preserving: the
+            // database stays at version 1 and every entity change simply recreates it. Migrations start
+            // when the owner says the app ships — see docs/tech-debt.md. Until then, do not bump the
+            // version to work around this, because that is what makes a migration mandatory.
             .fallbackToDestructiveMigration(true)
             .build()
     }

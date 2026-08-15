@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "3ec1b3f9c7a9c28c99c2468b452f2a34",
+    "identityHash": "e724dcadfb3755ec2e30b8496110cb18",
     "entities": [
       {
         "tableName": "search_history",
@@ -30,7 +30,7 @@
       },
       {
         "tableName": "games",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `released` TEXT, `backgroundImage` TEXT, `rating` REAL NOT NULL, `ratingCount` INTEGER NOT NULL, `hypes` INTEGER NOT NULL, `metacritic` INTEGER, `gameTypeId` INTEGER NOT NULL, `notes` TEXT NOT NULL, `priority` INTEGER, `status` TEXT, `url` TEXT, `artworks` TEXT NOT NULL, `engines` TEXT NOT NULL, `lastViewedAt` INTEGER, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `released` TEXT, `backgroundImage` TEXT, `rating` REAL NOT NULL, `ratingCount` INTEGER NOT NULL, `hypes` INTEGER NOT NULL, `metacritic` INTEGER, `gameTypeId` INTEGER NOT NULL, `notes` TEXT NOT NULL, `priority` INTEGER, `status` TEXT, `url` TEXT, `lastViewedAt` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -109,18 +109,6 @@
             "fieldPath": "url",
             "columnName": "url",
             "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "artworks",
-            "columnName": "artworks",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "engines",
-            "columnName": "engines",
-            "affinity": "TEXT",
-            "notNull": true
           },
           {
             "fieldPath": "lastViewedAt",
@@ -385,6 +373,86 @@
         }
       },
       {
+        "tableName": "engines",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "game_engine_cross_ref",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`gameId` INTEGER NOT NULL, `engineId` INTEGER NOT NULL, PRIMARY KEY(`gameId`, `engineId`))",
+        "fields": [
+          {
+            "fieldPath": "gameId",
+            "columnName": "gameId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "engineId",
+            "columnName": "engineId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "gameId",
+            "engineId"
+          ]
+        }
+      },
+      {
+        "tableName": "game_artworks",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`gameId` INTEGER NOT NULL, `position` INTEGER NOT NULL, `url` TEXT NOT NULL, PRIMARY KEY(`gameId`, `position`))",
+        "fields": [
+          {
+            "fieldPath": "gameId",
+            "columnName": "gameId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "gameId",
+            "position"
+          ]
+        }
+      },
+      {
         "tableName": "related_games",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`parentId` INTEGER NOT NULL, `relatedGameId` INTEGER NOT NULL, `name` TEXT NOT NULL, `coverUrl` TEXT, `relationType` TEXT NOT NULL, PRIMARY KEY(`parentId`, `relatedGameId`, `relationType`))",
         "fields": [
@@ -430,7 +498,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3ec1b3f9c7a9c28c99c2468b452f2a34')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e724dcadfb3755ec2e30b8496110cb18')"
     ]
   }
 }

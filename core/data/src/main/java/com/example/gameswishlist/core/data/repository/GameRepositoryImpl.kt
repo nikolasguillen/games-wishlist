@@ -1,9 +1,12 @@
 package com.example.gameswishlist.core.data.repository
 
+import com.example.gameswishlist.core.data.mapper.toArtworkEntities
 import com.example.gameswishlist.core.data.mapper.toCompanyEntities
+import com.example.gameswishlist.core.data.mapper.toEngineEntities
 import com.example.gameswishlist.core.data.mapper.toEntity
 import com.example.gameswishlist.core.data.mapper.toGame
 import com.example.gameswishlist.core.data.mapper.toGameCompanyCrossRefs
+import com.example.gameswishlist.core.data.mapper.toGameEngineCrossRefs
 import com.example.gameswishlist.core.data.mapper.toGameGenreCrossRefs
 import com.example.gameswishlist.core.data.mapper.toGamePlatformCrossRefs
 import com.example.gameswishlist.core.data.mapper.toGenreEntities
@@ -194,6 +197,9 @@ class GameRepositoryImpl @Inject constructor(
             genreCrossRefs = game.toGameGenreCrossRefs(),
             companies = game.toCompanyEntities(),
             companyCrossRefs = game.toGameCompanyCrossRefs(),
+            engines = game.toEngineEntities(),
+            engineCrossRefs = game.toGameEngineCrossRefs(),
+            artworks = game.toArtworkEntities(),
             relatedGames = game.toRelatedGameEntities()
         )
     }

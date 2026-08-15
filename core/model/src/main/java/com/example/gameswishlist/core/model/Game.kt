@@ -43,7 +43,7 @@ data class Game(
     val genres: List<Genre> = emptyList(),
     val publishers: List<Company> = emptyList(),
     val developers: List<Company> = emptyList(),
-    val engines: List<String> = emptyList(),
+    val engines: List<Engine> = emptyList(),
     val isWishlisted: Boolean = false,
     val gameType: GameType = GameType.MAIN_GAME,
     val notes: String = "",
