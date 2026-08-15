@@ -30,12 +30,9 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
 |---|---|
 | `core/network/model/IgdbModels.kt` | 9 |
 | `core/database/entity/GameEntity.kt` | 5 (`RelatedGameEntity`, `GameWithAllDetails`, `GamePlatformWithDetails`, `GameCompanyWithDetails`) |
-| `core/navigation/Routes.kt` | 5 |
 | `core/database/entity/ListEntity.kt` | 3 (`ListWithGameCount`, `GameListCrossRef`) |
 | `core/model/Constants.kt` | 2 (`WishlistConstants`, `RelationType`) |
 | `feature/search/model/SearchSuggestionUiModel.kt` | 2 |
-
-The rule *is* followed inside `feature/*/model/` for state/event/effect types.
 
 ### UiText for all user-facing text
 

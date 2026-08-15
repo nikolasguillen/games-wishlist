@@ -62,7 +62,11 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
 
 ## Non-negotiable rules
 
-- One `data class` / `sealed interface` / `class` per file.
+- One `data class` / `sealed interface` / `class` per file. **One exception:** a `sealed` hierarchy keeps
+  its direct implementations in the same file — they are one closed set and only mean anything together.
+  That is `core/navigation/Routes.kt` and the state/event/effect files under `feature/*/model/`. The
+  exception does not extend to types that merely live nearby: a cross-ref, a relation POJO or a second
+  model gets its own file.
 - UI-layer models carry the `UiModel` suffix. Domain models stay clean.
 - A cross-module `R` import is always aliased **`<Module>R`**: `CoreUiR` for `:core:ui`, `SearchR` for
   `:feature:search`, `DatabaseR` for `:core:database`. Never a bare `R` or a shortened alias — the point is
