@@ -97,4 +97,3 @@ use for the same purpose.
   `IgdbHttpErrorInterceptor` and the API service are not. No Compose UI tests — `ui-test-junit4` is
   wired into `:app` but only the template `ExampleInstrumentedTest` exists. `app/src/test/ExampleUnitTest.kt`
   is also an untouched template.
-- **`README.md` claims an MIT license but there is no `LICENSE` file.**
