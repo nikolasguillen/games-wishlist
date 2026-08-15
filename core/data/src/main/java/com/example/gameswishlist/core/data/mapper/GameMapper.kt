@@ -9,10 +9,10 @@ import com.example.gameswishlist.core.database.entity.GameEngineCrossRef
 import com.example.gameswishlist.core.database.entity.GameEntity
 import com.example.gameswishlist.core.database.entity.GameGenreCrossRef
 import com.example.gameswishlist.core.database.entity.GamePlatformCrossRef
-import com.example.gameswishlist.core.database.entity.GameWithAllDetails
 import com.example.gameswishlist.core.database.entity.GenreEntity
 import com.example.gameswishlist.core.database.entity.PlatformEntity
 import com.example.gameswishlist.core.database.entity.RelatedGameEntity
+import com.example.gameswishlist.core.database.relation.GameWithAllDetails
 import com.example.gameswishlist.core.model.Company
 import com.example.gameswishlist.core.model.Engine
 import com.example.gameswishlist.core.model.Game

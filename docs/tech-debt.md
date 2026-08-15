@@ -32,8 +32,6 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
 
 | File | Declarations |
 |---|---|
-| `core/database/entity/GameEntity.kt` | 5 (`RelatedGameEntity`, `GameWithAllDetails`, `GamePlatformWithDetails`, `GameCompanyWithDetails`) |
-| `core/database/entity/ListEntity.kt` | 3 (`ListWithGameCount`, `GameListCrossRef`) |
 | `core/model/Constants.kt` | 2 (`WishlistConstants`, `RelationType`) |
 | `feature/search/model/SearchSuggestionUiModel.kt` | 2 |
 

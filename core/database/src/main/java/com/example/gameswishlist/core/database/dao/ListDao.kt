@@ -2,7 +2,7 @@ package com.example.gameswishlist.core.database.dao
 
 import androidx.room.*
 import com.example.gameswishlist.core.database.entity.ListEntity
-import com.example.gameswishlist.core.database.entity.ListWithGameCount
+import com.example.gameswishlist.core.database.relation.ListWithGameCount
 import kotlinx.coroutines.flow.Flow
 
 @Dao

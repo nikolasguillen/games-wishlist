@@ -32,8 +32,9 @@ So when you change an entity:
 - Junction tables: `<A><B>CrossRef` — **no `Entity` suffix** — with `primaryKeys = [...]`.
   `GameListCrossRef`, `GamePlatformCrossRef`, `GameGenreCrossRef`, `GameCompanyCrossRef`,
   `GameEngineCrossRef`.
-- Relation POJOs: `GameWithAllDetails`, `GamePlatformWithDetails`, `GameCompanyWithDetails`,
-  `ListWithGameCount`.
+- Relation POJOs live in **`relation/`, not `entity/`** — `GameWithAllDetails`,
+  `GamePlatformWithDetails`, `GameCompanyWithDetails`, `ListWithGameCount`. They are query results, not
+  tables: what `entity/` contains is exactly what `schemas/1.json` lists.
 
 Platforms, Genres, Companies and Engines are modelled as **many-to-many via CrossRef**. Artworks belong to
 one game and are never shared, so they are a child table instead — with a `position` column, because

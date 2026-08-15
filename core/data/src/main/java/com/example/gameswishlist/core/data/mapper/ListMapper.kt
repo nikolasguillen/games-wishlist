@@ -1,7 +1,7 @@
 package com.example.gameswishlist.core.data.mapper
 
 import com.example.gameswishlist.core.database.entity.ListEntity
-import com.example.gameswishlist.core.database.entity.ListWithGameCount
+import com.example.gameswishlist.core.database.relation.ListWithGameCount
 import com.example.gameswishlist.core.model.WishlistList
 
 fun ListEntity.toWishlistList(gameCount: Int = 0): WishlistList {
