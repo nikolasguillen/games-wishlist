@@ -34,7 +34,7 @@ import com.example.gameswishlist.core.database.util.Converters
         RelatedGameEntity::class
     ],
     version = 1,
-    exportSchema = false
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class GamesWishlistDatabase : RoomDatabase() {

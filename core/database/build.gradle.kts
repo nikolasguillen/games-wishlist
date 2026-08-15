@@ -19,6 +19,13 @@ android {
     }
 }
 
+// Room writes a JSON description of every schema version here, and the directory is checked in: it is
+// what a future Migration gets written and tested against, and what tells a reviewer that a column
+// changed. Without it Room cannot verify a migration at all.
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:model"))
