@@ -28,13 +28,6 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
 
 ## Rule violations
 
-### One declaration per file
-
-| File | Declarations |
-|---|---|
-| `core/model/Constants.kt` | 2 (`WishlistConstants`, `RelationType`) |
-| `feature/search/model/SearchSuggestionUiModel.kt` | 2 |
-
 ### UiText for all user-facing text
 
 - `core/ui/model/GameItemUiModel.kt` uses plain `String` for `name`, `developer`, `releaseYear`,

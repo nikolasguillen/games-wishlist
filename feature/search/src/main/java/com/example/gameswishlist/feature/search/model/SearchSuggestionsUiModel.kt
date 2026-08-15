@@ -18,14 +18,3 @@ data class SearchSuggestionsUiModel(
     val isEmpty: Boolean =
         historySuggestions.isEmpty() && gameSuggestions.isEmpty() && !isLoadingRemote
 }
-
-/**
- * UI representation of a game suggestion.
- */
-@Immutable
-data class GameSuggestionUiModel(
-    val id: Int,
-    val name: String,
-    val coverUrl: String?,
-    val subtitle: String
-)
