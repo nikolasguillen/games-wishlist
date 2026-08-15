@@ -45,11 +45,6 @@ The rule *is* followed inside `feature/*/model/` for state/event/effect types.
 
 `feature/lists/WishlistListUiModel` and `WishlistUiState.listName` do use `UiText` correctly.
 
-### `@property` KDoc on models
-
-Present only in `core/model/Game.kt` and `core/network/model/IgdbModels.kt`. Missing in `AppResult.kt`,
-`RepositoryError.kt`, `WishlistList.kt`, `SearchResult.kt`, `GameStatus.kt`, `Constants.kt`.
-
 ### `@Preview` on every composable
 
 Solid in `core/ui` and `feature/wishlist`. Several files in `feature/search/components/` and
