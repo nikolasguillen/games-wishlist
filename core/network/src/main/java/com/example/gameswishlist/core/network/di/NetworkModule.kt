@@ -1,6 +1,8 @@
 package com.example.gameswishlist.core.network.di
 
+import android.os.SystemClock
 import com.example.gameswishlist.core.network.BuildConfig
+import com.example.gameswishlist.core.network.ElapsedRealtimeSource
 import com.example.gameswishlist.core.network.IgdbApiService
 import com.example.gameswishlist.core.network.IgdbAuthManager
 import com.example.gameswishlist.core.network.IgdbAuthService
@@ -21,12 +23,18 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object NetworkModule {
+internal object NetworkModule {
 
     @Provides
     @Singleton
     fun provideMoshi(): Moshi {
         return Moshi.Builder().build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideElapsedRealtimeSource(): ElapsedRealtimeSource {
+        return ElapsedRealtimeSource { SystemClock.elapsedRealtime() }
     }
 
     /**

@@ -1,6 +1,5 @@
 package com.example.gameswishlist.core.network
 
-import android.os.SystemClock
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration.Companion.seconds
@@ -15,16 +14,17 @@ import kotlinx.coroutines.sync.withLock
  * to disk would mean persisting a credential the app can always re-derive.
  */
 @Singleton
-class IgdbAuthManager @Inject constructor(
-    private val authService: IgdbAuthService
+internal class IgdbAuthManager @Inject constructor(
+    private val authService: IgdbAuthService,
+    private val elapsedRealtimeSource: ElapsedRealtimeSource
 ) {
     private val mutex = Mutex()
     private var accessToken: String? = null
 
     /**
-     * Deadline for [accessToken] on [SystemClock.elapsedRealtime]'s timeline. That clock is monotonic and
-     * keeps counting while the device sleeps, unlike the wall clock — which the user or the network can
-     * move backwards, stranding an expired token in the cache, or forwards, discarding a valid one.
+     * Deadline for [accessToken] on [ElapsedRealtimeSource]'s timeline. That clock is monotonic and keeps
+     * counting while the device sleeps, unlike the wall clock — which the user or the network can move
+     * backwards, stranding an expired token in the cache, or forwards, discarding a valid one.
      */
     private var expiresAtMillis: Long = 0L
 
@@ -33,7 +33,7 @@ class IgdbAuthManager @Inject constructor(
         accessToken?.takeIf { isFresh() } ?: fetchToken()
     }
 
-    private fun isFresh(): Boolean = SystemClock.elapsedRealtime() < expiresAtMillis
+    private fun isFresh(): Boolean = elapsedRealtimeSource.elapsedRealtime() < expiresAtMillis
 
     private suspend fun fetchToken(): String? = try {
         val response = authService.getAccessToken(
@@ -47,7 +47,7 @@ class IgdbAuthManager @Inject constructor(
         // born already expired and every single request would mint a new one.
         val usableMillis = (lifetimeMillis - EXPIRY_MARGIN.inWholeMilliseconds)
             .coerceAtLeast(lifetimeMillis / 2)
-        expiresAtMillis = SystemClock.elapsedRealtime() + usableMillis
+        expiresAtMillis = elapsedRealtimeSource.elapsedRealtime() + usableMillis
         accessToken
     } catch (e: CancellationException) {
         throw e
