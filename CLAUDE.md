@@ -76,7 +76,10 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
   (`unknown_release_date`), or derived from an enum (`GameStatus.toLabelUiText()`). A value that can only
   ever come from the data source — a game's name, a studio, a year, the user's own search queries — stays
   `String`: `UiText.DynamicString` around it buys nothing and only adds an unwrap at the call site.
-  The test is *could this string ever be a resource?*, not *is it shown on screen?*
+  The test is *could this string ever be a resource?*, not *is it shown on screen?* When that test is a
+  genuine coin flip, pick `UiText`: widening a `String` later means touching the model, the mapper, every
+  composable that reads it and every preview that builds it, while narrowing a `UiText` is deleting a
+  wrapper.
 - Never hardcode display text in a model, mapper, composable or any other logic — it belongs in
   `strings.xml`. Domain models hold raw data or enums only; labels are resolved in the UI layer.
 - Before writing a `dp` literal, look for the token in `MaterialTheme.spacing`.
