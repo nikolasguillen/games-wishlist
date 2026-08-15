@@ -76,6 +76,12 @@ use for the same purpose.
   bumped**. Before the first release: freeze the schema, decide where `Migration` objects live, and
   replace the blanket fallback. `exportSchema` is already on and `schemas/1.json` is checked in, which is
   the starting point.
+- **Stale cross-ref rows on update**: `GameDao.saveGame` re-inserts the genre, platform and company
+  cross-refs with `OnConflictStrategy.REPLACE` but never deletes the previous ones, so a game that loses a
+  genre, a platform or a publisher upstream keeps the link forever — and the detail screen keeps rendering
+  it. Artworks, engine cross-refs and related games do delete first, inside the same transaction; those
+  three are the ones left. The fix is three `deleteXByGameId` queries called from `saveGame`, which is
+  cheap, but it is a behaviour change and belongs in its own commit.
 - **Release is signed with the debug key**: `app/build.gradle.kts` still uses
   `signingConfigs.getByName("debug")`, so the APK cannot be distributed. Needs a real keystore read from a
   git-ignored `keystore.properties`.
