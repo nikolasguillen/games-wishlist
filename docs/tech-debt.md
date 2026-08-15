@@ -7,6 +7,10 @@ unasked or copying a deviation as if it were the convention.
 **For AI agents:** do not fix anything listed here as a side effect of unrelated work, and do not treat
 these patterns as the house style. Mention the relevant item if it blocks you, then move on.
 
+**When an item is fixed, delete it.** No "fixed in", no note explaining what changed, no leftover row —
+`git log` is the history, this file is only the present. It is meant to shrink until it is empty, and then
+to be deleted.
+
 Last audited: 2026-08-12.
 
 ## Cleanup pass in progress
