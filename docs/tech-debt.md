@@ -63,11 +63,6 @@ Solid in `core/ui` and `feature/wishlist`. Several files in `feature/search/comp
 - `feature/search` is the least converted to `internal` visibility (4 declarations, vs 33 in game-detail);
   its `SearchUiState` is public and not `@Immutable`.
 
-### Misc
-
-Cross-module `R` import aliases are not standardized: `CoreUiR`, `UiR`, `SearchR`, `DatabaseR` are all in
-use for the same purpose.
-
 ## Technical risks
 
 - **Room migrations are deferred until release**: the database is deliberately pinned to `version = 1`

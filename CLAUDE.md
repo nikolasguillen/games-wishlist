@@ -64,6 +64,9 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
 
 - One `data class` / `sealed interface` / `class` per file.
 - UI-layer models carry the `UiModel` suffix. Domain models stay clean.
+- A cross-module `R` import is always aliased **`<Module>R`**: `CoreUiR` for `:core:ui`, `SearchR` for
+  `:feature:search`, `DatabaseR` for `:core:database`. Never a bare `R` or a shortened alias — the point is
+  that the reader can tell which module owns the resource.
 - **User-facing text is always `UiText`** (`core/ui/model/UiText.kt`) in UiState and UiModels, never `String`.
   Strings belong in `strings.xml`; never hardcode them in models, mappers, or logic. Domain models hold raw
   data or enums only — display labels are resolved in the UI layer.

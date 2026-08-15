@@ -10,7 +10,7 @@ import com.example.gameswishlist.core.ui.util.UiConstants
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchSort
 import com.example.gameswishlist.feature.search.model.SortingUiModel
-import com.example.gameswishlist.core.ui.R as UiR
+import com.example.gameswishlist.core.ui.R as CoreUiR
 
 fun List<Platform>.toPlatformFilters(): List<GameFilterUiModel> {
     return this
@@ -89,10 +89,10 @@ fun getInitialGameTypeFilters(): List<GameFilterUiModel> {
 fun getInitialSortFilters(): List<SortingUiModel> {
     return SearchSort.entries.map { sort ->
         val labelResId = when (sort) {
-            SearchSort.RELEVANCE -> UiR.string.sort_relevance
-            SearchSort.NAME -> UiR.string.sort_name
-            SearchSort.RATING -> UiR.string.sort_rating
-            SearchSort.RELEASE_DATE -> UiR.string.sort_release_date
+            SearchSort.RELEVANCE -> CoreUiR.string.sort_relevance
+            SearchSort.NAME -> CoreUiR.string.sort_name
+            SearchSort.RATING -> CoreUiR.string.sort_rating
+            SearchSort.RELEASE_DATE -> CoreUiR.string.sort_release_date
         }
         SortingUiModel(
             sortType = sort,
