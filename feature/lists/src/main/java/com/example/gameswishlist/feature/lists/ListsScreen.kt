@@ -26,15 +26,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
+import com.example.gameswishlist.core.model.WishlistIcon
+import com.example.gameswishlist.core.ui.component.LoadingPage
+import com.example.gameswishlist.core.ui.mapper.toDrawableRes
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.lists.components.CreateWishlistCard
 import com.example.gameswishlist.feature.lists.components.CreateWishlistSheet
 import com.example.gameswishlist.feature.lists.components.WishlistRow
+import com.example.gameswishlist.feature.lists.model.ListsContentState
 import com.example.gameswishlist.feature.lists.model.ListsUiEffect
+import com.example.gameswishlist.feature.lists.model.ListsUiEvent
+import com.example.gameswishlist.feature.lists.model.ListsUiState
+import com.example.gameswishlist.feature.lists.model.WishlistListUiModel
 
 // viewModel is the same instance for the route's whole lifetime, so ref-comparison skips correctly.
 @Suppress("ParamsComparedByRef")
@@ -44,8 +54,7 @@ fun ListsScreen(
     onListClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val lists by viewModel.lists.collectAsStateWithLifecycle()
-    var showCreateSheet by remember { mutableStateOf(false) }
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val context = LocalContext.current
@@ -61,6 +70,25 @@ fun ListsScreen(
             }
         }
     }
+
+    ListsContent(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onListClick = onListClick,
+        snackbarHostState = snackbarHostState,
+        modifier = modifier
+    )
+}
+
+@Composable
+internal fun ListsContent(
+    state: ListsUiState,
+    onEvent: (ListsUiEvent) -> Unit,
+    onListClick: (Long) -> Unit,
+    snackbarHostState: SnackbarHostState,
+    modifier: Modifier = Modifier
+) {
+    var showCreateSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -81,21 +109,27 @@ fun ListsScreen(
         contentWindowInsets = WindowInsets.systemBars,
         modifier = modifier
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-            contentPadding = PaddingValues(MaterialTheme.spacing.large),
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.mediumLarge)
-        ) {
-            item {
-                CreateWishlistCard(onClick = { showCreateSheet = true })
-            }
-            items(lists, key = { it.id }) { list ->
-                WishlistRow(
-                    list = list,
-                    onClick = { onListClick(list.id) }
-                )
+        val contentModifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize()
+
+        when (val content = state.contentState) {
+            ListsContentState.Loading -> LoadingPage(modifier = contentModifier)
+
+            is ListsContentState.Success -> LazyColumn(
+                modifier = contentModifier,
+                contentPadding = PaddingValues(MaterialTheme.spacing.large),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.mediumLarge)
+            ) {
+                item {
+                    CreateWishlistCard(onClick = { showCreateSheet = true })
+                }
+                items(content.lists, key = { it.id }) { list ->
+                    WishlistRow(
+                        list = list,
+                        onClick = { onListClick(list.id) }
+                    )
+                }
             }
         }
 
@@ -103,10 +137,68 @@ fun ListsScreen(
             CreateWishlistSheet(
                 onDismiss = { showCreateSheet = false },
                 onCreate = { name, description, icon, coverImageUri ->
-                    viewModel.createList(name, description, icon, coverImageUri)
+                    onEvent(
+                        ListsUiEvent.OnListCreated(
+                            name = name,
+                            description = description,
+                            icon = icon,
+                            coverImageUri = coverImageUri
+                        )
+                    )
                     showCreateSheet = false
                 }
             )
         }
     }
+}
+
+@Composable
+private fun ListsContentPreview(contentState: ListsContentState) {
+    GamesWishlistTheme {
+        ListsContent(
+            state = ListsUiState(contentState = contentState),
+            onEvent = {},
+            onListClick = {},
+            snackbarHostState = remember { SnackbarHostState() }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ListsContentSuccessPreview() {
+    ListsContentPreview(
+        ListsContentState.Success(
+            lists = listOf(
+                WishlistListUiModel(
+                    id = 1,
+                    name = "My Wishlist",
+                    description = "Everything I want to play",
+                    iconRes = WishlistIcon.BACKLOG.toDrawableRes(),
+                    coverImagePath = null,
+                    gameCountText = UiText.DynamicString("12")
+                ),
+                WishlistListUiModel(
+                    id = 2,
+                    name = "RPGs to Try",
+                    description = "One day",
+                    iconRes = WishlistIcon.HEART.toDrawableRes(),
+                    coverImagePath = null,
+                    gameCountText = UiText.DynamicString("99+")
+                )
+            )
+        )
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ListsContentNoListsPreview() {
+    ListsContentPreview(ListsContentState.Success(lists = emptyList()))
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ListsContentLoadingPreview() {
+    ListsContentPreview(ListsContentState.Loading)
 }

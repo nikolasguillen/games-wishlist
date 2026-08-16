@@ -19,22 +19,16 @@ An ordered pass over this list is underway on `develop`, one fix per commit; `gi
 what has already been done. Entries are deleted from this file as they are fixed, so whatever is still
 written below is still true. Agreed order for the rest:
 
-1. **Uniform UDF** — `feature/lists` is the last module left.
-2. **The `@Immutable` audit** — adjacent to the UDF work, so it goes right after it.
-3. **Stale cross-ref rows** — a behaviour change, so it waits for its own commit.
-4. **The `R` alias convention** — small and mechanical, any time.
-5. **Release signing** — on hold: blocked on the owner generating a keystore, and not being chased in the
+1. **The `@Immutable` audit** — the UDF pass just went over every state holder, so this follows on from it.
+2. **Stale cross-ref rows** — a behaviour change, so it waits for its own commit.
+3. **The `R` alias convention** — small and mechanical, any time.
+4. **Release signing** — on hold: blocked on the owner generating a keystore, and not being chased in the
    meantime.
 
 Convention plugins, CI and the test-coverage gaps are deliberately last — see the KMP section in the root
 `CLAUDE.md`, since a multiplatform move would rewrite the build logic anyway.
 
 ## Rule violations
-
-### Uniform UDF
-
-`feature/lists` exposes a bare `lists: StateFlow<List<WishlistListUiModel>>` and a `createList(...)`
-method instead of a `UiState` + `onEvent(UiEvent)` pair.
 
 ### `R` alias on cross-module imports
 
