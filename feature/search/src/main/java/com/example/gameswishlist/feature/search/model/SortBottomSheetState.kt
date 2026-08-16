@@ -1,11 +1,14 @@
 package com.example.gameswishlist.feature.search.model
 
+import androidx.compose.runtime.Immutable
+
 /**
  * Represents the state of the sorting options Bottom Sheet.
  * @property isVisible Whether the Bottom Sheet is currently visible.
  * @property sorting List of sorting options.
  * @property isSortActive Whether any non-default sorting is currently active.
  */
+@Immutable
 internal data class SortBottomSheetState(
     val isVisible: Boolean = false,
     val sorting: List<SortingUiModel> = emptyList(),

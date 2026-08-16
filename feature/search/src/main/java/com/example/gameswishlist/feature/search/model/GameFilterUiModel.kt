@@ -1,7 +1,9 @@
 package com.example.gameswishlist.feature.search.model
 
+import androidx.compose.runtime.Immutable
 import com.example.gameswishlist.core.ui.model.UiText
 
+@Immutable
 internal sealed interface GameFilterUiModel {
     val id: Int
     val label: UiText

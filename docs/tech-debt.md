@@ -19,9 +19,8 @@ An ordered pass over this list is underway on `develop`, one fix per commit; `gi
 what has already been done. Entries are deleted from this file as they are fixed, so whatever is still
 written below is still true. Agreed order for the rest:
 
-1. **The `@Immutable` audit** — the UDF pass just went over every state holder, so this follows on from it.
-2. **Stale cross-ref rows** — a behaviour change, so it waits for its own commit.
-3. **Release signing** — on hold: blocked on the owner generating a keystore, and not being chased in the
+1. **Stale cross-ref rows** — a behaviour change, so it waits for its own commit.
+2. **Release signing** — on hold: blocked on the owner generating a keystore, and not being chased in the
    meantime.
 
 Convention plugins, CI and the test-coverage gaps are deliberately last — see the KMP section in the root
@@ -29,15 +28,6 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
 
 ## Technical risks
 
-- **`@Immutable` is applied by feel**: only `UiState` is covered by a rule, so every other state holder
-  and UI model got the annotation or not depending on who wrote it. Missing it where it belongs costs
-  recomposition; claiming it where a field is genuinely mutable is a correctness bug, so each one has to
-  be looked at rather than annotated in bulk. Still unannotated: `GameItemUiModel` in `core/ui`;
-  `GameStatusUiModel`, `PriorityUiModel`, `RatingUiModel`, `PlatformTileUiModel`,
-  `PlatformReleaseDateUiModel` and `WishlistListUiModel` in `feature/game-detail`; `WishlistListUiModel`
-  in `feature/lists`; `SearchHistoryUiModel`, `SortingUiModel`, `GameFilterUiModel`,
-  `FilterBottomSheetState` and `SortBottomSheetState` in `feature/search`. `UiEvent` and `UiEffect`
-  hierarchies are deliberately out of it — they travel as lambda parameters, where stability buys nothing.
 - **Room migrations are deferred until release**: the database is deliberately pinned to `version = 1`
   with `.fallbackToDestructiveMigration(true)`, so every entity change wipes the device. That is the
   owner's decision while the app is unpublished — **it is not a bug to fix, and the version must not be

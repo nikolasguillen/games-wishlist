@@ -1,7 +1,9 @@
 package com.example.gameswishlist.core.ui.model
 
+import androidx.compose.runtime.Immutable
 import com.example.gameswishlist.core.model.GameStatus
 
+@Immutable
 data class GameItemUiModel(
     val id: Int,
     val name: String,
