@@ -63,8 +63,7 @@ is how the comma-joined `artworks`/`engines` columns happened in the first place
 - Type converters live in a single `util/Converters.kt` (`class Converters`, `@TypeConverter` pairs named
   `fromX`/`toX`), registered via `@TypeConverters(Converters::class)` on the database class.
 - This module owns `res/values/strings.xml`: the default wishlist's name and description, inserted with
-  `db.execSQL("INSERT INTO wishlists ...")` from `RoomDatabase.Callback.onCreate`. Imported with the alias
-  `import com.example.gameswishlist.core.database.R as DatabaseR`.
+  `db.execSQL("INSERT INTO wishlists ...")` from `RoomDatabase.Callback.onCreate`.
 - `GameDao` interpolates a Kotlin constant into SQL:
   `"... WHERE listId = ${WishlistConstants.DEFAULT_WISHLIST_ID}"`. That constant lives in `core/model`.
 - `DATABASE_NAME` is a `const val` in the database class's companion object.

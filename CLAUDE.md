@@ -68,10 +68,11 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
   exception does not extend to types that merely live nearby: a cross-ref, a relation POJO or a second
   model gets its own file.
 - UI-layer models carry the `UiModel` suffix. Domain models stay clean.
-- A cross-module `R` import is always aliased **`<Module>R`**: `CoreUiR` for `:core:ui`, `SearchR` for
-  `:feature:search`, `DatabaseR` for `:core:database`. Never a bare `R` or a shortened alias — the point is
-  that the reader can tell which module owns the resource. A module's **own** `R` is imported bare: there
-  is nothing to disambiguate, and aliasing it only adds noise.
+- A cross-module `R` import is always aliased **`<Module>R`** — `CoreUiR` for `:core:ui`, and the same
+  shape for any other module that ends up exporting resources. Never a bare `R` or a shortened alias: the
+  point is that the reader can tell which module owns the resource. A module's **own** `R` is imported
+  bare, because there is nothing to disambiguate and the alias only adds noise. `:core:ui` is currently
+  the only module whose resources are read from outside it.
 - **Text that can come from `strings.xml` is `UiText`** (`core/ui/model/UiText.kt`) in UiState and
   UiModels — anything formatted through a resource (`platforms_format`), given a resource fallback
   (`unknown_release_date`), or derived from an enum (`GameStatus.toLabelUiText()`). A value that can only

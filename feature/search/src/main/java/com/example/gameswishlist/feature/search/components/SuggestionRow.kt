@@ -33,10 +33,10 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.util.shimmerEffect
+import com.example.gameswishlist.feature.search.R
 import com.example.gameswishlist.feature.search.model.GameSuggestionUiModel
-import com.example.gameswishlist.feature.search.R as SearchR
+import com.example.gameswishlist.core.ui.R as CoreUiR
 
 @Composable
 internal fun SearchActionRow(
@@ -58,7 +58,7 @@ internal fun SearchActionRow(
         Spacer(modifier = Modifier.width(MaterialTheme.spacing.medium))
         Text(
             text = buildAnnotatedString {
-                append(stringResource(SearchR.string.search_for_action_prefix))
+                append(stringResource(R.string.search_for_action_prefix))
                 append(" ")
                 withStyle(
                     style = SpanStyle(
@@ -114,7 +114,7 @@ internal fun GameSuggestionRow(
         AsyncImage(
             model = suggestion.coverUrl,
             contentDescription = null,
-            error = painterResource(R.drawable.placeholder),
+            error = painterResource(CoreUiR.drawable.placeholder),
             modifier = Modifier
                 .size(48.dp)
                 .clip(MaterialTheme.shapes.small),

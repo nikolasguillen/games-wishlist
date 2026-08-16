@@ -6,7 +6,6 @@ import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Platform
 import com.example.gameswishlist.core.model.Priority
-import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.mapper.getDisplayRating
 import com.example.gameswishlist.core.ui.mapper.getRatingUiText
 import com.example.gameswishlist.core.ui.mapper.toDrawableRes
@@ -14,6 +13,7 @@ import com.example.gameswishlist.core.ui.mapper.toGameItem
 import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.PlatformVisuals
+import com.example.gameswishlist.feature.gamedetail.R
 import com.example.gameswishlist.feature.gamedetail.model.AvailabilityUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
@@ -25,6 +25,7 @@ import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RelatedGamesUiModel
 import com.example.gameswishlist.feature.gamedetail.model.WishlistListUiModel
 import java.util.Locale
+import com.example.gameswishlist.core.ui.R as CoreUiR
 
 internal fun Game.toUiModel(): GameDetailUiModel {
     val related = mutableListOf<RelatedGamesUiModel>()
@@ -32,7 +33,7 @@ internal fun Game.toUiModel(): GameDetailUiModel {
     parentGame?.let {
         related.add(
             RelatedGamesUiModel(
-                title = UiText.StringResource(R.string.related_parent_game),
+                title = UiText.StringResource(CoreUiR.string.related_parent_game),
                 games = listOf(it.toGameItem())
             )
         )
@@ -41,7 +42,7 @@ internal fun Game.toUiModel(): GameDetailUiModel {
     if (dlcs.isNotEmpty()) {
         related.add(
             RelatedGamesUiModel(
-                title = UiText.StringResource(R.string.related_dlcs),
+                title = UiText.StringResource(CoreUiR.string.related_dlcs),
                 games = dlcs.map { it.toGameItem() }
             )
         )
@@ -50,7 +51,7 @@ internal fun Game.toUiModel(): GameDetailUiModel {
     if (expansions.isNotEmpty()) {
         related.add(
             RelatedGamesUiModel(
-                title = UiText.StringResource(R.string.related_expansions),
+                title = UiText.StringResource(CoreUiR.string.related_expansions),
                 games = expansions.map { it.toGameItem() }
             )
         )
@@ -59,7 +60,7 @@ internal fun Game.toUiModel(): GameDetailUiModel {
     if (remakes.isNotEmpty()) {
         related.add(
             RelatedGamesUiModel(
-                title = UiText.StringResource(R.string.related_remakes),
+                title = UiText.StringResource(CoreUiR.string.related_remakes),
                 games = remakes.map { it.toGameItem() }
             )
         )
@@ -68,7 +69,7 @@ internal fun Game.toUiModel(): GameDetailUiModel {
     if (remasters.isNotEmpty()) {
         related.add(
             RelatedGamesUiModel(
-                title = UiText.StringResource(R.string.related_remasters),
+                title = UiText.StringResource(CoreUiR.string.related_remasters),
                 games = remasters.map { it.toGameItem() }
             )
         )
@@ -81,9 +82,9 @@ internal fun Game.toUiModel(): GameDetailUiModel {
             scoreText = UiText.DynamicString(displayRating.toString()),
             scoreLabel = getRatingUiText(),
             hypes = if (hypes > 0) UiText.DynamicString(formatLargeNumber(hypes)) else null,
-            hypesLabel = if (hypes > 0) UiText.StringResource(R.string.hypes_title) else null,
+            hypesLabel = if (hypes > 0) UiText.StringResource(CoreUiR.string.hypes_title) else null,
             ratingCount = if (ratingCount > 0) UiText.DynamicString(formatLargeNumber(ratingCount)) else null,
-            ratingCountLabel = if (ratingCount > 0) UiText.StringResource(R.string.rating_count_title) else null
+            ratingCountLabel = if (ratingCount > 0) UiText.StringResource(CoreUiR.string.rating_count_title) else null
         )
     } else null
 
@@ -108,13 +109,13 @@ internal fun Game.toUiModel(): GameDetailUiModel {
                 code = style.code,
                 color = style.color,
                 date = it.date?.let { date -> UiText.DynamicString(DateUtils.formatUnixTimestamp(date)) }
-                    ?: UiText.StringResource(com.example.gameswishlist.feature.gamedetail.R.string.tba)
+                    ?: UiText.StringResource(R.string.tba)
             )
         }
 
     val availability = AvailabilityUiModel(
         mainDate = DateUtils.formatIsoDate(releaseDate)?.let { UiText.DynamicString(it) }
-            ?: UiText.StringResource(com.example.gameswishlist.feature.gamedetail.R.string.tba),
+            ?: UiText.StringResource(R.string.tba),
         platforms = platforms
             .sortedByDescending { it.generation ?: Int.MIN_VALUE }
             .map {
@@ -155,11 +156,11 @@ private fun formatLargeNumber(number: Int): String {
 
 internal fun GameStatus.toUiModel(selected: Boolean): GameStatusUiModel {
     val resId = when (this) {
-        GameStatus.WANT_TO_BUY -> R.string.status_want_to_buy
-        GameStatus.BOUGHT -> R.string.status_bought
-        GameStatus.PLAYING -> R.string.status_playing
-        GameStatus.COMPLETED -> R.string.status_completed
-        GameStatus.DROPPED -> R.string.status_dropped
+        GameStatus.WANT_TO_BUY -> CoreUiR.string.status_want_to_buy
+        GameStatus.BOUGHT -> CoreUiR.string.status_bought
+        GameStatus.PLAYING -> CoreUiR.string.status_playing
+        GameStatus.COMPLETED -> CoreUiR.string.status_completed
+        GameStatus.DROPPED -> CoreUiR.string.status_dropped
     }
     return GameStatusUiModel(
         id = this.id, label = UiText.StringResource(resId), selected = selected
@@ -168,9 +169,9 @@ internal fun GameStatus.toUiModel(selected: Boolean): GameStatusUiModel {
 
 internal fun Priority.toUiModel(selected: Boolean): PriorityUiModel {
     val resId = when (this) {
-        Priority.LOW -> R.string.priority_low
-        Priority.MEDIUM -> R.string.priority_medium
-        Priority.HIGH -> R.string.priority_high
+        Priority.LOW -> CoreUiR.string.priority_low
+        Priority.MEDIUM -> CoreUiR.string.priority_medium
+        Priority.HIGH -> CoreUiR.string.priority_high
     }
     return PriorityUiModel(
         id = this.id, label = UiText.StringResource(resId), selected = selected

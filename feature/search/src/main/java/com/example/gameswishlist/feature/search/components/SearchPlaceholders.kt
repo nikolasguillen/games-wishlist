@@ -10,12 +10,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.ui.component.EmptyPage
-import com.example.gameswishlist.feature.search.R as SearchR
+import com.example.gameswishlist.feature.search.R
 
 @Composable
 internal fun InitialSearchPlaceholder(modifier: Modifier = Modifier) {
     EmptyPage(
-        message = stringResource(SearchR.string.search_initial_message),
+        message = stringResource(R.string.search_initial_message),
         icon = Icons.Outlined.SportsEsports,
         modifier = modifier
     )
@@ -24,7 +24,7 @@ internal fun InitialSearchPlaceholder(modifier: Modifier = Modifier) {
 @Composable
 internal fun EmptySearchPlaceholder(modifier: Modifier = Modifier) {
     EmptyPage(
-        message = stringResource(SearchR.string.search_no_results),
+        message = stringResource(R.string.search_no_results),
         icon = Icons.Outlined.SmartToy,
         modifier = modifier
     )
@@ -33,7 +33,7 @@ internal fun EmptySearchPlaceholder(modifier: Modifier = Modifier) {
 @Composable
 internal fun NoFilteredResultsPlaceholder(modifier: Modifier = Modifier) {
     EmptyPage(
-        message = stringResource(SearchR.string.search_no_filtered_results),
+        message = stringResource(R.string.search_no_filtered_results),
         icon = Icons.Outlined.SearchOff,
         modifier = modifier
     )

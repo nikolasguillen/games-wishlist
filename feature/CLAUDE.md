@@ -103,8 +103,8 @@ guarded by `if (backStack.lastOrNull() != nextRoute)`.
 
 ## Resources and visibility
 
-- Each feature owns its `strings.xml`. Cross-module resources are always imported with an alias:
-  `import com.example.gameswishlist.core.ui.R as CoreUiR`.
+- Each feature owns its `strings.xml`, imported as a bare `R`. Cross-module resources are always imported
+  with an alias: `import com.example.gameswishlist.core.ui.R as CoreUiR`.
 - Default to `internal` for anything local to the feature: UiState, UiEvent, mappers, sub-composables,
   `uiState`, `onEvent`. Only the screen entry point and the ViewModel class need to be public.
 
