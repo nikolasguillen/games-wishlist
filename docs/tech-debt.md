@@ -11,7 +11,7 @@ these patterns as the house style. Mention the relevant item if it blocks you, t
 `git log` is the history, this file is only the present. It is meant to shrink until it is empty, and then
 to be deleted.
 
-Last audited: 2026-08-12.
+Last audited: 2026-08-16.
 
 ## Cleanup pass in progress
 
@@ -19,9 +19,11 @@ An ordered pass over this list is underway on `develop`, one fix per commit; `gi
 what has already been done. Entries are deleted from this file as they are fixed, so whatever is still
 written below is still true. Agreed order for the rest:
 
-1. **Release signing** — blocked on the owner generating a keystore; the config reads it from a
-   git-ignored `keystore.properties`, like the IGDB credentials.
-2. Small and independent, any order: the `R` alias convention, the missing `LICENSE`.
+1. **Uniform UDF** — the three sub-items below are independent; one commit per feature module.
+2. **Stale cross-ref rows** — a behaviour change, so it waits for its own commit.
+3. **The `R` alias convention** — small and mechanical, any time.
+4. **Release signing** — on hold: blocked on the owner generating a keystore, and not being chased in the
+   meantime.
 
 Convention plugins, CI and the test-coverage gaps are deliberately last — see the KMP section in the root
 `CLAUDE.md`, since a multiplatform move would rewrite the build logic anyway.
@@ -35,6 +37,14 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
 - `feature/wishlist` has no `ContentState`; it renders `EmptyPage` from `sections.isEmpty()`.
 - `feature/search` is the least converted to `internal` visibility (4 declarations, vs 33 in game-detail);
   its `SearchUiState` is public and not `@Immutable`.
+
+### `R` alias on cross-module imports
+
+Eight files import `com.example.gameswishlist.core.ui.R` bare from inside a feature module, so the reader
+cannot tell which module owns the resource: `GameDescriptionCard`, `GameDetailPersonalCard`,
+`GameReleaseInfoCard`, `ListSelectorSheet`, `DetailErrorLoadingWrapper` and `mapper/GameDetailUiMapper` in
+`feature/game-detail`, `SearchBars` and `SuggestionRow` in `feature/search`. They all need `as CoreUiR`.
+A module importing its own `R` bare is correct and must stay that way.
 
 ## Technical risks
 
