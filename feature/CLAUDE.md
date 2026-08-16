@@ -50,6 +50,14 @@ Empty, Error — when the state is non-trivial), `private`, wrapped in `GamesWis
   `LaunchedEffect { lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) { ... } }`.
   Reference: `feature/wishlist/WishlistScreen.kt`.
 
+`@Immutable` is not only for `UiState`: every `ContentState`, every bottom-sheet or dialog `*State` and
+every `*UiModel` carries it too, on the `sealed` interface rather than on its implementations when the
+type is a hierarchy. Most of them hold a `List`, which the compiler infers as unstable, and that
+instability propagates to whatever composable receives them. **`UiEvent` and `UiEffect` are the exception**
+— they travel as lambda parameters, where stability changes nothing. The annotation is a promise, not a
+hint: if a property can change under the same instance, Compose will skip a recomposition that should have
+run, so check before adding it.
+
 Two state-pipeline shapes coexist; both are fine, pick the one that matches the source:
 
 - Derived from a use-case `Flow` → `.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Default())`
