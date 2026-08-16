@@ -28,8 +28,8 @@ import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.wishlist.R
 import com.example.gameswishlist.feature.wishlist.model.WishlistSectionUiModel
 
-// sections is always the same instance from WishlistUiState until it actually changes, so the
-// instability falls back to reference comparison, which already skips correctly.
+// sections is always the same instance from WishlistContentState.Success until it actually changes,
+// so the instability falls back to reference comparison, which already skips correctly.
 @Composable
 internal fun WishlistGamesList(
     sections: List<WishlistSectionUiModel>,

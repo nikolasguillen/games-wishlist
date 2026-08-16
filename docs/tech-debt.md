@@ -19,7 +19,7 @@ An ordered pass over this list is underway on `develop`, one fix per commit; `gi
 what has already been done. Entries are deleted from this file as they are fixed, so whatever is still
 written below is still true. Agreed order for the rest:
 
-1. **Uniform UDF** — the two sub-items below are independent; one commit per feature module.
+1. **Uniform UDF** — `feature/lists` is the last module left.
 2. **The `@Immutable` audit** — adjacent to the UDF work, so it goes right after it.
 3. **Stale cross-ref rows** — a behaviour change, so it waits for its own commit.
 4. **The `R` alias convention** — small and mechanical, any time.
@@ -33,9 +33,8 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
 
 ### Uniform UDF
 
-- `feature/lists` exposes a bare `lists: StateFlow<List<WishlistListUiModel>>` and a `createList(...)`
-  method instead of a `UiState` + `onEvent(UiEvent)` pair.
-- `feature/wishlist` has no `ContentState`; it renders `EmptyPage` from `sections.isEmpty()`.
+`feature/lists` exposes a bare `lists: StateFlow<List<WishlistListUiModel>>` and a `createList(...)`
+method instead of a `UiState` + `onEvent(UiEvent)` pair.
 
 ### `R` alias on cross-module imports
 

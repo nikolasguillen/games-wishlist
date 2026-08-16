@@ -9,6 +9,7 @@ import com.example.gameswishlist.core.domain.usecase.list.RemoveGameFromListUseC
 import com.example.gameswishlist.core.model.WishlistConstants
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.wishlist.mapper.toWishlistSectionUiModel
+import com.example.gameswishlist.feature.wishlist.model.WishlistContentState
 import com.example.gameswishlist.feature.wishlist.model.WishlistUiEffect
 import com.example.gameswishlist.feature.wishlist.model.WishlistUiEvent
 import com.example.gameswishlist.feature.wishlist.model.WishlistUiState
@@ -48,10 +49,15 @@ class WishlistViewModel @AssistedInject constructor(
             if (detail == null) {
                 WishlistUiState()
             } else {
+                val sections = detail.games.toWishlistSectionUiModel()
                 WishlistUiState(
                     listName = UiText.DynamicString(detail.list.name),
-                    sections = detail.games.toWishlistSectionUiModel(),
-                    canDeleteList = canDeleteList
+                    canDeleteList = canDeleteList,
+                    contentState = if (sections.isEmpty()) {
+                        WishlistContentState.Empty
+                    } else {
+                        WishlistContentState.Success(sections)
+                    }
                 )
             }
         }

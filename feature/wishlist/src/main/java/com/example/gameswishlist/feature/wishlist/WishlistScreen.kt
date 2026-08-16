@@ -27,11 +27,13 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.ui.component.EmptyPage
+import com.example.gameswishlist.core.ui.component.LoadingPage
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.wishlist.components.DeleteWishlistDialog
 import com.example.gameswishlist.feature.wishlist.components.WishlistGamesList
 import com.example.gameswishlist.feature.wishlist.components.WishlistTopBar
+import com.example.gameswishlist.feature.wishlist.model.WishlistContentState
 import com.example.gameswishlist.feature.wishlist.model.WishlistSectionUiModel
 import com.example.gameswishlist.feature.wishlist.model.WishlistUiEffect
 import com.example.gameswishlist.feature.wishlist.model.WishlistUiEvent
@@ -106,18 +108,21 @@ internal fun WishlistContent(
         contentWindowInsets = WindowInsets.systemBars,
         modifier = modifier
     ) { innerPadding ->
-        if (state.sections.isEmpty()) {
-            EmptyPage(
+        val contentModifier = Modifier.padding(innerPadding)
+        when (val content = state.contentState) {
+            WishlistContentState.Loading -> LoadingPage(modifier = contentModifier)
+
+            WishlistContentState.Empty -> EmptyPage(
                 message = stringResource(CoreUiR.string.empty_list_message),
                 icon = Icons.Outlined.Inventory2,
-                modifier = Modifier.padding(innerPadding)
+                modifier = contentModifier
             )
-        } else {
-            WishlistGamesList(
-                sections = state.sections,
+
+            is WishlistContentState.Success -> WishlistGamesList(
+                sections = content.sections,
                 onGameClick = onGameClick,
                 onGameRemove = { game -> onEvent(WishlistUiEvent.OnGameRemoved(game.id)) },
-                modifier = Modifier.padding(innerPadding)
+                modifier = contentModifier
             )
         }
 
@@ -134,28 +139,14 @@ internal fun WishlistContent(
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-private fun WishlistContentPreview() {
+private fun WishlistContentPreview(contentState: WishlistContentState) {
     GamesWishlistTheme {
         WishlistContent(
             state = WishlistUiState(
                 listName = UiText.DynamicString("My Wishlist"),
-                sections = listOf(
-                    WishlistSectionUiModel(
-                        status = GameStatus.PLAYING,
-                        label = UiText.DynamicString("PLAYING"),
-                        games = listOf(GameItemUiModel.getDummy())
-                    ),
-                    WishlistSectionUiModel(
-                        status = null,
-                        label = UiText.DynamicString("NO STATUS"),
-                        games = listOf(
-                            GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077")
-                        )
-                    )
-                ),
-                canDeleteList = true
+                canDeleteList = true,
+                contentState = contentState
             ),
             onEvent = {},
             onGameClick = {},
@@ -167,14 +158,35 @@ private fun WishlistContentPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun WishlistContentEmptyPreview() {
-    GamesWishlistTheme {
-        WishlistContent(
-            state = WishlistUiState(listName = UiText.DynamicString("My Wishlist")),
-            onEvent = {},
-            onGameClick = {},
-            onBackClick = {},
-            snackbarHostState = remember { SnackbarHostState() }
+private fun WishlistContentSuccessPreview() {
+    WishlistContentPreview(
+        WishlistContentState.Success(
+            sections = listOf(
+                WishlistSectionUiModel(
+                    status = GameStatus.PLAYING,
+                    label = UiText.DynamicString("PLAYING"),
+                    games = listOf(GameItemUiModel.getDummy())
+                ),
+                WishlistSectionUiModel(
+                    status = null,
+                    label = UiText.DynamicString("NO STATUS"),
+                    games = listOf(
+                        GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077")
+                    )
+                )
+            )
         )
-    }
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun WishlistContentEmptyPreview() {
+    WishlistContentPreview(WishlistContentState.Empty)
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun WishlistContentLoadingPreview() {
+    WishlistContentPreview(WishlistContentState.Loading)
 }
