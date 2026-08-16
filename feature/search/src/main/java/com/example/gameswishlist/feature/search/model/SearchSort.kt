@@ -1,6 +1,6 @@
 package com.example.gameswishlist.feature.search.model
 
-enum class SearchSort {
+internal enum class SearchSort {
     RELEVANCE,
     NAME,
     RATING,

@@ -36,7 +36,7 @@ private val MIN_TOUCH_TARGET_HEIGHT = 48.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchSortBottomSheet(
+internal fun SearchSortBottomSheet(
     state: SortBottomSheetState,
     onEvent: (SearchUiEvent) -> Unit,
     modifier: Modifier = Modifier

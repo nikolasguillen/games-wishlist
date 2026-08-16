@@ -6,7 +6,7 @@ import androidx.compose.runtime.Immutable
  * UI representation of a game suggestion.
  */
 @Immutable
-data class GameSuggestionUiModel(
+internal data class GameSuggestionUiModel(
     val id: Int,
     val name: String,
     val coverUrl: String?,

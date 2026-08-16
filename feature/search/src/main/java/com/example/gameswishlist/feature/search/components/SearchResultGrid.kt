@@ -36,7 +36,7 @@ import com.example.gameswishlist.feature.search.R
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 
 @Composable
-fun SearchResultGrid(
+internal fun SearchResultGrid(
     games: List<GameItemUiModel>,
     activeFilters: List<GameFilterUiModel>,
     onFilterClick: (GameFilterUiModel) -> Unit,

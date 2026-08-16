@@ -201,7 +201,7 @@ internal fun SearchInputField(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CollapsedSearchBar(
+internal fun CollapsedSearchBar(
     searchBarState: SearchBarState,
     scrollBehavior: SearchBarScrollBehavior,
     appBarWithSearchColors: AppBarWithSearchColors,
@@ -218,7 +218,7 @@ fun CollapsedSearchBar(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExpandedSearchBar(
+internal fun ExpandedSearchBar(
     searchBarState: SearchBarState,
     inputField: @Composable () -> Unit,
     history: SearchHistoryUiModel,

@@ -1,6 +1,6 @@
 package com.example.gameswishlist.feature.search.model
 
-sealed interface SearchUiEvent {
+internal sealed interface SearchUiEvent {
     data class OnSearchTriggered(val query: String) : SearchUiEvent
     data class OnHistorySuggestionClick(val query: String) : SearchUiEvent
     data object OnClearHistory : SearchUiEvent

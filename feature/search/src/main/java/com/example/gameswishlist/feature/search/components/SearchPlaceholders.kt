@@ -13,7 +13,7 @@ import com.example.gameswishlist.core.ui.component.EmptyPage
 import com.example.gameswishlist.feature.search.R as SearchR
 
 @Composable
-fun InitialSearchPlaceholder(modifier: Modifier = Modifier) {
+internal fun InitialSearchPlaceholder(modifier: Modifier = Modifier) {
     EmptyPage(
         message = stringResource(SearchR.string.search_initial_message),
         icon = Icons.Outlined.SportsEsports,
@@ -22,7 +22,7 @@ fun InitialSearchPlaceholder(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun EmptySearchPlaceholder(modifier: Modifier = Modifier) {
+internal fun EmptySearchPlaceholder(modifier: Modifier = Modifier) {
     EmptyPage(
         message = stringResource(SearchR.string.search_no_results),
         icon = Icons.Outlined.SmartToy,
@@ -31,7 +31,7 @@ fun EmptySearchPlaceholder(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun NoFilteredResultsPlaceholder(modifier: Modifier = Modifier) {
+internal fun NoFilteredResultsPlaceholder(modifier: Modifier = Modifier) {
     EmptyPage(
         message = stringResource(SearchR.string.search_no_filtered_results),
         icon = Icons.Outlined.SearchOff,

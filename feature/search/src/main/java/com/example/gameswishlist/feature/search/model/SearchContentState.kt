@@ -1,10 +1,12 @@
 package com.example.gameswishlist.feature.search.model
 
+import androidx.compose.runtime.Immutable
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 
-sealed interface SearchContentState {
+@Immutable
+internal sealed interface SearchContentState {
     data object Initial : SearchContentState
     data object Loading : SearchContentState
     data object Empty : SearchContentState

@@ -10,7 +10,7 @@ import androidx.compose.runtime.Immutable
  * @property isLoadingRemote True if a remote search for suggestions is in progress.
  */
 @Immutable
-data class SearchSuggestionsUiModel(
+internal data class SearchSuggestionsUiModel(
     val historySuggestions: List<String> = emptyList(),
     val gameSuggestions: List<GameSuggestionUiModel> = emptyList(),
     val isLoadingRemote: Boolean = false

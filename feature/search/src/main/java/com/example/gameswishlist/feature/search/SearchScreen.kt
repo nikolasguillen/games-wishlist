@@ -74,7 +74,7 @@ fun SearchScreen(
 }
 
 @Composable
-fun SearchScreenContent(
+internal fun SearchScreenContent(
     uiState: SearchUiState,
     textFieldState: TextFieldState,
     onEvent: (SearchUiEvent) -> Unit,
@@ -213,7 +213,7 @@ fun SearchScreenContent(
 
 @Preview(showBackground = true)
 @Composable
-fun SearchScreenPreview() {
+private fun SearchScreenPreview() {
     GamesWishlistTheme {
         SearchScreenContent(
             uiState = SearchUiState(
@@ -252,7 +252,7 @@ fun SearchScreenPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun SearchScreenInitialWithHistoryPreview() {
+private fun SearchScreenInitialWithHistoryPreview() {
     GamesWishlistTheme {
         SearchScreenContent(
             uiState = SearchUiState(
@@ -274,7 +274,7 @@ fun SearchScreenInitialWithHistoryPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun SearchScreenLoadingPreview() {
+private fun SearchScreenLoadingPreview() {
     GamesWishlistTheme {
         SearchScreenContent(
             uiState = SearchUiState(
@@ -289,7 +289,7 @@ fun SearchScreenLoadingPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun SearchScreenInitialPreview() {
+private fun SearchScreenInitialPreview() {
     GamesWishlistTheme {
         SearchScreenContent(
             uiState = SearchUiState(),
@@ -302,7 +302,7 @@ fun SearchScreenInitialPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun SearchScreenEmptyPreview() {
+private fun SearchScreenEmptyPreview() {
     GamesWishlistTheme {
         SearchScreenContent(
             uiState = SearchUiState(

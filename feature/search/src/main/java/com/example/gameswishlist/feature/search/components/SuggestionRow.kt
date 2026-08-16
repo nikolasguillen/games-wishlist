@@ -39,7 +39,7 @@ import com.example.gameswishlist.feature.search.model.GameSuggestionUiModel
 import com.example.gameswishlist.feature.search.R as SearchR
 
 @Composable
-fun SearchActionRow(
+internal fun SearchActionRow(
     query: String,
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -75,7 +75,7 @@ fun SearchActionRow(
 }
 
 @Composable
-fun HistorySuggestionRow(
+internal fun HistorySuggestionRow(
     query: String,
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -98,7 +98,7 @@ fun HistorySuggestionRow(
 }
 
 @Composable
-fun GameSuggestionRow(
+internal fun GameSuggestionRow(
     suggestion: GameSuggestionUiModel,
     onClick: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -143,7 +143,7 @@ fun GameSuggestionRow(
 }
 
 @Composable
-fun LoadingSuggestionRow(modifier: Modifier = Modifier) {
+internal fun LoadingSuggestionRow(modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier

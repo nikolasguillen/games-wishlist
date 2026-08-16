@@ -12,7 +12,7 @@ import com.example.gameswishlist.feature.search.model.SearchSort
 import com.example.gameswishlist.feature.search.model.SortingUiModel
 import com.example.gameswishlist.core.ui.R as CoreUiR
 
-fun List<Platform>.toPlatformFilters(): List<GameFilterUiModel> {
+internal fun List<Platform>.toPlatformFilters(): List<GameFilterUiModel> {
     return this
         .sortedWith(
             compareByDescending<Platform> { platform ->
@@ -59,7 +59,7 @@ fun List<Platform>.toPlatformFilters(): List<GameFilterUiModel> {
         }
 }
 
-fun List<Genre>.toGenreFilters(): List<GameFilterUiModel> {
+internal fun List<Genre>.toGenreFilters(): List<GameFilterUiModel> {
     return this.map { genre ->
         GameFilterUiModel.Genre(
             id = genre.id,
@@ -69,7 +69,7 @@ fun List<Genre>.toGenreFilters(): List<GameFilterUiModel> {
     }
 }
 
-fun getInitialGameTypeFilters(): List<GameFilterUiModel> {
+internal fun getInitialGameTypeFilters(): List<GameFilterUiModel> {
     return listOf(
         GameType.MAIN_GAME,
         GameType.REMAKE,
@@ -86,7 +86,7 @@ fun getInitialGameTypeFilters(): List<GameFilterUiModel> {
     }
 }
 
-fun getInitialSortFilters(): List<SortingUiModel> {
+internal fun getInitialSortFilters(): List<SortingUiModel> {
     return SearchSort.entries.map { sort ->
         val labelResId = when (sort) {
             SearchSort.RELEVANCE -> CoreUiR.string.sort_relevance
@@ -107,7 +107,7 @@ fun getInitialSortFilters(): List<SortingUiModel> {
  * Business logic to determine if the current sorting is different from the default.
  * Default is [SearchSort.RELEVANCE] with [SortingUiModel.descending] = true.
  */
-fun List<SortingUiModel>.isSortActive(): Boolean {
+internal fun List<SortingUiModel>.isSortActive(): Boolean {
     val selected = this.find { it.selected } ?: return false
     return selected.sortType != SearchSort.RELEVANCE || !selected.descending
 }

@@ -19,7 +19,7 @@ An ordered pass over this list is underway on `develop`, one fix per commit; `gi
 what has already been done. Entries are deleted from this file as they are fixed, so whatever is still
 written below is still true. Agreed order for the rest:
 
-1. **Uniform UDF** — the three sub-items below are independent; one commit per feature module.
+1. **Uniform UDF** — the two sub-items below are independent; one commit per feature module.
 2. **Stale cross-ref rows** — a behaviour change, so it waits for its own commit.
 3. **The `R` alias convention** — small and mechanical, any time.
 4. **Release signing** — on hold: blocked on the owner generating a keystore, and not being chased in the
@@ -35,8 +35,6 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
 - `feature/lists` exposes a bare `lists: StateFlow<List<WishlistListUiModel>>` and a `createList(...)`
   method instead of a `UiState` + `onEvent(UiEvent)` pair.
 - `feature/wishlist` has no `ContentState`; it renders `EmptyPage` from `sections.isEmpty()`.
-- `feature/search` is the least converted to `internal` visibility (4 declarations, vs 33 in game-detail);
-  its `SearchUiState` is public and not `@Immutable`.
 
 ### `R` alias on cross-module imports
 

@@ -5,7 +5,7 @@ import com.example.gameswishlist.core.ui.model.GameItemUiModel
 /**
  * UI representation of user's search history activity.
  */
-data class SearchHistoryUiModel(
+internal data class SearchHistoryUiModel(
     val queries: List<String> = emptyList(),
     val games: List<GameItemUiModel> = emptyList()
 ) {

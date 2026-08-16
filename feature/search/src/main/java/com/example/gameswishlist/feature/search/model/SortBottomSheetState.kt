@@ -6,7 +6,7 @@ package com.example.gameswishlist.feature.search.model
  * @property sorting List of sorting options.
  * @property isSortActive Whether any non-default sorting is currently active.
  */
-data class SortBottomSheetState(
+internal data class SortBottomSheetState(
     val isVisible: Boolean = false,
     val sorting: List<SortingUiModel> = emptyList(),
     val isSortActive: Boolean = false

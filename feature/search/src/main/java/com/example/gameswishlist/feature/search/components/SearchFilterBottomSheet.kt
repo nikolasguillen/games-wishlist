@@ -45,7 +45,7 @@ import com.example.gameswishlist.feature.search.model.SearchUiEvent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchFilterBottomSheet(
+internal fun SearchFilterBottomSheet(
     state: FilterBottomSheetState,
     onEvent: (SearchUiEvent) -> Unit,
     modifier: Modifier = Modifier
