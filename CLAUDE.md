@@ -62,11 +62,28 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
 
 ## Non-negotiable rules
 
-- One `data class` / `sealed interface` / `class` per file.
+- One `data class` / `sealed interface` / `class` per file. **One exception:** a `sealed` hierarchy keeps
+  its direct implementations in the same file — they are one closed set and only mean anything together.
+  That is `core/navigation/Routes.kt` and the state/event/effect files under `feature/*/model/`. The
+  exception does not extend to types that merely live nearby: a cross-ref, a relation POJO or a second
+  model gets its own file.
 - UI-layer models carry the `UiModel` suffix. Domain models stay clean.
-- **User-facing text is always `UiText`** (`core/ui/model/UiText.kt`) in UiState and UiModels, never `String`.
-  Strings belong in `strings.xml`; never hardcode them in models, mappers, or logic. Domain models hold raw
-  data or enums only — display labels are resolved in the UI layer.
+- A cross-module `R` import is always aliased **`<Module>R`** — `CoreUiR` for `:core:ui`, and the same
+  shape for any other module that ends up exporting resources. Never a bare `R` or a shortened alias: the
+  point is that the reader can tell which module owns the resource. A module's **own** `R` is imported
+  bare, because there is nothing to disambiguate and the alias only adds noise. `:core:ui` is currently
+  the only module whose resources are read from outside it.
+- **Text that can come from `strings.xml` is `UiText`** (`core/ui/model/UiText.kt`) in UiState and
+  UiModels — anything formatted through a resource (`platforms_format`), given a resource fallback
+  (`unknown_release_date`), or derived from an enum (`GameStatus.toLabelUiText()`). A value that can only
+  ever come from the data source — a game's name, a studio, a year, the user's own search queries — stays
+  `String`: `UiText.DynamicString` around it buys nothing and only adds an unwrap at the call site.
+  The test is *could this string ever be a resource?*, not *is it shown on screen?* When that test is a
+  genuine coin flip, pick `UiText`: widening a `String` later means touching the model, the mapper, every
+  composable that reads it and every preview that builds it, while narrowing a `UiText` is deleting a
+  wrapper.
+- Never hardcode display text in a model, mapper, composable or any other logic — it belongs in
+  `strings.xml`. Domain models hold raw data or enums only; labels are resolved in the UI layer.
 - Before writing a `dp` literal, look for the token in `MaterialTheme.spacing`.
 - Dialogs: use `CustomAlertDialog` from `:core:ui`, never Material's `AlertDialog`.
 - Filter and sort by **ID, never by name**. That logic belongs in a ViewModel, UseCase, or Mapper —

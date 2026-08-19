@@ -7,7 +7,9 @@ import com.example.gameswishlist.core.model.RepositoryError
 import com.example.gameswishlist.core.model.WishlistIcon
 import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.feature.lists.model.ListsContentState
 import com.example.gameswishlist.feature.lists.model.ListsUiEffect
+import com.example.gameswishlist.feature.lists.model.ListsUiEvent
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -30,7 +32,7 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * [ListsViewModel.lists] is shared with [kotlinx.coroutines.flow.SharingStarted.WhileSubscribed],
+ * [ListsViewModel.uiState] is shared with [kotlinx.coroutines.flow.SharingStarted.WhileSubscribed],
  * so it only starts collecting the underlying [GetListsUseCase] flow once it has a subscriber --
  * [createViewModel] mirrors that by collecting it in the background, the same way the screen does
  * via `collectAsStateWithLifecycle`.
@@ -66,42 +68,58 @@ class ListsViewModelTest {
             getListsUseCase = getListsUseCase,
             createListUseCase = createListUseCase
         ).also { viewModel ->
-            backgroundScope.launch { viewModel.lists.collect {} }
+            backgroundScope.launch { viewModel.uiState.collect {} }
             advanceUntilIdle()
         }
     }
 
+    private fun ListsViewModel.successLists() =
+        (uiState.value.contentState as ListsContentState.Success).lists
+
     @Test
-    fun `lists maps the repository lists into UI models`() = runTest(testDispatcher) {
+    fun `uiState maps the repository lists into UI models`() = runTest(testDispatcher) {
         val viewModel = createViewModel(
             lists = listOf(testList(id = 1, name = "RPGs to Try", gameCount = 8))
         )
 
-        val uiModel = viewModel.lists.value.single()
+        val uiModel = viewModel.successLists().single()
         assertEquals(1L, uiModel.id)
         assertEquals("RPGs to Try", uiModel.name)
     }
 
     @Test
-    fun `lists reflects an empty repository as an empty list`() = runTest(testDispatcher) {
+    fun `uiState reflects an empty repository as an empty list`() = runTest(testDispatcher) {
         val viewModel = createViewModel(lists = emptyList())
 
-        assertEquals(emptyList<Any>(), viewModel.lists.value)
+        assertEquals(emptyList<Any>(), viewModel.successLists())
     }
 
     @Test
-    fun `createList delegates to the use case with the given parameters`() = runTest(testDispatcher) {
+    fun `uiState starts in Loading before the first emission`() = runTest(testDispatcher) {
+        every { getListsUseCase() } returns flowOf(emptyList())
+        val viewModel = ListsViewModel(
+            getListsUseCase = getListsUseCase,
+            createListUseCase = createListUseCase
+        )
+
+        assertEquals(ListsContentState.Loading, viewModel.uiState.value.contentState)
+    }
+
+    @Test
+    fun `OnListCreated delegates to the use case with the given parameters`() = runTest(testDispatcher) {
         coEvery { createListUseCase(any(), any(), any(), any()) } returns AppResult.success(Unit)
         val viewModel = createViewModel()
 
-        viewModel.createList("New List", "Description", WishlistIcon.HEART)
+        viewModel.onEvent(
+            ListsUiEvent.OnListCreated("New List", "Description", WishlistIcon.HEART)
+        )
         advanceUntilIdle()
 
         coVerify { createListUseCase("New List", "Description", WishlistIcon.HEART) }
     }
 
     @Test
-    fun `createList emits a snackbar effect when the use case reports a failed cover save`() =
+    fun `OnListCreated emits a snackbar effect when the use case reports a failed cover save`() =
         runTest(testDispatcher) {
             coEvery {
                 createListUseCase(any(), any(), any(), any())
@@ -110,7 +128,11 @@ class ListsViewModelTest {
             val effects = mutableListOf<ListsUiEffect>()
             val collectJob = launch { viewModel.uiEffect.toList(effects) }
 
-            viewModel.createList("New List", "Description", null, "content://picked-image")
+            viewModel.onEvent(
+                ListsUiEvent.OnListCreated(
+                    "New List", "Description", null, "content://picked-image"
+                )
+            )
             advanceUntilIdle()
 
             val effect = effects.single() as ListsUiEffect.ShowSnackbar
@@ -119,13 +141,15 @@ class ListsViewModelTest {
         }
 
     @Test
-    fun `createList emits no effect when the cover image is saved successfully`() = runTest(testDispatcher) {
+    fun `OnListCreated emits no effect when the cover image is saved successfully`() = runTest(testDispatcher) {
         coEvery { createListUseCase(any(), any(), any(), any()) } returns AppResult.success(Unit)
         val viewModel = createViewModel()
         val effects = mutableListOf<ListsUiEffect>()
         val collectJob = launch { viewModel.uiEffect.toList(effects) }
 
-        viewModel.createList("New List", "Description", null, "content://picked-image")
+        viewModel.onEvent(
+            ListsUiEvent.OnListCreated("New List", "Description", null, "content://picked-image")
+        )
         advanceUntilIdle()
 
         assertTrue(effects.isEmpty())

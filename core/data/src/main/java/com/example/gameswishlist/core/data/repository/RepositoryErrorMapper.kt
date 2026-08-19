@@ -1,6 +1,7 @@
 package com.example.gameswishlist.core.data.repository
 
 import com.example.gameswishlist.core.model.RepositoryError
+import com.example.gameswishlist.core.network.IgdbHttpException
 import java.net.ConnectException
 import java.net.SocketException
 import java.net.SocketTimeoutException
@@ -17,21 +18,8 @@ internal fun Throwable.toRepositoryError(): RepositoryError {
 
         is SocketTimeoutException -> RepositoryError.RequestTimeout
 
-        else -> toHttpRepositoryErrorOrNull() ?: RepositoryError.Unknown(this)
+        is IgdbHttpException -> RepositoryError.Http(code = code, message = message)
+
+        else -> RepositoryError.Unknown(this)
     }
 }
-
-private fun Throwable.toHttpRepositoryErrorOrNull(): RepositoryError.Http? {
-    if (javaClass.name != "retrofit2.HttpException") return null
-
-    val code = runCatching {
-        javaClass.getMethod("code").invoke(this) as? Int
-    }.getOrNull()
-
-    return RepositoryError.Http(
-        code = code ?: -1,
-        message = message
-    )
-}
-
-

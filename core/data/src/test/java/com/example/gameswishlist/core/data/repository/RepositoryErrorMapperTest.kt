@@ -1,13 +1,11 @@
 package com.example.gameswishlist.core.data.repository
 
 import com.example.gameswishlist.core.model.RepositoryError
-import okhttp3.ResponseBody.Companion.toResponseBody
+import com.example.gameswishlist.core.network.IgdbHttpException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Test
-import retrofit2.HttpException
-import retrofit2.Response
 import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketException
@@ -41,13 +39,18 @@ class RepositoryErrorMapperTest {
         assertEquals(RepositoryError.RequestTimeout, SocketTimeoutException().toRepositoryError())
     }
 
+    /**
+     * [IgdbHttpException] extends [IOException], so it has to be matched before the catch-all branch
+     * that would otherwise report every HTTP failure as [RepositoryError.Unknown].
+     */
     @Test
     fun `http exception maps to http error carrying the status code`() {
-        val exception = HttpException(Response.error<Any>(404, "".toResponseBody()))
+        val exception = IgdbHttpException(code = 404, message = "HTTP 404 Not Found")
 
         val error = exception.toRepositoryError()
 
         assertEquals(404, (error as RepositoryError.Http).code)
+        assertEquals("HTTP 404 Not Found", error.message)
     }
 
     @Test

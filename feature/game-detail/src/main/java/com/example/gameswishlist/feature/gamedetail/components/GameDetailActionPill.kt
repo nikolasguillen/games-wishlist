@@ -35,6 +35,7 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.util.animatedMetallicBorder
 import com.example.gameswishlist.core.ui.util.brushedMetal
+import com.example.gameswishlist.feature.gamedetail.R
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
@@ -94,7 +95,7 @@ internal fun GameDetailActionPill(
             ) {
                 Icon(
                     imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = stringResource(com.example.gameswishlist.feature.gamedetail.R.string.favorite_content_description),
+                    contentDescription = stringResource(R.string.favorite_content_description),
                     tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -119,7 +120,7 @@ internal fun GameDetailActionPill(
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Share,
-                    contentDescription = stringResource(com.example.gameswishlist.feature.gamedetail.R.string.share_content_description),
+                    contentDescription = stringResource(R.string.share_content_description),
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }

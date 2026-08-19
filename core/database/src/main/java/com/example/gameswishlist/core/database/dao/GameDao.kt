@@ -8,15 +8,18 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.example.gameswishlist.core.database.entity.CompanyEntity
+import com.example.gameswishlist.core.database.entity.EngineEntity
+import com.example.gameswishlist.core.database.entity.GameArtworkEntity
 import com.example.gameswishlist.core.database.entity.GameCompanyCrossRef
+import com.example.gameswishlist.core.database.entity.GameEngineCrossRef
 import com.example.gameswishlist.core.database.entity.GameEntity
 import com.example.gameswishlist.core.database.entity.GameGenreCrossRef
 import com.example.gameswishlist.core.database.entity.GameListCrossRef
 import com.example.gameswishlist.core.database.entity.GamePlatformCrossRef
-import com.example.gameswishlist.core.database.entity.GameWithAllDetails
 import com.example.gameswishlist.core.database.entity.GenreEntity
 import com.example.gameswishlist.core.database.entity.PlatformEntity
 import com.example.gameswishlist.core.database.entity.RelatedGameEntity
+import com.example.gameswishlist.core.database.relation.GameWithAllDetails
 import com.example.gameswishlist.core.model.WishlistConstants
 import kotlinx.coroutines.flow.Flow
 
@@ -95,6 +98,21 @@ interface GameDao {
     suspend fun insertGameCompanyCrossRef(crossRef: GameCompanyCrossRef)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertEngine(engine: EngineEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertGameEngineCrossRef(crossRef: GameEngineCrossRef)
+
+    @Query("DELETE FROM game_engine_cross_ref WHERE gameId = :gameId")
+    suspend fun deleteEngineRefsByGameId(gameId: Int)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertGameArtwork(artwork: GameArtworkEntity)
+
+    @Query("DELETE FROM game_artworks WHERE gameId = :gameId")
+    suspend fun deleteArtworksByGameId(gameId: Int)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRelatedGame(relatedGame: RelatedGameEntity)
 
     @Query("DELETE FROM related_games WHERE parentId = :parentId")
@@ -109,6 +127,9 @@ interface GameDao {
         genreCrossRefs: List<GameGenreCrossRef>,
         companies: List<CompanyEntity>,
         companyCrossRefs: List<GameCompanyCrossRef>,
+        engines: List<EngineEntity> = emptyList(),
+        engineCrossRefs: List<GameEngineCrossRef> = emptyList(),
+        artworks: List<GameArtworkEntity> = emptyList(),
         relatedGames: List<RelatedGameEntity> = emptyList()
     ) {
         insertGame(game)
@@ -118,6 +139,15 @@ interface GameDao {
         genreCrossRefs.forEach { insertGameGenreCrossRef(it) }
         companies.forEach { insertCompany(it) }
         companyCrossRefs.forEach { insertGameCompanyCrossRef(it) }
+
+        // Cleared first because these rows are keyed by the game, not by a stable id of their own: a game
+        // that lost an engine, or whose gallery shrank, would otherwise keep the leftovers forever.
+        deleteEngineRefsByGameId(game.id)
+        engines.forEach { insertEngine(it) }
+        engineCrossRefs.forEach { insertGameEngineCrossRef(it) }
+
+        deleteArtworksByGameId(game.id)
+        artworks.forEach { insertGameArtwork(it) }
 
         deleteRelatedGamesByParentId(game.id)
         relatedGames.forEach { insertRelatedGame(it) }

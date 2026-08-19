@@ -1,9 +1,12 @@
 package com.example.gameswishlist.core.network.di
 
+import android.os.SystemClock
 import com.example.gameswishlist.core.network.BuildConfig
+import com.example.gameswishlist.core.network.ElapsedRealtimeSource
 import com.example.gameswishlist.core.network.IgdbApiService
 import com.example.gameswishlist.core.network.IgdbAuthManager
 import com.example.gameswishlist.core.network.IgdbAuthService
+import com.example.gameswishlist.core.network.IgdbHttpErrorInterceptor
 import com.squareup.moshi.Moshi
 import dagger.Lazy
 import dagger.Module
@@ -21,7 +24,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object NetworkModule {
+internal object NetworkModule {
 
     private const val HEADER_AUTHORIZATION = "Authorization"
     private const val BEARER_PREFIX = "Bearer "
@@ -30,6 +33,12 @@ object NetworkModule {
     @Singleton
     fun provideMoshi(): Moshi {
         return Moshi.Builder().build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideElapsedRealtimeSource(): ElapsedRealtimeSource {
+        return ElapsedRealtimeSource { SystemClock.elapsedRealtime() }
     }
 
     /**
@@ -96,6 +105,9 @@ object NetworkModule {
         authenticator: Authenticator
     ): OkHttpClient {
         return OkHttpClient.Builder()
+            // Outermost on purpose: the logging interceptor below sees the failed response and dumps it
+            // before this one throws it away in favour of an IgdbHttpException.
+            .addInterceptor(IgdbHttpErrorInterceptor())
             .addInterceptor(loggingInterceptor)
             .addInterceptor(authInterceptor)
             .authenticator(authenticator)

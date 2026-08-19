@@ -43,7 +43,6 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
-import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.component.CustomContentCard
 import com.example.gameswishlist.core.ui.component.CustomFilterChip
 import com.example.gameswishlist.core.ui.model.UiText
@@ -54,6 +53,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
 import kotlin.time.Duration.Companion.milliseconds
+import com.example.gameswishlist.core.ui.R as CoreUiR
 
 private val NOTES_CHANGE_DEBOUNCE = 500.milliseconds
 
@@ -115,7 +115,7 @@ private fun PersonalCardCollapsedContent(
         ) {
             Column {
                 Text(
-                    text = stringResource(R.string.personal_progress_title),
+                    text = stringResource(CoreUiR.string.personal_progress_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -141,7 +141,7 @@ private fun PersonalCardCollapsedContent(
 
             Icon(
                 imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = stringResource(R.string.expand_content_description),
+                contentDescription = stringResource(CoreUiR.string.expand_content_description),
                 modifier = Modifier.rotate(rotationState)
             )
         }
@@ -174,7 +174,7 @@ private fun PersonalCardExpandedContent(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = stringResource(R.string.personal_progress_title),
+                text = stringResource(CoreUiR.string.personal_progress_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -182,7 +182,7 @@ private fun PersonalCardExpandedContent(
 
             Icon(
                 imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = stringResource(R.string.collapse_content_description),
+                contentDescription = stringResource(CoreUiR.string.collapse_content_description),
                 modifier = Modifier.rotate(rotationState)
             )
         }
@@ -191,7 +191,7 @@ private fun PersonalCardExpandedContent(
 
         // Status
         Text(
-            text = stringResource(R.string.status_label),
+            text = stringResource(CoreUiR.string.status_label),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -213,7 +213,7 @@ private fun PersonalCardExpandedContent(
 
         // Priority
         Text(
-            text = stringResource(R.string.priority_label),
+            text = stringResource(CoreUiR.string.priority_label),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -237,7 +237,7 @@ private fun PersonalCardExpandedContent(
         // Notes
         OutlinedTextField(
             state = notesFieldState,
-            label = { Text(stringResource(R.string.personal_notes_label)) },
+            label = { Text(stringResource(CoreUiR.string.personal_notes_label)) },
             modifier = Modifier.fillMaxWidth(),
             textStyle = MaterialTheme.typography.bodyMedium
         )

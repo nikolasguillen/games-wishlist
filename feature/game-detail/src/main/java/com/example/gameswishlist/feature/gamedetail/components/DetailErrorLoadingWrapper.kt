@@ -14,7 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import com.example.gameswishlist.core.ui.R
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
+import com.example.gameswishlist.core.ui.component.LoadingPage
+import com.example.gameswishlist.core.ui.R as CoreUiR
 
 /**
  * A simple wrapper for Error and Loading states in the Game Detail feature to provide a back button.
@@ -34,7 +37,7 @@ internal fun DetailErrorLoadingWrapper(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back_content_description)
+                            contentDescription = stringResource(CoreUiR.string.back_content_description)
                         )
                     }
                 },
@@ -46,6 +49,16 @@ internal fun DetailErrorLoadingWrapper(
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             content()
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun DetailErrorLoadingWrapperPreview() {
+    GamesWishlistTheme {
+        DetailErrorLoadingWrapper(onBackClick = {}) {
+            LoadingPage()
         }
     }
 }

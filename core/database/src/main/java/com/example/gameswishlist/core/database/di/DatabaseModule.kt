@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.gameswishlist.core.database.GamesWishlistDatabase
+import com.example.gameswishlist.core.database.R
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
 import com.example.gameswishlist.core.database.dao.SearchHistoryDao
@@ -17,7 +18,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
-import com.example.gameswishlist.core.database.R as DatabaseR
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -34,15 +34,19 @@ object DatabaseModule {
             .addCallback(object : RoomDatabase.Callback() {
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     super.onCreate(db)
-                    val defaultName = context.getString(DatabaseR.string.default_wishlist_name)
+                    val defaultName = context.getString(R.string.default_wishlist_name)
                     val defaultDescription =
-                        context.getString(DatabaseR.string.default_wishlist_description)
+                        context.getString(R.string.default_wishlist_description)
                     val defaultIcon = Converters().fromWishlistIcon(WishlistIcon.HEART)
                     db.execSQL(
                         "INSERT INTO wishlists (id, name, description, icon) VALUES (${WishlistConstants.DEFAULT_WISHLIST_ID}, '$defaultName', '$defaultDescription', '$defaultIcon')"
                     )
                 }
             })
+            // The app is not published, so there are no installs whose data is worth preserving: the
+            // database stays at version 1 and every entity change simply recreates it. Migrations start
+            // when the owner says the app ships — see docs/tech-debt.md. Until then, do not bump the
+            // version to work around this, because that is what makes a migration mandatory.
             .fallbackToDestructiveMigration(true)
             .build()
     }

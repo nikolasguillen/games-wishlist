@@ -33,13 +33,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.component.CustomContentCard
 import com.example.gameswishlist.core.ui.component.CustomModalBottomSheet
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.model.AvailabilityUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PlatformReleaseDateUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PlatformTileUiModel
+import com.example.gameswishlist.core.ui.R as CoreUiR
 
 private const val MAX_VISIBLE_PLATFORM_TILES = 4
 
@@ -71,7 +71,7 @@ internal fun GameReleaseInfoCard(
         ) {
             Column {
                 Text(
-                    stringResource(R.string.main_release_date_title).uppercase(),
+                    stringResource(CoreUiR.string.main_release_date_title).uppercase(),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -102,7 +102,7 @@ internal fun GameReleaseInfoCard(
     if (showReleaseDatesSheet && availability.detailedDates.isNotEmpty()) {
         CustomModalBottomSheet(
             onDismiss = { showReleaseDatesSheet = false },
-            title = stringResource(R.string.release_dates_title)
+            title = stringResource(CoreUiR.string.release_dates_title)
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
@@ -174,7 +174,7 @@ private fun PlatformTileRow(
         }
         if (overflowCount > 0) {
             PlatformTile(
-                code = UiText.StringResource(R.string.platform_overflow_format, overflowCount),
+                code = UiText.StringResource(CoreUiR.string.platform_overflow_format, overflowCount),
                 color = MaterialTheme.colorScheme.surfaceVariant
             )
         }

@@ -1,6 +1,7 @@
 package com.example.gameswishlist.feature.gamedetail.model
 
 import androidx.annotation.DrawableRes
+import androidx.compose.runtime.Immutable
 import com.example.gameswishlist.core.ui.model.UiText
 
 /**
@@ -11,6 +12,7 @@ import com.example.gameswishlist.core.ui.model.UiText
  * @property iconRes The drawable resource ID for the wishlist icon.
  * @property isSelected Whether the current game is already in this list.
  */
+@Immutable
 internal data class WishlistListUiModel(
     val id: Long,
     val name: UiText,

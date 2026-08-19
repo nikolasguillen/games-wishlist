@@ -7,7 +7,10 @@ import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
 import com.example.gameswishlist.core.database.dao.SearchHistoryDao
 import com.example.gameswishlist.core.database.entity.CompanyEntity
+import com.example.gameswishlist.core.database.entity.EngineEntity
+import com.example.gameswishlist.core.database.entity.GameArtworkEntity
 import com.example.gameswishlist.core.database.entity.GameCompanyCrossRef
+import com.example.gameswishlist.core.database.entity.GameEngineCrossRef
 import com.example.gameswishlist.core.database.entity.GameEntity
 import com.example.gameswishlist.core.database.entity.GameGenreCrossRef
 import com.example.gameswishlist.core.database.entity.GameListCrossRef
@@ -31,10 +34,13 @@ import com.example.gameswishlist.core.database.util.Converters
         GameGenreCrossRef::class,
         CompanyEntity::class,
         GameCompanyCrossRef::class,
+        EngineEntity::class,
+        GameEngineCrossRef::class,
+        GameArtworkEntity::class,
         RelatedGameEntity::class
     ],
     version = 1,
-    exportSchema = false
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class GamesWishlistDatabase : RoomDatabase() {

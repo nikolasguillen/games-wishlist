@@ -8,12 +8,3 @@ data class GenreEntity(
     @PrimaryKey val id: Int,
     val name: String
 )
-
-@Entity(
-    tableName = "game_genre_cross_ref",
-    primaryKeys = ["gameId", "genreId"]
-)
-data class GameGenreCrossRef(
-    val gameId: Int,
-    val genreId: Int
-)

@@ -9,27 +9,39 @@ device. **The project intends to migrate to KMP eventually** — when that happe
 driver-based API is part of that work, not a standalone refactor. Until then, do not introduce
 `.setDriver(...)` piecemeal.
 
-## No migration strategy — read this first
+## Schema changes — read this first
 
-`GamesWishlistDatabase` is `version = 1` with `exportSchema = false`, and `DatabaseModule` calls
-`.fallbackToDestructiveMigration(true)`. There is no `schemas/` directory and no `Migration` object
-anywhere in the repo.
+**The app is not published. Until the owner says it is, the database stays at `version = 1`, there are no
+`Migration` objects, and `DatabaseModule` keeps `.fallbackToDestructiveMigration(true)`.** An entity change
+just recreates the database on the next launch, and losing the local data is accepted.
 
-**Any change to an entity wipes all data on the device.** Always say so before making a schema change, and
-let the user decide whether to accept the wipe or invest in a real migration path.
+So when you change an entity:
+
+- **Do not bump `version`.** Bumping it is what makes a migration mandatory, and writing migrations
+  against a schema that is still moving is wasted work. `docs/tech-debt.md` tracks this as the thing to
+  settle before the first release.
+- **Do regenerate `schemas/1.json` and commit it in the same commit.** `exportSchema = true` and
+  `room.schemaLocation` in this module's build file keep it up to date; it is the diff a reviewer reads to
+  see that a column moved. Until release it is a moving snapshot, not a frozen version.
 
 ## Naming
 
 - Entities: `<Name>Entity` with an explicit `@Entity(tableName = "snake_case")` —
   `GameEntity`("games"), `ListEntity`("wishlists"), `SearchHistoryEntity`("search_history"),
-  `PlatformEntity`, `GenreEntity`, `CompanyEntity`.
+  `PlatformEntity`, `GenreEntity`, `CompanyEntity`, `EngineEntity`, `GameArtworkEntity`("game_artworks").
 - Junction tables: `<A><B>CrossRef` — **no `Entity` suffix** — with `primaryKeys = [...]`.
-  `GameListCrossRef`, `GamePlatformCrossRef`, `GameGenreCrossRef`, `GameCompanyCrossRef`.
-- Relation POJOs: `GameWithAllDetails`, `GamePlatformWithDetails`, `GameCompanyWithDetails`,
-  `ListWithGameCount`.
+  `GameListCrossRef`, `GamePlatformCrossRef`, `GameGenreCrossRef`, `GameCompanyCrossRef`,
+  `GameEngineCrossRef`.
+- Relation POJOs live in **`relation/`, not `entity/`** — `GameWithAllDetails`,
+  `GamePlatformWithDetails`, `GameCompanyWithDetails`, `ListWithGameCount`. They are query results, not
+  tables: what `entity/` contains is exactly what `schemas/1.json` lists.
 
-Platforms, Genres and Companies are modelled as **many-to-many via CrossRef**. Do not add list-shaped
-columns for new relations.
+Platforms, Genres, Companies and Engines are modelled as **many-to-many via CrossRef**. Artworks belong to
+one game and are never shared, so they are a child table instead — with a `position` column, because
+`@Relation` cannot sort and the gallery order is user-visible; it is restored in `GameMapper`.
+
+**Do not add list-shaped columns.** There is no `List<String>` converter any more, and reintroducing one
+is how the comma-joined `artworks`/`engines` columns happened in the first place.
 
 ## DAO conventions
 
@@ -39,6 +51,9 @@ columns for new relations.
 - Multi-table writes are **default `@Transaction suspend fun` bodies declared in the interface itself** —
   see `GameDao.saveGame(...)` and `ListDao.deleteListWithGameRefs(...)`. Follow that pattern instead of
   orchestrating multiple DAO calls from the repository.
+- Rows keyed by the parent game rather than by an id of their own — artworks, engine cross-refs, related
+  games — are **deleted before being re-inserted** inside `saveGame`. A `REPLACE` insert alone would leave
+  the leftovers of a shorter list behind.
 - **When persisting a game, always go through `GameDao.saveGame`** so platforms, genres, companies and
   cross-refs are written in one transaction.
 - Naming: `getX()` for one-shot, `observeX()` for the Flow variant when a suspend twin exists.
@@ -48,11 +63,9 @@ columns for new relations.
 - Type converters live in a single `util/Converters.kt` (`class Converters`, `@TypeConverter` pairs named
   `fromX`/`toX`), registered via `@TypeConverters(Converters::class)` on the database class.
 - This module owns `res/values/strings.xml`: the default wishlist's name and description, inserted with
-  `db.execSQL("INSERT INTO wishlists ...")` from `RoomDatabase.Callback.onCreate`. Imported with the alias
-  `import com.example.gameswishlist.core.database.R as DatabaseR`.
+  `db.execSQL("INSERT INTO wishlists ...")` from `RoomDatabase.Callback.onCreate`.
 - `GameDao` interpolates a Kotlin constant into SQL:
   `"... WHERE listId = ${WishlistConstants.DEFAULT_WISHLIST_ID}"`. That constant lives in `core/model`.
 - `DATABASE_NAME` is a `const val` in the database class's companion object.
 
-See `docs/tech-debt.md` for the known deviations in this module (comma-joined list columns, missing DAO
-tests, no schema export).
+See `docs/tech-debt.md` for the known deviations in this module (missing DAO tests).

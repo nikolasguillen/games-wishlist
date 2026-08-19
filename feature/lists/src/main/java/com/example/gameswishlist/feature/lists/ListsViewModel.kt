@@ -7,8 +7,10 @@ import com.example.gameswishlist.core.domain.usecase.list.GetListsUseCase
 import com.example.gameswishlist.core.model.WishlistIcon
 import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.feature.lists.mapper.toUiModel
+import com.example.gameswishlist.feature.lists.model.ListsContentState
 import com.example.gameswishlist.feature.lists.model.ListsUiEffect
-import com.example.gameswishlist.feature.lists.model.WishlistListUiModel
+import com.example.gameswishlist.feature.lists.model.ListsUiEvent
+import com.example.gameswishlist.feature.lists.model.ListsUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,18 +27,38 @@ class ListsViewModel @Inject constructor(
     private val createListUseCase: CreateListUseCase
 ) : ViewModel() {
 
-    internal val lists: StateFlow<List<WishlistListUiModel>> = getListsUseCase()
-        .map { lists -> lists.map { it.toUiModel() } }
+    internal val uiState: StateFlow<ListsUiState> = getListsUseCase()
+        .map { lists ->
+            ListsUiState(
+                contentState = ListsContentState.Success(lists.map { it.toUiModel() })
+            )
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
+            initialValue = ListsUiState()
         )
 
     private val _uiEffect = Channel<ListsUiEffect>(Channel.BUFFERED)
     internal val uiEffect = _uiEffect.receiveAsFlow()
 
-    fun createList(name: String, description: String, icon: WishlistIcon?, coverImageUri: String? = null) {
+    internal fun onEvent(event: ListsUiEvent) {
+        when (event) {
+            is ListsUiEvent.OnListCreated -> createList(
+                name = event.name,
+                description = event.description,
+                icon = event.icon,
+                coverImageUri = event.coverImageUri
+            )
+        }
+    }
+
+    private fun createList(
+        name: String,
+        description: String,
+        icon: WishlistIcon?,
+        coverImageUri: String?
+    ) {
         viewModelScope.launch {
             createListUseCase(name, description, icon, coverImageUri).onFailure { error ->
                 _uiEffect.trySend(ListsUiEffect.ShowSnackbar(error.toUiText()))

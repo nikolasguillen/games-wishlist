@@ -34,10 +34,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.component.CustomModalBottomSheet
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.model.WishlistListUiModel
+import com.example.gameswishlist.core.ui.R as CoreUiR
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,8 +50,8 @@ internal fun ListSelectorSheet(
 ) {
     CustomModalBottomSheet(
         onDismiss = onDismiss,
-        title = stringResource(R.string.add_to_list),
-        subtitle = stringResource(R.string.select_list_subtitle, gameName.asString())
+        title = stringResource(CoreUiR.string.add_to_list),
+        subtitle = stringResource(CoreUiR.string.select_list_subtitle, gameName.asString())
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
@@ -62,7 +62,7 @@ internal fun ListSelectorSheet(
         ) {
             if (list.isEmpty()) {
                 Text(
-                    text = stringResource(R.string.no_lists_found_message),
+                    text = stringResource(CoreUiR.string.no_lists_found_message),
                     modifier = Modifier.padding(MaterialTheme.spacing.medium)
                 )
             } else {
@@ -83,11 +83,11 @@ internal fun ListSelectorSheet(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 TextButton(onClick = onDismiss) {
-                    Text(text = stringResource(R.string.cancel))
+                    Text(text = stringResource(CoreUiR.string.cancel))
                 }
                 Spacer(modifier = Modifier.width(MaterialTheme.spacing.large))
                 Button(onClick = onConfirm) {
-                    Text(text = stringResource(R.string.save_label))
+                    Text(text = stringResource(CoreUiR.string.save_label))
                 }
             }
         }
@@ -165,19 +165,19 @@ private fun ListSelectorSheetPreview() {
                 WishlistListUiModel(
                     1,
                     UiText.DynamicString("Playing"),
-                    R.drawable.ic_wishlist_playing,
+                    CoreUiR.drawable.ic_wishlist_playing,
                     isSelected = true
                 ),
                 WishlistListUiModel(
                     2,
                     UiText.DynamicString("Completed"),
-                    R.drawable.ic_wishlist_completed,
+                    CoreUiR.drawable.ic_wishlist_completed,
                     isSelected = false
                 ),
                 WishlistListUiModel(
                     3,
                     UiText.DynamicString("Backlog"),
-                    R.drawable.ic_wishlist_backlog,
+                    CoreUiR.drawable.ic_wishlist_backlog,
                     isSelected = false
                 )
             ), onDismiss = {}, onConfirm = {}, onToggleList = {})

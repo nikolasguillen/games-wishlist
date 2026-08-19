@@ -1,5 +1,7 @@
 package com.example.gameswishlist.feature.search.model
 
+import androidx.compose.runtime.Immutable
+
 /**
  * Main UI state for the Search screen.
  *
@@ -9,7 +11,8 @@ package com.example.gameswishlist.feature.search.model
  * @property filtersBottomSheetState State of the filters selection Bottom Sheet.
  * @property sortBottomSheetState State for the sorting options Bottom Sheet.
  */
-data class SearchUiState(
+@Immutable
+internal data class SearchUiState(
     val history: SearchHistoryUiModel = SearchHistoryUiModel(),
     val suggestions: SearchSuggestionsUiModel = SearchSuggestionsUiModel(),
     val contentState: SearchContentState = SearchContentState.Initial,

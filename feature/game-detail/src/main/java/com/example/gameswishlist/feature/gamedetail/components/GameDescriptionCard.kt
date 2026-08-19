@@ -21,8 +21,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.component.CustomContentCard
+import com.example.gameswishlist.core.ui.R as CoreUiR
 
 /**
  * A card displaying the game description with expand/collapse functionality.
@@ -36,7 +36,7 @@ internal fun GameDescriptionCard(
     var hasOverflow by rememberSaveable { mutableStateOf(false) }
 
     CustomContentCard(
-        title = stringResource(R.string.description_title),
+        title = stringResource(CoreUiR.string.description_title),
         modifier = modifier.clickable(
             enabled = hasOverflow || expanded,
             onClick = { expanded = !expanded },
@@ -58,7 +58,7 @@ internal fun GameDescriptionCard(
 
             if (hasOverflow || expanded) {
                 Text(
-                    text = stringResource(if (expanded) R.string.show_less else R.string.show_more),
+                    text = stringResource(if (expanded) CoreUiR.string.show_less else CoreUiR.string.show_more),
                     style = MaterialTheme.typography.labelLarge.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary

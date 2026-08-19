@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -23,16 +24,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomFilterChip
 import com.example.gameswishlist.core.ui.component.VerticalGameCard
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.R
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 
 @Composable
-fun SearchResultGrid(
+internal fun SearchResultGrid(
     games: List<GameItemUiModel>,
     activeFilters: List<GameFilterUiModel>,
     onFilterClick: (GameFilterUiModel) -> Unit,
@@ -126,5 +130,43 @@ private fun ActiveFiltersRow(
                 }
             )
         }
+    }
+}
+
+private val previewFilters = listOf(
+    GameFilterUiModel.Platform(id = 0, label = UiText.DynamicString("PC"), selected = true),
+    GameFilterUiModel.Genre(id = 1, label = UiText.DynamicString("RPG"), selected = true)
+)
+
+@Preview(showBackground = true)
+@Composable
+private fun SearchResultGridPreview() {
+    GamesWishlistTheme {
+        SearchResultGrid(
+            games = listOf(
+                GameItemUiModel.getDummy(),
+                GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077"),
+                GameItemUiModel.getDummy().copy(id = 3, name = "Elden Ring"),
+                GameItemUiModel.getDummy().copy(id = 4, name = "Baldur's Gate 3")
+            ),
+            activeFilters = previewFilters,
+            onFilterClick = {},
+            onGameClick = {},
+            state = rememberLazyGridState()
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SearchResultGridNoMatchPreview() {
+    GamesWishlistTheme {
+        SearchResultGrid(
+            games = emptyList(),
+            activeFilters = previewFilters,
+            onFilterClick = {},
+            onGameClick = {},
+            state = rememberLazyGridState()
+        )
     }
 }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -36,6 +37,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,19 +50,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.component.CustomAlertDialog
 import com.example.gameswishlist.core.ui.component.RecentGameCard
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.annotatedStringResource
+import com.example.gameswishlist.feature.search.R
+import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
 import com.example.gameswishlist.feature.search.model.SearchSuggestionsUiModel
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
-import com.example.gameswishlist.feature.search.R as SearchR
+import com.example.gameswishlist.core.ui.R as CoreUiR
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -169,7 +175,7 @@ internal fun SearchInputField(
         placeholder = {
             Text(
                 modifier = Modifier.clearAndSetSemantics {},
-                text = stringResource(SearchR.string.search_placeholder)
+                text = stringResource(R.string.search_placeholder)
             )
         },
         trailingIcon = {
@@ -178,14 +184,14 @@ internal fun SearchInputField(
                     IconButton(onClick = { textFieldState.edit { replace(0, length, "") } }) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(SearchR.string.clear_search_content_description)
+                            contentDescription = stringResource(R.string.clear_search_content_description)
                         )
                     }
                 }
                 IconButton(onClick = onSearch) {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = stringResource(SearchR.string.search_content_description)
+                        contentDescription = stringResource(R.string.search_content_description)
                     )
                 }
             }
@@ -195,7 +201,7 @@ internal fun SearchInputField(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CollapsedSearchBar(
+internal fun CollapsedSearchBar(
     searchBarState: SearchBarState,
     scrollBehavior: SearchBarScrollBehavior,
     appBarWithSearchColors: AppBarWithSearchColors,
@@ -212,7 +218,7 @@ fun CollapsedSearchBar(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExpandedSearchBar(
+internal fun ExpandedSearchBar(
     searchBarState: SearchBarState,
     inputField: @Composable () -> Unit,
     history: SearchHistoryUiModel,
@@ -237,7 +243,7 @@ fun ExpandedSearchBar(
     ) {
         if (history.isEmpty && suggestions.isEmpty) {
             Text(
-                text = stringResource(SearchR.string.expanded_search_initial_message),
+                text = stringResource(R.string.expanded_search_initial_message),
                 style = MaterialTheme.typography.labelLarge,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -286,31 +292,31 @@ fun ExpandedSearchBar(
 
         queryToRemove?.let { query ->
             CustomAlertDialog(
-                title = stringResource(SearchR.string.remove_history_item),
+                title = stringResource(R.string.remove_history_item),
                 message = annotatedStringResource(
-                    SearchR.string.remove_history_item_message,
+                    R.string.remove_history_item_message,
                     query
                 ),
-                confirmButtonText = stringResource(R.string.proceed_label),
+                confirmButtonText = stringResource(CoreUiR.string.proceed_label),
                 onConfirm = {
                     onRemoveRecentSearchItem(query)
                     queryToRemove = null
                 },
-                dismissButtonText = stringResource(R.string.cancel),
+                dismissButtonText = stringResource(CoreUiR.string.cancel),
                 onDismiss = { queryToRemove = null }
             )
         }
 
         if (showClearHistoryDialog) {
             CustomAlertDialog(
-                title = stringResource(SearchR.string.clear_history_title),
-                message = stringResource(SearchR.string.clear_history_message),
-                confirmButtonText = stringResource(R.string.proceed_label),
+                title = stringResource(R.string.clear_history_title),
+                message = stringResource(R.string.clear_history_message),
+                confirmButtonText = stringResource(CoreUiR.string.proceed_label),
                 onConfirm = {
                     onClearRecentSearches()
                     showClearHistoryDialog = false
                 },
-                dismissButtonText = stringResource(R.string.cancel),
+                dismissButtonText = stringResource(CoreUiR.string.cancel),
                 onDismiss = { showClearHistoryDialog = false }
             )
         }
@@ -370,14 +376,14 @@ private fun RecentSearchesSection(
                 .padding(horizontal = MaterialTheme.spacing.large)
         ) {
             Text(
-                text = stringResource(SearchR.string.recent_searches),
+                text = stringResource(R.string.recent_searches),
                 style = MaterialTheme.typography.titleMedium
             )
 
             TextButton(
                 onClick = onClearRecentSearches
             ) {
-                Text(stringResource(SearchR.string.clear_all))
+                Text(stringResource(R.string.clear_all))
             }
         }
         LazyRow(
@@ -428,7 +434,7 @@ private fun RecentGamesSection(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
         Text(
-            text = stringResource(SearchR.string.recently_viewed),
+            text = stringResource(R.string.recently_viewed),
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
         )
@@ -445,5 +451,110 @@ private fun RecentGamesSection(
                 )
             }
         }
+    }
+}
+
+private val previewHistory = SearchHistoryUiModel(
+    queries = listOf("The Witcher", "Cyberpunk 2077"),
+    games = listOf(
+        GameItemUiModel.getDummy(),
+        GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077")
+    )
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+private fun SearchTopBarPreview() {
+    GamesWishlistTheme {
+        SearchTopBar(
+            uiState = SearchUiState(
+                history = previewHistory,
+                contentState = SearchContentState.Success(
+                    games = listOf(GameItemUiModel.getDummy()),
+                    filters = listOf(
+                        GameFilterUiModel.Platform(
+                            id = 0,
+                            label = UiText.DynamicString("PC"),
+                            selected = true
+                        )
+                    )
+                )
+            ),
+            searchBarState = rememberContainedSearchBarState(),
+            textFieldState = rememberTextFieldState("The Witcher"),
+            scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(),
+            onSearch = {},
+            onHistorySuggestionClick = {},
+            onGameClick = {},
+            onEvent = {},
+            backgroundColor = Color.Transparent
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+private fun SearchInputFieldPreview() {
+    GamesWishlistTheme {
+        SearchInputField(
+            textFieldState = rememberTextFieldState("The Witcher"),
+            searchBarState = rememberContainedSearchBarState(),
+            onSearch = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+private fun CollapsedSearchBarPreview() {
+    GamesWishlistTheme {
+        val searchBarState = rememberContainedSearchBarState()
+        val textFieldState = rememberTextFieldState("The Witcher")
+
+        CollapsedSearchBar(
+            searchBarState = searchBarState,
+            scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(),
+            appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(),
+            inputField = {
+                SearchInputField(
+                    textFieldState = textFieldState,
+                    searchBarState = searchBarState,
+                    onSearch = {}
+                )
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+private fun ExpandedSearchBarPreview() {
+    GamesWishlistTheme {
+        val searchBarState = rememberContainedSearchBarState(SearchBarValue.Expanded)
+        val textFieldState = rememberTextFieldState()
+
+        ExpandedSearchBar(
+            searchBarState = searchBarState,
+            inputField = {
+                SearchInputField(
+                    textFieldState = textFieldState,
+                    searchBarState = searchBarState,
+                    onSearch = {}
+                )
+            },
+            history = previewHistory,
+            suggestions = SearchSuggestionsUiModel(),
+            searchQuery = "",
+            appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(),
+            onHistorySuggestionClick = {},
+            onGameClick = {},
+            onRemoveRecentGame = {},
+            onClearRecentSearches = {},
+            onRemoveRecentSearchItem = {}
+        )
     }
 }

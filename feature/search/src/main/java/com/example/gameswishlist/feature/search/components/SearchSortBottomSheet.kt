@@ -19,19 +19,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomModalBottomSheet
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.R
+import com.example.gameswishlist.feature.search.model.SearchSort
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SortBottomSheetState
+import com.example.gameswishlist.feature.search.model.SortingUiModel
 
 /** Android's recommended minimum touch target size for accessibility. */
 private val MIN_TOUCH_TARGET_HEIGHT = 48.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchSortBottomSheet(
+internal fun SearchSortBottomSheet(
     state: SortBottomSheetState,
     onEvent: (SearchUiEvent) -> Unit,
     modifier: Modifier = Modifier
@@ -82,5 +87,45 @@ fun SearchSortBottomSheet(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SearchSortBottomSheetPreview() {
+    GamesWishlistTheme {
+        SearchSortBottomSheet(
+            state = SortBottomSheetState(
+                isVisible = true,
+                isSortActive = true,
+                sorting = listOf(
+                    SortingUiModel(
+                        sortType = SearchSort.RELEVANCE,
+                        label = UiText.DynamicString("Relevance"),
+                        selected = false,
+                        descending = true
+                    ),
+                    SortingUiModel(
+                        sortType = SearchSort.NAME,
+                        label = UiText.DynamicString("Name"),
+                        selected = false,
+                        descending = false
+                    ),
+                    SortingUiModel(
+                        sortType = SearchSort.RATING,
+                        label = UiText.DynamicString("Rating"),
+                        selected = true,
+                        descending = true
+                    ),
+                    SortingUiModel(
+                        sortType = SearchSort.RELEASE_DATE,
+                        label = UiText.DynamicString("Release date"),
+                        selected = false,
+                        descending = true
+                    )
+                )
+            ),
+            onEvent = {}
+        )
     }
 }

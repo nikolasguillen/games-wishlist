@@ -23,8 +23,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.FullScreenImageViewer
 import com.example.gameswishlist.core.ui.component.ImmersiveDetailLayout
@@ -183,5 +185,17 @@ private fun GameDetailSheetContent(
             // Extra padding at the bottom to prevent content from ending up under the pill
             Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding() + 120.dp))
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun GameDetailSuccessContentPreview() {
+    GamesWishlistTheme {
+        GameDetailSuccessContent(
+            game = GameDetailUiModel.getDummy(),
+            onBackClick = {},
+            onEvent = {}
+        )
     }
 }

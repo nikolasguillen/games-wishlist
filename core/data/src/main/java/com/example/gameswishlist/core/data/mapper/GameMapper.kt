@@ -2,15 +2,19 @@ package com.example.gameswishlist.core.data.mapper
 
 import com.example.gameswishlist.core.common.DateUtils
 import com.example.gameswishlist.core.database.entity.CompanyEntity
+import com.example.gameswishlist.core.database.entity.EngineEntity
+import com.example.gameswishlist.core.database.entity.GameArtworkEntity
 import com.example.gameswishlist.core.database.entity.GameCompanyCrossRef
+import com.example.gameswishlist.core.database.entity.GameEngineCrossRef
 import com.example.gameswishlist.core.database.entity.GameEntity
 import com.example.gameswishlist.core.database.entity.GameGenreCrossRef
 import com.example.gameswishlist.core.database.entity.GamePlatformCrossRef
-import com.example.gameswishlist.core.database.entity.GameWithAllDetails
 import com.example.gameswishlist.core.database.entity.GenreEntity
 import com.example.gameswishlist.core.database.entity.PlatformEntity
 import com.example.gameswishlist.core.database.entity.RelatedGameEntity
+import com.example.gameswishlist.core.database.relation.GameWithAllDetails
 import com.example.gameswishlist.core.model.Company
+import com.example.gameswishlist.core.model.Engine
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameType
 import com.example.gameswishlist.core.model.Genre
@@ -20,6 +24,7 @@ import com.example.gameswishlist.core.model.RelationType
 import com.example.gameswishlist.core.model.ReleaseDate
 import com.example.gameswishlist.core.network.model.IgdbCompany
 import com.example.gameswishlist.core.network.model.IgdbGame
+import com.example.gameswishlist.core.network.model.IgdbGameEngine
 import com.example.gameswishlist.core.network.model.IgdbGenre
 import com.example.gameswishlist.core.network.model.IgdbPlatform
 import com.example.gameswishlist.core.network.model.IgdbReleaseDate
@@ -46,7 +51,7 @@ fun IgdbGame.toGame(): Game {
         developers = involvedCompanies?.filter { it.developer == true }
             ?.map { it.company.toCompany() }
             ?: emptyList(),
-        engines = gameEngines?.map { it.name } ?: emptyList(),
+        engines = gameEngines?.map { it.toEngine() } ?: emptyList(),
         gameType = GameType.fromId(gameType),
         url = url,
         dlcs = dlcList?.map { it.toGame() } ?: emptyList(),
@@ -69,6 +74,12 @@ private fun String.toIgdbImageUrl(size: String = "t_720p"): String {
 
 fun IgdbGenre.toGenre(): Genre {
     return Genre(
+        id = id, name = name
+    )
+}
+
+fun IgdbGameEngine.toEngine(): Engine {
+    return Engine(
         id = id, name = name
     )
 }
@@ -132,6 +143,18 @@ fun GenreEntity.toGenre(): Genre {
     )
 }
 
+fun Engine.toEntity(): EngineEntity {
+    return EngineEntity(
+        id = id, name = name
+    )
+}
+
+fun EngineEntity.toEngine(): Engine {
+    return Engine(
+        id = id, name = name
+    )
+}
+
 fun Company.toEntity(): CompanyEntity {
     return CompanyEntity(
         id = id, name = name
@@ -174,13 +197,14 @@ fun GameWithAllDetails.toGame(): Game {
         genres = genres.map { it.toGenre() },
         developers = companyRefs.filter { it.crossRef.isDeveloper }.map { it.company.toCompany() },
         publishers = companyRefs.filter { it.crossRef.isPublisher }.map { it.company.toCompany() },
-        engines = game.engines,
+        engines = engines.map { it.toEngine() },
         gameType = GameType.fromId(game.gameTypeId),
         notes = game.notes,
         priority = game.priority?.toPriority(),
         status = game.status,
         url = game.url,
-        artworks = game.artworks,
+        // @Relation cannot sort, so the gallery order is restored here from the stored position.
+        artworks = artworks.sortedBy { it.position }.map { it.url },
         lastViewedAt = game.lastViewedAt,
         dlcs = dlcs,
         expansions = expansions,
@@ -274,10 +298,22 @@ fun Game.toEntity(): GameEntity {
         priority = priority?.toInt(),
         status = status,
         url = url,
-        artworks = artworks,
-        engines = engines,
         lastViewedAt = lastViewedAt
     )
+}
+
+fun Game.toEngineEntities(): List<EngineEntity> {
+    return engines.map { it.toEntity() }
+}
+
+fun Game.toGameEngineCrossRefs(): List<GameEngineCrossRef> {
+    return engines.map { GameEngineCrossRef(gameId = id, engineId = it.id) }
+}
+
+fun Game.toArtworkEntities(): List<GameArtworkEntity> {
+    return artworks.mapIndexed { position, url ->
+        GameArtworkEntity(gameId = id, position = position, url = url)
+    }
 }
 
 fun Game.toPlatformEntities(): List<PlatformEntity> {

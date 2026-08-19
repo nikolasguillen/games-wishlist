@@ -7,7 +7,7 @@ import com.example.gameswishlist.feature.search.model.GameSuggestionUiModel
  * Maps a domain [Game] to a [GameSuggestionUiModel].
  * Formats the developer/publisher and release year into a subtitle.
  */
-fun Game.toSuggestionUiModel(): GameSuggestionUiModel {
+internal fun Game.toSuggestionUiModel(): GameSuggestionUiModel {
     val developer = developers.firstOrNull()?.name
     val publisher = publishers.firstOrNull()?.name
     val year = releaseDate?.take(4) ?: ""
@@ -29,6 +29,6 @@ fun Game.toSuggestionUiModel(): GameSuggestionUiModel {
     )
 }
 
-fun List<Game>.toSuggestionUiModels(): List<GameSuggestionUiModel> {
+internal fun List<Game>.toSuggestionUiModels(): List<GameSuggestionUiModel> {
     return map { it.toSuggestionUiModel() }
 }

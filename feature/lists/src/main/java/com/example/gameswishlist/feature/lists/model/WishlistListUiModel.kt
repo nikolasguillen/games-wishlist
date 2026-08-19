@@ -1,9 +1,11 @@
 package com.example.gameswishlist.feature.lists.model
 
 import androidx.annotation.DrawableRes
+import androidx.compose.runtime.Immutable
 import com.example.gameswishlist.core.ui.model.UiText
 import java.io.File
 
+@Immutable
 internal data class WishlistListUiModel(
     val id: Long,
     val name: String,

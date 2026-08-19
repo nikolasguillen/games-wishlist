@@ -6,6 +6,6 @@ import com.example.gameswishlist.core.ui.model.UiText
 @Immutable
 internal data class WishlistUiState(
     val listName: UiText = UiText.DynamicString(""),
-    val sections: List<WishlistSectionUiModel> = emptyList(),
-    val canDeleteList: Boolean = false
+    val canDeleteList: Boolean = false,
+    val contentState: WishlistContentState = WishlistContentState.Loading
 )
