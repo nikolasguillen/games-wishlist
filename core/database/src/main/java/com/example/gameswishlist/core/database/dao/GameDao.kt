@@ -85,17 +85,26 @@ interface GameDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGamePlatformCrossRef(crossRef: GamePlatformCrossRef)
 
+    @Query("DELETE FROM game_platform_cross_ref WHERE gameId = :gameId")
+    suspend fun deletePlatformRefsByGameId(gameId: Int)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGenre(genre: GenreEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGameGenreCrossRef(crossRef: GameGenreCrossRef)
 
+    @Query("DELETE FROM game_genre_cross_ref WHERE gameId = :gameId")
+    suspend fun deleteGenreRefsByGameId(gameId: Int)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCompany(company: CompanyEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGameCompanyCrossRef(crossRef: GameCompanyCrossRef)
+
+    @Query("DELETE FROM game_company_cross_ref WHERE gameId = :gameId")
+    suspend fun deleteCompanyRefsByGameId(gameId: Int)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEngine(engine: EngineEntity)
@@ -133,15 +142,23 @@ interface GameDao {
         relatedGames: List<RelatedGameEntity> = emptyList()
     ) {
         insertGame(game)
+
+        // The cross-refs and the child rows are cleared first because they are keyed by the game, not by a
+        // stable id of their own: a game that lost a genre, a platform, a publisher or an engine upstream,
+        // or whose gallery shrank, would otherwise keep the leftovers forever — a REPLACE insert only
+        // overwrites the rows that came back. The lookup tables are shared between games and stay.
+        deletePlatformRefsByGameId(game.id)
         platforms.forEach { insertPlatform(it) }
         platformCrossRefs.forEach { insertGamePlatformCrossRef(it) }
+
+        deleteGenreRefsByGameId(game.id)
         genres.forEach { insertGenre(it) }
         genreCrossRefs.forEach { insertGameGenreCrossRef(it) }
+
+        deleteCompanyRefsByGameId(game.id)
         companies.forEach { insertCompany(it) }
         companyCrossRefs.forEach { insertGameCompanyCrossRef(it) }
 
-        // Cleared first because these rows are keyed by the game, not by a stable id of their own: a game
-        // that lost an engine, or whose gallery shrank, would otherwise keep the leftovers forever.
         deleteEngineRefsByGameId(game.id)
         engines.forEach { insertEngine(it) }
         engineCrossRefs.forEach { insertGameEngineCrossRef(it) }

@@ -51,9 +51,11 @@ is how the comma-joined `artworks`/`engines` columns happened in the first place
 - Multi-table writes are **default `@Transaction suspend fun` bodies declared in the interface itself** —
   see `GameDao.saveGame(...)` and `ListDao.deleteListWithGameRefs(...)`. Follow that pattern instead of
   orchestrating multiple DAO calls from the repository.
-- Rows keyed by the parent game rather than by an id of their own — artworks, engine cross-refs, related
-  games — are **deleted before being re-inserted** inside `saveGame`. A `REPLACE` insert alone would leave
-  the leftovers of a shorter list behind.
+- Rows that mirror what the API returned for one game — the platform, genre, company and engine
+  cross-refs, the artworks, the related games — are **deleted before being re-inserted** inside
+  `saveGame`. A `REPLACE` insert alone would leave the leftovers of a shorter list behind. The lookup
+  tables they point at (`platforms`, `genres`, `companies`, `engines`) are shared between games and are
+  never cleared, and `GameListCrossRef` is the user's own data, so `saveGame` does not touch it either.
 - **When persisting a game, always go through `GameDao.saveGame`** so platforms, genres, companies and
   cross-refs are written in one transaction.
 - Naming: `getX()` for one-shot, `observeX()` for the Flow variant when a suspend twin exists.
