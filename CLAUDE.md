@@ -140,3 +140,9 @@ When a decision would be hard to undo after a KMP move, say so and let the owner
 `docs/tech-debt.md` lists the places where the codebase does **not** follow the rules above, plus known
 technical risks. When you encounter one of them: do not silently "fix" it while working on something else,
 and do not treat it as the convention to imitate. Mention it and move on unless the fix was asked for.
+
+## Planned features
+
+`docs/roadmap.md` holds the agreed shape and build order of the features that do not exist yet (Discover
+feed, Radar timeline, release notifications), along with the design decisions behind them. Read it before
+proposing an alternative structure for any of those — the trade-offs were already weighed.
