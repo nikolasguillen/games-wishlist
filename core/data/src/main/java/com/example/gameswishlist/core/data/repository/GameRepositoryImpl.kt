@@ -36,6 +36,13 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
+/**
+ * The autocomplete dropdown shows at most four games — with the keyboard open there is no room for
+ * more once the recent queries and the "see all results" row are counted, so asking IGDB for ten
+ * only spends rate budget on rows nobody sees.
+ */
+private const val SUGGESTIONS_LIMIT = 4
+
 class GameRepositoryImpl @Inject constructor(
     private val apiService: IgdbApiService,
     private val gameDao: GameDao,
@@ -67,7 +74,7 @@ class GameRepositoryImpl @Inject constructor(
                 fields name, cover.url, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, first_release_date;
                 where name ~ *"$query"* & version_parent = null & game_type = (0, 8, 9, 10, 11);
                 sort hypes desc;
-                limit 10;
+                limit $SUGGESTIONS_LIMIT;
             """.trimIndent()
             val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
             val response = apiService.searchGames(body)

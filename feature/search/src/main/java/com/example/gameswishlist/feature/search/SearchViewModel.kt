@@ -51,7 +51,12 @@ import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
 private val SUGGESTIONS_DEBOUNCE = 300.milliseconds
-private const val MIN_SUGGESTION_QUERY_LENGTH = 2
+
+/**
+ * Two characters match too much to be useful: the remote suggestion query is a substring match on the
+ * title, so "ze" returns noise for a request IGDB rate-limits on a shared credential.
+ */
+private const val MIN_SUGGESTION_QUERY_LENGTH = 3
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -91,11 +96,6 @@ class SearchViewModel @Inject constructor(
     internal fun onEvent(event: SearchUiEvent) {
         when (event) {
             is SearchUiEvent.OnSearchTriggered -> {
-                textFieldState.setTextAndPlaceCursorAtEnd(event.query)
-                performSearch(query = event.query)
-            }
-
-            is SearchUiEvent.OnHistorySuggestionClick -> {
                 textFieldState.setTextAndPlaceCursorAtEnd(event.query)
                 performSearch(query = event.query)
             }
@@ -454,25 +454,27 @@ class SearchViewModel @Inject constructor(
                     .map { it.query }
 
                 _uiState.update {
-                    it.copy(
-                        suggestions = it.suggestions.copy(
-                            historySuggestions = local,
-                            isLoadingRemote = true
-                        )
-                    )
+                    it.copy(suggestions = it.suggestions.copy(historySuggestions = local))
                 }
 
                 // 2. Debounced remote fetch -- collectLatest cancels this automatically
                 // as soon as the query changes again, replacing manual job tracking.
                 delay(SUGGESTIONS_DEBOUNCE)
 
+                // Only now is there a request to wait for: flagging it before the delay made the
+                // placeholder rows flash on every keystroke.
+                _uiState.update {
+                    it.copy(suggestions = it.suggestions.copy(isLoadingRemote = true))
+                }
+
                 val games = getSearchSuggestionsUseCase.getRemoteSuggestions(query)
                     .filterIsInstance<SearchSuggestion.GameSuggestion>()
                     .map { it.game }
+                    .toSuggestionUiModels()
                 _uiState.update {
                     it.copy(
                         suggestions = it.suggestions.copy(
-                            gameSuggestions = games.toSuggestionUiModels(),
+                            gameSuggestions = games,
                             isLoadingRemote = false
                         )
                     )

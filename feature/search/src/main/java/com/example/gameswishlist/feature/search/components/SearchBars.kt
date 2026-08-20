@@ -61,12 +61,16 @@ import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.annotatedStringResource
 import com.example.gameswishlist.feature.search.R
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
+import com.example.gameswishlist.feature.search.model.GameSuggestionUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
 import com.example.gameswishlist.feature.search.model.SearchSuggestionsUiModel
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import com.example.gameswishlist.core.ui.R as CoreUiR
+
+/** Rows of shimmer while the debounced fetch runs. The remote call caps the real rows at four. */
+private const val LOADING_SUGGESTION_COUNT = 3
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,7 +80,6 @@ internal fun SearchTopBar(
     textFieldState: TextFieldState,
     scrollBehavior: SearchBarScrollBehavior,
     onSearch: (String) -> Unit,
-    onHistorySuggestionClick: (String) -> Unit,
     onGameClick: (Int) -> Unit,
     onEvent: (SearchUiEvent) -> Unit,
     backgroundColor: Color
@@ -142,7 +145,7 @@ internal fun SearchTopBar(
             appBarContainerColor = Color.Transparent,
             scrolledAppBarContainerColor = MaterialTheme.appColors.searchBarScrolledContainerColor
         ),
-        onHistorySuggestionClick = onHistorySuggestionClick,
+        onCommitSearch = onSearch,
         onGameClick = onGameClick,
         onRemoveRecentGame = { onEvent(SearchUiEvent.OnRecentGameRemoved(it)) },
         onClearRecentSearches = { onEvent(SearchUiEvent.OnClearHistory) },
@@ -225,7 +228,7 @@ internal fun ExpandedSearchBar(
     suggestions: SearchSuggestionsUiModel,
     searchQuery: String,
     appBarWithSearchColors: AppBarWithSearchColors,
-    onHistorySuggestionClick: (String) -> Unit,
+    onCommitSearch: (String) -> Unit,
     onGameClick: (Int) -> Unit,
     onRemoveRecentGame: (Int) -> Unit,
     onClearRecentSearches: () -> Unit,
@@ -241,8 +244,17 @@ internal fun ExpandedSearchBar(
             containerColor = MaterialTheme.appColors.expandedSearchBarColor
         )
     ) {
-        if (history.isEmpty && suggestions.isEmpty) {
-            Text(
+        // Typing owns the whole overlay: recent activity is what fills it before the first keystroke,
+        // and once there is a query every row either resolves it or commits it.
+        when {
+            searchQuery.isNotBlank() -> SuggestionsSection(
+                query = searchQuery,
+                suggestions = suggestions,
+                onCommitSearch = onCommitSearch,
+                onGameSuggestionClick = onGameClick
+            )
+
+            history.isEmpty -> Text(
                 text = stringResource(R.string.expanded_search_initial_message),
                 style = MaterialTheme.typography.labelLarge,
                 textAlign = TextAlign.Center,
@@ -251,41 +263,27 @@ internal fun ExpandedSearchBar(
                     .padding(MaterialTheme.spacing.large)
                     .fillMaxWidth()
             )
-        } else {
-            Column(
+
+            else -> Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(vertical = MaterialTheme.spacing.medium),
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large)
             ) {
-                if (!suggestions.isEmpty) {
-                    SuggestionsSection(
-                        suggestions = suggestions,
-                        onHistorySuggestionClick = onHistorySuggestionClick,
-                        onGameSuggestionClick = onGameClick
+                if (history.queries.isNotEmpty()) {
+                    RecentSearchesSection(
+                        recentSearches = history.queries,
+                        onClearRecentSearches = { showClearHistoryDialog = true },
+                        onHistoryItemClicked = onCommitSearch,
+                        onShowRemovalDialog = { queryToRemove = it }
                     )
-                } else if (searchQuery.isNotBlank() && !suggestions.isLoadingRemote) {
-                    SearchActionRow(
-                        query = searchQuery,
-                        onClick = onHistorySuggestionClick,
-                        modifier = Modifier.fillMaxWidth()
+                }
+                if (history.games.isNotEmpty()) {
+                    RecentGamesSection(
+                        recentGames = history.games,
+                        onGameClick = onGameClick,
+                        onRemoveClick = onRemoveRecentGame
                     )
-                } else {
-                    if (history.queries.isNotEmpty()) {
-                        RecentSearchesSection(
-                            recentSearches = history.queries,
-                            onClearRecentSearches = { showClearHistoryDialog = true },
-                            onHistoryItemClicked = { onHistorySuggestionClick(it) },
-                            onShowRemovalDialog = { queryToRemove = it }
-                        )
-                    }
-                    if (history.games.isNotEmpty()) {
-                        RecentGamesSection(
-                            recentGames = history.games,
-                            onGameClick = onGameClick,
-                            onRemoveClick = onRemoveRecentGame
-                        )
-                    }
                 }
             }
         }
@@ -325,24 +323,40 @@ internal fun ExpandedSearchBar(
 
 @Composable
 private fun SuggestionsSection(
+    query: String,
     suggestions: SearchSuggestionsUiModel,
-    onHistorySuggestionClick: (String) -> Unit,
+    onCommitSearch: (String) -> Unit,
     onGameSuggestionClick: (Int) -> Unit
 ) {
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
-        items(
-            items = suggestions.historySuggestions,
-            key = { "hist_$it" }
-        ) { query ->
-            HistorySuggestionRow(
-                query = query,
-                onClick = onHistorySuggestionClick,
-                modifier = Modifier.fillMaxWidth()
-            )
+    LazyColumn(contentPadding = PaddingValues(vertical = MaterialTheme.spacing.medium)) {
+        if (suggestions.historySuggestions.isNotEmpty()) {
+            item(key = "header_recent") {
+                SuggestionSectionHeader(
+                    title = stringResource(R.string.suggestions_section_recent)
+                )
+            }
+            items(
+                items = suggestions.historySuggestions,
+                key = { "hist_$it" }
+            ) { historyQuery ->
+                HistorySuggestionRow(
+                    query = historyQuery,
+                    onClick = onCommitSearch,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+
+        if (suggestions.isLoadingRemote || suggestions.gameSuggestions.isNotEmpty()) {
+            item(key = "header_games") {
+                SuggestionSectionHeader(
+                    title = stringResource(R.string.suggestions_section_games)
+                )
+            }
         }
 
         if (suggestions.isLoadingRemote) {
-            items(3, key = { "loading_$it" }) {
+            items(LOADING_SUGGESTION_COUNT, key = { "loading_$it" }) {
                 LoadingSuggestionRow(modifier = Modifier.fillMaxWidth())
             }
         } else {
@@ -356,6 +370,14 @@ private fun SuggestionsSection(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
+        }
+
+        item(key = "commit_search") {
+            SeeAllResultsRow(
+                query = query,
+                onClick = onCommitSearch,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
@@ -462,6 +484,17 @@ private val previewHistory = SearchHistoryUiModel(
     )
 )
 
+/** The overlay at its tallest: three recent queries, the four capped games and the commit row. */
+private val previewSuggestions = SearchSuggestionsUiModel(
+    historySuggestions = listOf("cyberpunk", "cyberpunk mods", "cyberpunk 2078"),
+    gameSuggestions = listOf(
+        GameSuggestionUiModel(1, "Cyberpunk 2077", null, "CD Projekt Red · 2020"),
+        GameSuggestionUiModel(2, "Cyberpunk 2077: Phantom Liberty", null, "CD Projekt Red · 2023"),
+        GameSuggestionUiModel(3, "Cyberpunk 2077: Ultimate Edition", null, "CD Projekt Red · 2023"),
+        GameSuggestionUiModel(4, "Cyberpunk: Edgerunners", null, "Studio Trigger")
+    )
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @Composable
@@ -485,7 +518,6 @@ private fun SearchTopBarPreview() {
             textFieldState = rememberTextFieldState("The Witcher"),
             scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(),
             onSearch = {},
-            onHistorySuggestionClick = {},
             onGameClick = {},
             onEvent = {},
             backgroundColor = Color.Transparent
@@ -550,7 +582,70 @@ private fun ExpandedSearchBarPreview() {
             suggestions = SearchSuggestionsUiModel(),
             searchQuery = "",
             appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(),
-            onHistorySuggestionClick = {},
+            onCommitSearch = {},
+            onGameClick = {},
+            onRemoveRecentGame = {},
+            onClearRecentSearches = {},
+            onRemoveRecentSearchItem = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+private fun ExpandedSearchBarTypingPreview() {
+    GamesWishlistTheme {
+        val searchBarState = rememberContainedSearchBarState(SearchBarValue.Expanded)
+        val textFieldState = rememberTextFieldState("cyberpunk")
+
+        ExpandedSearchBar(
+            searchBarState = searchBarState,
+            inputField = {
+                SearchInputField(
+                    textFieldState = textFieldState,
+                    searchBarState = searchBarState,
+                    onSearch = {}
+                )
+            },
+            history = previewHistory,
+            suggestions = previewSuggestions,
+            searchQuery = "cyberpunk",
+            appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(),
+            onCommitSearch = {},
+            onGameClick = {},
+            onRemoveRecentGame = {},
+            onClearRecentSearches = {},
+            onRemoveRecentSearchItem = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+private fun ExpandedSearchBarLoadingPreview() {
+    GamesWishlistTheme {
+        val searchBarState = rememberContainedSearchBarState(SearchBarValue.Expanded)
+        val textFieldState = rememberTextFieldState("cyberpunk")
+
+        ExpandedSearchBar(
+            searchBarState = searchBarState,
+            inputField = {
+                SearchInputField(
+                    textFieldState = textFieldState,
+                    searchBarState = searchBarState,
+                    onSearch = {}
+                )
+            },
+            history = previewHistory,
+            suggestions = previewSuggestions.copy(
+                gameSuggestions = emptyList(),
+                isLoadingRemote = true
+            ),
+            searchQuery = "cyberpunk",
+            appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(),
+            onCommitSearch = {},
             onGameClick = {},
             onRemoveRecentGame = {},
             onClearRecentSearches = {},

@@ -146,14 +146,6 @@ internal fun SearchScreenContent(
             }
         }
 
-    val onHistorySuggestionClick: (String) -> Unit =
-        remember(onSearch, onEvent) {
-            { query ->
-                onSearch(query)
-                onEvent(SearchUiEvent.OnHistorySuggestionClick(query))
-            }
-        }
-
     // 4. Dynamic Styles
     val backgroundColor by animateColorAsState(
         targetValue = if (isScrolled) MaterialTheme.appColors.searchBarScrolledContainerColor
@@ -173,7 +165,6 @@ internal fun SearchScreenContent(
                 textFieldState = textFieldState,
                 scrollBehavior = scrollBehavior,
                 onSearch = onSearch,
-                onHistorySuggestionClick = onHistorySuggestionClick,
                 onGameClick = onGameClickWithCollapse,
                 onEvent = onEvent,
                 backgroundColor = backgroundColor

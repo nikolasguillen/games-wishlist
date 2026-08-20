@@ -276,10 +276,10 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `typing a query shorter than 2 chars clears suggestions`() = runTest(testDispatcher) {
+    fun `typing a query shorter than 3 chars clears suggestions`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 
-        viewModel.setQuery("z")
+        viewModel.setQuery("ze")
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.suggestions.isEmpty)
@@ -288,18 +288,19 @@ class SearchViewModelTest {
     @Test
     fun `typing a query shows local suggestions instantly and remote ones after the debounce`() =
         runTest(testDispatcher) {
-            coEvery { getSearchSuggestionsUseCase.getLocalSuggestions("ze") } returns
+            coEvery { getSearchSuggestionsUseCase.getLocalSuggestions("zel") } returns
                 listOf(SearchSuggestion.HistorySuggestion("zelda"))
-            coEvery { getSearchSuggestionsUseCase.getRemoteSuggestions("ze") } returns
-                listOf(SearchSuggestion.GameSuggestion(testGame(id = 1, name = "Zelda")))
+            coEvery { getSearchSuggestionsUseCase.getRemoteSuggestions("zel") } returns
+                listOf(SearchSuggestion.GameSuggestion(testGame(id = 1, name = "Zelda II")))
             val viewModel = createViewModel()
 
-            viewModel.setQuery("ze")
+            viewModel.setQuery("zel")
             testDispatcher.scheduler.runCurrent()
 
-            // Local suggestions and the loading flag are set before the debounce delay elapses.
+            // Local suggestions land before the debounce delay elapses, but nothing is loading yet:
+            // there is no request until the delay is over.
             assertEquals(listOf("zelda"), viewModel.uiState.value.suggestions.historySuggestions)
-            assertTrue(viewModel.uiState.value.suggestions.isLoadingRemote)
+            assertFalse(viewModel.uiState.value.suggestions.isLoadingRemote)
             assertTrue(viewModel.uiState.value.suggestions.gameSuggestions.isEmpty())
 
             advanceUntilIdle()
@@ -309,22 +310,43 @@ class SearchViewModelTest {
         }
 
     @Test
+    fun `a recent query is kept even when a game suggestion carries the same text`() =
+        runTest(testDispatcher) {
+            coEvery { getSearchSuggestionsUseCase.getLocalSuggestions("zel") } returns listOf(
+                SearchSuggestion.HistorySuggestion("zelda"),
+                SearchSuggestion.HistorySuggestion("zelda mods")
+            )
+            coEvery { getSearchSuggestionsUseCase.getRemoteSuggestions("zel") } returns
+                listOf(SearchSuggestion.GameSuggestion(testGame(id = 1, name = "Zelda")))
+            val viewModel = createViewModel()
+
+            viewModel.setQuery("zel")
+            advanceUntilIdle()
+
+            assertEquals(
+                listOf("zelda", "zelda mods"),
+                viewModel.uiState.value.suggestions.historySuggestions
+            )
+            assertEquals(listOf(1), viewModel.uiState.value.suggestions.gameSuggestions.map { it.id })
+        }
+
+    @Test
     fun `committing a search cancels an in-flight suggestions fetch even for unchanged text`() =
         runTest(testDispatcher) {
-            coEvery { getSearchSuggestionsUseCase.getRemoteSuggestions("ze") } returns
+            coEvery { getSearchSuggestionsUseCase.getRemoteSuggestions("zel") } returns
                 listOf(SearchSuggestion.GameSuggestion(testGame(id = 1, name = "Zelda")))
-            coEvery { searchGamesUseCase("ze") } returns AppResult.success(
+            coEvery { searchGamesUseCase("zel") } returns AppResult.success(
                 SearchResult(games = listOf(testGame(id = 2)), platforms = emptyList(), genres = emptyList())
             )
             val viewModel = createViewModel()
 
-            viewModel.setQuery("ze")
+            viewModel.setQuery("zel")
             testDispatcher.scheduler.runCurrent()
 
             // Commit a search for the exact same text while the debounced remote fetch is still
             // pending: textFieldState doesn't change, so only the reset trigger added in the
             // debounce fix can cancel the pending fetch before it resolves.
-            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("ze"))
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zel"))
             advanceUntilIdle()
 
             assertTrue(viewModel.uiState.value.suggestions.isEmpty)

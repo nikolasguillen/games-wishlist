@@ -8,13 +8,15 @@
     <string name="search_no_filtered_results">No games match the selected filters</string>
     <string name="recent_searches">Recent searches</string>
     <string name="suggestions_label">Suggestions</string>
+    <string name="suggestions_section_recent">Recent</string>
+    <string name="suggestions_section_games">Games</string>
+    <string name="see_all_results_for">See all results for \"%1$s\"</string>
     <string name="recently_viewed">Recently viewed</string>
     <string name="clear_all">Clear all</string>
     <string name="clear_history_title">Clear search history</string>
     <string name="clear_history_message">Are you sure you want to clear all your recent searches? This action cannot be undone.</string>
     <string name="remove_history_item">Remove history item</string>
     <string name="remove_history_item_message">Are you sure you want to remove &lt;b&gt;%1s&lt;/b&gt; from your recent searches?</string>
-    <string name="search_for_action_prefix">Search for</string>
 
     <!-- Filters Bottom Sheet -->
     <string name="filters_title">Filters</string>
