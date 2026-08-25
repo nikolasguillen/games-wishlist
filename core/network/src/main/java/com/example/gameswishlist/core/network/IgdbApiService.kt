@@ -1,6 +1,7 @@
 package com.example.gameswishlist.core.network
 
 import com.example.gameswishlist.core.network.model.IgdbGame
+import com.example.gameswishlist.core.network.model.IgdbPopularityPrimitive
 import okhttp3.RequestBody
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -15,4 +16,9 @@ interface IgdbApiService {
     suspend fun getGameDetail(
         @Body body: RequestBody
     ): List<IgdbGame>
+
+    @POST("popularity_primitives")
+    suspend fun getPopularityPrimitives(
+        @Body body: RequestBody
+    ): List<IgdbPopularityPrimitive>
 }

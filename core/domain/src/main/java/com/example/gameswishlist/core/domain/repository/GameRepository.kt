@@ -10,6 +10,13 @@ import kotlinx.coroutines.flow.Flow
 interface GameRepository {
     suspend fun searchGames(query: String): AppResult<List<Game>>
     suspend fun getRemoteSearchSuggestions(query: String): AppResult<List<Game>>
+
+    /**
+     * Games currently trending on IGDB, ranked by its Popularity API. Feeds the cold-start Discover
+     * lane, before any taste profile is applied. The result is not persisted — these are catalogue
+     * browsing results, not the user's own games, and must not pollute the games cache.
+     */
+    suspend fun getPopularGames(): AppResult<List<Game>>
     suspend fun addSearchToHistory(query: String)
     fun getRecentSearchHistory(): Flow<List<String>>
     suspend fun getFilteredSearchHistory(query: String): List<String>

@@ -46,6 +46,22 @@ import javax.inject.Inject
  */
 private const val SUGGESTIONS_LIMIT = 4
 
+/**
+ * IGDB Popularity API type id. The IGDB-source signals (`external_popularity_source` 121) are
+ * catalogue-wide: 1 = Visits, 2 = Want to Play, 3 = Playing, 4 = Played. "Want to Play" is the
+ * wishlist-flavoured one — the closest thing to time-decayed hype, and the most on-theme here.
+ * Steam-source signals also exist (e.g. 9 = Global Top Sellers, 10 = Most Wishlisted Upcoming) but
+ * cover only Steam games, trading catalogue coverage for freshness. Values are not comparable across
+ * types, so the feed query pins a single one; swap this value to change the signal.
+ */
+private const val POPULARITY_TYPE_WANT_TO_PLAY = 2
+
+/**
+ * Size of the trending pool. A few ids drop out at hydration (filtered game types), so this is an
+ * upper bound on what the Discover lane shows, not an exact count.
+ */
+private const val POPULAR_GAMES_LIMIT = 40
+
 class GameRepositoryImpl @Inject constructor(
     private val apiService: IgdbApiService,
     private val gameDao: GameDao,
@@ -83,6 +99,38 @@ class GameRepositoryImpl @Inject constructor(
             val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
             val response = apiService.searchGames(body)
             AppResult.success(response.map { it.toGame() })
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override suspend fun getPopularGames(): AppResult<List<Game>> {
+        return try {
+            // Two-step: the Popularity API ranks ids only, so rank first, then hydrate on /games.
+            val primitivesQuery = """
+                fields game_id, value;
+                where popularity_type = $POPULARITY_TYPE_WANT_TO_PLAY;
+                sort value desc;
+                limit $POPULAR_GAMES_LIMIT;
+            """.trimIndent()
+            val primitivesBody = primitivesQuery.toRequestBody("text/plain".toMediaTypeOrNull())
+            val rankedIds = apiService.getPopularityPrimitives(primitivesBody).map { it.gameId }
+            if (rankedIds.isEmpty()) return AppResult.success(emptyList())
+
+            val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
+            val idList = rankedIds.joinToString(",")
+            val gamesQuery = """
+                fields name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                where id = ($idList) & game_type != ($excludedIds) & version_parent = null;
+                limit $POPULAR_GAMES_LIMIT;
+            """.trimIndent()
+            val gamesBody = gamesQuery.toRequestBody("text/plain".toMediaTypeOrNull())
+            val games = apiService.searchGames(gamesBody).map { it.toGame() }
+
+            // /games returns ids in its own order; restore the popularity ranking.
+            val rankByGameId = rankedIds.withIndex().associate { (index, id) -> id to index }
+            val ranked = games.sortedBy { rankByGameId[it.id] ?: Int.MAX_VALUE }
+            AppResult.success(ranked)
         } catch (e: Exception) {
             AppResult.failure(e.toRepositoryError())
         }
