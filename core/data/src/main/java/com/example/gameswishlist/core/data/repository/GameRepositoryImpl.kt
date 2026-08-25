@@ -90,9 +90,10 @@ class GameRepositoryImpl @Inject constructor(
 
     override suspend fun getRemoteSearchSuggestions(query: String): AppResult<List<Game>> {
         return try {
+            val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
             val queryText = """
                 fields name, cover.url, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, first_release_date;
-                where name ~ *"$query"* & version_parent = null & game_type = (0, 8, 9, 10, 11);
+                where name ~ *"$query"* & version_parent = null & game_type != ($excludedIds);
                 sort hypes desc;
                 limit $SUGGESTIONS_LIMIT;
             """.trimIndent()
