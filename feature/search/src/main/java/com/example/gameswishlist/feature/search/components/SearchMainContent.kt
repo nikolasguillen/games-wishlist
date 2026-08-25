@@ -26,7 +26,7 @@ internal fun SearchMainContent(
     Box(modifier = modifier) {
         when (contentState) {
             is SearchContentState.Error -> ErrorPage(message = contentState.message)
-            is SearchContentState.Initial -> InitialSearchPlaceholder()
+            is SearchContentState.Discover -> DiscoverPlaceholder()
             is SearchContentState.Empty -> EmptySearchPlaceholder()
             is SearchContentState.Loading -> LoadingPage()
             is SearchContentState.Success -> {
@@ -56,8 +56,8 @@ private fun SearchMainContentPreview(contentState: SearchContentState) {
 
 @Preview(showBackground = true)
 @Composable
-private fun SearchMainContentInitialPreview() {
-    SearchMainContentPreview(SearchContentState.Initial)
+private fun SearchMainContentDiscoverPreview() {
+    SearchMainContentPreview(SearchContentState.Discover)
 }
 
 @Preview(showBackground = true)

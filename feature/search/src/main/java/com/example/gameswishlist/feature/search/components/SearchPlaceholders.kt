@@ -13,7 +13,7 @@ import com.example.gameswishlist.core.ui.component.EmptyPage
 import com.example.gameswishlist.feature.search.R
 
 @Composable
-internal fun InitialSearchPlaceholder(modifier: Modifier = Modifier) {
+internal fun DiscoverPlaceholder(modifier: Modifier = Modifier) {
     EmptyPage(
         message = stringResource(R.string.search_initial_message),
         icon = Icons.Outlined.SportsEsports,
@@ -41,9 +41,9 @@ internal fun NoFilteredResultsPlaceholder(modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true)
 @Composable
-private fun InitialSearchPlaceholderPreview() {
+private fun DiscoverPlaceholderPreview() {
     GamesWishlistTheme {
-        InitialSearchPlaceholder()
+        DiscoverPlaceholder()
     }
 }
 

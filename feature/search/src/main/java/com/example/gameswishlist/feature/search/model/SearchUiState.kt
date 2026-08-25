@@ -15,7 +15,7 @@ import androidx.compose.runtime.Immutable
 internal data class SearchUiState(
     val history: SearchHistoryUiModel = SearchHistoryUiModel(),
     val suggestions: SearchSuggestionsUiModel = SearchSuggestionsUiModel(),
-    val contentState: SearchContentState = SearchContentState.Initial,
+    val contentState: SearchContentState = SearchContentState.Discover,
     val filtersBottomSheetState: FilterBottomSheetState = FilterBottomSheetState(),
     val sortBottomSheetState: SortBottomSheetState = SortBottomSheetState()
 )
