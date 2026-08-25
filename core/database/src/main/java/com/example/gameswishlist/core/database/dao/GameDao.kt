@@ -33,6 +33,23 @@ interface GameDao {
     )
     fun getWishlistedGames(): Flow<List<GameWithAllDetails>>
 
+    /**
+     * Every game the user actually acted on, across all their lists.
+     *
+     * The `games` table doubles as a cache of everything ever opened, so plain membership is not
+     * enough: a game qualifies if it sits in some list, or if the user gave it a status or a
+     * priority. That second clause is what keeps a title the user dropped *and* removed from the
+     * wishlist in the set — its `DROPPED` status is a signal precisely because they rejected it.
+     */
+    @Transaction
+    @Query(
+        "SELECT DISTINCT games.* FROM games " +
+                "LEFT JOIN game_list_cross_ref ON games.id = game_list_cross_ref.gameId " +
+                "WHERE game_list_cross_ref.gameId IS NOT NULL " +
+                "OR games.status IS NOT NULL OR games.priority IS NOT NULL"
+    )
+    fun getSavedGames(): Flow<List<GameWithAllDetails>>
+
     @Transaction
     @Query("SELECT * FROM games WHERE id = :id")
     suspend fun getGameById(id: Int): GameWithAllDetails?

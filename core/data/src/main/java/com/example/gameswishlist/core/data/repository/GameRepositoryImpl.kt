@@ -10,12 +10,14 @@ import com.example.gameswishlist.core.data.mapper.toGameEngineCrossRefs
 import com.example.gameswishlist.core.data.mapper.toGameGenreCrossRefs
 import com.example.gameswishlist.core.data.mapper.toGamePlatformCrossRefs
 import com.example.gameswishlist.core.data.mapper.toGenreEntities
+import com.example.gameswishlist.core.data.mapper.toPlatform
 import com.example.gameswishlist.core.data.mapper.toPlatformEntities
 import com.example.gameswishlist.core.data.mapper.toRelatedGameEntities
 import com.example.gameswishlist.core.data.mapper.toWishlistList
 import com.example.gameswishlist.core.data.local.WishlistCoverImageStorage
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
+import com.example.gameswishlist.core.database.dao.PlatformDao
 import com.example.gameswishlist.core.database.dao.SearchHistoryDao
 import com.example.gameswishlist.core.database.entity.GameListCrossRef
 import com.example.gameswishlist.core.database.entity.ListEntity
@@ -24,6 +26,7 @@ import com.example.gameswishlist.core.domain.repository.GameRepository
 import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameType
+import com.example.gameswishlist.core.model.Platform
 import com.example.gameswishlist.core.model.RepositoryError
 import com.example.gameswishlist.core.model.WishlistConstants
 import com.example.gameswishlist.core.model.WishlistIcon
@@ -47,6 +50,7 @@ class GameRepositoryImpl @Inject constructor(
     private val apiService: IgdbApiService,
     private val gameDao: GameDao,
     private val listDao: ListDao,
+    private val platformDao: PlatformDao,
     private val searchHistoryDao: SearchHistoryDao,
     private val coverImageStorage: WishlistCoverImageStorage
 ) : GameRepository {
@@ -193,6 +197,35 @@ class GameRepositoryImpl @Inject constructor(
 
     override suspend fun updateGameDetails(game: Game) {
         saveGameLocal(game)
+    }
+
+    override fun getSavedGames(): Flow<List<Game>> {
+        return combine(
+            gameDao.getSavedGames(),
+            gameDao.getGameIdsInList(WishlistConstants.DEFAULT_WISHLIST_ID)
+        ) { entities, wishlistIds ->
+            entities.map { it.toGame().copy(isWishlisted = it.game.id in wishlistIds) }
+        }
+    }
+
+    override fun getKnownPlatforms(): Flow<List<Platform>> {
+        return platformDao.getKnownPlatforms().map { entities ->
+            entities.map { it.toPlatform() }
+        }
+    }
+
+    override fun getInferredPlatforms(): Flow<List<Platform>> {
+        return platformDao.getInferredPlatforms().map { entities ->
+            entities.map { it.toPlatform() }
+        }
+    }
+
+    override fun getOwnedPlatformIds(): Flow<Set<Int>> {
+        return platformDao.observeOwnedPlatformIds().map { it.toSet() }
+    }
+
+    override suspend fun setOwnedPlatforms(platformIds: Set<Int>) {
+        platformDao.setOwnedPlatforms(platformIds)
     }
 
     private suspend fun saveGameLocal(game: Game) {

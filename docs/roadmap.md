@@ -25,38 +25,23 @@ different axes — relevance and time. The resolution:
 
 Bottom bar goes from 2 tabs to 3: Search · Radar · Lists.
 
-## Phase 1 — Taste profile
+## What the taste profile already gives you
 
-Pure Kotlin, no UI. Everything it needs is already in the database.
+`core/domain/usecase/discover/` is built and tested: `GetTasteProfileUseCase` emits a `TasteProfile`
+(`:core:model`) of normalised genre and developer weights, and `GetOwnedPlatformsUseCase` /
+`SetOwnedPlatformsUseCase` / `GetKnownPlatformsUseCase` own the platform filter, with the user's
+explicit selection falling back to the platforms inferred from their saved games. `TasteProfile.isEmpty`
+is the cold-start signal. **The "My platforms" picker UI does not exist yet** — the storage and domain
+layer do, so the screen is all that is missing.
 
-- `TasteProfile` in `:core:model` (id→weight maps; no Android, no Compose — this module is the first KMP
-  candidate).
-- `GetTasteProfileUseCase` in `:core:domain`, reading through `GameRepository`.
-
-Signal weights, strongest first:
-
-| Signal | Source | Note |
-|---|---|---|
-| `GameStatus` | `GameEntity.status` | `COMPLETED`/`PLAYING` are strong positives, `WANT_TO_BUY` is weak (intent, not taste), **`DROPPED` is a negative** |
-| `Priority` | `GameEntity.priority` | User-declared weight, free |
-| Developer | `GameCompanyCrossRef` + developer flag | Better predictor than genre for users with defined taste |
-| Genre | `GameGenreCrossRef` | The baseline |
-| `lastViewedAt` | `GameEntity` | Implicit interest, tie-break only |
-
-Deliberately excluded: search history and `Engine` — noise.
-
-**Platform is a filter, not a taste.** Inferring owned platforms from `GamePlatformCrossRef` is an
-acceptable default, but an explicit user override ("My platforms") must exist from the start: getting this
-wrong makes the whole feed useless and the user cannot tell why.
-
-## Phase 2 — Discover feed in Search
+## Phase 1 — Discover feed in Search
 
 Replaces `SearchContentState.Initial` (today `InitialSearchPlaceholder` in
 `feature/search/components/SearchPlaceholders.kt`). The search bar overlay keeps owning recent searches and
 recently viewed games — the feed lives in the body, behind it.
 
-- Cold start (0 saved games) degrades to generic popular/upcoming. This is also the first shippable
-  milestone: it works before any scoring code exists.
+- Cold start (`TasteProfile.isEmpty`) degrades to generic popular/upcoming. Build that path first — it is
+  the first shippable milestone and it needs none of the ranking.
 - Coarse filtering server-side in apicalypse (`where genres = (...) & platforms = (...)`), fine ranking
   locally. Personalisation is not expressible in apicalypse, and `limit` caps at 500 — fetch a candidate
   pool, rank in a mapper/use case.
@@ -114,7 +99,7 @@ Implementation consequences:
 - Returning to the feed preserves its scroll position and does not refetch. The grid already resets
   correctly via `onResetScroll`.
 
-## Phase 3 — `:feature:radar`, saved games only
+## Phase 2 — `:feature:radar`, saved games only
 
 - New module (copy `feature/search/build.gradle.kts`, register in `settings.gradle.kts`), `RadarRoute` in
   `core/navigation/Routes.kt`, tab wired in `:app`.
@@ -126,14 +111,14 @@ Implementation consequences:
   filterable by date directly, and carries the date-precision field the buckets depend on.
 - Dates slip constantly. Without periodic refresh the timeline lies, which is worse than not having one.
 
-## Phase 4 — Release notifications
+## Phase 3 — Release notifications
 
 Opt-in per game ("Notify me"), driven by the same refreshed dates.
 
-## Phase 5 — Suggestions lane in Radar
+## Phase 4 — Suggestions lane in Radar
 
 Fold the taste profile into the timeline: saved games get the visual accent, suggestions sit in a minor
-tone alongside them. Only after phases 3 and 4 are real.
+tone alongside them. Only after phases 2 and 3 are real.
 
 ## Decisions that would be expensive to reverse
 

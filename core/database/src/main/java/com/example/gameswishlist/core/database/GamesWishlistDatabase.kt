@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
+import com.example.gameswishlist.core.database.dao.PlatformDao
 import com.example.gameswishlist.core.database.dao.SearchHistoryDao
 import com.example.gameswishlist.core.database.entity.CompanyEntity
 import com.example.gameswishlist.core.database.entity.EngineEntity
@@ -17,6 +18,7 @@ import com.example.gameswishlist.core.database.entity.GameListCrossRef
 import com.example.gameswishlist.core.database.entity.GamePlatformCrossRef
 import com.example.gameswishlist.core.database.entity.GenreEntity
 import com.example.gameswishlist.core.database.entity.ListEntity
+import com.example.gameswishlist.core.database.entity.OwnedPlatformEntity
 import com.example.gameswishlist.core.database.entity.PlatformEntity
 import com.example.gameswishlist.core.database.entity.RelatedGameEntity
 import com.example.gameswishlist.core.database.entity.SearchHistoryEntity
@@ -30,6 +32,7 @@ import com.example.gameswishlist.core.database.util.Converters
         GameListCrossRef::class,
         PlatformEntity::class,
         GamePlatformCrossRef::class,
+        OwnedPlatformEntity::class,
         GenreEntity::class,
         GameGenreCrossRef::class,
         CompanyEntity::class,
@@ -46,6 +49,7 @@ import com.example.gameswishlist.core.database.util.Converters
 abstract class GamesWishlistDatabase : RoomDatabase() {
     abstract fun gameDao(): GameDao
     abstract fun listDao(): ListDao
+    abstract fun platformDao(): PlatformDao
     abstract fun searchHistoryDao(): SearchHistoryDao
 
     companion object {

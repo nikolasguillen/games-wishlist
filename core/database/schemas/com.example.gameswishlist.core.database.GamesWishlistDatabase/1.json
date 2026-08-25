@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "e724dcadfb3755ec2e30b8496110cb18",
+    "identityHash": "120fedb346391b32f2b270bb3ff0e61b",
     "entities": [
       {
         "tableName": "search_history",
@@ -263,6 +263,24 @@
         }
       },
       {
+        "tableName": "owned_platforms",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`platformId` INTEGER NOT NULL, PRIMARY KEY(`platformId`))",
+        "fields": [
+          {
+            "fieldPath": "platformId",
+            "columnName": "platformId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "platformId"
+          ]
+        }
+      },
+      {
         "tableName": "genres",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
@@ -498,7 +516,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e724dcadfb3755ec2e30b8496110cb18')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '120fedb346391b32f2b270bb3ff0e61b')"
     ]
   }
 }

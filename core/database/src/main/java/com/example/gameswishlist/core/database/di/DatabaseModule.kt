@@ -8,6 +8,7 @@ import com.example.gameswishlist.core.database.GamesWishlistDatabase
 import com.example.gameswishlist.core.database.R
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
+import com.example.gameswishlist.core.database.dao.PlatformDao
 import com.example.gameswishlist.core.database.dao.SearchHistoryDao
 import com.example.gameswishlist.core.database.util.Converters
 import com.example.gameswishlist.core.model.WishlistConstants
@@ -59,6 +60,11 @@ object DatabaseModule {
     @Provides
     fun provideListDao(database: GamesWishlistDatabase): ListDao {
         return database.listDao()
+    }
+
+    @Provides
+    fun providePlatformDao(database: GamesWishlistDatabase): PlatformDao {
+        return database.platformDao()
     }
 
     @Provides

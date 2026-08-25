@@ -43,8 +43,9 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
   are repeated by hand in all 14 module build files.
 - **No CI** (`.github/` does not exist) and **no static analysis** (no detekt, ktlint, spotless,
   `.editorconfig`, or `lint {}` block).
-- **Test coverage gaps**: no tests at all for `:feature:wishlist`, `:core:domain` use cases,
-  `:core:database` DAOs, or `:core:ui` mappers. In `:core:network` only `IgdbAuthManager` is covered —
+- **Test coverage gaps**: no tests at all for `:feature:wishlist`, `:core:database` DAOs, or `:core:ui`
+  mappers. In `:core:domain` only the `usecase/discover/` use cases are covered; the search, list and
+  detail ones are not. In `:core:network` only `IgdbAuthManager` is covered —
   `IgdbHttpErrorInterceptor` and the API service are not. No Compose UI tests — `ui-test-junit4` is
   wired into `:app` but only the template `ExampleInstrumentedTest` exists. `app/src/test/ExampleUnitTest.kt`
   is also an untouched template.

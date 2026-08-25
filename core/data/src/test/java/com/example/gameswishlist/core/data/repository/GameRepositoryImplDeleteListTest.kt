@@ -3,6 +3,7 @@ package com.example.gameswishlist.core.data.repository
 import com.example.gameswishlist.core.data.local.WishlistCoverImageStorage
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
+import com.example.gameswishlist.core.database.dao.PlatformDao
 import com.example.gameswishlist.core.database.dao.SearchHistoryDao
 import com.example.gameswishlist.core.database.entity.ListEntity
 import com.example.gameswishlist.core.network.IgdbApiService
@@ -22,6 +23,7 @@ class GameRepositoryImplDeleteListTest {
         apiService = mockk<IgdbApiService>(),
         gameDao = mockk<GameDao>(relaxed = true),
         listDao = listDao,
+        platformDao = mockk<PlatformDao>(relaxed = true),
         searchHistoryDao = mockk<SearchHistoryDao>(relaxed = true),
         coverImageStorage = coverImageStorage
     )

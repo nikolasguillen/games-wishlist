@@ -2,6 +2,7 @@ package com.example.gameswishlist.core.domain.repository
 
 import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.Game
+import com.example.gameswishlist.core.model.Platform
 import com.example.gameswishlist.core.model.WishlistIcon
 import com.example.gameswishlist.core.model.WishlistList
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +23,20 @@ interface GameRepository {
     fun getWishlistedGames(): Flow<List<Game>>
     suspend fun toggleWishlist(game: Game)
     suspend fun updateGameDetails(game: Game)
+
+    /**
+     * Every game the user acted on: in any list, or carrying a status or a priority. Wider than
+     * [getWishlistedGames], which is the default list only.
+     */
+    fun getSavedGames(): Flow<List<Game>>
+    /** Every platform the app has cached so far — not the full IGDB catalogue. */
+    fun getKnownPlatforms(): Flow<List<Platform>>
+    /** The platforms carried by the user's saved games; the default when no override is set. */
+    fun getInferredPlatforms(): Flow<List<Platform>>
+    /** The user's explicit selection. Emits an empty set when they never made one. */
+    fun getOwnedPlatformIds(): Flow<Set<Int>>
+    /** Replaces the selection wholesale; an empty [platformIds] clears the override. */
+    suspend fun setOwnedPlatforms(platformIds: Set<Int>)
 
     fun getAllLists(): Flow<List<WishlistList>>
     /** Emits `null` when no list with [listId] exists (e.g. it was deleted). */
