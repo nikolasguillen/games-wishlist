@@ -47,23 +47,21 @@ import javax.inject.Inject
 private const val SUGGESTIONS_LIMIT = 4
 
 /**
- * IGDB Popularity API type id. The IGDB-source signals (`external_popularity_source` 121) are
- * catalogue-wide: 1 = Visits, 2 = Want to Play, 3 = Playing, 4 = Played. "Want to Play" is the
- * wishlist-flavoured one — the closest thing to time-decayed hype, and the most on-theme here.
- * Steam-source signals also exist (e.g. 9 = Global Top Sellers, 10 = Most Wishlisted Upcoming) but
- * cover only Steam games, trading catalogue coverage for freshness. Values are not comparable across
- * types, so the feed query pins a single one; swap this value to change the signal.
+ * IGDB Popularity API type ids used by the two Discover lanes (IGDB source, `external_popularity_source`
+ * 121). "Want to Play" is anticipation — it drives the unreleased "Most anticipated" shelf; "Playing" is
+ * who is in a game right now — it drives the already-released "Popular this month" shelf. Full IGDB set:
+ * 1 = Visits, 2 = Want to Play, 3 = Playing, 4 = Played. Steam-source signals also exist (e.g.
+ * 9 = Global Top Sellers, 10 = Most Wishlisted Upcoming) but cover only Steam games. Values are not
+ * comparable across types, so each lane pins a single one.
  */
 private const val POPULARITY_TYPE_WANT_TO_PLAY = 2
+private const val POPULARITY_TYPE_PLAYING = 3
 
 /**
- * Size of the trending pool. A few ids drop out at hydration (filtered game types), so this is an
- * upper bound on what the Discover lane shows, not an exact count.
+ * Size of a Discover lane's candidate pool. A few ids drop out at hydration (filtered game types, the
+ * release-window filter), so this is an upper bound on what a lane shows, not an exact count.
  */
-private const val POPULAR_GAMES_LIMIT = 40
-
-/** Size of the cold-start "upcoming" lane. */
-private const val UPCOMING_GAMES_LIMIT = 40
+private const val POPULARITY_POOL_LIMIT = 40
 
 class GameRepositoryImpl @Inject constructor(
     private val apiService: IgdbApiService,
@@ -108,14 +106,28 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getPopularGames(): AppResult<List<Game>> {
+    override suspend fun getPopularGames(): AppResult<List<Game>> =
+        fetchPopularityRankedGames(POPULARITY_TYPE_PLAYING, upcomingOnly = false)
+
+    override suspend fun getUpcomingGames(): AppResult<List<Game>> =
+        fetchPopularityRankedGames(POPULARITY_TYPE_WANT_TO_PLAY, upcomingOnly = true)
+
+    /**
+     * Backs both Discover lanes. The Popularity API ranks ids only, so rank first, then hydrate on
+     * /games. [upcomingOnly] is the split the design asks for: unreleased "Most anticipated" vs
+     * already-released "Popular this month". The hydrate call loses the popularity order, so it is
+     * restored locally. Nothing is persisted -- these are catalogue results, not the user's games.
+     */
+    private suspend fun fetchPopularityRankedGames(
+        popularityType: Int,
+        upcomingOnly: Boolean
+    ): AppResult<List<Game>> {
         return try {
-            // Two-step: the Popularity API ranks ids only, so rank first, then hydrate on /games.
             val primitivesQuery = """
                 fields game_id, value;
-                where popularity_type = $POPULARITY_TYPE_WANT_TO_PLAY;
+                where popularity_type = $popularityType;
                 sort value desc;
-                limit $POPULAR_GAMES_LIMIT;
+                limit $POPULARITY_POOL_LIMIT;
             """.trimIndent()
             val primitivesBody = primitivesQuery.toRequestBody("text/plain".toMediaTypeOrNull())
             val rankedIds = apiService.getPopularityPrimitives(primitivesBody).map { it.gameId }
@@ -123,10 +135,18 @@ class GameRepositoryImpl @Inject constructor(
 
             val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
             val idList = rankedIds.joinToString(",")
+            val nowSeconds = System.currentTimeMillis() / 1000
+            val releaseFilter = if (upcomingOnly) {
+                "first_release_date > $nowSeconds"
+            } else {
+                "first_release_date != null & first_release_date <= $nowSeconds"
+            }
+            // cover != null: the feed is a grid of covers, so a game that cannot render one is no
+            // use here -- and it doubles as a cheap floor that keeps most shovelware out.
             val gamesQuery = """
                 fields name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
-                where id = ($idList) & game_type != ($excludedIds) & version_parent = null;
-                limit $POPULAR_GAMES_LIMIT;
+                where id = ($idList) & game_type != ($excludedIds) & version_parent = null & cover != null & $releaseFilter;
+                limit $POPULARITY_POOL_LIMIT;
             """.trimIndent()
             val gamesBody = gamesQuery.toRequestBody("text/plain".toMediaTypeOrNull())
             val games = apiService.searchGames(gamesBody).map { it.toGame() }
@@ -135,26 +155,6 @@ class GameRepositoryImpl @Inject constructor(
             val rankByGameId = rankedIds.withIndex().associate { (index, id) -> id to index }
             val ranked = games.sortedBy { rankByGameId[it.id] ?: Int.MAX_VALUE }
             AppResult.success(ranked)
-        } catch (e: Exception) {
-            AppResult.failure(e.toRepositoryError())
-        }
-    }
-
-    override suspend fun getUpcomingGames(): AppResult<List<Game>> {
-        return try {
-            val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
-            val nowSeconds = System.currentTimeMillis() / 1000
-            // cover != null: the feed is a grid of covers, so a game that cannot render one is
-            // no use here -- and it doubles as a cheap floor that keeps most shovelware out.
-            val queryText = """
-                fields name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
-                where first_release_date > $nowSeconds & game_type != ($excludedIds) & version_parent = null & cover != null;
-                sort first_release_date asc;
-                limit $UPCOMING_GAMES_LIMIT;
-            """.trimIndent()
-            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
-            val response = apiService.searchGames(body)
-            AppResult.success(response.map { it.toGame() })
         } catch (e: Exception) {
             AppResult.failure(e.toRepositoryError())
         }

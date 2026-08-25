@@ -18,9 +18,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * Covers [GameRepositoryImpl.getPopularGames]: the two-step trending fetch (rank on
- * `/popularity_primitives`, hydrate on `/games`) and the re-ranking that restores the popularity
- * order the hydrate call loses.
+ * Covers the two Discover lanes ([GameRepositoryImpl.getPopularGames] and
+ * [GameRepositoryImpl.getUpcomingGames]): the shared two-step fetch (rank on `/popularity_primitives`,
+ * hydrate on `/games`) and the re-ranking that restores the popularity order the hydrate call loses.
  */
 class GameRepositoryImplPopularGamesTest {
 
@@ -73,6 +73,19 @@ class GameRepositoryImplPopularGamesTest {
         val result = repository.getPopularGames()
 
         assertEquals(AppResult.success(listOf(3, 1, 2)), result.map { games -> games.map { it.id } })
+    }
+
+    @Test
+    fun `getUpcomingGames also ranks by popularity through the shared two-step fetch`() = runTest {
+        coEvery { apiService.getPopularityPrimitives(any()) } returns listOf(
+            primitive(gameId = 7, value = 80.0),
+            primitive(gameId = 4, value = 30.0)
+        )
+        coEvery { apiService.searchGames(any<RequestBody>()) } returns listOf(igdbGame(4), igdbGame(7))
+
+        val result = repository.getUpcomingGames()
+
+        assertEquals(AppResult.success(listOf(7, 4)), result.map { games -> games.map { it.id } })
     }
 
     @Test

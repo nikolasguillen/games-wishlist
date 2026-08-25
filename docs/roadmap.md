@@ -54,6 +54,14 @@ recently viewed games — the feed lives in the body, behind it.
 a cache with ownership flags (`isWishlisted`, `lastViewedAt`); mixing in feed results makes "the user's own
 games" ambiguous. Use a separate entity holding the ordered id list plus a `fetchedAt` stamp.
 
+**TBA release dates — open problem.** The two lanes split on the release window (`first_release_date > now`
+for "Most anticipated", `<= now` for "Popular this month"), which drops games with a null
+`first_release_date`. Plenty of genuinely anticipated upcoming titles are still TBA, so they silently miss
+the anticipated shelf. Not just relaxing the filter: a bare `| first_release_date = null` also lets in old
+games whose date was never recorded, so we cannot tell "unannounced upcoming" from "date lost to history"
+without the date-precision flag — the same flag the Radar timeline depends on (see the Phase 2 note on
+`release_dates`). Decide this together with that work rather than bolting a heuristic on here.
+
 ### Debounced remote suggestions stay
 
 They were considered for removal as redundant with the results grid. They are not: the grid answers "show

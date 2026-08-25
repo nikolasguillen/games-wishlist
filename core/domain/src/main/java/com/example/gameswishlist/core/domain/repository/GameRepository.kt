@@ -12,16 +12,16 @@ interface GameRepository {
     suspend fun getRemoteSearchSuggestions(query: String): AppResult<List<Game>>
 
     /**
-     * Games currently trending on IGDB, ranked by its Popularity API. Feeds the cold-start Discover
-     * lane, before any taste profile is applied. The result is not persisted — these are catalogue
-     * browsing results, not the user's own games, and must not pollute the games cache.
+     * Already-released games that are popular right now, ranked by IGDB's Popularity API. Feeds the
+     * Discover "Popular this month" shelf. The result is not persisted — these are catalogue browsing
+     * results, not the user's own games, and must not pollute the games cache.
      */
     suspend fun getPopularGames(): AppResult<List<Game>>
 
     /**
-     * Unreleased games ordered by how soon they come out, feeding the cold-start Discover "upcoming"
-     * lane. Chronological on purpose: the popular lane already surfaces anticipated titles, so this
-     * one earns its place on the time axis. Not persisted, for the same reason as [getPopularGames].
+     * Unreleased games ranked by anticipation (IGDB's Popularity API), feeding the Discover "Most
+     * anticipated" shelf. Distinct from [getPopularGames] by release window, not by signal: one shelf
+     * is what people are playing, the other what they are waiting for. Not persisted either.
      */
     suspend fun getUpcomingGames(): AppResult<List<Game>>
     suspend fun addSearchToHistory(query: String)
