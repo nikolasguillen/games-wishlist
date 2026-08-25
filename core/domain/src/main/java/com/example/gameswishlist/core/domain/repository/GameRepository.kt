@@ -17,6 +17,13 @@ interface GameRepository {
      * browsing results, not the user's own games, and must not pollute the games cache.
      */
     suspend fun getPopularGames(): AppResult<List<Game>>
+
+    /**
+     * Unreleased games ordered by how soon they come out, feeding the cold-start Discover "upcoming"
+     * lane. Chronological on purpose: the popular lane already surfaces anticipated titles, so this
+     * one earns its place on the time axis. Not persisted, for the same reason as [getPopularGames].
+     */
+    suspend fun getUpcomingGames(): AppResult<List<Game>>
     suspend fun addSearchToHistory(query: String)
     fun getRecentSearchHistory(): Flow<List<String>>
     suspend fun getFilteredSearchHistory(query: String): List<String>

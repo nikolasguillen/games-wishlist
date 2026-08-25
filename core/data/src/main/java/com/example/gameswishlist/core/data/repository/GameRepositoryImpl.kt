@@ -62,6 +62,9 @@ private const val POPULARITY_TYPE_WANT_TO_PLAY = 2
  */
 private const val POPULAR_GAMES_LIMIT = 40
 
+/** Size of the cold-start "upcoming" lane. */
+private const val UPCOMING_GAMES_LIMIT = 40
+
 class GameRepositoryImpl @Inject constructor(
     private val apiService: IgdbApiService,
     private val gameDao: GameDao,
@@ -132,6 +135,26 @@ class GameRepositoryImpl @Inject constructor(
             val rankByGameId = rankedIds.withIndex().associate { (index, id) -> id to index }
             val ranked = games.sortedBy { rankByGameId[it.id] ?: Int.MAX_VALUE }
             AppResult.success(ranked)
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override suspend fun getUpcomingGames(): AppResult<List<Game>> {
+        return try {
+            val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
+            val nowSeconds = System.currentTimeMillis() / 1000
+            // cover != null: the feed is a grid of covers, so a game that cannot render one is
+            // no use here -- and it doubles as a cheap floor that keeps most shovelware out.
+            val queryText = """
+                fields name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                where first_release_date > $nowSeconds & game_type != ($excludedIds) & version_parent = null & cover != null;
+                sort first_release_date asc;
+                limit $UPCOMING_GAMES_LIMIT;
+            """.trimIndent()
+            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+            val response = apiService.searchGames(body)
+            AppResult.success(response.map { it.toGame() })
         } catch (e: Exception) {
             AppResult.failure(e.toRepositoryError())
         }
