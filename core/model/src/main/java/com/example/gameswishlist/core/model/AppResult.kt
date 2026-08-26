@@ -46,6 +46,20 @@ sealed class AppResult<out T> {
         }
     }
 
+    /**
+     * Combines this result with another. If both have success, applies [transform].
+     * If one of them fails, returns the first encountered error.
+     */
+    inline fun <R, V> zip(other: AppResult<R>, transform: (T, R) -> V): AppResult<V> {
+        return when (this) {
+            is Success -> when (other) {
+                is Success -> Success(transform(data, other.data))
+                is Failure -> other
+            }
+            is Failure -> this
+        }
+    }
+
     companion object {
         fun <T> success(data: T): AppResult<T> = Success(data)
         fun failure(error: RepositoryError): AppResult<Nothing> = Failure(error)

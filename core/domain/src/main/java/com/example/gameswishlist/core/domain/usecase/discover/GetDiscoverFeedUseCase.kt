@@ -3,7 +3,6 @@ package com.example.gameswishlist.core.domain.usecase.discover
 import com.example.gameswishlist.core.domain.repository.GameRepository
 import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.DiscoverFeed
-import com.example.gameswishlist.core.model.Game
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
@@ -22,17 +21,8 @@ class GetDiscoverFeedUseCase @Inject constructor(
     suspend operator fun invoke(): AppResult<DiscoverFeed> = coroutineScope {
         val popular = async { repository.getPopularGames() }
         val upcoming = async { repository.getUpcomingGames() }
-        combine(popular.await(), upcoming.await())
-    }
-
-    private fun combine(
-        popular: AppResult<List<Game>>,
-        upcoming: AppResult<List<Game>>
-    ): AppResult<DiscoverFeed> = when {
-        popular is AppResult.Success && upcoming is AppResult.Success ->
-            AppResult.success(DiscoverFeed(popular = popular.data, upcoming = upcoming.data))
-
-        popular is AppResult.Failure -> popular
-        else -> upcoming as AppResult.Failure
+        popular.await().zip(upcoming.await()) { p, u ->
+            DiscoverFeed(popular = p, upcoming = u)
+        }
     }
 }
