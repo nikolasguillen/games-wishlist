@@ -1,0 +1,4 @@
+<resources>
+    <string name="settings_title">Settings</string>
+    <string name="settings_placeholder_message">Nothing here yet.</string>
+</resources>

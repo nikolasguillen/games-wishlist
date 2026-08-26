@@ -35,6 +35,7 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.model.WishlistIcon
 import com.example.gameswishlist.core.ui.component.LoadingPage
+import com.example.gameswishlist.core.ui.component.ProfileIconButton
 import com.example.gameswishlist.core.ui.mapper.toDrawableRes
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.lists.components.CreateWishlistCard
@@ -52,6 +53,7 @@ import com.example.gameswishlist.feature.lists.model.WishlistListUiModel
 fun ListsScreen(
     viewModel: ListsViewModel,
     onListClick: (Long) -> Unit,
+    onProfileClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -75,6 +77,7 @@ fun ListsScreen(
         state = state,
         onEvent = viewModel::onEvent,
         onListClick = onListClick,
+        onProfileClick = onProfileClick,
         snackbarHostState = snackbarHostState,
         modifier = modifier
     )
@@ -85,6 +88,7 @@ internal fun ListsContent(
     state: ListsUiState,
     onEvent: (ListsUiEvent) -> Unit,
     onListClick: (Long) -> Unit,
+    onProfileClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier
 ) {
@@ -101,6 +105,7 @@ internal fun ListsContent(
                         fontWeight = FontWeight.Bold
                     )
                 },
+                actions = { ProfileIconButton(onClick = onProfileClick) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent
                 )
@@ -159,6 +164,7 @@ private fun ListsContentPreview(contentState: ListsContentState) {
             state = ListsUiState(contentState = contentState),
             onEvent = {},
             onListClick = {},
+            onProfileClick = {},
             snackbarHostState = remember { SnackbarHostState() }
         )
     }

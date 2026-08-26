@@ -1,6 +1,8 @@
 package com.example.gameswishlist.core.ui.component
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -14,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
+import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.R
 
 /**
@@ -27,18 +30,22 @@ fun ProfileIconButton(
 ) {
     IconButton(
         onClick = onClick,
-        modifier = modifier.border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
+        modifier = modifier
+            .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+            .size(48.dp)
     ) {
         Icon(
             imageVector = Icons.Default.AccountCircle,
             contentDescription = stringResource(R.string.settings_content_description),
             tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(28.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(MaterialTheme.spacing.extraSmall)
         )
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, backgroundColor = 0xFFFFFFFFF)
 @Composable
 private fun ProfileIconButtonPreview() {
     GamesWishlistTheme {

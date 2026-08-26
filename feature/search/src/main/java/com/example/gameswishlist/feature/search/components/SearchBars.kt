@@ -55,6 +55,7 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomAlertDialog
+import com.example.gameswishlist.core.ui.component.ProfileIconButton
 import com.example.gameswishlist.core.ui.component.RecentGameCard
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
@@ -82,6 +83,7 @@ internal fun SearchTopBar(
     onSearch: (String) -> Unit,
     onGameClick: (Int) -> Unit,
     onEvent: (SearchUiEvent) -> Unit,
+    onProfileClick: () -> Unit,
     backgroundColor: Color
 ) {
     val appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(
@@ -118,7 +120,8 @@ internal fun SearchTopBar(
                 searchBarState = searchBarState,
                 scrollBehavior = proxyScrollBehavior,
                 appBarWithSearchColors = appBarWithSearchColors,
-                inputField = inputField
+                inputField = inputField,
+                onProfileClick = onProfileClick
             )
 
             val state = uiState.contentState
@@ -214,13 +217,15 @@ internal fun CollapsedSearchBar(
     searchBarState: SearchBarState,
     scrollBehavior: SearchBarScrollBehavior,
     appBarWithSearchColors: AppBarWithSearchColors,
-    inputField: @Composable () -> Unit
+    inputField: @Composable () -> Unit,
+    onProfileClick: () -> Unit
 ) {
     AppBarWithSearch(
         scrollBehavior = scrollBehavior,
         state = searchBarState,
         colors = appBarWithSearchColors,
         inputField = inputField,
+        actions = { ProfileIconButton(onClick = onProfileClick) },
         contentPadding = PaddingValues(top = MaterialTheme.spacing.large)
     )
 }
@@ -526,6 +531,7 @@ private fun SearchTopBarPreview() {
             onSearch = {},
             onGameClick = {},
             onEvent = {},
+            onProfileClick = {},
             backgroundColor = Color.Transparent
         )
     }
@@ -564,7 +570,8 @@ private fun CollapsedSearchBarPreview() {
                     onSearch = {},
                     onClearSearch = {}
                 )
-            }
+            },
+            onProfileClick = {}
         )
     }
 }

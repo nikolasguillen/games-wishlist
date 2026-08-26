@@ -13,6 +13,9 @@ data object SearchRoute : GameNavKey
 data object ListsRoute : GameNavKey
 
 @Serializable
+data object SettingsRoute : GameNavKey
+
+@Serializable
 data class WishlistRoute(val listId: Long) : GameNavKey
 
 @Serializable

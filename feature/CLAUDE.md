@@ -1,6 +1,6 @@
 # CLAUDE.md — feature modules
 
-Applies to `feature/search`, `feature/game-detail`, `feature/lists`, `feature/wishlist`.
+Applies to `feature/search`, `feature/game-detail`, `feature/lists`, `feature/wishlist`, `feature/settings`.
 Read the root `CLAUDE.md` first for the module dependency rules.
 
 ## Module layout

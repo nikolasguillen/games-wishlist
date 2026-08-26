@@ -63,6 +63,7 @@ private val SEARCH_BAR_COLLAPSE_DELAY = 300.milliseconds
 fun SearchScreen(
     viewModel: SearchViewModel,
     onGameClick: (Int) -> Unit,
+    onProfileClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -72,6 +73,7 @@ fun SearchScreen(
         textFieldState = viewModel.textFieldState,
         onEvent = viewModel::onEvent,
         onGameClick = onGameClick,
+        onProfileClick = onProfileClick,
         modifier = modifier
     )
 }
@@ -82,6 +84,7 @@ internal fun SearchScreenContent(
     textFieldState: TextFieldState,
     onEvent: (SearchUiEvent) -> Unit,
     onGameClick: (Int) -> Unit,
+    onProfileClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -187,6 +190,7 @@ internal fun SearchScreenContent(
                 onSearch = onSearch,
                 onGameClick = onGameClickWithCollapse,
                 onEvent = onEvent,
+                onProfileClick = onProfileClick,
                 backgroundColor = backgroundColor
             )
         },
@@ -257,7 +261,8 @@ private fun SearchScreenPreview() {
             ),
             textFieldState = rememberTextFieldState(),
             onEvent = {},
-            onGameClick = {}
+            onGameClick = {},
+            onProfileClick = {}
         )
     }
 }
@@ -279,7 +284,8 @@ private fun SearchScreenInitialWithHistoryPreview() {
             ),
             textFieldState = rememberTextFieldState(),
             onEvent = {},
-            onGameClick = {}
+            onGameClick = {},
+            onProfileClick = {}
         )
     }
 }
@@ -294,7 +300,8 @@ private fun SearchScreenLoadingPreview() {
             ),
             textFieldState = rememberTextFieldState(),
             onEvent = {},
-            onGameClick = {}
+            onGameClick = {},
+            onProfileClick = {}
         )
     }
 }
@@ -307,7 +314,8 @@ private fun SearchScreenInitialPreview() {
             uiState = SearchUiState(),
             textFieldState = rememberTextFieldState(),
             onEvent = {},
-            onGameClick = {}
+            onGameClick = {},
+            onProfileClick = {}
         )
     }
 }
@@ -322,7 +330,8 @@ private fun SearchScreenEmptyPreview() {
             ),
             textFieldState = rememberTextFieldState(),
             onEvent = {},
-            onGameClick = {}
+            onGameClick = {},
+            onProfileClick = {}
         )
     }
 }

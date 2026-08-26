@@ -55,6 +55,7 @@ dependencies {
     implementation(project(":feature:game-detail"))
     implementation(project(":feature:lists"))
     implementation(project(":feature:wishlist"))
+    implementation(project(":feature:settings"))
 
     implementation(libs.hilt.android)
     implementation(libs.hiltNavCompose)

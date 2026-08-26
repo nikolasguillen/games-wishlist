@@ -28,11 +28,11 @@ suggesting a command.
 
 ## Module graph and dependency rules
 
-14 modules, all under the `com.example.gameswishlist.*` namespace. Sources live in `src/main/java/`.
+15 modules, all under the `com.example.gameswishlist.*` namespace. Sources live in `src/main/java/`.
 
 ```
 :app  →  everything
-:feature:{search, game-detail, lists, wishlist}
+:feature:{search, game-detail, lists, wishlist, settings}
 :core:{common, model, network, database, data, domain, ui, designsystem, navigation}
 ```
 

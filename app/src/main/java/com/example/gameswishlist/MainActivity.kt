@@ -43,6 +43,7 @@ import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.navigation.GameDetailRoute
 import com.example.gameswishlist.core.navigation.ListsRoute
 import com.example.gameswishlist.core.navigation.SearchRoute
+import com.example.gameswishlist.core.navigation.SettingsRoute
 import com.example.gameswishlist.core.navigation.WishlistRoute
 import com.example.gameswishlist.feature.gamedetail.GameDetailScreen
 import com.example.gameswishlist.feature.gamedetail.GameDetailViewModel
@@ -50,6 +51,7 @@ import com.example.gameswishlist.feature.lists.ListsScreen
 import com.example.gameswishlist.feature.lists.ListsViewModel
 import com.example.gameswishlist.feature.search.SearchScreen
 import com.example.gameswishlist.feature.search.SearchViewModel
+import com.example.gameswishlist.feature.settings.SettingsScreen
 import com.example.gameswishlist.feature.wishlist.WishlistScreen
 import com.example.gameswishlist.feature.wishlist.WishlistViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -147,6 +149,11 @@ fun MainContent() {
                                     backStack.add(nextRoute)
                                 }
                             },
+                            onProfileClick = {
+                                if (backStack.lastOrNull() != SettingsRoute) {
+                                    backStack.add(SettingsRoute)
+                                }
+                            },
                             modifier = cornerClipModifier
                                 .padding(innerPadding)
                                 .consumeWindowInsets(innerPadding)
@@ -163,6 +170,20 @@ fun MainContent() {
                                     backStack.add(nextRoute)
                                 }
                             },
+                            onProfileClick = {
+                                if (backStack.lastOrNull() != SettingsRoute) {
+                                    backStack.add(SettingsRoute)
+                                }
+                            },
+                            modifier = Modifier
+                                .padding(innerPadding)
+                                .consumeWindowInsets(innerPadding)
+                        )
+                    }
+
+                    is SettingsRoute -> NavEntry(key) {
+                        SettingsScreen(
+                            onBackClick = { backStack.removeLastOrNull() },
                             modifier = Modifier
                                 .padding(innerPadding)
                                 .consumeWindowInsets(innerPadding)
