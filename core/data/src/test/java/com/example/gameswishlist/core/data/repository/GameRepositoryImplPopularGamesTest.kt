@@ -36,7 +36,7 @@ class GameRepositoryImplPopularGamesTest {
     )
 
     private fun primitive(gameId: Int, value: Double) =
-        IgdbPopularityPrimitive(gameId = gameId, value = value, popularityType = 2)
+        IgdbPopularityPrimitive(gameId = gameId, value = value)
 
     private fun igdbGame(id: Int) = IgdbGame(
         id = id,
