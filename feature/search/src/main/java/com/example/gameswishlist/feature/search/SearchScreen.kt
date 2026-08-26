@@ -2,11 +2,13 @@
 
 package com.example.gameswishlist.feature.search
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -18,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.animateFloatingActionButton
 import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.runtime.Composable
@@ -85,9 +88,13 @@ internal fun SearchScreenContent(
     // 1. UI States & Behaviors
     val searchBarState = rememberContainedSearchBarState()
     val gridState = rememberLazyGridState()
+    val discoverListState = rememberLazyListState()
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
     val scope = rememberCoroutineScope()
 
+    // The feed and the results grid are two different list types with their own hoisted state, so
+    // scroll-to-top and the FAB visibility must follow whichever one is currently on screen.
+    val isDiscoverActive = uiState.contentState is SearchContentState.Discover
 
     // 2. Derived States (Scroll logic)
     val isScrolled by remember(scrollBehavior) {
@@ -104,16 +111,20 @@ internal fun SearchScreenContent(
         }
     }
 
-    val showScrollToTop by remember {
-        derivedStateOf { gridState.firstVisibleItemIndex > 1 }
+    val showScrollToTop by remember(isDiscoverActive) {
+        derivedStateOf {
+            if (isDiscoverActive) discoverListState.firstVisibleItemIndex > 1
+            else gridState.firstVisibleItemIndex > 1
+        }
     }
 
     // 3. UI Actions
-    val onScrollToTop = remember(scrollBehavior, gridState) {
+    val onScrollToTop = remember(scrollBehavior, gridState, discoverListState, isDiscoverActive) {
         suspend {
             scrollBehavior.contentOffset = 0f
             scrollBehavior.scrollOffset = 0f
-            gridState.animateScrollToItem(0)
+            if (isDiscoverActive) discoverListState.animateScrollToItem(0)
+            else gridState.animateScrollToItem(0)
         }
     }
 
@@ -145,6 +156,15 @@ internal fun SearchScreenContent(
                 }
             }
         }
+
+    // Only fires once a query is committed and the bar is collapsed: while expanded, the search
+    // bar's own predictive-back handling owns the gesture (collapsing it instead).
+    BackHandler(
+        enabled = searchBarState.currentValue == SearchBarValue.Collapsed &&
+            textFieldState.text.isNotEmpty()
+    ) {
+        onEvent(SearchUiEvent.OnClearSearch)
+    }
 
     // 4. Dynamic Styles
     val backgroundColor by animateColorAsState(
@@ -192,7 +212,8 @@ internal fun SearchScreenContent(
             gridState = gridState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(innerPadding),
+            discoverListState = discoverListState
         )
 
         SearchFilterBottomSheet(state = uiState.filtersBottomSheetState, onEvent = onEvent)

@@ -29,6 +29,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -178,6 +179,81 @@ class SearchViewModelTest {
 
         assertTrue(viewModel.uiState.value.contentState is SearchContentState.Error)
     }
+
+    @Test
+    fun `a search committed before the Discover fetch resolves cannot be clobbered by it later`() =
+        runTest(testDispatcher) {
+            val discoverDeferred = CompletableDeferred<AppResult<DiscoverFeed>>()
+            coEvery { getDiscoverFeedUseCase() } coAnswers { discoverDeferred.await() }
+            coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
+                SearchResult(games = listOf(testGame(id = 1)), platforms = emptyList(), genres = emptyList())
+            )
+            val viewModel = createViewModel()
+
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
+            advanceUntilIdle()
+            assertTrue(viewModel.uiState.value.contentState is SearchContentState.Success)
+
+            // Resolves after the search already landed. Without cancelling the Discover job in
+            // performSearch, this onSuccess callback would overwrite contentState back to Discover.
+            discoverDeferred.complete(
+                AppResult.success(DiscoverFeed(popular = emptyList(), upcoming = emptyList()))
+            )
+            advanceUntilIdle()
+
+            assertTrue(viewModel.uiState.value.contentState is SearchContentState.Success)
+        }
+
+    @Test
+    fun `OnClearSearch restores the cached Discover feed without re-fetching`() = runTest(testDispatcher) {
+        val popular = testGame(id = 1, name = "Cindergate")
+        coEvery { getDiscoverFeedUseCase() } returns
+            AppResult.success(DiscoverFeed(popular = listOf(popular), upcoming = emptyList()))
+        coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
+            SearchResult(games = listOf(testGame(id = 2)), platforms = emptyList(), genres = emptyList())
+        )
+        val viewModel = createViewModel()
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
+        advanceUntilIdle()
+
+        viewModel.onEvent(SearchUiEvent.OnClearSearch)
+        advanceUntilIdle()
+
+        val contentState = viewModel.uiState.value.contentState as SearchContentState.Discover
+        assertEquals(listOf(1), contentState.popular.map { it.id })
+        assertEquals("", viewModel.textFieldState.text.toString())
+        coVerify(exactly = 1) { getDiscoverFeedUseCase() }
+    }
+
+    @Test
+    fun `OnClearSearch re-fetches when the Discover feed was cancelled before it ever resolved`() =
+        runTest(testDispatcher) {
+            coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
+                SearchResult(games = listOf(testGame(id = 2)), platforms = emptyList(), genres = emptyList())
+            )
+            val viewModel = SearchViewModel(
+                searchGamesUseCase = searchGamesUseCase,
+                addSearchToHistoryUseCase = addSearchToHistoryUseCase,
+                getRecentSearchActivityUseCase = getRecentSearchActivityUseCase,
+                deleteSearchHistoryItemUseCase = deleteSearchHistoryItemUseCase,
+                clearAllHistoryUseCase = clearAllHistoryUseCase,
+                removeRecentGameUseCase = removeRecentGameUseCase,
+                clearRecentGamesUseCase = clearRecentGamesUseCase,
+                getSearchSuggestionsUseCase = getSearchSuggestionsUseCase,
+                getDiscoverFeedUseCase = getDiscoverFeedUseCase
+            )
+            // Search fires before the cold-start Discover fetch (still suspended on the dispatcher
+            // queue) ever resolves, cancelling it while discoverContentState is still Loading.
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
+            advanceUntilIdle()
+            assertTrue(viewModel.uiState.value.contentState is SearchContentState.Success)
+
+            viewModel.onEvent(SearchUiEvent.OnClearSearch)
+            advanceUntilIdle()
+
+            assertTrue(viewModel.uiState.value.contentState is SearchContentState.Discover)
+            coVerify(exactly = 1) { getDiscoverFeedUseCase() }
+        }
 
     @Test
     fun `OnFilterClick toggles the selected filter and recomputes the visible games`() = runTest(testDispatcher) {

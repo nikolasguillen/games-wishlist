@@ -1,8 +1,10 @@
 package com.example.gameswishlist.feature.search.components
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,7 +23,8 @@ internal fun SearchMainContent(
     onEvent: (SearchUiEvent) -> Unit,
     onGameClick: (Int) -> Unit,
     gridState: LazyGridState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    discoverListState: LazyListState = rememberLazyListState()
 ) {
     Box(modifier = modifier) {
         when (contentState) {
@@ -29,7 +32,8 @@ internal fun SearchMainContent(
             is SearchContentState.Discover -> DiscoverFeed(
                 popular = contentState.popular,
                 upcoming = contentState.upcoming,
-                onGameClick = onGameClick
+                onGameClick = onGameClick,
+                state = discoverListState
             )
             is SearchContentState.Empty -> EmptySearchPlaceholder()
             is SearchContentState.Loading -> LoadingPage()

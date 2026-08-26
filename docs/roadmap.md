@@ -80,33 +80,6 @@ suggestion is therefore a shortcut, not a preview of the grid. That is defensibl
 substring-on-title is less noisy than IGDB full-text — and it is why the "see all results" row commits the
 query to the grid.
 
-### The return path from results to feed
-
-The results grid stays in the screen body, outside the search bar overlay: it carries the filter chip row,
-the filter and sort bottom sheets and the scroll-to-top FAB, all of which live in the `Scaffold` today and
-would end up stacked over an overlay and a keyboard.
-
-**There is currently no way back from the grid to the initial state**, for two independent reasons: the
-clear (X) button is only rendered while the search bar is expanded (`SearchBars.kt:183`), and clearing the
-text does not reset `contentState` anyway — only `performSearch` writes it. There is no `BackHandler` in
-`:app` either. Nobody notices today because the initial state is a dead placeholder; it becomes a visible
-bug the moment that state holds the feed.
-
-- Show the clear button whenever a query is committed, including with the bar collapsed, and have it reset
-  the content state to the feed.
-- Add a `BackHandler` so back returns to the feed instead of leaving the tab.
-- No "back to recommendations" button is needed: clear-to-browse is the convention users already know, and
-  the query left in the collapsed bar is the indicator that they are in results mode.
-
-Implementation consequences:
-
-- Rename `SearchContentState.Initial` to `Discover` — it is no longer initial, it is a state re-entered.
-- The feed needs its own scroll state. `SearchScreenContent` has a single `gridState` passed down, and
-  sharing it bleeds scroll position between feed and grid; `showScrollToTop` derives from it and must
-  follow whichever list is showing.
-- Returning to the feed preserves its scroll position and does not refetch. The grid already resets
-  correctly via `onResetScroll`.
-
 ## Phase 2 — `:feature:radar`, saved games only
 
 - New module (copy `feature/search/build.gradle.kts`, register in `settings.gradle.kts`), `RadarRoute` in

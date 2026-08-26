@@ -38,6 +38,7 @@ import com.example.gameswishlist.feature.search.model.SortBottomSheetState
 import com.example.gameswishlist.feature.search.model.SortingUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -90,6 +91,14 @@ class SearchViewModel @Inject constructor(
     // for the exact text that's already typed).
     private val suggestionsResetTrigger = MutableSharedFlow<String>(extraBufferCapacity = 1)
 
+    // Cancelled by performSearch: the cold-start Discover fetch and a triggered search both
+    // resolve into contentState, and without this the slower of the two clobbers the other.
+    private var discoverFeedJob: Job? = null
+
+    // The last state the Discover fetch resolved into, kept outside contentState so a committed
+    // search can overwrite contentState without losing what to restore on OnClearSearch.
+    private var discoverContentState: SearchContentState = SearchContentState.Loading
+
     init {
         initSearchHistory()
         initSearchSuggestions()
@@ -101,6 +110,10 @@ class SearchViewModel @Inject constructor(
             is SearchUiEvent.OnSearchTriggered -> {
                 textFieldState.setTextAndPlaceCursorAtEnd(event.query)
                 performSearch(query = event.query)
+            }
+
+            SearchUiEvent.OnClearSearch -> {
+                clearSearch()
             }
 
             SearchUiEvent.OnClearHistory -> {
@@ -389,6 +402,7 @@ class SearchViewModel @Inject constructor(
 
     private fun performSearch(query: String) {
         if (query.isBlank()) return
+        discoverFeedJob?.cancel()
         _uiState.update { it.copy(suggestions = SearchSuggestionsUiModel()) }
         suggestionsResetTrigger.tryEmit("")
 
@@ -441,22 +455,39 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun loadDiscoverFeed() {
-        viewModelScope.launch {
+        discoverFeedJob = viewModelScope.launch {
+            discoverContentState = SearchContentState.Loading
             _uiState.update { it.copy(contentState = SearchContentState.Loading) }
             getDiscoverFeedUseCase().onSuccess { feed ->
-                _uiState.update {
-                    it.copy(
-                        contentState = SearchContentState.Discover(
-                            popular = feed.popular.toGameItemList(),
-                            upcoming = feed.upcoming.toGameItemList()
-                        )
-                    )
-                }
+                val newState = SearchContentState.Discover(
+                    popular = feed.popular.toGameItemList(),
+                    upcoming = feed.upcoming.toGameItemList()
+                )
+                discoverContentState = newState
+                _uiState.update { it.copy(contentState = newState) }
             }.onFailure { error ->
-                _uiState.update {
-                    it.copy(contentState = SearchContentState.Error(message = error.toUiText()))
-                }
+                val newState = SearchContentState.Error(message = error.toUiText())
+                discoverContentState = newState
+                _uiState.update { it.copy(contentState = newState) }
             }
+        }
+    }
+
+    /**
+     * Restores the feed instead of re-fetching it, unless the fetch was cancelled mid-flight by a
+     * search committed before it resolved -- there is nothing cached to restore in that case, so a
+     * fetch is the only option.
+     */
+    private fun clearSearch() {
+        textFieldState.edit { replace(0, length, "") }
+        _uiState.update {
+            it.copy(
+                suggestions = SearchSuggestionsUiModel(),
+                contentState = discoverContentState
+            )
+        }
+        if (discoverContentState is SearchContentState.Loading) {
+            loadDiscoverFeed()
         }
     }
 

@@ -104,7 +104,8 @@ internal fun SearchTopBar(
         SearchInputField(
             textFieldState = textFieldState,
             searchBarState = searchBarState,
-            onSearch = { onSearch(textFieldState.text.toString()) }
+            onSearch = { onSearch(textFieldState.text.toString()) },
+            onClearSearch = { onEvent(SearchUiEvent.OnClearSearch) }
         )
     }
 
@@ -158,7 +159,8 @@ internal fun SearchTopBar(
 internal fun SearchInputField(
     textFieldState: TextFieldState,
     searchBarState: SearchBarState,
-    onSearch: () -> Unit
+    onSearch: () -> Unit,
+    onClearSearch: () -> Unit
 ) {
     val searchInputFieldColor = if (searchBarState.currentValue == SearchBarValue.Collapsed) {
         MaterialTheme.appColors.searchBarInputFieldColor
@@ -183,8 +185,12 @@ internal fun SearchInputField(
         },
         trailingIcon = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (searchBarState.currentValue == SearchBarValue.Expanded && textFieldState.text.isNotEmpty()) {
-                    IconButton(onClick = { textFieldState.edit { replace(0, length, "") } }) {
+                // Always goes through onClearSearch, expanded or collapsed: an emptied field
+                // means there is no committed query left, so the content behind the overlay must
+                // fall back to the feed too, or collapsing with a blank field strands the user on
+                // stale results with no way back (there is nothing left to show the clear button on).
+                if (textFieldState.text.isNotEmpty()) {
+                    IconButton(onClick = onClearSearch) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = stringResource(R.string.clear_search_content_description)
@@ -533,7 +539,8 @@ private fun SearchInputFieldPreview() {
         SearchInputField(
             textFieldState = rememberTextFieldState("The Witcher"),
             searchBarState = rememberContainedSearchBarState(),
-            onSearch = {}
+            onSearch = {},
+            onClearSearch = {}
         )
     }
 }
@@ -554,7 +561,8 @@ private fun CollapsedSearchBarPreview() {
                 SearchInputField(
                     textFieldState = textFieldState,
                     searchBarState = searchBarState,
-                    onSearch = {}
+                    onSearch = {},
+                    onClearSearch = {}
                 )
             }
         )
@@ -575,7 +583,8 @@ private fun ExpandedSearchBarPreview() {
                 SearchInputField(
                     textFieldState = textFieldState,
                     searchBarState = searchBarState,
-                    onSearch = {}
+                    onSearch = {},
+                    onClearSearch = {}
                 )
             },
             history = previewHistory,
@@ -605,7 +614,8 @@ private fun ExpandedSearchBarTypingPreview() {
                 SearchInputField(
                     textFieldState = textFieldState,
                     searchBarState = searchBarState,
-                    onSearch = {}
+                    onSearch = {},
+                    onClearSearch = {}
                 )
             },
             history = previewHistory,
@@ -635,7 +645,8 @@ private fun ExpandedSearchBarLoadingPreview() {
                 SearchInputField(
                     textFieldState = textFieldState,
                     searchBarState = searchBarState,
-                    onSearch = {}
+                    onSearch = {},
+                    onClearSearch = {}
                 )
             },
             history = previewHistory,

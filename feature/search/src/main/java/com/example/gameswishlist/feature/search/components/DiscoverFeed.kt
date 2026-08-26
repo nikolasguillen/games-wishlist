@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,7 +34,8 @@ internal fun DiscoverFeed(
     popular: List<GameItemUiModel>,
     upcoming: List<GameItemUiModel>,
     onGameClick: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    state: LazyListState = rememberLazyListState()
 ) {
     if (popular.isEmpty() && upcoming.isEmpty()) {
         DiscoverPlaceholder(modifier = modifier)
@@ -40,6 +43,7 @@ internal fun DiscoverFeed(
     }
 
     LazyColumn(
+        state = state,
         contentPadding = PaddingValues(vertical = MaterialTheme.spacing.large),
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraLarge),
         modifier = modifier
