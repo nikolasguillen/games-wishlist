@@ -25,6 +25,13 @@ different axes — relevance and time. The resolution:
 
 Bottom bar goes from 2 tabs to 3: Search · Radar · Lists.
 
+- **Settings is not a tab.** A `SettingsRoute` (the "My platforms" picker lives here first) is reached via
+  a profile icon in the top-right corner, present on all three top-level screens — Search, Radar, Lists —
+  and hidden on stacked screens (detail, wishlist, etc). A fourth bottom-bar tab was considered and
+  rejected: Search/Radar/Lists are peer content destinations, Settings is a utility action, not a peer of
+  the same kind. The icon itself is one shared composable in `:core:ui` so Search, Lists and (later) Radar
+  call the same implementation instead of duplicating it.
+
 ## What the taste profile already gives you
 
 `core/domain/usecase/discover/` is built and tested: `GetTasteProfileUseCase` emits a `TasteProfile`
@@ -32,7 +39,8 @@ Bottom bar goes from 2 tabs to 3: Search · Radar · Lists.
 `SetOwnedPlatformsUseCase` / `GetKnownPlatformsUseCase` own the platform filter, with the user's
 explicit selection falling back to the platforms inferred from their saved games. `TasteProfile.isEmpty`
 is the cold-start signal. **The "My platforms" picker UI does not exist yet** — the storage and domain
-layer do, so the screen is all that is missing.
+layer do, so the screen is all that is missing. It will live behind the profile icon / `SettingsRoute`
+described above.
 
 ## Phase 1 — Discover feed in Search
 

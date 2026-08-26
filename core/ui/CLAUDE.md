@@ -12,7 +12,8 @@ Shared wrappers are prefixed `Custom*`:
 Screen-level and domain components:
 `EmptyPage`, `ErrorPage`, `LoadingPage`, `ControllerLoadingAnimation`, `GameCard`, `VerticalGameCard`
 (also hosts `RecentGameCard` and `GameCompactCard`), `RatingBadge`, `ImageGalleryPager` (+
-`CustomPagerIndicator`), `FullScreenImageViewer`, `ImmersiveDetailLayout`, `StatusBarProtection`.
+`CustomPagerIndicator`), `FullScreenImageViewer`, `ImmersiveDetailLayout`, `StatusBarProtection`,
+`ProfileIconButton` (entry point to Settings, shared by every top-level screen).
 
 Every component file ends with a `private fun XPreview()` annotated `@Preview(showBackground = true)` and
 wrapped in `GamesWishlistTheme { }`. Match that when adding a component.
