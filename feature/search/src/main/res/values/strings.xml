@@ -12,6 +12,8 @@
     <string name="suggestions_section_games">Games</string>
     <string name="see_all_results_for">See all results for \"%1$s\"</string>
     <string name="recently_viewed">Recently viewed</string>
+    <string name="discover_most_anticipated">Most anticipated</string>
+    <string name="discover_popular_this_month">Popular this month</string>
     <string name="clear_all">Clear all</string>
     <string name="clear_history_title">Clear search history</string>
     <string name="clear_history_message">Are you sure you want to clear all your recent searches? This action cannot be undone.</string>

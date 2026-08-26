@@ -26,7 +26,11 @@ internal fun SearchMainContent(
     Box(modifier = modifier) {
         when (contentState) {
             is SearchContentState.Error -> ErrorPage(message = contentState.message)
-            is SearchContentState.Discover -> DiscoverPlaceholder()
+            is SearchContentState.Discover -> DiscoverFeed(
+                popular = contentState.popular,
+                upcoming = contentState.upcoming,
+                onGameClick = onGameClick
+            )
             is SearchContentState.Empty -> EmptySearchPlaceholder()
             is SearchContentState.Loading -> LoadingPage()
             is SearchContentState.Success -> {
