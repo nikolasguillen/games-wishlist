@@ -98,7 +98,7 @@ internal fun SearchTopBar(
     // but doesn't apply the scroll modifier, as we apply it to the outer Surface ourselves.
     val proxyScrollBehavior = remember(scrollBehavior) {
         object : SearchBarScrollBehavior by scrollBehavior {
-            override fun Modifier.searchBarScrollBehavior(): Modifier = this
+            override val searchBarScrollBehaviorModifier: Modifier = Modifier
         }
     }
 
@@ -113,7 +113,7 @@ internal fun SearchTopBar(
 
     Surface(
         color = backgroundColor,
-        modifier = with(scrollBehavior) { Modifier.searchBarScrollBehavior() }
+        modifier = scrollBehavior.searchBarScrollBehaviorModifier
     ) {
         Column {
             CollapsedSearchBar(

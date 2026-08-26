@@ -8,8 +8,8 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
@@ -102,13 +102,13 @@ internal fun SearchScreenContent(
     // 2. Derived States (Scroll logic)
     val isScrolled by remember(scrollBehavior) {
         derivedStateOf {
-            if (scrollBehavior.scrollOffsetLimit != 0f) {
+            if (scrollBehavior.scrollState.scrollOffsetLimit != 0f) {
                 val fraction =
-                    1 - ((scrollBehavior.scrollOffsetLimit - scrollBehavior.contentOffset)
+                    1 - ((scrollBehavior.scrollState.scrollOffsetLimit - scrollBehavior.scrollState.contentOffset)
                         .coerceIn(
-                            scrollBehavior.scrollOffsetLimit,
+                            scrollBehavior.scrollState.scrollOffsetLimit,
                             0f
-                        ) / scrollBehavior.scrollOffsetLimit)
+                        ) / scrollBehavior.scrollState.scrollOffsetLimit)
                 fraction > 0.01f
             } else false
         }
@@ -124,8 +124,8 @@ internal fun SearchScreenContent(
     // 3. UI Actions
     val onScrollToTop = remember(scrollBehavior, gridState, discoverListState, isDiscoverActive) {
         suspend {
-            scrollBehavior.contentOffset = 0f
-            scrollBehavior.scrollOffset = 0f
+            scrollBehavior.scrollState.contentOffset = 0f
+            scrollBehavior.scrollState.scrollOffset = 0f
             if (isDiscoverActive) discoverListState.animateScrollToItem(0)
             else gridState.animateScrollToItem(0)
         }
@@ -133,8 +133,8 @@ internal fun SearchScreenContent(
 
     val onResetScroll = remember(scrollBehavior, gridState) {
         suspend {
-            scrollBehavior.contentOffset = 0f
-            scrollBehavior.scrollOffset = 0f
+            scrollBehavior.scrollState.contentOffset = 0f
+            scrollBehavior.scrollState.scrollOffset = 0f
             gridState.scrollToItem(0)
         }
     }
