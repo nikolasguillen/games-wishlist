@@ -25,9 +25,10 @@ import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.feature.search.R
 
 /**
- * The cold-start Discover feed: two shelves, "Most anticipated" first per the design, since it is
- * the one shelf a personalised feed would not already cover with saved-game recommendations.
- * Falls back to the placeholder when both shelves come back empty rather than rendering nothing.
+ * The cold-start Discover feed: an editorial hero for the top anticipated pick, then "Most
+ * anticipated" (the rest of it) and "Popular this month" per the design -- upcoming leads since
+ * it is the one shelf a personalised feed would not already cover with saved-game recommendations.
+ * Falls back to the placeholder when both lists come back empty rather than rendering nothing.
  */
 @Composable
 internal fun DiscoverFeed(
@@ -42,17 +43,30 @@ internal fun DiscoverFeed(
         return
     }
 
+    // The top anticipated pick becomes the hero instead of also opening the shelf beneath it.
+    val hero = upcoming.firstOrNull()
+    val remainingUpcoming = upcoming.drop(1)
+
     LazyColumn(
         state = state,
         contentPadding = PaddingValues(vertical = MaterialTheme.spacing.large),
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraLarge),
         modifier = modifier
     ) {
-        if (upcoming.isNotEmpty()) {
+        if (hero != null) {
+            item {
+                DiscoverHero(
+                    game = hero,
+                    onGameClick = onGameClick,
+                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
+                )
+            }
+        }
+        if (remainingUpcoming.isNotEmpty()) {
             item {
                 DiscoverShelf(
                     title = stringResource(R.string.discover_most_anticipated),
-                    games = upcoming,
+                    games = remainingUpcoming,
                     onGameClick = onGameClick
                 )
             }

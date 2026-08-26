@@ -63,6 +63,14 @@ private const val POPULARITY_TYPE_PLAYING = 3
  */
 private const val POPULARITY_POOL_LIMIT = 40
 
+/**
+ * "Want to play" ranks anticipation regardless of release status, so most of a [POPULARITY_POOL_LIMIT]
+ * pool is already-released games that the `first_release_date > now` filter then discards -- a pool
+ * sized for the other lane starves "Most anticipated" down to a handful of survivors. IGDB's `limit`
+ * caps at 500, so there is headroom to size this well above what actually needs to survive.
+ */
+private const val POPULARITY_POOL_LIMIT_UPCOMING = 150
+
 class GameRepositoryImpl @Inject constructor(
     private val apiService: IgdbApiService,
     private val gameDao: GameDao,
@@ -107,10 +115,14 @@ class GameRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getPopularGames(): AppResult<List<Game>> =
-        fetchPopularityRankedGames(POPULARITY_TYPE_PLAYING, upcomingOnly = false)
+        fetchPopularityRankedGames(POPULARITY_TYPE_PLAYING, upcomingOnly = false, poolLimit = POPULARITY_POOL_LIMIT)
 
     override suspend fun getUpcomingGames(): AppResult<List<Game>> =
-        fetchPopularityRankedGames(POPULARITY_TYPE_WANT_TO_PLAY, upcomingOnly = true)
+        fetchPopularityRankedGames(
+            POPULARITY_TYPE_WANT_TO_PLAY,
+            upcomingOnly = true,
+            poolLimit = POPULARITY_POOL_LIMIT_UPCOMING
+        )
 
     /**
      * Backs both Discover lanes. The Popularity API ranks ids only, so rank first, then hydrate on
@@ -120,14 +132,15 @@ class GameRepositoryImpl @Inject constructor(
      */
     private suspend fun fetchPopularityRankedGames(
         popularityType: Int,
-        upcomingOnly: Boolean
+        upcomingOnly: Boolean,
+        poolLimit: Int
     ): AppResult<List<Game>> {
         return try {
             val primitivesQuery = """
                 fields game_id, value;
                 where popularity_type = $popularityType;
                 sort value desc;
-                limit $POPULARITY_POOL_LIMIT;
+                limit $poolLimit;
             """.trimIndent()
             val primitivesBody = primitivesQuery.toRequestBody("text/plain".toMediaTypeOrNull())
             val rankedIds = apiService.getPopularityPrimitives(primitivesBody).map { it.gameId }
@@ -146,7 +159,7 @@ class GameRepositoryImpl @Inject constructor(
             val gamesQuery = """
                 fields name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
                 where id = ($idList) & game_type != ($excludedIds) & version_parent = null & cover != null & $releaseFilter;
-                limit $POPULARITY_POOL_LIMIT;
+                limit $poolLimit;
             """.trimIndent()
             val gamesBody = gamesQuery.toRequestBody("text/plain".toMediaTypeOrNull())
             val games = apiService.searchGames(gamesBody).map { it.toGame() }
