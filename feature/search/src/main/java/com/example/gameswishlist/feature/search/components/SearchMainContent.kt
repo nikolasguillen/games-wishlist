@@ -30,6 +30,7 @@ internal fun SearchMainContent(
         when (contentState) {
             is SearchContentState.Error -> ErrorPage(message = contentState.message)
             is SearchContentState.Discover -> DiscoverFeed(
+                hero = contentState.hero,
                 popular = contentState.popular,
                 upcoming = contentState.upcoming,
                 onGameClick = onGameClick,
@@ -67,6 +68,7 @@ private fun SearchMainContentPreview(contentState: SearchContentState) {
 private fun SearchMainContentDiscoverPreview() {
     SearchMainContentPreview(
         SearchContentState.Discover(
+            hero = GameItemUiModel.getDummy().copy(id = 3, name = "Hollow Knight: Silksong"),
             popular = listOf(GameItemUiModel.getDummy()),
             upcoming = listOf(GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077"))
         )

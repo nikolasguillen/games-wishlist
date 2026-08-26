@@ -69,7 +69,7 @@ private const val POPULARITY_POOL_LIMIT = 40
  * sized for the other lane starves "Most anticipated" down to a handful of survivors. IGDB's `limit`
  * caps at 500, so there is headroom to size this well above what actually needs to survive.
  */
-private const val POPULARITY_POOL_LIMIT_UPCOMING = 150
+private const val POPULARITY_POOL_LIMIT_UPCOMING = 300
 
 class GameRepositoryImpl @Inject constructor(
     private val apiService: IgdbApiService,

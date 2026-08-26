@@ -113,18 +113,22 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `the Discover feed loads into content state on init`() = runTest(testDispatcher) {
-        val popular = testGame(id = 1, name = "Cindergate")
-        val upcoming = testGame(id = 2, name = "Ashborne Reverie")
-        coEvery { getDiscoverFeedUseCase() } returns
-            AppResult.success(DiscoverFeed(popular = listOf(popular), upcoming = listOf(upcoming)))
+    fun `the Discover feed loads into content state on init, hero split from the upcoming shelf`() =
+        runTest(testDispatcher) {
+            val popular = testGame(id = 1, name = "Cindergate")
+            val topAnticipated = testGame(id = 2, name = "Ashborne Reverie")
+            val nextAnticipated = testGame(id = 3, name = "Nightglass")
+            coEvery { getDiscoverFeedUseCase() } returns AppResult.success(
+                DiscoverFeed(popular = listOf(popular), upcoming = listOf(topAnticipated, nextAnticipated))
+            )
 
-        val viewModel = createViewModel()
+            val viewModel = createViewModel()
 
-        val contentState = viewModel.uiState.value.contentState as SearchContentState.Discover
-        assertEquals(listOf(1), contentState.popular.map { it.id })
-        assertEquals(listOf(2), contentState.upcoming.map { it.id })
-    }
+            val contentState = viewModel.uiState.value.contentState as SearchContentState.Discover
+            assertEquals(listOf(1), contentState.popular.map { it.id })
+            assertEquals(2, contentState.hero?.id)
+            assertEquals(listOf(3), contentState.upcoming.map { it.id })
+        }
 
     @Test
     fun `a Discover feed failure maps to Error content`() = runTest(testDispatcher) {

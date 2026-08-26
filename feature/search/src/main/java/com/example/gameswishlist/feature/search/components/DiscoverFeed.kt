@@ -28,24 +28,24 @@ import com.example.gameswishlist.feature.search.R
  * The cold-start Discover feed: an editorial hero for the top anticipated pick, then "Most
  * anticipated" (the rest of it) and "Popular this month" per the design -- upcoming leads since
  * it is the one shelf a personalised feed would not already cover with saved-game recommendations.
- * Falls back to the placeholder when both lists come back empty rather than rendering nothing.
+ * Falls back to the placeholder when hero and both shelves come back empty rather than rendering
+ * nothing. [hero] and [upcoming] are already disjoint -- [toDiscoverContentState][
+ * com.example.gameswishlist.feature.search.mapper.toDiscoverContentState] does that split, this
+ * composable only renders what it is given.
  */
 @Composable
 internal fun DiscoverFeed(
+    hero: GameItemUiModel?,
     popular: List<GameItemUiModel>,
     upcoming: List<GameItemUiModel>,
     onGameClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
     state: LazyListState = rememberLazyListState()
 ) {
-    if (popular.isEmpty() && upcoming.isEmpty()) {
+    if (hero == null && popular.isEmpty() && upcoming.isEmpty()) {
         DiscoverPlaceholder(modifier = modifier)
         return
     }
-
-    // The top anticipated pick becomes the hero instead of also opening the shelf beneath it.
-    val hero = upcoming.firstOrNull()
-    val remainingUpcoming = upcoming.drop(1)
 
     LazyColumn(
         state = state,
@@ -62,11 +62,11 @@ internal fun DiscoverFeed(
                 )
             }
         }
-        if (remainingUpcoming.isNotEmpty()) {
+        if (upcoming.isNotEmpty()) {
             item {
                 DiscoverShelf(
                     title = stringResource(R.string.discover_most_anticipated),
-                    games = remainingUpcoming,
+                    games = upcoming,
                     onGameClick = onGameClick
                 )
             }
@@ -127,8 +127,9 @@ private val previewGames = listOf(
 private fun DiscoverFeedPreview() {
     GamesWishlistTheme {
         DiscoverFeed(
+            hero = previewGames.first(),
             popular = previewGames,
-            upcoming = previewGames,
+            upcoming = previewGames.drop(1),
             onGameClick = {}
         )
     }
@@ -139,6 +140,7 @@ private fun DiscoverFeedPreview() {
 private fun DiscoverFeedEmptyPreview() {
     GamesWishlistTheme {
         DiscoverFeed(
+            hero = null,
             popular = emptyList(),
             upcoming = emptyList(),
             onGameClick = {}

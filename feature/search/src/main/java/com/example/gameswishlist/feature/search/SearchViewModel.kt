@@ -23,6 +23,7 @@ import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.feature.search.mapper.getInitialGameTypeFilters
 import com.example.gameswishlist.feature.search.mapper.getInitialSortFilters
 import com.example.gameswishlist.feature.search.mapper.isSortActive
+import com.example.gameswishlist.feature.search.mapper.toDiscoverContentState
 import com.example.gameswishlist.feature.search.mapper.toGenreFilters
 import com.example.gameswishlist.feature.search.mapper.toPlatformFilters
 import com.example.gameswishlist.feature.search.mapper.toSuggestionUiModels
@@ -459,10 +460,7 @@ class SearchViewModel @Inject constructor(
             discoverContentState = SearchContentState.Loading
             _uiState.update { it.copy(contentState = SearchContentState.Loading) }
             getDiscoverFeedUseCase().onSuccess { feed ->
-                val newState = SearchContentState.Discover(
-                    popular = feed.popular.toGameItemList(),
-                    upcoming = feed.upcoming.toGameItemList()
-                )
+                val newState = feed.toDiscoverContentState()
                 discoverContentState = newState
                 _uiState.update { it.copy(contentState = newState) }
             }.onFailure { error ->

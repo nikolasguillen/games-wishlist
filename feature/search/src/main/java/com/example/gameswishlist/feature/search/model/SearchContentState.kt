@@ -9,7 +9,8 @@ import com.example.gameswishlist.core.ui.model.UiText
 internal sealed interface SearchContentState {
     data class Discover(
         val popular: List<GameItemUiModel>,
-        val upcoming: List<GameItemUiModel>
+        val upcoming: List<GameItemUiModel>,
+        val hero: GameItemUiModel? = null
     ) : SearchContentState
     data object Loading : SearchContentState
     data object Empty : SearchContentState
