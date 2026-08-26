@@ -2,6 +2,7 @@ package com.example.gameswishlist.feature.search
 
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
+import com.example.gameswishlist.core.domain.usecase.discover.GetDiscoverFeedUseCase
 import com.example.gameswishlist.core.domain.usecase.search.AddSearchToHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.ClearAllHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.ClearRecentGamesUseCase
@@ -11,6 +12,7 @@ import com.example.gameswishlist.core.domain.usecase.search.GetSearchSuggestions
 import com.example.gameswishlist.core.domain.usecase.search.RemoveRecentGameUseCase
 import com.example.gameswishlist.core.domain.usecase.search.SearchGamesUseCase
 import com.example.gameswishlist.core.model.AppResult
+import com.example.gameswishlist.core.model.DiscoverFeed
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.Platform
 import com.example.gameswishlist.core.model.RecentSearchActivity
@@ -61,6 +63,7 @@ class SearchViewModelTest {
     private val removeRecentGameUseCase = mockk<RemoveRecentGameUseCase>(relaxed = true)
     private val clearRecentGamesUseCase = mockk<ClearRecentGamesUseCase>(relaxed = true)
     private val getSearchSuggestionsUseCase = mockk<GetSearchSuggestionsUseCase>()
+    private val getDiscoverFeedUseCase = mockk<GetDiscoverFeedUseCase>()
 
     @Before
     fun setUp() {
@@ -68,6 +71,8 @@ class SearchViewModelTest {
         every { getRecentSearchActivityUseCase() } returns flowOf(RecentSearchActivity())
         coEvery { getSearchSuggestionsUseCase.getLocalSuggestions(any()) } returns emptyList()
         coEvery { getSearchSuggestionsUseCase.getRemoteSuggestions(any()) } returns emptyList()
+        coEvery { getDiscoverFeedUseCase() } returns
+            AppResult.success(DiscoverFeed(popular = emptyList(), upcoming = emptyList()))
     }
 
     @After
@@ -92,7 +97,8 @@ class SearchViewModelTest {
             clearAllHistoryUseCase = clearAllHistoryUseCase,
             removeRecentGameUseCase = removeRecentGameUseCase,
             clearRecentGamesUseCase = clearRecentGamesUseCase,
-            getSearchSuggestionsUseCase = getSearchSuggestionsUseCase
+            getSearchSuggestionsUseCase = getSearchSuggestionsUseCase,
+            getDiscoverFeedUseCase = getDiscoverFeedUseCase
         ).also { advanceUntilIdle() }
     }
 
@@ -103,6 +109,29 @@ class SearchViewModelTest {
     private fun SearchViewModel.setQuery(query: String) {
         textFieldState.setTextAndPlaceCursorAtEnd(query)
         Snapshot.sendApplyNotifications()
+    }
+
+    @Test
+    fun `the Discover feed loads into content state on init`() = runTest(testDispatcher) {
+        val popular = testGame(id = 1, name = "Cindergate")
+        val upcoming = testGame(id = 2, name = "Ashborne Reverie")
+        coEvery { getDiscoverFeedUseCase() } returns
+            AppResult.success(DiscoverFeed(popular = listOf(popular), upcoming = listOf(upcoming)))
+
+        val viewModel = createViewModel()
+
+        val contentState = viewModel.uiState.value.contentState as SearchContentState.Discover
+        assertEquals(listOf(1), contentState.popular.map { it.id })
+        assertEquals(listOf(2), contentState.upcoming.map { it.id })
+    }
+
+    @Test
+    fun `a Discover feed failure maps to Error content`() = runTest(testDispatcher) {
+        coEvery { getDiscoverFeedUseCase() } returns AppResult.failure(RepositoryError.NoNetwork)
+
+        val viewModel = createViewModel()
+
+        assertTrue(viewModel.uiState.value.contentState is SearchContentState.Error)
     }
 
     @Test

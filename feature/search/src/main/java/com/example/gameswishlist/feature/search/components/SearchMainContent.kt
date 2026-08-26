@@ -57,7 +57,12 @@ private fun SearchMainContentPreview(contentState: SearchContentState) {
 @Preview(showBackground = true)
 @Composable
 private fun SearchMainContentDiscoverPreview() {
-    SearchMainContentPreview(SearchContentState.Discover)
+    SearchMainContentPreview(
+        SearchContentState.Discover(
+            popular = listOf(GameItemUiModel.getDummy()),
+            upcoming = listOf(GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077"))
+        )
+    )
 }
 
 @Preview(showBackground = true)

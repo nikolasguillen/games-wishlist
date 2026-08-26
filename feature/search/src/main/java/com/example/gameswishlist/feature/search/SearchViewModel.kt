@@ -6,6 +6,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.common.calculateGameRelevanceScore
+import com.example.gameswishlist.core.domain.usecase.discover.GetDiscoverFeedUseCase
 import com.example.gameswishlist.core.domain.usecase.search.AddSearchToHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.ClearAllHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.ClearRecentGamesUseCase
@@ -68,7 +69,8 @@ class SearchViewModel @Inject constructor(
     private val clearAllHistoryUseCase: ClearAllHistoryUseCase,
     private val removeRecentGameUseCase: RemoveRecentGameUseCase,
     private val clearRecentGamesUseCase: ClearRecentGamesUseCase,
-    private val getSearchSuggestionsUseCase: GetSearchSuggestionsUseCase
+    private val getSearchSuggestionsUseCase: GetSearchSuggestionsUseCase,
+    private val getDiscoverFeedUseCase: GetDiscoverFeedUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -91,6 +93,7 @@ class SearchViewModel @Inject constructor(
     init {
         initSearchHistory()
         initSearchSuggestions()
+        loadDiscoverFeed()
     }
 
     internal fun onEvent(event: SearchUiEvent) {
@@ -432,6 +435,26 @@ class SearchViewModel @Inject constructor(
                             queries = activity.queries, games = activity.games.toGameItemList()
                         )
                     )
+                }
+            }
+        }
+    }
+
+    private fun loadDiscoverFeed() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(contentState = SearchContentState.Loading) }
+            getDiscoverFeedUseCase().onSuccess { feed ->
+                _uiState.update {
+                    it.copy(
+                        contentState = SearchContentState.Discover(
+                            popular = feed.popular.toGameItemList(),
+                            upcoming = feed.upcoming.toGameItemList()
+                        )
+                    )
+                }
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(contentState = SearchContentState.Error(message = error.toUiText()))
                 }
             }
         }

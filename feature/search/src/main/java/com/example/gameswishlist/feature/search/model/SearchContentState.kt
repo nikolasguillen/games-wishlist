@@ -7,7 +7,10 @@ import com.example.gameswishlist.core.ui.model.UiText
 
 @Immutable
 internal sealed interface SearchContentState {
-    data object Discover : SearchContentState
+    data class Discover(
+        val popular: List<GameItemUiModel>,
+        val upcoming: List<GameItemUiModel>
+    ) : SearchContentState
     data object Loading : SearchContentState
     data object Empty : SearchContentState
     data class Success(
