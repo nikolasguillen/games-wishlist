@@ -264,7 +264,7 @@ class OwnedPlatformsViewModelTest {
         }
 
     @Test
-    fun `a query drops the entry ordering and shows plain catalogue order`() = runTest {
+    fun `a query drops the entry pinning but keeps the catalogue ranking`() = runTest {
         every { getKnownPlatformsUseCase() } returns flowOf(catalogue)
         storedSelection.value = setOf(ps5.id)
 
@@ -276,8 +276,31 @@ class OwnedPlatformsViewModelTest {
         viewModel.setQuery("p")
         advanceUntilIdle()
 
+        // PS5 outranks PC in the curated order, so it leads even though PC sorts first by name.
         assertEquals(
-            listOf("PC (Microsoft Windows)", "PlayStation 5"),
+            listOf("PlayStation 5", "PC (Microsoft Windows)"),
+            states.lastSuccess().platforms.map { it.name }
+        )
+        job.cancel()
+    }
+
+    /**
+     * IGDB returns the catalogue in no useful order, and `generation` alone would bury PC and every
+     * headset at the bottom. The curated list is what keeps the head of the list recognisable.
+     */
+    @Test
+    fun `ranks curated platforms first and the rest newest hardware first`() = runTest {
+        val saturn = Platform(id = 32, name = "Sega Saturn", abbreviation = "Saturn", generation = 5)
+        val quest = Platform(id = 471, name = "Meta Quest 3", abbreviation = null, generation = null)
+        every { getKnownPlatformsUseCase() } returns flowOf(listOf(quest, saturn, ps5))
+
+        val viewModel = viewModel()
+        val states = mutableListOf<OwnedPlatformsUiState>()
+        val job = collectStates(viewModel, states)
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf("PlayStation 5", "Sega Saturn", "Meta Quest 3"),
             states.lastSuccess().platforms.map { it.name }
         )
         job.cancel()

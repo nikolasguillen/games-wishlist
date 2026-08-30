@@ -65,6 +65,14 @@ object PlatformVisuals {
         52 to Style(UiText.StringResource(R.string.platform_code_arcade), Color(0xFFFF9800))
     )
 
+    /**
+     * The platforms above, in curated order. It doubles as the project's relevance ranking: IGDB
+     * publishes no popularity signal for platforms — `popularity_primitives` is keyed by game — and the
+     * judgement behind "worth a recognisable tile" is the same one behind "worth showing first in a
+     * list of hundreds". Keeping it one list is what stops the two from drifting apart.
+     */
+    val curatedPlatformIds: List<Int> = KNOWN_PLATFORMS.keys.toList()
+
     fun styleFor(platform: Platform): Style {
         return KNOWN_PLATFORMS[platform.id] ?: Style(
             code = UiText.DynamicString((platform.abbreviation ?: platform.name).take(3).uppercase()),

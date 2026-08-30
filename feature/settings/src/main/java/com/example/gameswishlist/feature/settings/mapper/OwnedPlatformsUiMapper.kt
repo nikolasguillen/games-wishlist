@@ -1,8 +1,25 @@
 package com.example.gameswishlist.feature.settings.mapper
 
 import com.example.gameswishlist.core.model.Platform
+import com.example.gameswishlist.core.ui.util.PlatformVisuals
 import com.example.gameswishlist.feature.settings.model.OwnedPlatformsContentState
 import com.example.gameswishlist.feature.settings.model.PlatformUiModel
+
+private val CURATED_RANK: Map<Int, Int> =
+    PlatformVisuals.curatedPlatformIds.withIndex().associate { (index, id) -> id to index }
+
+/**
+ * Base order for the picker.
+ *
+ * The curated platforms come first in their curated order, then everything else newest hardware first.
+ * IGDB has no popularity metric for platforms, so `generation` is the closest proxy for the long tail —
+ * and a poor one on its own, because PC, mobile and headsets carry no generation at all and would sink
+ * to the bottom. That is exactly what the curated head is for.
+ */
+private val PLATFORM_ORDER: Comparator<Platform> =
+    compareBy<Platform> { CURATED_RANK[it.id] ?: Int.MAX_VALUE }
+        .thenByDescending { it.generation ?: 0 }
+        .thenBy { it.name }
 
 internal fun Platform.toUiModel(selectedIds: Set<Int>): PlatformUiModel {
     return PlatformUiModel(
@@ -35,12 +52,13 @@ internal fun List<Platform>.toContentState(
     val matches = if (query.isBlank()) this else filter { it.matches(query) }
     if (matches.isEmpty()) return OwnedPlatformsContentState.NoSearchResults
 
-    // Room already returns the catalogue sorted by name, so partitioning preserves that within groups.
+    // Partitioning is stable, so the ranking survives inside both halves.
+    val ranked = matches.sortedWith(PLATFORM_ORDER)
     val ordered = if (query.isBlank()) {
-        val (pinned, rest) = matches.partition { it.id in pinnedIds }
+        val (pinned, rest) = ranked.partition { it.id in pinnedIds }
         pinned + rest
     } else {
-        matches
+        ranked
     }
     return OwnedPlatformsContentState.Success(ordered.map { it.toUiModel(selectedIds) })
 }
