@@ -36,12 +36,21 @@ Bottom bar goes from 2 tabs to 3: Search · Radar · Lists.
 ## What the taste profile already gives you
 
 `core/domain/usecase/discover/` is built and tested: `GetTasteProfileUseCase` emits a `TasteProfile`
-(`:core:model`) of normalised genre and developer weights, and `GetOwnedPlatformsUseCase` /
-`SetOwnedPlatformsUseCase` / `GetKnownPlatformsUseCase` own the platform filter, with the user's
-explicit selection falling back to the platforms inferred from their saved games. `TasteProfile.isEmpty`
-is the cold-start signal. **The "My platforms" picker UI does not exist yet** — the storage and domain
-layer do, so the screen is all that is missing. The `SettingsRoute` shell and the profile icon that opens
-it are built — the picker's own content is what has to be filled in.
+(`:core:model`) of normalised genre and developer weights, and `GetSelectedPlatformIdsUseCase` /
+`GetSelectedPlatformsUseCase` / `SetOwnedPlatformsUseCase` / `GetKnownPlatformsUseCase` own the platform
+filter, which is the user's explicit selection and nothing else. `TasteProfile.isEmpty`
+is the cold-start signal. The "My platforms" picker is built end to end (`OwnedPlatformsRoute`, reached
+from the Settings hub) and `SyncPlatformCatalogUseCase` fills the local `platforms` table from IGDB's
+`/platforms` endpoint, so the picker offers the whole catalogue instead of only what the user's saved
+games happen to cover. The platform filter is therefore a real user-facing setting — **but nothing
+consumes it yet**: the Discover feed still fetches without a `where platforms = (...)` clause. Wiring the
+stored selection into the feed's apicalypse is part of the Phase 1 ranking work below.
+
+**Settings holds only what has a backend.** The screen groups its rows by theme, and the only groups
+that exist are the ones with data behind them. Notifications belong to Phase 3; a genre picker was
+considered and dropped, since the taste profile infers genres from saved games and the user does not
+edit them by hand; appearance has nothing to switch, because `:core:designsystem` is dark-only by
+design. Do not add a row before the thing it configures exists.
 
 ## Phase 1 — Discover feed in Search
 
@@ -58,6 +67,14 @@ recently viewed games — the feed lives in the body, behind it.
   the user cannot explain reads as a bug.
 - New API surface on `IgdbApiService`: same `@POST("games")` endpoint, different apicalypse bodies.
   Worth checking `popularity_primitives` for real hype signal instead of the raw `hypes` field.
+
+**An empty platform selection means no platform filter** — the feed must omit the
+`where platforms = (...)` clause entirely rather than substitute something. An earlier design filled the
+gap with the platforms carried by the user's saved games. That was removed: it filtered the feed on a
+rule the user could neither see nor explain, which is the opposite of the "every row states its reason"
+line above, and it did nothing for the brand-new user it was meant to help, whose library is empty too.
+Do not reintroduce a fallback here, and do not seed the selection behind the user's back either — the
+picker is one tap from every top-level screen and holds the whole IGDB catalogue.
 
 **Cache**: do not dump discovered games into the `games` table unqualified. That table already doubles as
 a cache with ownership flags (`isWishlisted`, `lastViewedAt`); mixing in feed results makes "the user's own
