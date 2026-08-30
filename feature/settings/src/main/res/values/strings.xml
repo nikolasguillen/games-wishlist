@@ -1,4 +1,21 @@
 <resources>
     <string name="settings_title">Settings</string>
-    <string name="settings_placeholder_message">Nothing here yet.</string>
+
+    <string name="settings_group_game_profile">My game profile</string>
+    <string name="settings_group_app">App</string>
+
+    <string name="settings_owned_platforms">Owned platforms</string>
+    <string name="settings_owned_platforms_all">All platforms</string>
+    <string name="settings_about">About</string>
+
+    <string name="owned_platforms_title">Owned platforms</string>
+    <string name="owned_platforms_no_filter">Nothing selected — recommendations and release dates are not filtered by platform.</string>
+    <plurals name="owned_platforms_filtering">
+        <item quantity="one">Recommendations and release dates are filtered to this platform.</item>
+        <item quantity="other">Recommendations and release dates are filtered to these %1$d platforms.</item>
+    </plurals>
+    <string name="owned_platforms_search_hint">Search platforms</string>
+    <string name="owned_platforms_search_clear_content_description">Clear search</string>
+    <string name="owned_platforms_no_results">No platform matches your search.</string>
+    <string name="owned_platforms_empty">No platforms cached yet. Check your connection and reopen this screen.</string>
 </resources>

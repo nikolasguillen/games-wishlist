@@ -42,6 +42,7 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.navigation.GameDetailRoute
 import com.example.gameswishlist.core.navigation.ListsRoute
+import com.example.gameswishlist.core.navigation.OwnedPlatformsRoute
 import com.example.gameswishlist.core.navigation.SearchRoute
 import com.example.gameswishlist.core.navigation.SettingsRoute
 import com.example.gameswishlist.core.navigation.WishlistRoute
@@ -51,7 +52,10 @@ import com.example.gameswishlist.feature.lists.ListsScreen
 import com.example.gameswishlist.feature.lists.ListsViewModel
 import com.example.gameswishlist.feature.search.SearchScreen
 import com.example.gameswishlist.feature.search.SearchViewModel
+import com.example.gameswishlist.feature.settings.OwnedPlatformsScreen
+import com.example.gameswishlist.feature.settings.OwnedPlatformsViewModel
 import com.example.gameswishlist.feature.settings.SettingsScreen
+import com.example.gameswishlist.feature.settings.SettingsViewModel
 import com.example.gameswishlist.feature.wishlist.WishlistScreen
 import com.example.gameswishlist.feature.wishlist.WishlistViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -182,7 +186,25 @@ fun MainContent() {
                     }
 
                     is SettingsRoute -> NavEntry(key) {
+                        val vm = hiltViewModel<SettingsViewModel>()
                         SettingsScreen(
+                            viewModel = vm,
+                            onBackClick = { backStack.removeLastOrNull() },
+                            onOwnedPlatformsClick = {
+                                if (backStack.lastOrNull() != OwnedPlatformsRoute) {
+                                    backStack.add(OwnedPlatformsRoute)
+                                }
+                            },
+                            modifier = Modifier
+                                .padding(innerPadding)
+                                .consumeWindowInsets(innerPadding)
+                        )
+                    }
+
+                    is OwnedPlatformsRoute -> NavEntry(key) {
+                        val vm = hiltViewModel<OwnedPlatformsViewModel>()
+                        OwnedPlatformsScreen(
+                            viewModel = vm,
                             onBackClick = { backStack.removeLastOrNull() },
                             modifier = Modifier
                                 .padding(innerPadding)
