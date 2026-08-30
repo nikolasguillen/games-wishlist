@@ -43,13 +43,18 @@ interface GameRepository {
      * [getWishlistedGames], which is the default list only.
      */
     fun getSavedGames(): Flow<List<Game>>
-    /** Every platform the app has cached so far — not the full IGDB catalogue. */
+    /** Every platform the app has cached, catalogue included once [syncPlatformCatalog] has run. */
     fun getKnownPlatforms(): Flow<List<Platform>>
-    /** The platforms carried by the user's saved games; the default when no override is set. */
-    fun getInferredPlatforms(): Flow<List<Platform>>
-    /** The user's explicit selection. Emits an empty set when they never made one. */
+
+    /**
+     * Fetches IGDB's platform catalogue and caches it, so the picker offers more than the platforms
+     * the user's saved games happen to cover. Rows are written page by page, so a failure part-way
+     * leaves what already landed rather than rolling back to nothing.
+     */
+    suspend fun syncPlatformCatalog(): AppResult<Unit>
+    /** The platforms the user picked. Empty means no platform filter, not "unknown". */
     fun getOwnedPlatformIds(): Flow<Set<Int>>
-    /** Replaces the selection wholesale; an empty [platformIds] clears the override. */
+    /** Replaces the selection wholesale; an empty [platformIds] turns the filter off. */
     suspend fun setOwnedPlatforms(platformIds: Set<Int>)
 
     fun getAllLists(): Flow<List<WishlistList>>

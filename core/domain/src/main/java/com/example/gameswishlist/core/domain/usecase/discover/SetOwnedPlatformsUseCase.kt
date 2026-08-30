@@ -13,8 +13,8 @@ class SetOwnedPlatformsUseCase @Inject constructor(
     private val repository: GameRepository
 ) {
     /**
-     * @param platformIds The platforms the user owns. Passing an empty set clears the override and
-     * hands the decision back to [GetOwnedPlatformsUseCase]'s inferred default.
+     * @param platformIds The platforms the user owns. An empty set is a valid choice meaning "do not
+     * filter by platform", and is stored as such rather than treated as no choice at all.
      */
     suspend operator fun invoke(platformIds: Set<Int>) {
         repository.setOwnedPlatforms(platformIds)

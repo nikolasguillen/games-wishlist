@@ -8,8 +8,10 @@ import javax.inject.Inject
 /**
  * Use case to list the platforms the "My platforms" picker can offer.
  *
- * The local `platforms` table is filled as a side effect of saving games, so this grows with use and
- * is not the full IGDB catalogue — a user who saved nothing has nothing to pick from.
+ * The local `platforms` table is filled from two sides: saving a game writes the platforms it runs on,
+ * and [SyncPlatformCatalogUseCase] writes IGDB's catalogue. It is therefore only as complete as the
+ * last sync — it is never empty for a user who has saved games, and empty for a new user only until
+ * the first sync lands.
  */
 class GetKnownPlatformsUseCase @Inject constructor(
     private val repository: GameRepository

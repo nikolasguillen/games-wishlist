@@ -71,6 +71,13 @@ private const val POPULARITY_POOL_LIMIT = 40
  */
 private const val POPULARITY_POOL_LIMIT_UPCOMING = 300
 
+/**
+ * Page size for the platform catalogue sync. 500 is IGDB's hard `limit` cap, so the loop pages with
+ * `offset` rather than assuming the catalogue fits in one response — it grows with every new console,
+ * and a silent truncation would show up as platforms simply missing from the picker.
+ */
+private const val PLATFORM_PAGE_LIMIT = 500
+
 class GameRepositoryImpl @Inject constructor(
     private val apiService: IgdbApiService,
     private val gameDao: GameDao,
@@ -299,9 +306,27 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getInferredPlatforms(): Flow<List<Platform>> {
-        return platformDao.getInferredPlatforms().map { entities ->
-            entities.map { it.toPlatform() }
+    override suspend fun syncPlatformCatalog(): AppResult<Unit> {
+        return try {
+            var offset = 0
+            while (true) {
+                val queryText = """
+                    fields name, abbreviation, generation, category, platform_family;
+                    sort id asc;
+                    limit $PLATFORM_PAGE_LIMIT;
+                    offset $offset;
+                """.trimIndent()
+                val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+                val page = apiService.getPlatforms(body)
+                if (page.isEmpty()) break
+
+                platformDao.insertPlatforms(page.map { it.toPlatform().toEntity() })
+                if (page.size < PLATFORM_PAGE_LIMIT) break
+                offset += PLATFORM_PAGE_LIMIT
+            }
+            AppResult.success(Unit)
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
         }
     }
 

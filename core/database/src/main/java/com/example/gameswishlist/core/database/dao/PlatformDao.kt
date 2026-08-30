@@ -12,20 +12,19 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface PlatformDao {
     /**
-     * Every platform the app has seen so far. The `platforms` table is only populated as a side
-     * effect of saving a game, so this is not the full IGDB catalogue.
+     * Every platform the app has cached. The table is filled from two sides: saving a game writes the
+     * platforms it runs on, and [insertPlatforms] writes IGDB's catalogue wholesale.
      */
     @Query("SELECT * FROM platforms ORDER BY name")
     fun getKnownPlatforms(): Flow<List<PlatformEntity>>
 
-    /** Platforms carried by the games the user put in a list — the default when nothing is chosen. */
-    @Query(
-        "SELECT DISTINCT platforms.* FROM platforms " +
-                "INNER JOIN game_platform_cross_ref ON platforms.id = game_platform_cross_ref.platformId " +
-                "INNER JOIN game_list_cross_ref ON game_platform_cross_ref.gameId = game_list_cross_ref.gameId " +
-                "ORDER BY platforms.name"
-    )
-    fun getInferredPlatforms(): Flow<List<PlatformEntity>>
+    /**
+     * Writes a page of IGDB's platform catalogue. `REPLACE` refreshes rows a saved game had already
+     * inserted; it cannot take their cross-refs down with them, because `game_platform_cross_ref`
+     * declares no foreign key onto this table.
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPlatforms(platforms: List<PlatformEntity>)
 
     @Query("SELECT platformId FROM owned_platforms")
     fun observeOwnedPlatformIds(): Flow<List<Int>>
@@ -39,8 +38,8 @@ interface PlatformDao {
     /**
      * Replaces the whole selection. The rows are keyed by platform, not by a stable id of their own,
      * so a deselected platform has to be deleted rather than overwritten — a REPLACE insert alone
-     * would leave it behind. Passing an empty [platformIds] clears the override and falls back to
-     * [getInferredPlatforms].
+     * would leave it behind. An empty [platformIds] is a valid selection meaning "no platform filter",
+     * not a missing one.
      */
     @Transaction
     suspend fun setOwnedPlatforms(platformIds: Set<Int>) {
