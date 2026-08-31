@@ -46,11 +46,16 @@ games happen to cover. `GetDiscoverFeedUseCase` reads the selection and narrows 
 it, so the setting is live. It also reads `GetTasteProfileUseCase` to build the personalised shelf, so
 every use case in `usecase/discover/` now has a consumer.
 
-**The feed reads the selection once per load, it does not observe it.** Change the picker and come back
-to a Search screen whose ViewModel survived, and the shelves are still the old ones until something
-re-triggers `loadDiscoverFeed()`. Making the feed a `Flow` was rejected for now: the ViewModel's
-cancel-on-search / restore-on-clear logic is built around a suspend one-shot and the race it guards is
-covered by tests written against that shape. Revisit when the ranking work reopens the same code.
+**The feed observes the selection**: `GetDiscoverFeedUseCase` returns a `Flow` keyed on the picked
+platforms and re-fetches when they change, so the shelves follow the setting without waiting for a new
+process. The taste profile is deliberately not observed the same way — it is derived from the saved
+games, which change on every status, priority or list edit, and refetching five calls on each of those
+costs far more than the shelf is worth.
+
+`SearchViewModel` collects that flow for its whole life and gates the *display* instead of cancelling
+the collection. The race it guards against — a committed search and a slower feed fetch both landing in
+`contentState` — is a write conflict, not a fetch conflict, so a boolean is enough. Cancelling, the
+previous fix, also blinded the feed to platform changes made mid-search and forced a re-fetch on clear.
 
 **Settings holds only what has a backend.** The screen groups its rows by theme, and the only groups
 that exist are the ones with data behind them. Notifications belong to Phase 3; a genre picker was

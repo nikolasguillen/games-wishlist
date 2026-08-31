@@ -39,7 +39,6 @@ import com.example.gameswishlist.feature.search.model.SortBottomSheetState
 import com.example.gameswishlist.feature.search.model.SortingUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -92,18 +91,20 @@ class SearchViewModel @Inject constructor(
     // for the exact text that's already typed).
     private val suggestionsResetTrigger = MutableSharedFlow<String>(extraBufferCapacity = 1)
 
-    // Cancelled by performSearch: the cold-start Discover fetch and a triggered search both
-    // resolve into contentState, and without this the slower of the two clobbers the other.
-    private var discoverFeedJob: Job? = null
-
-    // The last state the Discover fetch resolved into, kept outside contentState so a committed
+    // The last state the Discover feed resolved into, kept outside contentState so a committed
     // search can overwrite contentState without losing what to restore on OnClearSearch.
     private var discoverContentState: SearchContentState = SearchContentState.Loading
+
+    // Whether contentState currently belongs to the feed. The feed observes the platform selection
+    // for as long as the ViewModel lives, so it can resolve while a search is on screen; this is what
+    // stops it writing over those results. Cancelling the collection instead -- the previous fix for
+    // the same race -- would also stop it noticing a platform change made mid-search.
+    private var isShowingDiscover: Boolean = true
 
     init {
         initSearchHistory()
         initSearchSuggestions()
-        loadDiscoverFeed()
+        observeDiscoverFeed()
     }
 
     internal fun onEvent(event: SearchUiEvent) {
@@ -403,7 +404,7 @@ class SearchViewModel @Inject constructor(
 
     private fun performSearch(query: String) {
         if (query.isBlank()) return
-        discoverFeedJob?.cancel()
+        isShowingDiscover = false
         _uiState.update { it.copy(suggestions = SearchSuggestionsUiModel()) }
         suggestionsResetTrigger.tryEmit("")
 
@@ -455,37 +456,48 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    private fun loadDiscoverFeed() {
-        discoverFeedJob = viewModelScope.launch {
-            discoverContentState = SearchContentState.Loading
-            _uiState.update { it.copy(contentState = SearchContentState.Loading) }
-            getDiscoverFeedUseCase().onSuccess { feed ->
-                val newState = feed.toDiscoverContentState()
-                discoverContentState = newState
-                _uiState.update { it.copy(contentState = newState) }
-            }.onFailure { error ->
-                val newState = SearchContentState.Error(message = error.toUiText())
-                discoverContentState = newState
-                _uiState.update { it.copy(contentState = newState) }
+    /**
+     * Collects the feed for the whole life of the ViewModel: the use case re-emits whenever the user
+     * changes their platform selection, so this keeps [discoverContentState] current even while a
+     * search is on screen.
+     *
+     * Only the first fetch shows a spinner. A later one is triggered by the user having just changed a
+     * setting, and leaving the previous feed up until the new one lands reads better than blanking a
+     * screen they were already looking at.
+     */
+    private fun observeDiscoverFeed() {
+        viewModelScope.launch {
+            setDiscoverState(SearchContentState.Loading)
+            getDiscoverFeedUseCase().collect { result ->
+                result.onSuccess { feed ->
+                    setDiscoverState(feed.toDiscoverContentState())
+                }.onFailure { error ->
+                    setDiscoverState(SearchContentState.Error(message = error.toUiText()))
+                }
             }
         }
     }
 
+    /** Caches what the feed resolved into, and shows it only if a search is not holding the screen. */
+    private fun setDiscoverState(state: SearchContentState) {
+        discoverContentState = state
+        if (isShowingDiscover) {
+            _uiState.update { it.copy(contentState = state) }
+        }
+    }
+
     /**
-     * Restores the feed instead of re-fetching it, unless the fetch was cancelled mid-flight by a
-     * search committed before it resolved -- there is nothing cached to restore in that case, so a
-     * fetch is the only option.
+     * Restores the feed from memory rather than re-fetching it. The collection was never interrupted
+     * by the search, so whatever it holds is as current as the platform selection.
      */
     private fun clearSearch() {
         textFieldState.edit { replace(0, length, "") }
+        isShowingDiscover = true
         _uiState.update {
             it.copy(
                 suggestions = SearchSuggestionsUiModel(),
                 contentState = discoverContentState
             )
-        }
-        if (discoverContentState is SearchContentState.Loading) {
-            loadDiscoverFeed()
         }
     }
 

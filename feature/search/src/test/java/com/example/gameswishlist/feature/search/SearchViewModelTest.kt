@@ -29,9 +29,12 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -47,9 +50,12 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * [SearchGamesUseCase] and friends are one-shot suspend calls, so unlike
- * [com.example.gameswishlist.feature.gamedetail.GameDetailViewModel] there's no reactive Flow
- * from a repository to mock: state transitions are driven directly by mocked use case results.
+ * [SearchGamesUseCase] and friends are one-shot suspend calls, so most state transitions here are
+ * driven directly by mocked use case results rather than by a repository Flow.
+ *
+ * [GetDiscoverFeedUseCase] is the exception: it returns a Flow that re-emits whenever the user changes
+ * their platform selection, so the tests that care about the feed mock it with a `MutableStateFlow` and
+ * push a second emission to stand in for that change.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModelTest {
@@ -72,8 +78,9 @@ class SearchViewModelTest {
         every { getRecentSearchActivityUseCase() } returns flowOf(RecentSearchActivity())
         coEvery { getSearchSuggestionsUseCase.getLocalSuggestions(any()) } returns emptyList()
         coEvery { getSearchSuggestionsUseCase.getRemoteSuggestions(any()) } returns emptyList()
-        coEvery { getDiscoverFeedUseCase() } returns
+        every { getDiscoverFeedUseCase() } returns flowOf(
             AppResult.success(DiscoverFeed(popular = emptyList(), upcoming = emptyList()))
+        )
     }
 
     @After
@@ -118,8 +125,13 @@ class SearchViewModelTest {
             val popular = testGame(id = 1, name = "Cindergate")
             val topAnticipated = testGame(id = 2, name = "Ashborne Reverie")
             val nextAnticipated = testGame(id = 3, name = "Nightglass")
-            coEvery { getDiscoverFeedUseCase() } returns AppResult.success(
-                DiscoverFeed(popular = listOf(popular), upcoming = listOf(topAnticipated, nextAnticipated))
+            every { getDiscoverFeedUseCase() } returns flowOf(
+                AppResult.success(
+                    DiscoverFeed(
+                        popular = listOf(popular),
+                        upcoming = listOf(topAnticipated, nextAnticipated)
+                    )
+                )
             )
 
             val viewModel = createViewModel()
@@ -132,11 +144,29 @@ class SearchViewModelTest {
 
     @Test
     fun `a Discover feed failure maps to Error content`() = runTest(testDispatcher) {
-        coEvery { getDiscoverFeedUseCase() } returns AppResult.failure(RepositoryError.NoNetwork)
+        every { getDiscoverFeedUseCase() } returns flowOf(AppResult.failure(RepositoryError.NoNetwork))
 
         val viewModel = createViewModel()
 
         assertTrue(viewModel.uiState.value.contentState is SearchContentState.Error)
+    }
+
+    @Test
+    fun `a later feed emission refreshes the screen while Discover is showing`() = runTest(testDispatcher) {
+        // What the platform picker looks like from here: the use case re-emits, the screen follows.
+        val feed = MutableStateFlow(
+            AppResult.success(DiscoverFeed(popular = listOf(testGame(id = 1)), upcoming = emptyList()))
+        )
+        every { getDiscoverFeedUseCase() } returns feed
+        val viewModel = createViewModel()
+
+        feed.value = AppResult.success(
+            DiscoverFeed(popular = listOf(testGame(id = 5)), upcoming = emptyList())
+        )
+        advanceUntilIdle()
+
+        val contentState = viewModel.uiState.value.contentState as SearchContentState.Discover
+        assertEquals(listOf(5), contentState.popular.map { it.id })
     }
 
     @Test
@@ -188,7 +218,7 @@ class SearchViewModelTest {
     fun `a search committed before the Discover fetch resolves cannot be clobbered by it later`() =
         runTest(testDispatcher) {
             val discoverDeferred = CompletableDeferred<AppResult<DiscoverFeed>>()
-            coEvery { getDiscoverFeedUseCase() } coAnswers { discoverDeferred.await() }
+            every { getDiscoverFeedUseCase() } returns flow { emit(discoverDeferred.await()) }
             coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
                 SearchResult(games = listOf(testGame(id = 1)), platforms = emptyList(), genres = emptyList())
             )
@@ -198,10 +228,11 @@ class SearchViewModelTest {
             advanceUntilIdle()
             assertTrue(viewModel.uiState.value.contentState is SearchContentState.Success)
 
-            // Resolves after the search already landed. Without cancelling the Discover job in
-            // performSearch, this onSuccess callback would overwrite contentState back to Discover.
+            // Resolves after the search already landed. The feed collection is deliberately still
+            // running -- it has to be, to keep noticing platform changes -- so what keeps it from
+            // overwriting contentState is the display gate, not cancellation.
             discoverDeferred.complete(
-                AppResult.success(DiscoverFeed(popular = emptyList(), upcoming = emptyList()))
+                AppResult.success(DiscoverFeed(popular = listOf(testGame(id = 9)), upcoming = emptyList()))
             )
             advanceUntilIdle()
 
@@ -211,8 +242,9 @@ class SearchViewModelTest {
     @Test
     fun `OnClearSearch restores the cached Discover feed without re-fetching`() = runTest(testDispatcher) {
         val popular = testGame(id = 1, name = "Cindergate")
-        coEvery { getDiscoverFeedUseCase() } returns
+        every { getDiscoverFeedUseCase() } returns flowOf(
             AppResult.success(DiscoverFeed(popular = listOf(popular), upcoming = emptyList()))
+        )
         coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
             SearchResult(games = listOf(testGame(id = 2)), platforms = emptyList(), genres = emptyList())
         )
@@ -226,37 +258,35 @@ class SearchViewModelTest {
         val contentState = viewModel.uiState.value.contentState as SearchContentState.Discover
         assertEquals(listOf(1), contentState.popular.map { it.id })
         assertEquals("", viewModel.textFieldState.text.toString())
-        coVerify(exactly = 1) { getDiscoverFeedUseCase() }
+        verify(exactly = 1) { getDiscoverFeedUseCase() }
     }
 
     @Test
-    fun `OnClearSearch re-fetches when the Discover feed was cancelled before it ever resolved`() =
+    fun `a feed that lands while a search is on screen is cached and shown on clear`() =
         runTest(testDispatcher) {
+            val discoverDeferred = CompletableDeferred<AppResult<DiscoverFeed>>()
+            every { getDiscoverFeedUseCase() } returns flow { emit(discoverDeferred.await()) }
             coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
                 SearchResult(games = listOf(testGame(id = 2)), platforms = emptyList(), genres = emptyList())
             )
-            val viewModel = SearchViewModel(
-                searchGamesUseCase = searchGamesUseCase,
-                addSearchToHistoryUseCase = addSearchToHistoryUseCase,
-                getRecentSearchActivityUseCase = getRecentSearchActivityUseCase,
-                deleteSearchHistoryItemUseCase = deleteSearchHistoryItemUseCase,
-                clearAllHistoryUseCase = clearAllHistoryUseCase,
-                removeRecentGameUseCase = removeRecentGameUseCase,
-                clearRecentGamesUseCase = clearRecentGamesUseCase,
-                getSearchSuggestionsUseCase = getSearchSuggestionsUseCase,
-                getDiscoverFeedUseCase = getDiscoverFeedUseCase
-            )
-            // Search fires before the cold-start Discover fetch (still suspended on the dispatcher
-            // queue) ever resolves, cancelling it while discoverContentState is still Loading.
+            val viewModel = createViewModel()
+            // The search commits before the feed has resolved, so the feed lands with the results on
+            // screen. It used to be cancelled at this point and had to be re-fetched on clear.
             viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
             advanceUntilIdle()
             assertTrue(viewModel.uiState.value.contentState is SearchContentState.Success)
 
+            discoverDeferred.complete(
+                AppResult.success(DiscoverFeed(popular = listOf(testGame(id = 7)), upcoming = emptyList()))
+            )
+            advanceUntilIdle()
+
             viewModel.onEvent(SearchUiEvent.OnClearSearch)
             advanceUntilIdle()
 
-            assertTrue(viewModel.uiState.value.contentState is SearchContentState.Discover)
-            coVerify(exactly = 1) { getDiscoverFeedUseCase() }
+            val restored = viewModel.uiState.value.contentState as SearchContentState.Discover
+            assertEquals(listOf(7), restored.popular.map { it.id })
+            verify(exactly = 1) { getDiscoverFeedUseCase() }
         }
 
     @Test

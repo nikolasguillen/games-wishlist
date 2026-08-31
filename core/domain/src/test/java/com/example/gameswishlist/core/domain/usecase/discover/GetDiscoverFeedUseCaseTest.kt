@@ -11,7 +11,13 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -65,7 +71,7 @@ class GetDiscoverFeedUseCaseTest {
 
     @Test
     fun `combines both shelves when both sources succeed`() = runTest {
-        val result = useCase()
+        val result = useCase().first()
 
         assertEquals(
             AppResult.success(DiscoverFeed(popular = listOf(PLAYING), upcoming = listOf(ANTICIPATED))),
@@ -77,14 +83,14 @@ class GetDiscoverFeedUseCaseTest {
     fun `fails the feed when the popular source fails`() = runTest {
         coEvery { repository.getPopularGames(any()) } returns AppResult.failure(RepositoryError.NoNetwork)
 
-        assertEquals(AppResult.failure(RepositoryError.NoNetwork), useCase())
+        assertEquals(AppResult.failure(RepositoryError.NoNetwork), useCase().first())
     }
 
     @Test
     fun `fails the feed when the upcoming source fails`() = runTest {
         coEvery { repository.getUpcomingGames(any()) } returns AppResult.failure(RepositoryError.NoNetwork)
 
-        assertEquals(AppResult.failure(RepositoryError.NoNetwork), useCase())
+        assertEquals(AppResult.failure(RepositoryError.NoNetwork), useCase().first())
     }
 
     @Test
@@ -95,7 +101,7 @@ class GetDiscoverFeedUseCaseTest {
         coEvery { repository.getGamesByGenre(any(), any()) } returns
             AppResult.success((10..20).map { rpgGame(it) })
 
-        useCase()
+        useCase().first()
 
         coVerify { repository.getPopularGames(selection) }
         coVerify { repository.getUpcomingGames(selection) }
@@ -108,7 +114,7 @@ class GetDiscoverFeedUseCaseTest {
         coEvery { repository.getGamesByGenre(RPG.id, any()) } returns
             AppResult.success((10..20).map { rpgGame(it) })
 
-        val shelf = feedOrNull(useCase())?.recommended
+        val shelf = feedOrNull(useCase().first())?.recommended
 
         assertEquals(RPG, shelf?.genre)
         assertEquals((10..20).toList(), shelf?.games?.map { it.id })
@@ -125,7 +131,7 @@ class GetDiscoverFeedUseCaseTest {
             listOf(twoVotesPerfect, wellRatedNiche, establishedGreat, popularButMediocre)
         )
 
-        val shelf = feedOrNull(useCase())?.recommended
+        val shelf = feedOrNull(useCase().first())?.recommended
 
         // The two-vote 100 is pushed below the scores people actually voted on, but it is still on the
         // shelf and still ahead of a mediocre game -- a hard rating-count floor would have dropped it,
@@ -134,12 +140,46 @@ class GetDiscoverFeedUseCaseTest {
     }
 
     @Test
+    fun `re-emits the whole feed when the user changes their platform selection`() = runTest {
+        val selection = MutableStateFlow(setOf(48))
+        every { getSelectedPlatformIds() } returns selection
+        val feeds = mutableListOf<AppResult<DiscoverFeed>>()
+        val collection = launch(UnconfinedTestDispatcher(testScheduler)) { useCase().toList(feeds) }
+        advanceUntilIdle()
+
+        selection.value = setOf(130)
+        advanceUntilIdle()
+        collection.cancel()
+
+        assertEquals(2, feeds.size)
+        coVerify { repository.getPopularGames(setOf(48)) }
+        coVerify { repository.getPopularGames(setOf(130)) }
+    }
+
+    @Test
+    fun `does not refetch when the selection is re-emitted unchanged`() = runTest {
+        // Room re-emits on any write to the table, including ones that left the selection alone.
+        val selection = MutableStateFlow(setOf(48))
+        every { getSelectedPlatformIds() } returns selection
+        val feeds = mutableListOf<AppResult<DiscoverFeed>>()
+        val collection = launch(UnconfinedTestDispatcher(testScheduler)) { useCase().toList(feeds) }
+        advanceUntilIdle()
+
+        selection.value = setOf(48)
+        advanceUntilIdle()
+        collection.cancel()
+
+        assertEquals(1, feeds.size)
+        coVerify(exactly = 1) { repository.getPopularGames(any()) }
+    }
+
+    @Test
     fun `never recommends a genre the user has dropped`() = runTest {
         // Only SHOOTER has a weight, and it is negative: a rejection is not a recommendation.
         every { getTasteProfile() } returns
             flowOf(TasteProfile(genreWeights = mapOf(SHOOTER.id to -1.0), sampleSize = TRUSTED_SAMPLE_SIZE))
 
-        assertNull(feedOrNull(useCase())?.recommended)
+        assertNull(feedOrNull(useCase().first())?.recommended)
         coVerify(exactly = 0) { repository.getGamesByGenre(any(), any()) }
     }
 
@@ -147,7 +187,7 @@ class GetDiscoverFeedUseCaseTest {
     fun `skips the personalised shelf when the library is too small to trust`() = runTest {
         every { getTasteProfile() } returns flowOf(rpgProfile(sampleSize = 2))
 
-        assertNull(feedOrNull(useCase())?.recommended)
+        assertNull(feedOrNull(useCase().first())?.recommended)
         coVerify(exactly = 0) { repository.getGamesByGenre(any(), any()) }
     }
 
@@ -160,7 +200,7 @@ class GetDiscoverFeedUseCaseTest {
         coEvery { repository.getGamesByGenre(RPG.id, any()) } returns
             AppResult.success((10..20).map { rpgGame(it) })
 
-        val shelf = feedOrNull(useCase())?.recommended
+        val shelf = feedOrNull(useCase().first())?.recommended
 
         assertEquals((13..20).toList(), shelf?.games?.map { it.id })
     }
@@ -171,7 +211,7 @@ class GetDiscoverFeedUseCaseTest {
         coEvery { repository.getGamesByGenre(RPG.id, any()) } returns
             AppResult.success(listOf(rpgGame(10), rpgGame(11)))
 
-        assertNull(feedOrNull(useCase())?.recommended)
+        assertNull(feedOrNull(useCase().first())?.recommended)
     }
 
     @Test
@@ -180,7 +220,7 @@ class GetDiscoverFeedUseCaseTest {
         coEvery { repository.getGamesByGenre(RPG.id, any()) } returns
             AppResult.failure(RepositoryError.NoNetwork)
 
-        val feed = feedOrNull(useCase())
+        val feed = feedOrNull(useCase().first())
 
         assertNull(feed?.recommended)
         assertEquals(listOf(PLAYING), feed?.popular)

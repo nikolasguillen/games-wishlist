@@ -6,9 +6,13 @@ import com.example.gameswishlist.core.model.DiscoverFeed
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.RecommendedShelf
 import com.example.gameswishlist.core.model.TasteProfile
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.mapLatest
 import javax.inject.Inject
 
 /**
@@ -57,16 +61,32 @@ private const val NEUTRAL_RATING = 75.0
  * whole feed. The personalised shelf is the exception: it is additive, so a failure there degrades to no
  * shelf and leaves a complete generic feed rather than blanking the screen.
  *
- * Everything is narrowed to the platforms the user picked in Settings, read once per load rather than
- * observed: the feed is a snapshot the caller re-requests, not a live query.
+ * Everything is narrowed to the platforms the user picked in Settings, and the feed re-emits whenever
+ * that selection changes — the picker is one tap from this screen, so a feed that ignored it until the
+ * next process start would make the setting look broken.
+ *
+ * The taste profile is deliberately *not* observed the same way. It is derived from the saved games,
+ * which change every time the user touches a status, a priority or a list, and re-running five network
+ * calls on each of those would be far more traffic than the shelf is worth. It is read per fetch
+ * instead, so it is always current as of the last load.
  */
 class GetDiscoverFeedUseCase @Inject constructor(
     private val repository: GameRepository,
     private val getSelectedPlatformIds: GetSelectedPlatformIdsUseCase,
     private val getTasteProfile: GetTasteProfileUseCase
 ) {
-    suspend operator fun invoke(): AppResult<DiscoverFeed> = coroutineScope {
-        val platformIds = getSelectedPlatformIds().first()
+    /**
+     * @return the feed for the current platform selection, re-emitting on every change to it. A
+     * selection changed mid-fetch cancels that fetch: its result describes platforms the user has
+     * already moved on from.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    operator fun invoke(): Flow<AppResult<DiscoverFeed>> =
+        getSelectedPlatformIds()
+            .distinctUntilChanged()
+            .mapLatest { platformIds -> loadFeed(platformIds) }
+
+    private suspend fun loadFeed(platformIds: Set<Int>): AppResult<DiscoverFeed> = coroutineScope {
         val profile = getTasteProfile().first()
 
         val popular = async { repository.getPopularGames(platformIds) }
