@@ -122,6 +122,30 @@ class GameRepositoryImplPopularGamesTest {
     }
 
     @Test
+    fun `getGamesByGenre filters on the genre and floors the rating count`() = runTest {
+        val body = slot<RequestBody>()
+        coEvery { apiService.searchGames(capture(body)) } returns listOf(igdbGame(1))
+
+        repository.getGamesByGenre(genreId = 12, platformIds = setOf(48))
+
+        val query = body.captured.asText()
+        assertTrue(query.contains("genres = (12)"))
+        assertTrue(query.contains("platforms = (48)"))
+        // Without the floor, `sort total_rating desc` hands the shelf to single-review curiosities.
+        assertTrue(query.contains("total_rating_count >="))
+        assertTrue(query.contains("sort total_rating desc"))
+    }
+
+    @Test
+    fun `getGamesByGenre needs no ranking call of its own`() = runTest {
+        coEvery { apiService.searchGames(any<RequestBody>()) } returns listOf(igdbGame(1))
+
+        repository.getGamesByGenre(genreId = 12, platformIds = emptySet())
+
+        coVerify(exactly = 0) { apiService.getPopularityPrimitives(any()) }
+    }
+
+    @Test
     fun `an empty selection drops the platform clause instead of filtering on nothing`() = runTest {
         val hydrateBody = slot<RequestBody>()
         coEvery { apiService.getPopularityPrimitives(any()) } returns

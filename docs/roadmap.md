@@ -42,9 +42,9 @@ filter, which is the user's explicit selection and nothing else. `TasteProfile.i
 is the cold-start signal. The "My platforms" picker is built end to end (`OwnedPlatformsRoute`, reached
 from the Settings hub) and `SyncPlatformCatalogUseCase` fills the local `platforms` table from IGDB's
 `/platforms` endpoint, so the picker offers the whole catalogue instead of only what the user's saved
-games happen to cover. `GetDiscoverFeedUseCase` reads the selection and narrows both Discover lanes with
-it, so the setting is live. `GetTasteProfileUseCase` is the piece still waiting for a consumer — the
-ranking work below is what will call it.
+games happen to cover. `GetDiscoverFeedUseCase` reads the selection and narrows every Discover shelf with
+it, so the setting is live. It also reads `GetTasteProfileUseCase` to build the personalised shelf, so
+every use case in `usecase/discover/` now has a consumer.
 
 **The feed reads the selection once per load, it does not observe it.** Change the picker and come back
 to a Search screen whose ViewModel survived, and the shelves are still the old ones until something
@@ -73,6 +73,37 @@ recently viewed games — the feed lives in the body, behind it.
   the user cannot explain reads as a bug.
 - New API surface on `IgdbApiService`: same `@POST("games")` endpoint, different apicalypse bodies.
   Worth checking `popularity_primitives` for real hype signal instead of the raw `hypes` field.
+
+**Personalisation is one extra shelf, not a reshuffle of the generic two.** The generic lanes are the
+global popularity top-N; reordering them by taste only reorders what was already globally popular, which
+is not what the user's profile says. So the taste profile buys its own query (`where genres = (...)`) and
+its own shelf, titled with the reason. Reasons sit on the shelf rather than on each card: a 140dp cover
+has no room for a sentence, and every game in the shelf is there for the same reason anyway.
+
+Deliberate limits of the shelf as built, each one a place to extend rather than a bug:
+
+- **One shelf, one signal — the top positive genre.** Every extra shelf is another network call on a
+  screen the user opens constantly.
+- **Developers are not a signal yet**, though `TasteProfile` documents them as the better predictor.
+  Weights are normalised within their own map, so the top developer scores 1.0 whether it came from six
+  saved games or one, and the profile carries no count to tell those apart. Giving `TasteProfile` raw
+  counts is the prerequisite.
+- **The shelf disappears rather than degrading**: below a minimum sample size, with no positive genre, on
+  a failed fetch, or when pruning saved games and generic-shelf duplicates leaves too few entries. A
+  half-empty personalised row next to two full generic ones reads as a loading bug.
+
+**No rating-count floor — rank by confidence instead.** IGDB can sort by raw score but not by a score
+weighted for how many people voted, so `sort total_rating desc` leads with whatever scores 100 across
+three votes. Excluding thinly-rated games is the wrong fix: it drops every niche and newly released
+title in the genre, which is what the shelf exists to surface, and does nothing about a mediocre game
+that clears the floor. So the query keeps only a token floor and the use case re-ranks the whole pool by
+a Bayesian average against a neutral prior. That is why the pool is far wider than the shelf: a narrow
+one would already be filled by the games the ranking is meant to demote.
+
+`RATING_CONFIDENCE_THRESHOLD` and `NEUTRAL_RATING` in `GetDiscoverFeedUseCase` are the knob — raise the
+prior and thin gems climb, lower it and the shelf fills with established titles. **Both are reasoned
+guesses about IGDB's rating distribution that have never been checked against a real pool.** Validate
+them against live data before treating the shelf's quality as settled.
 
 **An empty platform selection means no platform filter** — the feed omits the `where platforms = (...)`
 clause entirely rather than substituting something. An earlier design filled the gap with the platforms

@@ -22,14 +22,18 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.GameCompactCard
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.R
+import com.example.gameswishlist.feature.search.model.RecommendedShelfUiModel
 
 /**
- * The cold-start Discover feed: an editorial hero for the top anticipated pick, then "Most
- * anticipated" (the rest of it) and "Popular this month" per the design -- upcoming leads since
- * it is the one shelf a personalised feed would not already cover with saved-game recommendations.
- * Falls back to the placeholder when hero and both shelves come back empty rather than rendering
- * nothing. [hero] and [upcoming] are already disjoint -- [toDiscoverContentState][
+ * The Discover feed: an editorial hero for the top anticipated pick, then the personalised shelf when
+ * the user's library earned one, then "Most anticipated" (the rest of it) and "Popular this month" per
+ * the design -- upcoming leads the generic pair since it is the one shelf a personalised feed would not
+ * already cover with saved-game recommendations. [recommended] sits directly under the hero because it
+ * is the only row that is about this user; below the generic shelves it would read as an afterthought.
+ * Falls back to the placeholder when every slot comes back empty rather than rendering nothing.
+ * [hero] and [upcoming] are already disjoint -- [toDiscoverContentState][
  * com.example.gameswishlist.feature.search.mapper.toDiscoverContentState] does that split, this
  * composable only renders what it is given.
  */
@@ -40,9 +44,10 @@ internal fun DiscoverFeed(
     upcoming: List<GameItemUiModel>,
     onGameClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    recommended: RecommendedShelfUiModel? = null,
     state: LazyListState = rememberLazyListState()
 ) {
-    if (hero == null && popular.isEmpty() && upcoming.isEmpty()) {
+    if (hero == null && popular.isEmpty() && upcoming.isEmpty() && recommended == null) {
         DiscoverPlaceholder(modifier = modifier)
         return
     }
@@ -59,6 +64,15 @@ internal fun DiscoverFeed(
                     game = hero,
                     onGameClick = onGameClick,
                     modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
+                )
+            }
+        }
+        if (recommended != null) {
+            item {
+                DiscoverShelf(
+                    title = recommended.title.asString(),
+                    games = recommended.games,
+                    onGameClick = onGameClick
                 )
             }
         }
@@ -131,6 +145,23 @@ private fun DiscoverFeedPreview() {
             popular = previewGames,
             upcoming = previewGames.drop(1),
             onGameClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun DiscoverFeedRecommendedPreview() {
+    GamesWishlistTheme {
+        DiscoverFeed(
+            hero = previewGames.first(),
+            popular = previewGames,
+            upcoming = previewGames.drop(1),
+            onGameClick = {},
+            recommended = RecommendedShelfUiModel(
+                title = UiText.StringResource(R.string.discover_because_you_like, "RPG"),
+                games = previewGames
+            )
         )
     }
 }

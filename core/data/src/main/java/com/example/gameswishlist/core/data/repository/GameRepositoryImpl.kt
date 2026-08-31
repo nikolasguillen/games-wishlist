@@ -81,6 +81,21 @@ private const val POPULARITY_POOL_LIMIT_UPCOMING = 300
 private const val POPULARITY_POOL_LIMIT_FILTERED = 300
 
 /**
+ * Candidate pool for the personalised shelf. Far bigger than the shelf itself, and deliberately so:
+ * `sort total_rating desc` puts thinly-rated games at the top, and the caller re-ranks the whole pool
+ * before taking a shelf out of it. A narrow pool would hand the shelf to those games instead.
+ */
+private const val RECOMMENDED_POOL_LIMIT = 200
+
+/**
+ * Rating floor for the personalised shelf. Low on purpose: this only drops games whose score is one or
+ * two votes -- a number that says nothing either way -- and it is not the defence against thin ratings.
+ * That is the caller's weighted ranking, which demotes a 100-from-six-votes without excluding it, so a
+ * niche or newly released game can still earn its place.
+ */
+private const val RECOMMENDED_MIN_RATING_COUNT = 3
+
+/**
  * Page size for the platform catalogue sync. 500 is IGDB's hard `limit` cap, so the loop pages with
  * `offset` rather than assuming the catalogue fits in one response — it grows with every new console,
  * and a silent truncation would show up as platforms simply missing from the picker.
@@ -146,9 +161,37 @@ class GameRepositoryImpl @Inject constructor(
             platformIds = platformIds
         )
 
+    override suspend fun getGamesByGenre(genreId: Int, platformIds: Set<Int>): AppResult<List<Game>> {
+        return try {
+            val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
+            val platformFilter = platformIds.toPlatformFilter()
+            // Coarse half of the recommendation: narrow to the genre and hand back a wide, roughly
+            // good pool. Ordering it properly is the caller's job -- apicalypse cannot express a
+            // rating weighted by how many people voted, so sorting happens locally on the pool.
+            val queryText = """
+                fields name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                where genres = ($genreId) & game_type != ($excludedIds) & version_parent = null & cover != null & total_rating_count >= $RECOMMENDED_MIN_RATING_COUNT$platformFilter;
+                sort total_rating desc;
+                limit $RECOMMENDED_POOL_LIMIT;
+            """.trimIndent()
+            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+            AppResult.success(apiService.searchGames(body).map { it.toGame() })
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
     /**
-     * Backs both Discover lanes. The Popularity API ranks ids only, so rank first, then hydrate on
-     * /games. [upcomingOnly] is the split the design asks for: unreleased "Most anticipated" vs
+     * An empty selection is not a filter of "no platforms" -- the clause is dropped entirely, so the
+     * feed stays wide open until the user picks something in Settings. Apicalypse parentheses mean
+     * "contains at least one of", which is the ownership question being asked.
+     */
+    private fun Set<Int>.toPlatformFilter(): String =
+        if (isEmpty()) "" else " & platforms = (${joinToString(",")})"
+
+    /**
+     * Backs both generic Discover lanes. The Popularity API ranks ids only, so rank first, then
+     * hydrate on /games. [upcomingOnly] is the split the design asks for: unreleased "Most anticipated" vs
      * already-released "Popular this month". The hydrate call loses the popularity order, so it is
      * restored locally. Nothing is persisted -- these are catalogue results, not the user's games.
      *
@@ -181,14 +224,7 @@ class GameRepositoryImpl @Inject constructor(
             } else {
                 "first_release_date != null & first_release_date <= $nowSeconds"
             }
-            // An empty selection is not a filter of "no platforms" -- the clause is dropped entirely,
-            // so the feed stays wide open until the user picks something in Settings. Apicalypse
-            // parentheses mean "contains at least one of", which is the ownership question being asked.
-            val platformFilter = if (platformIds.isEmpty()) {
-                ""
-            } else {
-                " & platforms = (${platformIds.joinToString(",")})"
-            }
+            val platformFilter = platformIds.toPlatformFilter()
             // cover != null: the feed is a grid of covers, so a game that cannot render one is no
             // use here -- and it doubles as a cheap floor that keeps most shovelware out.
             val gamesQuery = """

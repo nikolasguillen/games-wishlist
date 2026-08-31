@@ -10,7 +10,8 @@ internal sealed interface SearchContentState {
     data class Discover(
         val popular: List<GameItemUiModel>,
         val upcoming: List<GameItemUiModel>,
-        val hero: GameItemUiModel? = null
+        val hero: GameItemUiModel? = null,
+        val recommended: RecommendedShelfUiModel? = null
     ) : SearchContentState
     data object Loading : SearchContentState
     data object Empty : SearchContentState

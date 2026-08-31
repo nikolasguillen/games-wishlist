@@ -12,6 +12,7 @@
     <string name="suggestions_section_games">Games</string>
     <string name="see_all_results_for">See all results for \"%1$s\"</string>
     <string name="recently_viewed">Recently viewed</string>
+    <string name="discover_because_you_like">Because you like %1$s</string>
     <string name="discover_most_anticipated">Most anticipated</string>
     <string name="discover_popular_this_month">Popular this month</string>
     <string name="discover_release_date_disclaimer">Release dates are publisher estimates and may change.</string>

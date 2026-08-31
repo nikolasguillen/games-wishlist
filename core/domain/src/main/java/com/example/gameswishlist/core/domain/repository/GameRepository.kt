@@ -29,6 +29,16 @@ interface GameRepository {
      * [platformIds] behaves as in [getPopularGames].
      */
     suspend fun getUpcomingGames(platformIds: Set<Int>): AppResult<List<Game>>
+
+    /**
+     * Well-rated games carrying [genreId], for the personalised Discover shelf. This is the coarse
+     * server-side half of the recommendation: it narrows the catalogue to one genre the user leans
+     * towards and orders by rating, leaving the caller to strip what the user has already saved and
+     * whatever the generic shelves are showing. [platformIds] behaves as in [getPopularGames].
+     *
+     * Not persisted, like the other two shelves.
+     */
+    suspend fun getGamesByGenre(genreId: Int, platformIds: Set<Int>): AppResult<List<Game>>
     suspend fun addSearchToHistory(query: String)
     fun getRecentSearchHistory(): Flow<List<String>>
     suspend fun getFilteredSearchHistory(query: String): List<String>

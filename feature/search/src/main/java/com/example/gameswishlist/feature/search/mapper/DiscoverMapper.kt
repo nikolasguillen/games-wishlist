@@ -1,8 +1,12 @@
 package com.example.gameswishlist.feature.search.mapper
 
 import com.example.gameswishlist.core.model.DiscoverFeed
+import com.example.gameswishlist.core.model.RecommendedShelf
 import com.example.gameswishlist.core.ui.mapper.toGameItem
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
+import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.feature.search.R
+import com.example.gameswishlist.feature.search.model.RecommendedShelfUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 
 /**
@@ -15,6 +19,16 @@ internal fun DiscoverFeed.toDiscoverContentState(): SearchContentState.Discover 
     return SearchContentState.Discover(
         popular = popular.toGameItemList(),
         upcoming = upcoming.drop(1).toGameItemList(),
-        hero = hero?.toGameItem()
+        hero = hero?.toGameItem(),
+        recommended = recommended?.toUiModel()
     )
 }
+
+/**
+ * The genre name is a data-source value, so it goes into the resource as a plain argument — the
+ * sentence around it is what gets localised.
+ */
+private fun RecommendedShelf.toUiModel(): RecommendedShelfUiModel = RecommendedShelfUiModel(
+    title = UiText.StringResource(R.string.discover_because_you_like, genre.name),
+    games = games.toGameItemList()
+)

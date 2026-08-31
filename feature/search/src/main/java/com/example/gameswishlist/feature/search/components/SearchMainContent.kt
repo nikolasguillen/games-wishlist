@@ -34,6 +34,7 @@ internal fun SearchMainContent(
                 popular = contentState.popular,
                 upcoming = contentState.upcoming,
                 onGameClick = onGameClick,
+                recommended = contentState.recommended,
                 state = discoverListState
             )
             is SearchContentState.Empty -> EmptySearchPlaceholder()
