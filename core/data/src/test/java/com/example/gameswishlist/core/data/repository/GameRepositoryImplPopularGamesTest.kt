@@ -12,15 +12,21 @@ import com.example.gameswishlist.core.network.model.IgdbPopularityPrimitive
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import okhttp3.RequestBody
+import okio.Buffer
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
  * Covers the two Discover lanes ([GameRepositoryImpl.getPopularGames] and
  * [GameRepositoryImpl.getUpcomingGames]): the shared two-step fetch (rank on `/popularity_primitives`,
- * hydrate on `/games`) and the re-ranking that restores the popularity order the hydrate call loses.
+ * hydrate on `/games`), the re-ranking that restores the popularity order the hydrate call loses, and
+ * the platform filter — which is applied to the hydrate call only, and dropped entirely when the user
+ * has picked nothing.
  */
 class GameRepositoryImplPopularGamesTest {
 
@@ -57,6 +63,8 @@ class GameRepositoryImplPopularGamesTest {
         gameEngines = null
     )
 
+    private fun RequestBody.asText(): String = Buffer().also { writeTo(it) }.readUtf8()
+
     @Test
     fun `getPopularGames restores the popularity ranking the hydrate call loses`() = runTest {
         // Popularity API ranks 3, 1, 2 by value...
@@ -70,7 +78,7 @@ class GameRepositoryImplPopularGamesTest {
             igdbGame(1), igdbGame(2), igdbGame(3)
         )
 
-        val result = repository.getPopularGames()
+        val result = repository.getPopularGames(emptySet())
 
         assertEquals(AppResult.success(listOf(3, 1, 2)), result.map { games -> games.map { it.id } })
     }
@@ -83,7 +91,7 @@ class GameRepositoryImplPopularGamesTest {
         )
         coEvery { apiService.searchGames(any<RequestBody>()) } returns listOf(igdbGame(4), igdbGame(7))
 
-        val result = repository.getUpcomingGames()
+        val result = repository.getUpcomingGames(emptySet())
 
         assertEquals(AppResult.success(listOf(7, 4)), result.map { games -> games.map { it.id } })
     }
@@ -92,9 +100,36 @@ class GameRepositoryImplPopularGamesTest {
     fun `getPopularGames returns empty without hydrating when nothing is trending`() = runTest {
         coEvery { apiService.getPopularityPrimitives(any()) } returns emptyList()
 
-        val result = repository.getPopularGames()
+        val result = repository.getPopularGames(emptySet())
 
         assertEquals(AppResult.success(emptyList<Int>()), result.map { games -> games.map { it.id } })
         coVerify(exactly = 0) { apiService.searchGames(any<RequestBody>()) }
+    }
+
+    @Test
+    fun `the selected platforms narrow the hydrate call and not the ranking call`() = runTest {
+        val rankingBody = slot<RequestBody>()
+        val hydrateBody = slot<RequestBody>()
+        coEvery { apiService.getPopularityPrimitives(capture(rankingBody)) } returns
+            listOf(primitive(gameId = 1, value = 50.0))
+        coEvery { apiService.searchGames(capture(hydrateBody)) } returns listOf(igdbGame(1))
+
+        repository.getPopularGames(setOf(48, 130))
+
+        assertTrue(hydrateBody.captured.asText().contains("platforms = (48,130)"))
+        // The Popularity API has no platform field, so pushing the filter down there would 400.
+        assertFalse(rankingBody.captured.asText().contains("platforms"))
+    }
+
+    @Test
+    fun `an empty selection drops the platform clause instead of filtering on nothing`() = runTest {
+        val hydrateBody = slot<RequestBody>()
+        coEvery { apiService.getPopularityPrimitives(any()) } returns
+            listOf(primitive(gameId = 1, value = 50.0))
+        coEvery { apiService.searchGames(capture(hydrateBody)) } returns listOf(igdbGame(1))
+
+        repository.getUpcomingGames(emptySet())
+
+        assertFalse(hydrateBody.captured.asText().contains("platforms ="))
     }
 }

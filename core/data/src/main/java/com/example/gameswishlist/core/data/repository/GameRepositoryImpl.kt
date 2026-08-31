@@ -72,6 +72,15 @@ private const val POPULARITY_POOL_LIMIT = 40
 private const val POPULARITY_POOL_LIMIT_UPCOMING = 300
 
 /**
+ * Pool size for a lane once the user's platform filter is active. The filter cannot be pushed into the
+ * ranking query (see `fetchPopularityRankedGames`), so it thins an already-ranked pool: a user who owns
+ * one console drops most of a [POPULARITY_POOL_LIMIT] pool and is left with a near-empty shelf. The
+ * upcoming lane already fetches [POPULARITY_POOL_LIMIT_UPCOMING] to survive its release-window filter
+ * and needs no separate widening.
+ */
+private const val POPULARITY_POOL_LIMIT_FILTERED = 300
+
+/**
  * Page size for the platform catalogue sync. 500 is IGDB's hard `limit` cap, so the loop pages with
  * `offset` rather than assuming the catalogue fits in one response — it grows with every new console,
  * and a silent truncation would show up as platforms simply missing from the picker.
@@ -121,14 +130,20 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getPopularGames(): AppResult<List<Game>> =
-        fetchPopularityRankedGames(POPULARITY_TYPE_PLAYING, upcomingOnly = false, poolLimit = POPULARITY_POOL_LIMIT)
+    override suspend fun getPopularGames(platformIds: Set<Int>): AppResult<List<Game>> =
+        fetchPopularityRankedGames(
+            POPULARITY_TYPE_PLAYING,
+            upcomingOnly = false,
+            poolLimit = if (platformIds.isEmpty()) POPULARITY_POOL_LIMIT else POPULARITY_POOL_LIMIT_FILTERED,
+            platformIds = platformIds
+        )
 
-    override suspend fun getUpcomingGames(): AppResult<List<Game>> =
+    override suspend fun getUpcomingGames(platformIds: Set<Int>): AppResult<List<Game>> =
         fetchPopularityRankedGames(
             POPULARITY_TYPE_WANT_TO_PLAY,
             upcomingOnly = true,
-            poolLimit = POPULARITY_POOL_LIMIT_UPCOMING
+            poolLimit = POPULARITY_POOL_LIMIT_UPCOMING,
+            platformIds = platformIds
         )
 
     /**
@@ -136,11 +151,16 @@ class GameRepositoryImpl @Inject constructor(
      * /games. [upcomingOnly] is the split the design asks for: unreleased "Most anticipated" vs
      * already-released "Popular this month". The hydrate call loses the popularity order, so it is
      * restored locally. Nothing is persisted -- these are catalogue results, not the user's games.
+     *
+     * [platformIds] can only be applied here, on the hydrate call: `/popularity_primitives` returns
+     * game ids and a score and knows nothing about platforms, so the pool is ranked before it can be
+     * filtered. That is what [POPULARITY_POOL_LIMIT_FILTERED] pays for.
      */
     private suspend fun fetchPopularityRankedGames(
         popularityType: Int,
         upcomingOnly: Boolean,
-        poolLimit: Int
+        poolLimit: Int,
+        platformIds: Set<Int>
     ): AppResult<List<Game>> {
         return try {
             val primitivesQuery = """
@@ -161,11 +181,19 @@ class GameRepositoryImpl @Inject constructor(
             } else {
                 "first_release_date != null & first_release_date <= $nowSeconds"
             }
+            // An empty selection is not a filter of "no platforms" -- the clause is dropped entirely,
+            // so the feed stays wide open until the user picks something in Settings. Apicalypse
+            // parentheses mean "contains at least one of", which is the ownership question being asked.
+            val platformFilter = if (platformIds.isEmpty()) {
+                ""
+            } else {
+                " & platforms = (${platformIds.joinToString(",")})"
+            }
             // cover != null: the feed is a grid of covers, so a game that cannot render one is no
             // use here -- and it doubles as a cheap floor that keeps most shovelware out.
             val gamesQuery = """
                 fields name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
-                where id = ($idList) & game_type != ($excludedIds) & version_parent = null & cover != null & $releaseFilter;
+                where id = ($idList) & game_type != ($excludedIds) & version_parent = null & cover != null & $releaseFilter$platformFilter;
                 limit $poolLimit;
             """.trimIndent()
             val gamesBody = gamesQuery.toRequestBody("text/plain".toMediaTypeOrNull())

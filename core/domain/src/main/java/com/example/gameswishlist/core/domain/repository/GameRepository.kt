@@ -15,15 +15,20 @@ interface GameRepository {
      * Already-released games that are popular right now, ranked by IGDB's Popularity API. Feeds the
      * Discover "Popular this month" shelf. The result is not persisted — these are catalogue browsing
      * results, not the user's own games, and must not pollute the games cache.
+     *
+     * [platformIds] restricts the shelf to games released on at least one of those platforms. An empty
+     * set means no restriction at all: nothing is substituted for it.
      */
-    suspend fun getPopularGames(): AppResult<List<Game>>
+    suspend fun getPopularGames(platformIds: Set<Int>): AppResult<List<Game>>
 
     /**
      * Unreleased games ranked by anticipation (IGDB's Popularity API), feeding the Discover "Most
      * anticipated" shelf. Distinct from [getPopularGames] by release window, not by signal: one shelf
      * is what people are playing, the other what they are waiting for. Not persisted either.
+     *
+     * [platformIds] behaves as in [getPopularGames].
      */
-    suspend fun getUpcomingGames(): AppResult<List<Game>>
+    suspend fun getUpcomingGames(platformIds: Set<Int>): AppResult<List<Game>>
     suspend fun addSearchToHistory(query: String)
     fun getRecentSearchHistory(): Flow<List<String>>
     suspend fun getFilteredSearchHistory(query: String): List<String>

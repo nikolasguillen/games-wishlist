@@ -5,6 +5,7 @@ import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.DiscoverFeed
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 /**
@@ -14,13 +15,18 @@ import javax.inject.Inject
  *
  * The two shelves come from independent network calls, fired concurrently. Both must succeed: a feed
  * missing half its content with no error reads as a bug, so a single failure fails the whole feed.
+ *
+ * Both shelves are narrowed to the platforms the user picked in Settings, read once per load rather
+ * than observed: the feed is a snapshot the caller re-requests, not a live query.
  */
 class GetDiscoverFeedUseCase @Inject constructor(
-    private val repository: GameRepository
+    private val repository: GameRepository,
+    private val getSelectedPlatformIds: GetSelectedPlatformIdsUseCase
 ) {
     suspend operator fun invoke(): AppResult<DiscoverFeed> = coroutineScope {
-        val popular = async { repository.getPopularGames() }
-        val upcoming = async { repository.getUpcomingGames() }
+        val platformIds = getSelectedPlatformIds().first()
+        val popular = async { repository.getPopularGames(platformIds) }
+        val upcoming = async { repository.getUpcomingGames(platformIds) }
         popular.await().zip(upcoming.await()) { p, u ->
             DiscoverFeed(popular = p, upcoming = u)
         }

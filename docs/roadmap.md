@@ -42,9 +42,15 @@ filter, which is the user's explicit selection and nothing else. `TasteProfile.i
 is the cold-start signal. The "My platforms" picker is built end to end (`OwnedPlatformsRoute`, reached
 from the Settings hub) and `SyncPlatformCatalogUseCase` fills the local `platforms` table from IGDB's
 `/platforms` endpoint, so the picker offers the whole catalogue instead of only what the user's saved
-games happen to cover. The platform filter is therefore a real user-facing setting — **but nothing
-consumes it yet**: the Discover feed still fetches without a `where platforms = (...)` clause. Wiring the
-stored selection into the feed's apicalypse is part of the Phase 1 ranking work below.
+games happen to cover. `GetDiscoverFeedUseCase` reads the selection and narrows both Discover lanes with
+it, so the setting is live. `GetTasteProfileUseCase` is the piece still waiting for a consumer — the
+ranking work below is what will call it.
+
+**The feed reads the selection once per load, it does not observe it.** Change the picker and come back
+to a Search screen whose ViewModel survived, and the shelves are still the old ones until something
+re-triggers `loadDiscoverFeed()`. Making the feed a `Flow` was rejected for now: the ViewModel's
+cancel-on-search / restore-on-clear logic is built around a suspend one-shot and the race it guards is
+covered by tests written against that shape. Revisit when the ranking work reopens the same code.
 
 **Settings holds only what has a backend.** The screen groups its rows by theme, and the only groups
 that exist are the ones with data behind them. Notifications belong to Phase 3; a genre picker was
@@ -68,13 +74,18 @@ recently viewed games — the feed lives in the body, behind it.
 - New API surface on `IgdbApiService`: same `@POST("games")` endpoint, different apicalypse bodies.
   Worth checking `popularity_primitives` for real hype signal instead of the raw `hypes` field.
 
-**An empty platform selection means no platform filter** — the feed must omit the
-`where platforms = (...)` clause entirely rather than substitute something. An earlier design filled the
-gap with the platforms carried by the user's saved games. That was removed: it filtered the feed on a
-rule the user could neither see nor explain, which is the opposite of the "every row states its reason"
-line above, and it did nothing for the brand-new user it was meant to help, whose library is empty too.
-Do not reintroduce a fallback here, and do not seed the selection behind the user's back either — the
-picker is one tap from every top-level screen and holds the whole IGDB catalogue.
+**An empty platform selection means no platform filter** — the feed omits the `where platforms = (...)`
+clause entirely rather than substituting something. An earlier design filled the gap with the platforms
+carried by the user's saved games. That was removed: it filtered the feed on a rule the user could neither
+see nor explain, which is the opposite of the "every row states its reason" line above, and it did nothing
+for the brand-new user it was meant to help, whose library is empty too. Do not reintroduce a fallback
+here, and do not seed the selection behind the user's back either — the picker is one tap from every
+top-level screen and holds the whole IGDB catalogue.
+
+The filter lands on the `/games` hydrate call, never on `/popularity_primitives`, which returns a game id
+and a score and has no platform field. The pool is therefore ranked before it can be filtered, so a
+narrow selection thins an already-truncated list — that is what the widened pool limit in
+`GameRepositoryImpl` pays for. Any further filter added to a lane inherits the same problem.
 
 **Cache**: do not dump discovered games into the `games` table unqualified. That table already doubles as
 a cache with ownership flags (`isWishlisted`, `lastViewedAt`); mixing in feed results makes "the user's own
