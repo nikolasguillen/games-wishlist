@@ -13,13 +13,19 @@ import com.example.gameswishlist.core.ui.component.ErrorPage
 import com.example.gameswishlist.core.ui.component.LoadingPage
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.feature.search.model.DiscoverContentState
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 
+/**
+ * The screen's single content area, shared by two independent contents. [contentState] decides which:
+ * [SearchContentState.Idle] means no search is running, so the area belongs to [discoverState].
+ */
 @Composable
 internal fun SearchMainContent(
     contentState: SearchContentState,
+    discoverState: DiscoverContentState,
     onEvent: (SearchUiEvent) -> Unit,
     onGameClick: (Int) -> Unit,
     gridState: LazyGridState,
@@ -28,15 +34,12 @@ internal fun SearchMainContent(
 ) {
     Box(modifier = modifier) {
         when (contentState) {
-            is SearchContentState.Error -> ErrorPage(message = contentState.message)
-            is SearchContentState.Discover -> DiscoverFeed(
-                hero = contentState.hero,
-                popular = contentState.popular,
-                upcoming = contentState.upcoming,
+            is SearchContentState.Idle -> DiscoverContent(
+                state = discoverState,
                 onGameClick = onGameClick,
-                recommended = contentState.recommended,
-                state = discoverListState
+                listState = discoverListState
             )
+            is SearchContentState.Error -> ErrorPage(message = contentState.message)
             is SearchContentState.Empty -> EmptySearchPlaceholder()
             is SearchContentState.Loading -> LoadingPage()
             is SearchContentState.Success -> {
@@ -53,10 +56,34 @@ internal fun SearchMainContent(
 }
 
 @Composable
-private fun SearchMainContentPreview(contentState: SearchContentState) {
+private fun DiscoverContent(
+    state: DiscoverContentState,
+    onGameClick: (Int) -> Unit,
+    listState: LazyListState
+) {
+    when (state) {
+        is DiscoverContentState.Loading -> LoadingPage()
+        is DiscoverContentState.Error -> ErrorPage(message = state.message)
+        is DiscoverContentState.Content -> DiscoverFeed(
+            hero = state.hero,
+            popular = state.popular,
+            upcoming = state.upcoming,
+            onGameClick = onGameClick,
+            recommended = state.recommended,
+            state = listState
+        )
+    }
+}
+
+@Composable
+private fun SearchMainContentPreview(
+    contentState: SearchContentState,
+    discoverState: DiscoverContentState = DiscoverContentState.Loading
+) {
     GamesWishlistTheme {
         SearchMainContent(
             contentState = contentState,
+            discoverState = discoverState,
             onEvent = {},
             onGameClick = {},
             gridState = rememberLazyGridState()
@@ -68,10 +95,22 @@ private fun SearchMainContentPreview(contentState: SearchContentState) {
 @Composable
 private fun SearchMainContentDiscoverPreview() {
     SearchMainContentPreview(
-        SearchContentState.Discover(
+        contentState = SearchContentState.Idle,
+        discoverState = DiscoverContentState.Content(
             hero = GameItemUiModel.getDummy().copy(id = 3, name = "Hollow Knight: Silksong"),
             popular = listOf(GameItemUiModel.getDummy()),
             upcoming = listOf(GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077"))
+        )
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SearchMainContentDiscoverErrorPreview() {
+    SearchMainContentPreview(
+        contentState = SearchContentState.Idle,
+        discoverState = DiscoverContentState.Error(
+            UiText.DynamicString("Could not load the feed.")
         )
     )
 }

@@ -20,6 +20,7 @@ import com.example.gameswishlist.core.model.RepositoryError
 import com.example.gameswishlist.core.model.SearchResult
 import com.example.gameswishlist.core.model.SearchSuggestion
 import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.feature.search.model.DiscoverContentState
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchSort
@@ -136,20 +137,24 @@ class SearchViewModelTest {
 
             val viewModel = createViewModel()
 
-            val contentState = viewModel.uiState.value.contentState as SearchContentState.Discover
+            val contentState = viewModel.uiState.value.discover as DiscoverContentState.Content
             assertEquals(listOf(1), contentState.popular.map { it.id })
             assertEquals(2, contentState.hero?.id)
             assertEquals(listOf(3), contentState.upcoming.map { it.id })
         }
 
     @Test
-    fun `a Discover feed failure maps to Error content`() = runTest(testDispatcher) {
-        every { getDiscoverFeedUseCase() } returns flowOf(AppResult.failure(RepositoryError.NoNetwork))
+    fun `a Discover feed failure lands on the feed and not on the search results`() =
+        runTest(testDispatcher) {
+            every { getDiscoverFeedUseCase() } returns
+                flowOf(AppResult.failure(RepositoryError.NoNetwork))
 
-        val viewModel = createViewModel()
+            val viewModel = createViewModel()
 
-        assertTrue(viewModel.uiState.value.contentState is SearchContentState.Error)
-    }
+            assertTrue(viewModel.uiState.value.discover is DiscoverContentState.Error)
+            // The two content areas fail independently: no search ran, so the results are still Idle.
+            assertTrue(viewModel.uiState.value.contentState is SearchContentState.Idle)
+        }
 
     @Test
     fun `a later feed emission refreshes the screen while Discover is showing`() = runTest(testDispatcher) {
@@ -165,7 +170,7 @@ class SearchViewModelTest {
         )
         advanceUntilIdle()
 
-        val contentState = viewModel.uiState.value.contentState as SearchContentState.Discover
+        val contentState = viewModel.uiState.value.discover as DiscoverContentState.Content
         assertEquals(listOf(5), contentState.popular.map { it.id })
     }
 
@@ -229,18 +234,21 @@ class SearchViewModelTest {
             assertTrue(viewModel.uiState.value.contentState is SearchContentState.Success)
 
             // Resolves after the search already landed. The feed collection is deliberately still
-            // running -- it has to be, to keep noticing platform changes -- so what keeps it from
-            // overwriting contentState is the display gate, not cancellation.
+            // running -- it has to be, to keep noticing platform changes -- and it cannot clobber the
+            // results because the two no longer share a slot.
             discoverDeferred.complete(
                 AppResult.success(DiscoverFeed(popular = listOf(testGame(id = 9)), upcoming = emptyList()))
             )
             advanceUntilIdle()
 
             assertTrue(viewModel.uiState.value.contentState is SearchContentState.Success)
+            // ...and it was not merely dropped: it landed in its own slot.
+            val feed = viewModel.uiState.value.discover as DiscoverContentState.Content
+            assertEquals(listOf(9), feed.popular.map { it.id })
         }
 
     @Test
-    fun `OnClearSearch restores the cached Discover feed without re-fetching`() = runTest(testDispatcher) {
+    fun `OnClearSearch hands the screen back to the feed without re-fetching`() = runTest(testDispatcher) {
         val popular = testGame(id = 1, name = "Cindergate")
         every { getDiscoverFeedUseCase() } returns flowOf(
             AppResult.success(DiscoverFeed(popular = listOf(popular), upcoming = emptyList()))
@@ -255,14 +263,16 @@ class SearchViewModelTest {
         viewModel.onEvent(SearchUiEvent.OnClearSearch)
         advanceUntilIdle()
 
-        val contentState = viewModel.uiState.value.contentState as SearchContentState.Discover
-        assertEquals(listOf(1), contentState.popular.map { it.id })
+        // Idle is what puts the feed back on screen -- there is no separate "showing" flag.
+        assertTrue(viewModel.uiState.value.contentState is SearchContentState.Idle)
+        val feed = viewModel.uiState.value.discover as DiscoverContentState.Content
+        assertEquals(listOf(1), feed.popular.map { it.id })
         assertEquals("", viewModel.textFieldState.text.toString())
         verify(exactly = 1) { getDiscoverFeedUseCase() }
     }
 
     @Test
-    fun `a feed that lands while a search is on screen is cached and shown on clear`() =
+    fun `a feed that lands while a search is on screen is kept and shown on clear`() =
         runTest(testDispatcher) {
             val discoverDeferred = CompletableDeferred<AppResult<DiscoverFeed>>()
             every { getDiscoverFeedUseCase() } returns flow { emit(discoverDeferred.await()) }
@@ -284,7 +294,7 @@ class SearchViewModelTest {
             viewModel.onEvent(SearchUiEvent.OnClearSearch)
             advanceUntilIdle()
 
-            val restored = viewModel.uiState.value.contentState as SearchContentState.Discover
+            val restored = viewModel.uiState.value.discover as DiscoverContentState.Content
             assertEquals(listOf(7), restored.popular.map { it.id })
             verify(exactly = 1) { getDiscoverFeedUseCase() }
         }

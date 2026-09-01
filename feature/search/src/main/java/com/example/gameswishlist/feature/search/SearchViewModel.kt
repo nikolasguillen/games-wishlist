@@ -15,6 +15,7 @@ import com.example.gameswishlist.core.domain.usecase.search.GetRecentSearchActiv
 import com.example.gameswishlist.core.domain.usecase.search.GetSearchSuggestionsUseCase
 import com.example.gameswishlist.core.domain.usecase.search.RemoveRecentGameUseCase
 import com.example.gameswishlist.core.domain.usecase.search.SearchGamesUseCase
+import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.SearchSuggestion
 import com.example.gameswishlist.core.ui.mapper.getDisplayRating
@@ -27,6 +28,7 @@ import com.example.gameswishlist.feature.search.mapper.toDiscoverContentState
 import com.example.gameswishlist.feature.search.mapper.toGenreFilters
 import com.example.gameswishlist.feature.search.mapper.toPlatformFilters
 import com.example.gameswishlist.feature.search.mapper.toSuggestionUiModels
+import com.example.gameswishlist.feature.search.model.DiscoverContentState
 import com.example.gameswishlist.feature.search.model.FilterBottomSheetState
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
@@ -90,16 +92,6 @@ class SearchViewModel @Inject constructor(
     // fetch even when textFieldState's value doesn't change (e.g. committing a search
     // for the exact text that's already typed).
     private val suggestionsResetTrigger = MutableSharedFlow<String>(extraBufferCapacity = 1)
-
-    // The last state the Discover feed resolved into, kept outside contentState so a committed
-    // search can overwrite contentState without losing what to restore on OnClearSearch.
-    private var discoverContentState: SearchContentState = SearchContentState.Loading
-
-    // Whether contentState currently belongs to the feed. The feed observes the platform selection
-    // for as long as the ViewModel lives, so it can resolve while a search is on screen; this is what
-    // stops it writing over those results. Cancelling the collection instead -- the previous fix for
-    // the same race -- would also stop it noticing a platform change made mid-search.
-    private var isShowingDiscover: Boolean = true
 
     init {
         initSearchHistory()
@@ -404,7 +396,6 @@ class SearchViewModel @Inject constructor(
 
     private fun performSearch(query: String) {
         if (query.isBlank()) return
-        isShowingDiscover = false
         _uiState.update { it.copy(suggestions = SearchSuggestionsUiModel()) }
         suggestionsResetTrigger.tryEmit("")
 
@@ -458,8 +449,10 @@ class SearchViewModel @Inject constructor(
 
     /**
      * Collects the feed for the whole life of the ViewModel: the use case re-emits whenever the user
-     * changes their platform selection, so this keeps [discoverContentState] current even while a
-     * search is on screen.
+     * changes their platform selection, so the feed stays current even while search results hold the
+     * content area. It writes to its own slot unconditionally -- nothing here needs to know what is on
+     * screen, because [SearchUiState.discover] is only rendered while the results are
+     * [SearchContentState.Idle].
      *
      * Only the first fetch shows a spinner. A later one is triggered by the user having just changed a
      * setting, and leaving the previous feed up until the new one lands reads better than blanking a
@@ -467,36 +460,26 @@ class SearchViewModel @Inject constructor(
      */
     private fun observeDiscoverFeed() {
         viewModelScope.launch {
-            setDiscoverState(SearchContentState.Loading)
             getDiscoverFeedUseCase().collect { result ->
-                result.onSuccess { feed ->
-                    setDiscoverState(feed.toDiscoverContentState())
-                }.onFailure { error ->
-                    setDiscoverState(SearchContentState.Error(message = error.toUiText()))
+                val newState = when (result) {
+                    is AppResult.Success -> result.data.toDiscoverContentState()
+                    is AppResult.Failure -> DiscoverContentState.Error(result.error.toUiText())
                 }
+                _uiState.update { it.copy(discover = newState) }
             }
         }
     }
 
-    /** Caches what the feed resolved into, and shows it only if a search is not holding the screen. */
-    private fun setDiscoverState(state: SearchContentState) {
-        discoverContentState = state
-        if (isShowingDiscover) {
-            _uiState.update { it.copy(contentState = state) }
-        }
-    }
-
     /**
-     * Restores the feed from memory rather than re-fetching it. The collection was never interrupted
-     * by the search, so whatever it holds is as current as the platform selection.
+     * Hands the content area back to the feed. Nothing is restored or re-fetched: the feed was never
+     * interrupted by the search and has been sitting in its own slot the whole time.
      */
     private fun clearSearch() {
         textFieldState.edit { replace(0, length, "") }
-        isShowingDiscover = true
         _uiState.update {
             it.copy(
                 suggestions = SearchSuggestionsUiModel(),
-                contentState = discoverContentState
+                contentState = SearchContentState.Idle
             )
         }
     }

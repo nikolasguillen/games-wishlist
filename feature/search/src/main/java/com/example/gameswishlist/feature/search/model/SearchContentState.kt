@@ -5,14 +5,17 @@ import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 
+/**
+ * Lifecycle of the search results.
+ *
+ * [Idle] is the resting state and carries the mode of the whole screen with it: no search is active,
+ * so the Discover feed owns the content area and [SearchUiState.discover] is what gets rendered.
+ * Every other case means a search has been committed and holds the screen until it is cleared.
+ */
 @Immutable
 internal sealed interface SearchContentState {
-    data class Discover(
-        val popular: List<GameItemUiModel>,
-        val upcoming: List<GameItemUiModel>,
-        val hero: GameItemUiModel? = null,
-        val recommended: RecommendedShelfUiModel? = null
-    ) : SearchContentState
+    /** No committed search. The Discover feed is on screen. */
+    data object Idle : SearchContentState
     data object Loading : SearchContentState
     data object Empty : SearchContentState
     data class Success(

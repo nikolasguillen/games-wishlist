@@ -97,7 +97,7 @@ internal fun SearchScreenContent(
 
     // The feed and the results grid are two different list types with their own hoisted state, so
     // scroll-to-top and the FAB visibility must follow whichever one is currently on screen.
-    val isDiscoverActive = uiState.contentState is SearchContentState.Discover
+    val isDiscoverActive = uiState.contentState is SearchContentState.Idle
 
     // 2. Derived States (Scroll logic)
     val isScrolled by remember(scrollBehavior) {
@@ -211,6 +211,7 @@ internal fun SearchScreenContent(
     ) { innerPadding ->
         SearchMainContent(
             contentState = uiState.contentState,
+            discoverState = uiState.discover,
             onEvent = onEvent,
             onGameClick = onGameClickWithCollapse,
             gridState = gridState,

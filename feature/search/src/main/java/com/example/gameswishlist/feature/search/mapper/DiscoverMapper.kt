@@ -6,17 +6,17 @@ import com.example.gameswishlist.core.ui.mapper.toGameItem
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.R
+import com.example.gameswishlist.feature.search.model.DiscoverContentState
 import com.example.gameswishlist.feature.search.model.RecommendedShelfUiModel
-import com.example.gameswishlist.feature.search.model.SearchContentState
 
 /**
  * Splits the top anticipated pick into its own hero slot instead of also heading the "Most
- * anticipated" shelf, per the Discover-feed hero design. [SearchContentState.Discover.upcoming]
+ * anticipated" shelf, per the Discover-feed hero design. [DiscoverContentState.Content.upcoming]
  * excludes it, so the composable renders both fields as given instead of re-deriving the split.
  */
-internal fun DiscoverFeed.toDiscoverContentState(): SearchContentState.Discover {
+internal fun DiscoverFeed.toDiscoverContentState(): DiscoverContentState.Content {
     val hero = upcoming.firstOrNull()
-    return SearchContentState.Discover(
+    return DiscoverContentState.Content(
         popular = popular.toGameItemList(),
         upcoming = upcoming.drop(1).toGameItemList(),
         hero = hero?.toGameItem(),

@@ -43,7 +43,13 @@ Empty, Error — when the state is non-trivial), `private`, wrapped in `GamesWis
 
 - **State**: `@Immutable internal data class <Name>UiState(...)` with defaults for every field.
 - **Content lifecycle**: a `sealed interface <Name>ContentState` nested in the state (`Loading`, `Success`,
-  `Empty`, `Error`) so `when` stays exhaustive and smart-casts.
+  `Empty`, `Error`) so `when` stays exhaustive and smart-casts. **One per independent content area, not
+  one per screen.** Search has two — `SearchContentState` for the results and `DiscoverContentState` for
+  the feed — because the feed keeps loading and refreshing while results hold the screen and has to
+  still be there when the query is cleared. Sharing one slot forces a shadow copy of whichever is not
+  displayed plus a flag saying which that is; both disappear once each area owns its state. Which one
+  renders is *derived*, never stored: `SearchContentState.Idle` means "no search running", so the feed
+  is what the content area shows.
 - **Events**: a `sealed interface <Name>UiEvent` plus a single `internal fun onEvent(event)` with an
   exhaustive `when`. The UI passes `viewModel::onEvent` — never one callback per interaction.
 - **One-shot effects**: `Channel<<Name>UiEffect>(Channel.BUFFERED)` + `receiveAsFlow()`, consumed with
