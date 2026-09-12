@@ -26,6 +26,7 @@ import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -92,25 +93,26 @@ internal fun SearchScreenContent(
     val searchBarState = rememberContainedSearchBarState()
     val gridState = rememberLazyGridState()
     val discoverListState = rememberLazyListState()
-    val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
     val scope = rememberCoroutineScope()
 
     // The feed and the results grid are two different list types with their own hoisted state, so
     // scroll-to-top and the FAB visibility must follow whichever one is currently on screen.
     val isDiscoverActive = uiState.contentState is SearchContentState.Idle
 
+    // Recreated on switch so its offset always starts fresh for the list now on screen, instead
+    // of carrying over whatever the previously visible list had scrolled to.
+    val scrollBehavior = key(isDiscoverActive) {
+        SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+    }
+
     // 2. Derived States (Scroll logic)
-    val isScrolled by remember(scrollBehavior) {
+    val isScrolled by remember(isDiscoverActive, discoverListState, gridState) {
         derivedStateOf {
-            if (scrollBehavior.scrollState.scrollOffsetLimit != 0f) {
-                val fraction =
-                    1 - ((scrollBehavior.scrollState.scrollOffsetLimit - scrollBehavior.scrollState.contentOffset)
-                        .coerceIn(
-                            scrollBehavior.scrollState.scrollOffsetLimit,
-                            0f
-                        ) / scrollBehavior.scrollState.scrollOffsetLimit)
-                fraction > 0.01f
-            } else false
+            if (isDiscoverActive) {
+                discoverListState.firstVisibleItemIndex > 0 || discoverListState.firstVisibleItemScrollOffset > 0
+            } else {
+                gridState.firstVisibleItemIndex > 0 || gridState.firstVisibleItemScrollOffset > 0
+            }
         }
     }
 
