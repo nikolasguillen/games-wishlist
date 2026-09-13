@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -133,7 +134,7 @@ internal fun DiscoverFeed(
 }
 
 /**
- * A full-width bar, not a chip: [AssistChip] is fixed at Material's own 32.dp height, which leaves no
+ * A full-width bar, not a chip: [androidx.compose.material3.AssistChip] is fixed at Material's own 32.dp height, which leaves no
  * room to make the prompt read as more than a minor annotation, and a sticky header needs to span the
  * list's width anyway so nothing scrolling underneath shows through beside it once it pins. This is
  * hand-rolled so it can be sized and elevated to actually separate from the shelf scrolling under it.
@@ -162,8 +163,8 @@ private fun DiscoverRefreshPrompt(
             modifier = Modifier.padding(
                 start = MaterialTheme.spacing.large,
                 end = MaterialTheme.spacing.small,
-                top = MaterialTheme.spacing.small,
-                bottom = MaterialTheme.spacing.small
+                top = MaterialTheme.spacing.medium,
+                bottom = MaterialTheme.spacing.medium
             )
         ) {
             if (isRefreshing) {
@@ -172,12 +173,18 @@ private fun DiscoverRefreshPrompt(
                 Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
             }
 
-            Text(
-                text = stringResource(R.string.discover_refresh_suggestions),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.discover_refresh_prompt_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = stringResource(R.string.discover_refresh_prompt_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = LocalContentColor.current.copy(alpha = 0.8f)
+                )
+            }
 
             IconButton(onClick = onDismissClick, enabled = !isRefreshing) {
                 Icon(
