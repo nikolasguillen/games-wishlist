@@ -93,6 +93,10 @@ class SearchViewModel @Inject constructor(
     // for the exact text that's already typed).
     private val suggestionsResetTrigger = MutableSharedFlow<String>(extraBufferCapacity = 1)
 
+    // The user asking for updated recommendations from a stale feed. Same shape as the trigger above,
+    // for the same reason: it has no meaningful value at rest, only the fact that a tap happened.
+    private val discoverRefresh = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
     init {
         initSearchHistory()
         initSearchSuggestions()
@@ -219,6 +223,14 @@ class SearchViewModel @Inject constructor(
                         )
                     )
                 }
+            }
+
+            SearchUiEvent.OnRefreshDiscover -> {
+                refreshDiscoverFeed()
+            }
+
+            SearchUiEvent.OnDismissDiscoverRefresh -> {
+                dismissDiscoverRefreshPrompt()
             }
         }
     }
@@ -449,18 +461,18 @@ class SearchViewModel @Inject constructor(
 
     /**
      * Collects the feed for the whole life of the ViewModel: the use case re-emits whenever the user
-     * changes their platform selection, so the feed stays current even while search results hold the
-     * content area. It writes to its own slot unconditionally -- nothing here needs to know what is on
-     * screen, because [SearchUiState.discover] is only rendered while the results are
-     * [SearchContentState.Idle].
+     * changes their platform selection or taps [refreshDiscoverFeed], so the feed stays current even
+     * while search results hold the content area. It writes to its own slot unconditionally -- nothing
+     * here needs to know what is on screen, because [SearchUiState.discover] is only rendered while the
+     * results are [SearchContentState.Idle].
      *
      * Only the first fetch shows a spinner. A later one is triggered by the user having just changed a
-     * setting, and leaving the previous feed up until the new one lands reads better than blanking a
-     * screen they were already looking at.
+     * setting or asked for a refresh, and leaving the previous feed up until the new one lands reads
+     * better than blanking a screen they were already looking at.
      */
     private fun observeDiscoverFeed() {
         viewModelScope.launch {
-            getDiscoverFeedUseCase().collect { result ->
+            getDiscoverFeedUseCase(refresh = discoverRefresh).collect { result ->
                 val newState = when (result) {
                     is AppResult.Success -> result.data.toDiscoverContentState()
                     is AppResult.Failure -> DiscoverContentState.Error(result.error.toUiText())
@@ -468,6 +480,33 @@ class SearchViewModel @Inject constructor(
                 _uiState.update { it.copy(discover = newState) }
             }
         }
+    }
+
+    /**
+     * Flags the current feed as reloading before the trigger even reaches the use case, so the prompt
+     * shows a spinner immediately instead of sitting inert for the length of the network round trip.
+     * Only meaningful while a feed is already on screen -- there is nothing to mark refreshing before
+     * the first load, and [DiscoverContentState.Loading] already covers that case.
+     */
+    private fun refreshDiscoverFeed() {
+        val content = _uiState.value.discover
+        if (content !is DiscoverContentState.Content) return
+
+        _uiState.update { it.copy(discover = content.copy(isRefreshing = true)) }
+        discoverRefresh.tryEmit(Unit)
+    }
+
+    /**
+     * Overwrites [DiscoverContentState.Content.isStale] locally rather than telling the use case
+     * anything -- staleness is a fact about the data, dismissal is not. A later emission that is
+     * genuinely stale again (a further genre shift, or a fresh fetch landing) is a different value from
+     * the one this wrote, so it reaches the screen the same way any other content change would.
+     */
+    private fun dismissDiscoverRefreshPrompt() {
+        val content = _uiState.value.discover
+        if (content !is DiscoverContentState.Content) return
+
+        _uiState.update { it.copy(discover = content.copy(isStale = false)) }
     }
 
     /**

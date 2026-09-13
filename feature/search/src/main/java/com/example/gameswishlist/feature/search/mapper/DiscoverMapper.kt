@@ -20,7 +20,10 @@ internal fun DiscoverFeed.toDiscoverContentState(): DiscoverContentState.Content
         popular = popular.toGameItemList(),
         upcoming = upcoming.drop(1).toGameItemList(),
         hero = hero?.toGameItem(),
-        recommended = recommended?.toUiModel()
+        recommended = recommended?.toUiModel(),
+        isStale = hasStaleRecommendations
+        // isRefreshing is not sourced from the feed: it tracks the window between the refresh tap and
+        // this emission, which the ViewModel owns and this emission always closes out to false.
     )
 }
 

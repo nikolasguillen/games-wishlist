@@ -11,6 +11,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -20,7 +21,9 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -41,7 +44,10 @@ private fun rpgGame(id: Int, rating: Double = 0.0, ratingCount: Int = 0) =
  * both sources succeed, a single generic failure fails the whole feed, the platforms the user picked in
  * Settings reach every shelf, and the personalised shelf appears only when the taste profile earns it —
  * ranked by confidence-weighted rating, then pruned of saved games and of duplicates from the generic
- * shelves.
+ * shelves. Also covers the two ways the feed can change after the initial load without the platform
+ * selection moving: an explicit [refresh][GetDiscoverFeedUseCase.invoke] re-fetches everything, while a
+ * taste-profile edit that moves the strongest genre only flags [DiscoverFeed.hasStaleRecommendations] —
+ * the whole point being that the second case costs no network call.
  */
 class GetDiscoverFeedUseCaseTest {
 
@@ -225,5 +231,85 @@ class GetDiscoverFeedUseCaseTest {
         assertNull(feed?.recommended)
         assertEquals(listOf(PLAYING), feed?.popular)
         assertEquals(listOf(ANTICIPATED), feed?.upcoming)
+    }
+
+    @Test
+    fun `a fresh feed is never flagged stale`() = runTest {
+        val result = useCase().first()
+
+        assertFalse(feedOrNull(result)?.hasStaleRecommendations ?: true)
+    }
+
+    @Test
+    fun `reloads the whole feed on an explicit refresh`() = runTest {
+        val refresh = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+        val feeds = mutableListOf<AppResult<DiscoverFeed>>()
+        val collection = launch(UnconfinedTestDispatcher(testScheduler)) { useCase(refresh).toList(feeds) }
+        advanceUntilIdle()
+
+        refresh.tryEmit(Unit)
+        advanceUntilIdle()
+        collection.cancel()
+
+        assertEquals(2, feeds.size)
+        coVerify(exactly = 2) { repository.getPopularGames(any()) }
+    }
+
+    @Test
+    fun `flags the feed stale when the strongest genre moves without a refresh`() = runTest {
+        val profile = MutableStateFlow(rpgProfile())
+        every { getTasteProfile() } returns profile
+        coEvery { repository.getGamesByGenre(RPG.id, any()) } returns
+            AppResult.success((10..20).map { rpgGame(it) })
+        val feeds = mutableListOf<AppResult<DiscoverFeed>>()
+        val collection = launch(UnconfinedTestDispatcher(testScheduler)) { useCase().toList(feeds) }
+        advanceUntilIdle()
+
+        // SHOOTER overtakes RPG without any platform change or refresh -- e.g. the user saved a batch
+        // of shooters and returned to the feed.
+        profile.value = TasteProfile(genreWeights = mapOf(SHOOTER.id to 1.0), sampleSize = TRUSTED_SAMPLE_SIZE)
+        advanceUntilIdle()
+        collection.cancel()
+
+        assertFalse(feedOrNull(feeds.first())?.hasStaleRecommendations ?: true)
+        assertTrue(feedOrNull(feeds.last())?.hasStaleRecommendations ?: false)
+        // The flag is derived locally -- nothing was re-fetched to raise it.
+        coVerify(exactly = 1) { repository.getPopularGames(any()) }
+        coVerify(exactly = 1) { repository.getGamesByGenre(any(), any()) }
+    }
+
+    @Test
+    fun `does not flag the feed stale when a library edit leaves the strongest genre unchanged`() = runTest {
+        val profile = MutableStateFlow(rpgProfile())
+        every { getTasteProfile() } returns profile
+        coEvery { repository.getGamesByGenre(RPG.id, any()) } returns
+            AppResult.success((10..20).map { rpgGame(it) })
+        val feeds = mutableListOf<AppResult<DiscoverFeed>>()
+        val collection = launch(UnconfinedTestDispatcher(testScheduler)) { useCase().toList(feeds) }
+        advanceUntilIdle()
+
+        // The library grows but RPG is still comfortably the strongest genre.
+        profile.value = rpgProfile(sampleSize = TRUSTED_SAMPLE_SIZE + 5)
+        advanceUntilIdle()
+        collection.cancel()
+
+        // No second emission at all: the recommended genre id, not the raw profile, is what the feed
+        // reacts to, and it did not change.
+        assertEquals(1, feeds.size)
+    }
+
+    @Test
+    fun `flags the feed stale once the library earns a personalised shelf it did not have yet`() = runTest {
+        val profile = MutableStateFlow(TasteProfile.EMPTY)
+        every { getTasteProfile() } returns profile
+        val feeds = mutableListOf<AppResult<DiscoverFeed>>()
+        val collection = launch(UnconfinedTestDispatcher(testScheduler)) { useCase().toList(feeds) }
+        advanceUntilIdle()
+
+        profile.value = rpgProfile()
+        advanceUntilIdle()
+        collection.cancel()
+
+        assertTrue(feedOrNull(feeds.last())?.hasStaleRecommendations ?: false)
     }
 }

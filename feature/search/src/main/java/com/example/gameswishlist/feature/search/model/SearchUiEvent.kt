@@ -17,4 +17,10 @@ internal sealed interface SearchUiEvent {
     data class OnSortChanged(val sort: SortingUiModel) : SearchUiEvent
     data object OnOpenSort : SearchUiEvent
     data object OnDismissSort : SearchUiEvent
+
+    /** The user tapped the "refresh suggestions" prompt shown while the Discover feed is stale. */
+    data object OnRefreshDiscover : SearchUiEvent
+
+    /** The user closed the refresh prompt without acting on it. */
+    data object OnDismissDiscoverRefresh : SearchUiEvent
 }

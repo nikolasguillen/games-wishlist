@@ -1,18 +1,30 @@
 package com.example.gameswishlist.feature.search.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -36,6 +48,10 @@ import com.example.gameswishlist.feature.search.model.RecommendedShelfUiModel
  * [hero] and [upcoming] are already disjoint -- [toDiscoverContentState][
  * com.example.gameswishlist.feature.search.mapper.toDiscoverContentState] does that split, this
  * composable only renders what it is given.
+ *
+ * [isStale] renders [DiscoverRefreshPrompt] as a [androidx.compose.foundation.lazy.LazyListScope.stickyHeader]
+ * rather than a regular item, so it pins to the top of the list once the user scrolls past it instead of
+ * scrolling away with the hero -- exactly the case a prompt that was just the first item would miss.
  */
 @Composable
 internal fun DiscoverFeed(
@@ -45,6 +61,10 @@ internal fun DiscoverFeed(
     onGameClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
     recommended: RecommendedShelfUiModel? = null,
+    isStale: Boolean = false,
+    isRefreshing: Boolean = false,
+    onRefreshClick: () -> Unit = {},
+    onDismissRefreshClick: () -> Unit = {},
     state: LazyListState = rememberLazyListState()
 ) {
     if (hero == null && popular.isEmpty() && upcoming.isEmpty() && recommended == null) {
@@ -58,6 +78,21 @@ internal fun DiscoverFeed(
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraLarge),
         modifier = modifier
     ) {
+        // A sticky header, not an overlay: it takes up real space above the hero like any other item,
+        // then pins to the top edge once scrolled past, instead of floating over whatever is
+        // underneath it for the whole time it is visible.
+        if (isStale) {
+            stickyHeader {
+                DiscoverRefreshPrompt(
+                    isRefreshing = isRefreshing,
+                    onClick = onRefreshClick,
+                    onDismissClick = onDismissRefreshClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = MaterialTheme.spacing.large)
+                )
+            }
+        }
         if (hero != null) {
             item {
                 DiscoverHero(
@@ -91,6 +126,63 @@ internal fun DiscoverFeed(
                     title = stringResource(R.string.discover_popular_this_month),
                     games = popular,
                     onGameClick = onGameClick
+                )
+            }
+        }
+    }
+}
+
+/**
+ * A full-width bar, not a chip: [AssistChip] is fixed at Material's own 32.dp height, which leaves no
+ * room to make the prompt read as more than a minor annotation, and a sticky header needs to span the
+ * list's width anyway so nothing scrolling underneath shows through beside it once it pins. This is
+ * hand-rolled so it can be sized and elevated to actually separate from the shelf scrolling under it.
+ */
+@Composable
+private fun DiscoverRefreshPrompt(
+    isRefreshing: Boolean,
+    onClick: () -> Unit,
+    onDismissClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        onClick = onClick,
+        enabled = !isRefreshing,
+        modifier = modifier,
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        tonalElevation = MaterialTheme.spacing.medium,
+        shadowElevation = MaterialTheme.spacing.medium,
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.onPrimaryContainer)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
+            modifier = Modifier.padding(
+                start = MaterialTheme.spacing.large,
+                end = MaterialTheme.spacing.small,
+                top = MaterialTheme.spacing.small,
+                bottom = MaterialTheme.spacing.small
+            )
+        ) {
+            if (isRefreshing) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+            } else {
+                Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
+            }
+
+            Text(
+                text = stringResource(R.string.discover_refresh_suggestions),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+
+            IconButton(onClick = onDismissClick, enabled = !isRefreshing) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = stringResource(R.string.discover_dismiss_refresh_prompt)
                 )
             }
         }
@@ -162,6 +254,35 @@ private fun DiscoverFeedRecommendedPreview() {
                 title = UiText.StringResource(R.string.discover_because_you_like, "RPG"),
                 games = previewGames
             )
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun DiscoverFeedStalePreview() {
+    GamesWishlistTheme {
+        DiscoverFeed(
+            hero = previewGames.first(),
+            popular = previewGames,
+            upcoming = previewGames.drop(1),
+            onGameClick = {},
+            isStale = true
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun DiscoverFeedRefreshingPreview() {
+    GamesWishlistTheme {
+        DiscoverFeed(
+            hero = previewGames.first(),
+            popular = previewGames,
+            upcoming = previewGames.drop(1),
+            onGameClick = {},
+            isStale = true,
+            isRefreshing = true
         )
     }
 }

@@ -36,6 +36,7 @@ internal fun SearchMainContent(
         when (contentState) {
             is SearchContentState.Idle -> DiscoverContent(
                 state = discoverState,
+                onEvent = onEvent,
                 onGameClick = onGameClick,
                 listState = discoverListState
             )
@@ -58,6 +59,7 @@ internal fun SearchMainContent(
 @Composable
 private fun DiscoverContent(
     state: DiscoverContentState,
+    onEvent: (SearchUiEvent) -> Unit,
     onGameClick: (Int) -> Unit,
     listState: LazyListState
 ) {
@@ -70,6 +72,10 @@ private fun DiscoverContent(
             upcoming = state.upcoming,
             onGameClick = onGameClick,
             recommended = state.recommended,
+            isStale = state.isStale,
+            isRefreshing = state.isRefreshing,
+            onRefreshClick = { onEvent(SearchUiEvent.OnRefreshDiscover) },
+            onDismissRefreshClick = { onEvent(SearchUiEvent.OnDismissDiscoverRefresh) },
             state = listState
         )
     }

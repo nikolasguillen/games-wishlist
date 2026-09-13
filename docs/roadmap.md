@@ -48,9 +48,16 @@ every use case in `usecase/discover/` now has a consumer.
 
 **The feed observes the selection**: `GetDiscoverFeedUseCase` returns a `Flow` keyed on the picked
 platforms and re-fetches when they change, so the shelves follow the setting without waiting for a new
-process. The taste profile is deliberately not observed the same way — it is derived from the saved
-games, which change on every status, priority or list edit, and refetching five calls on each of those
-costs far more than the shelf is worth.
+process. The taste profile is *not* refetched the same way — it is derived from the saved games, which
+change on every status, priority or list edit, and refetching five calls on each of those costs far more
+than the shelf is worth. But the feed does not simply go stale and say nothing: the use case also tracks
+the single genre the personalised shelf is built from, which is the only part of the profile it actually
+reads, and re-derives that cheaply on every library change. Once it no longer matches the genre a loaded
+feed was built against, `DiscoverFeed.hasStaleRecommendations` flips, `SearchViewModel` surfaces it as
+`DiscoverContentState.Content.isStale`, and `DiscoverFeed` (the composable) anchors a "Refresh
+suggestions" prompt over the top of the list. Tapping it is what actually re-fetches, via an explicit
+`refresh: Flow<Unit>` the use case also accepts — the network call stays opt-in, the staleness signal is
+free.
 
 `SearchViewModel` collects that flow for its whole life and gates the *display* instead of cancelling
 the collection. The race it guards against — a committed search and a slower feed fetch both landing in

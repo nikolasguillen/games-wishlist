@@ -23,12 +23,20 @@ internal sealed interface DiscoverContentState {
      * [hero] and [upcoming] are disjoint: the top anticipated pick is split out into the hero slot by
      * the mapper, so the composable renders both as given. [recommended] is null whenever the user's
      * library has not earned a personalised shelf.
+     *
+     * [isStale] means the taste profile has moved on from the genre [recommended] was built against —
+     * a status, priority or list edit made since this feed loaded — and offers a refresh rather than
+     * fetching one, per [com.example.gameswishlist.core.model.DiscoverFeed.hasStaleRecommendations].
+     * [isRefreshing] covers only the window between that tap and the next emission; the very first load
+     * uses [DiscoverContentState.Loading] instead.
      */
     data class Content(
         val popular: List<GameItemUiModel>,
         val upcoming: List<GameItemUiModel>,
         val hero: GameItemUiModel? = null,
-        val recommended: RecommendedShelfUiModel? = null
+        val recommended: RecommendedShelfUiModel? = null,
+        val isStale: Boolean = false,
+        val isRefreshing: Boolean = false
     ) : DiscoverContentState
 
     data class Error(val message: UiText) : DiscoverContentState
