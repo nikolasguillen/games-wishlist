@@ -13,7 +13,10 @@ Screen-level and domain components:
 `EmptyPage`, `ErrorPage`, `LoadingPage`, `ControllerLoadingAnimation`, `GameCard`, `VerticalGameCard`
 (also hosts `RecentGameCard` and `GameCompactCard`), `RatingBadge`, `ImageGalleryPager` (+
 `CustomPagerIndicator`), `FullScreenImageViewer`, `ImmersiveDetailLayout`, `StatusBarProtection`,
-`ProfileIconButton` (entry point to Settings, shared by every top-level screen).
+`ProfileIconButton` (entry point to Settings, shared by every top-level screen), `MainScreenHeader` (2
+overloads — the title one for a plain heading, the slot one for a search bar or anything else; fixes the
+header height and the `ProfileIconButton` slot so top-level screens line up, see
+`MainScreenHeaderDefaults.Height`).
 
 Every component file ends with a `private fun XPreview()` annotated `@Preview(showBackground = true)` and
 wrapped in `GamesWishlistTheme { }`. Match that when adding a component.

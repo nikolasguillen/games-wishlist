@@ -21,7 +21,8 @@ import com.example.gameswishlist.core.ui.R
 
 /**
  * Entry point to the Settings screen. Shared by every top-level screen (Search, Radar, Lists) so it stays
- * in one consistent place instead of each screen re-implementing it.
+ * in one consistent place instead of each screen re-implementing it. Placed by [MainScreenHeader], which
+ * is how every top-level screen should reach it rather than calling it directly.
  */
 @Composable
 fun ProfileIconButton(

@@ -22,7 +22,7 @@ import javax.inject.Inject
  */
 private const val MIN_SAMPLE_SIZE = 3
 
-/** How many games the personalised shelf shows once saved games and duplicates are stripped. */
+/** How many games the personalized shelf shows once saved games and duplicates are stripped. */
 private const val RECOMMENDED_SHELF_SIZE = 20
 
 /**
@@ -54,11 +54,11 @@ private const val NEUTRAL_RATING = 75.0
 
 /**
  * Use case to load the Discover feed: the two generic shelves plus, when the user's library supports
- * one, a personalised shelf built from the strongest genre in their [TasteProfile].
+ * one, a personalized shelf built from the strongest genre in their [TasteProfile].
  *
  * The shelves come from independent network calls, fired concurrently. The two generic ones must both
  * succeed — a feed missing half its content with no error reads as a bug, so a single failure fails the
- * whole feed. The personalised shelf is the exception: it is additive, so a failure there degrades to no
+ * whole feed. The personalized shelf is the exception: it is additive, so a failure there degrades to no
  * shelf and leaves a complete generic feed rather than blanking the screen.
  *
  * Everything is narrowed to the platforms the user picked in Settings, and the feed re-emits whenever
@@ -114,7 +114,7 @@ class GetDiscoverFeedUseCase @Inject constructor(
      * Negative weights are excluded outright — those are genres the user has actively dropped.
      *
      * Developers are a better predictor than genres per [TasteProfile], but not yet a usable one here:
-     * weights are normalised within their own map, so the top developer always scores 1.0 whether it
+     * weights are normalized within their own map, so the top developer always scores 1.0 whether it
      * was inferred from six saved games or one, and the profile carries no count to tell those apart.
      */
     private suspend fun loadRecommendedShelf(

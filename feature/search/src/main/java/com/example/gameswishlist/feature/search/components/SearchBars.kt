@@ -5,6 +5,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,19 +22,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.History
-import androidx.compose.material3.AppBarWithSearch
-import androidx.compose.material3.AppBarWithSearchColors
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarColors
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarScrollBehavior
 import androidx.compose.material3.SearchBarState
 import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
@@ -46,6 +46,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -55,7 +56,7 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomAlertDialog
-import com.example.gameswishlist.core.ui.component.ProfileIconButton
+import com.example.gameswishlist.core.ui.component.MainScreenHeader
 import com.example.gameswishlist.core.ui.component.RecentGameCard
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
@@ -86,21 +87,9 @@ internal fun SearchTopBar(
     onProfileClick: () -> Unit,
     backgroundColor: Color
 ) {
-    val appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(
-        searchBarColors = SearchBarDefaults.containedColors(state = searchBarState).copy(
-            dividerColor = SearchBarDefaults.colors().dividerColor.copy(alpha = 0.5f)
-        ),
-        appBarContainerColor = Color.Transparent,
-        scrolledAppBarContainerColor = Color.Transparent,
+    val searchBarColors = SearchBarDefaults.containedColors(state = searchBarState).copy(
+        dividerColor = SearchBarDefaults.colors().dividerColor.copy(alpha = 0.5f)
     )
-
-    // Create a proxy so the internal SearchBar sees the scroll state (for colors)
-    // but doesn't apply the scroll modifier, as we apply it to the outer Surface ourselves.
-    val proxyScrollBehavior = remember(scrollBehavior) {
-        object : SearchBarScrollBehavior by scrollBehavior {
-            override val searchBarScrollBehaviorModifier: Modifier = Modifier
-        }
-    }
 
     val inputField = @Composable {
         SearchInputField(
@@ -111,19 +100,14 @@ internal fun SearchTopBar(
         )
     }
 
-    Surface(
-        color = backgroundColor,
-        modifier = scrollBehavior.searchBarScrollBehaviorModifier
-    ) {
-        Column {
-            CollapsedSearchBar(
-                searchBarState = searchBarState,
-                scrollBehavior = proxyScrollBehavior,
-                appBarWithSearchColors = appBarWithSearchColors,
-                inputField = inputField,
-                onProfileClick = onProfileClick
-            )
-
+    CollapsedSearchBar(
+        searchBarState = searchBarState,
+        searchBarColors = searchBarColors,
+        inputField = inputField,
+        onProfileClick = onProfileClick,
+        backgroundColor = backgroundColor,
+        modifier = scrollBehavior.searchBarScrollBehaviorModifier,
+        bottomContent = {
             val state = uiState.contentState
             if (state is SearchContentState.Success) {
                 SearchSubHeader(
@@ -136,7 +120,7 @@ internal fun SearchTopBar(
                 Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
             }
         }
-    }
+    )
 
     ExpandedSearchBar(
         searchBarState = searchBarState,
@@ -144,11 +128,7 @@ internal fun SearchTopBar(
         history = uiState.history,
         suggestions = uiState.suggestions,
         searchQuery = textFieldState.text.toString(),
-        appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(
-            searchBarColors = appBarWithSearchColors.searchBarColors,
-            appBarContainerColor = Color.Transparent,
-            scrolledAppBarContainerColor = MaterialTheme.appColors.searchBarScrolledContainerColor
-        ),
+        searchBarColors = searchBarColors,
         onCommitSearch = onSearch,
         onGameClick = onGameClick,
         onRemoveRecentGame = { onEvent(SearchUiEvent.OnRecentGameRemoved(it)) },
@@ -215,18 +195,34 @@ internal fun SearchInputField(
 @Composable
 internal fun CollapsedSearchBar(
     searchBarState: SearchBarState,
-    scrollBehavior: SearchBarScrollBehavior,
-    appBarWithSearchColors: AppBarWithSearchColors,
+    searchBarColors: SearchBarColors,
     inputField: @Composable () -> Unit,
-    onProfileClick: () -> Unit
+    onProfileClick: () -> Unit,
+    backgroundColor: Color,
+    modifier: Modifier = Modifier,
+    bottomContent: @Composable ColumnScope.() -> Unit = {}
 ) {
-    AppBarWithSearch(
-        scrollBehavior = scrollBehavior,
-        state = searchBarState,
-        colors = appBarWithSearchColors,
-        inputField = inputField,
-        actions = { ProfileIconButton(onClick = onProfileClick) },
-        contentPadding = PaddingValues(top = MaterialTheme.spacing.large)
+    // Mirrors the flicker guard AppBarWithSearch applies internally: hide the collapsed pill for the
+    // instant currentValue has already reached Expanded but the target has moved back to Collapsed,
+    // the only moment both the collapsed pill and the full-screen bar would otherwise render at once.
+    val isPillVisible = searchBarState.currentValue != SearchBarValue.Expanded ||
+        searchBarState.targetValue == SearchBarValue.Expanded
+
+    MainScreenHeader(
+        onProfileClick = onProfileClick,
+        modifier = modifier,
+        containerColor = backgroundColor,
+        bottomContent = bottomContent,
+        content = {
+            SearchBar(
+                state = searchBarState,
+                inputField = inputField,
+                colors = searchBarColors,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(if (isPillVisible) 1f else 0f)
+            )
+        }
     )
 }
 
@@ -238,7 +234,7 @@ internal fun ExpandedSearchBar(
     history: SearchHistoryUiModel,
     suggestions: SearchSuggestionsUiModel,
     searchQuery: String,
-    appBarWithSearchColors: AppBarWithSearchColors,
+    searchBarColors: SearchBarColors,
     onCommitSearch: (String) -> Unit,
     onGameClick: (Int) -> Unit,
     onRemoveRecentGame: (Int) -> Unit,
@@ -251,7 +247,7 @@ internal fun ExpandedSearchBar(
     ExpandedFullScreenSearchBar(
         state = searchBarState,
         inputField = inputField,
-        colors = appBarWithSearchColors.searchBarColors.copy(
+        colors = searchBarColors.copy(
             containerColor = MaterialTheme.appColors.expandedSearchBarColor
         )
     ) {
@@ -561,8 +557,7 @@ private fun CollapsedSearchBarPreview() {
 
         CollapsedSearchBar(
             searchBarState = searchBarState,
-            scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(),
-            appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(),
+            searchBarColors = SearchBarDefaults.colors(),
             inputField = {
                 SearchInputField(
                     textFieldState = textFieldState,
@@ -571,7 +566,8 @@ private fun CollapsedSearchBarPreview() {
                     onClearSearch = {}
                 )
             },
-            onProfileClick = {}
+            onProfileClick = {},
+            backgroundColor = Color.Transparent
         )
     }
 }
@@ -597,7 +593,7 @@ private fun ExpandedSearchBarPreview() {
             history = previewHistory,
             suggestions = SearchSuggestionsUiModel(),
             searchQuery = "",
-            appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(),
+            searchBarColors = SearchBarDefaults.colors(),
             onCommitSearch = {},
             onGameClick = {},
             onRemoveRecentGame = {},
@@ -628,7 +624,7 @@ private fun ExpandedSearchBarTypingPreview() {
             history = previewHistory,
             suggestions = previewSuggestions,
             searchQuery = "cyberpunk",
-            appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(),
+            searchBarColors = SearchBarDefaults.colors(),
             onCommitSearch = {},
             onGameClick = {},
             onRemoveRecentGame = {},
@@ -662,7 +658,7 @@ private fun ExpandedSearchBarLoadingPreview() {
                 isLoadingRemote = true
             ),
             searchQuery = "cyberpunk",
-            appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors(),
+            searchBarColors = SearchBarDefaults.colors(),
             onCommitSearch = {},
             onGameClick = {},
             onRemoveRecentGame = {},

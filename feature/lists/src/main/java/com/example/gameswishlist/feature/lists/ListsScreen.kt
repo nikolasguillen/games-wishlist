@@ -12,9 +12,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,10 +19,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -35,7 +30,7 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.model.WishlistIcon
 import com.example.gameswishlist.core.ui.component.LoadingPage
-import com.example.gameswishlist.core.ui.component.ProfileIconButton
+import com.example.gameswishlist.core.ui.component.MainScreenHeader
 import com.example.gameswishlist.core.ui.mapper.toDrawableRes
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.lists.components.CreateWishlistCard
@@ -97,18 +92,9 @@ internal fun ListsContent(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.wishlist_hub_title),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                actions = { ProfileIconButton(onClick = onProfileClick) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                )
+            MainScreenHeader(
+                title = stringResource(R.string.wishlist_hub_title),
+                onProfileClick = onProfileClick
             )
         },
         contentWindowInsets = WindowInsets.systemBars,
