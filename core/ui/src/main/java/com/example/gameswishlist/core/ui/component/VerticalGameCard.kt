@@ -42,6 +42,7 @@ import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
+import com.example.gameswishlist.core.ui.util.ColorUtils
 import com.example.gameswishlist.core.ui.util.UiConstants
 import com.example.gameswishlist.core.ui.util.fadingEdge
 
@@ -63,7 +64,6 @@ fun VerticalGameCard(
         Box(modifier = Modifier.fillMaxSize()) {
             GameCoverHeader(
                 coverImage = game.coverImage,
-                rating = game.rating,
                 height = cardHeight
             )
 
@@ -72,8 +72,8 @@ fun VerticalGameCard(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .fadingEdge(topAlpha = 1f, fadeSize = 30.dp)
-                    .background(Color.Black.copy(alpha = 0.7f))
+                    .fadingEdge(topAlpha = 1f, fadeSize = 45.dp)
+                    .background(Color.Black.copy(alpha = 0.75f))
                     .padding(horizontal = MaterialTheme.spacing.medium)
                     .padding(bottom = MaterialTheme.spacing.medium)
                     .padding(top = 50.dp)
@@ -88,6 +88,7 @@ fun VerticalGameCard(
                 )
 
                 GameMetadataRow(
+                    rating = game.rating,
                     developer = game.developer,
                     releaseYear = game.releaseYear
                 )
@@ -119,7 +120,6 @@ fun RecentGameCard(
             Box(modifier = Modifier.fillMaxSize()) {
                 GameCoverHeader(
                     coverImage = game.coverImage,
-                    rating = null,
                     height = cardHeight
                 )
 
@@ -191,7 +191,6 @@ fun GameCompactCard(
         Box(modifier = Modifier.fillMaxSize()) {
             GameCoverHeader(
                 coverImage = game.coverImage,
-                rating = null,
                 height = cardHeight
             )
 
@@ -228,7 +227,6 @@ fun GameCompactCard(
 @Composable
 private fun GameCoverHeader(
     coverImage: String?,
-    rating: Int?,
     height: Dp
 ) {
     Box(
@@ -287,20 +285,12 @@ private fun GameCoverHeader(
                 )
             }
         }
-
-        if (rating != null && rating > 0) {
-            RatingBadge(
-                rating = rating,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(MaterialTheme.spacing.small)
-            )
-        }
     }
 }
 
 @Composable
 private fun GameMetadataRow(
+    rating: Int,
     developer: String?,
     releaseYear: String?
 ) {
@@ -308,6 +298,29 @@ private fun GameMetadataRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall)
     ) {
+        if (rating > 0) {
+            Icon(
+                imageVector = ColorUtils.getScoreIcon(rating),
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = ColorUtils.getScoreColor(rating)
+            )
+            Text(
+                text = rating.toString(),
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                color = ColorUtils.getScoreColor(rating)
+            )
+        }
+
+        if (rating > 0 && (developer != null || releaseYear != null)) {
+            Text(
+                text = UiConstants.METADATA_SEPARATOR,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
+        }
+
         developer?.let {
             Text(
                 text = it,
