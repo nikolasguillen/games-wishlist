@@ -13,7 +13,8 @@ data class GameItemUiModel(
     val releaseYear: String?,
     val developer: String?,
     val platforms: UiText?,
-    val status: GameStatus? = null
+    val status: GameStatus? = null,
+    val isSaved: Boolean = false
 ) {
     companion object {
         fun getDummy() = GameItemUiModel(

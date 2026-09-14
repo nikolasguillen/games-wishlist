@@ -14,9 +14,12 @@ import kotlin.math.roundToInt
 
 /**
  * Maps a list of [Game] domain models to a list of [GameItemUiModel]s.
+ *
+ * [savedIds] flags which games are in the default wishlist; a game whose id isn't in the set maps to
+ * `isSaved = false`.
  */
-fun List<Game>.toGameItemList(): List<GameItemUiModel> {
-    return this.map { it.toGameItem() }
+fun List<Game>.toGameItemList(savedIds: Set<Int> = emptySet()): List<GameItemUiModel> {
+    return this.map { it.toGameItem(isSaved = it.id in savedIds) }
 }
 
 /**
@@ -79,8 +82,11 @@ private fun getOrdinalSuffixRes(day: Int): Int {
 
 /**
  * Maps a [Game] domain model to a [GameItemUiModel].
+ *
+ * [isSaved] defaults to false so every existing caller (the wishlist screen, Discover shelves, related
+ * games) keeps mapping through this function unchanged until it explicitly opts in.
  */
-fun Game.toGameItem(): GameItemUiModel {
+fun Game.toGameItem(isSaved: Boolean = false): GameItemUiModel {
     val year = DateUtils.getYearFromIsoDate(releaseDate)
 
     val formattedReleaseDate = releaseDate?.let { dateString ->
@@ -122,7 +128,8 @@ fun Game.toGameItem(): GameItemUiModel {
         releaseYear = year,
         developer = if (developers.isNotEmpty()) developers.joinToString { it.name } else null,
         platforms = platformsText,
-        status = status
+        status = status,
+        isSaved = isSaved
     )
 }
 
