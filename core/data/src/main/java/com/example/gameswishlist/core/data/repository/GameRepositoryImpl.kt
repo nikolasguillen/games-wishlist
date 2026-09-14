@@ -330,6 +330,10 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getWishlistedGameIds(): Flow<Set<Int>> {
+        return gameDao.getGameIdsInList(WishlistConstants.DEFAULT_WISHLIST_ID).map { it.toSet() }
+    }
+
     override suspend fun toggleWishlist(game: Game) {
         val isWishlisted = gameDao.isGameInList(game.id, WishlistConstants.DEFAULT_WISHLIST_ID)
         if (isWishlisted) {

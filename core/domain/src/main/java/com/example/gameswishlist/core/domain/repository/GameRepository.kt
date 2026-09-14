@@ -50,6 +50,8 @@ interface GameRepository {
     suspend fun removeRecentGame(gameId: Int)
     suspend fun clearRecentGames()
     fun getWishlistedGames(): Flow<List<Game>>
+    /** The ids of the games in the default wishlist, for cheap membership checks against a game list. */
+    fun getWishlistedGameIds(): Flow<Set<Int>>
     suspend fun toggleWishlist(game: Game)
     suspend fun updateGameDetails(game: Game)
 
