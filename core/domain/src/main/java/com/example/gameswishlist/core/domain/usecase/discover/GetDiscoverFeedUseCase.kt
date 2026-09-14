@@ -8,6 +8,7 @@ import com.example.gameswishlist.core.model.RecommendedShelf
 import com.example.gameswishlist.core.model.TasteProfile
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -26,11 +27,17 @@ import javax.inject.Inject
  */
 private const val MIN_SAMPLE_SIZE = 3
 
-/** How many games the personalized shelf shows once saved games and duplicates are stripped. */
+/**
+ * How many personalised shelves the feed builds at most, one per genre. Each one is its own network
+ * call on a screen the user opens constantly, so this is the cap on that cost, not a design ideal.
+ */
+private const val MAX_RECOMMENDED_SHELVES = 2
+
+/** How many games a personalized shelf shows once saved games and duplicates are stripped. */
 private const val RECOMMENDED_SHELF_SIZE = 20
 
 /**
- * Below this the shelf is dropped rather than rendered half-empty: a genre row holding two covers next
+ * Below this a shelf is dropped rather than rendered half-empty: a genre row holding two covers next
  * to two full generic shelves reads as a loading bug.
  */
 private const val MIN_RECOMMENDED_SHELF_SIZE = 4
@@ -58,23 +65,25 @@ private const val NEUTRAL_RATING = 75.0
 
 /**
  * Use case to load the Discover feed: the two generic shelves plus, when the user's library supports
- * one, a personalized shelf built from the strongest genre in their [TasteProfile].
+ * them, up to [MAX_RECOMMENDED_SHELVES] personalized shelves, one per genre the taste profile leans
+ * towards, strongest first.
  *
  * The shelves come from independent network calls, fired concurrently. The two generic ones must both
  * succeed — a feed missing half its content with no error reads as a bug, so a single failure fails the
- * whole feed. The personalized shelf is the exception: it is additive, so a failure there degrades to no
- * shelf and leaves a complete generic feed rather than blanking the screen.
+ * whole feed. The personalized shelves are the exception: each is additive and fails on its own, so one
+ * failing degrades to fewer shelves and leaves the rest of the feed intact rather than blanking the
+ * screen.
  *
  * Everything is narrowed to the platforms the user picked in Settings, and the feed re-emits whenever
  * that selection changes — the picker is one tap from this screen, so a feed that ignored it until the
  * next process start would make the setting look broken.
  *
  * The taste profile is *not* re-fetched the same way, on purpose: it is derived from the saved games,
- * which change every time the user touches a status, a priority or a list, and re-running five network
- * calls on each of those would be far more traffic than the shelf is worth. What the profile actually
- * changes for this use case is much narrower than the profile itself — see [recommendedGenreId] — and
- * that narrower signal is cheap to keep live. So the feed does not silently go stale: once the genre it
- * would recommend today no longer matches the one [DiscoverFeed] was built from, the result is flagged
+ * which change every time the user touches a status, a priority or a list, and re-running several network
+ * calls on each of those would be far more traffic than the shelves are worth. What the profile actually
+ * changes for this use case is much narrower than the profile itself — see [recommendedGenreIds] — and
+ * that narrower signal is cheap to keep live. So the feed does not silently go stale: once the genres it
+ * would recommend today no longer match the ones [DiscoverFeed] was built from, the result is flagged
  * via [DiscoverFeed.hasStaleRecommendations] rather than refetched, leaving the decision to ask the
  * network again to the caller — see [refresh].
  */
@@ -98,41 +107,44 @@ class GetDiscoverFeedUseCase @Inject constructor(
             refresh.onStart { emit(Unit) }
         ) { platformIds, _ -> platformIds }
             .flatMapLatest { platformIds ->
-                // Captured once, before the fetch: both what the personalised shelf is built from and
-                // the baseline the live genre is compared against afterwards to flag the feed stale.
-                val builtFrom = recommendedGenreId().first()
+                // Captured once, before the fetch: both what the personalised shelves are built from and
+                // the baseline the live genres are compared against afterwards to flag the feed stale.
+                // Order matters here, not just membership -- swapping which genre leads still changes
+                // which shelf the user sees first, so it counts as going stale too.
+                val builtFrom = recommendedGenreIds().first()
                 val feed = loadFeed(platformIds, builtFrom)
 
-                recommendedGenreId().distinctUntilChanged().map { currentGenreId ->
-                    feed.map { it.copy(hasStaleRecommendations = currentGenreId != builtFrom) }
+                recommendedGenreIds().distinctUntilChanged().map { currentGenreIds ->
+                    feed.map { it.copy(hasStaleRecommendations = currentGenreIds != builtFrom) }
                 }
             }
 
-    private suspend fun loadFeed(platformIds: Set<Int>, genreId: Int?): AppResult<DiscoverFeed> =
+    private suspend fun loadFeed(platformIds: Set<Int>, genreIds: List<Int>): AppResult<DiscoverFeed> =
         coroutineScope {
             val popular = async { repository.getPopularGames(platformIds) }
             val upcoming = async { repository.getUpcomingGames(platformIds) }
-            val recommended = async { genreId?.let { loadRecommendedShelf(it, platformIds) } }
+            val recommended = genreIds.map { genreId -> async { loadRecommendedShelf(genreId, platformIds) } }
             val savedIds = async { repository.getSavedGames().first().mapTo(mutableSetOf()) { it.id } }
 
-            val shelf = recommended.await()
+            val shelves = recommended.awaitAll().filterNotNull()
             val alreadySaved = savedIds.await()
 
             popular.await().zip(upcoming.await()) { popularGames, upcomingGames ->
                 DiscoverFeed(
                     popular = popularGames,
                     upcoming = upcomingGames,
-                    recommended = shelf?.pruned(alreadySaved + popularGames.ids() + upcomingGames.ids())
+                    recommended = shelves.pruned(alreadySaved + popularGames.ids() + upcomingGames.ids())
                 )
             }
         }
 
     /**
-     * The single strongest positive genre in the taste profile, or null when the profile cannot earn a
-     * shelf yet. This is the whole of what [loadRecommendedShelf] reads from [TasteProfile], which is
-     * what makes it the only profile change worth reacting to: comparing it against the genre a feed was
-     * built from is what flags [DiscoverFeed.hasStaleRecommendations] without a network call, and asking
-     * for a candidate pool of it is the one network call the personalised shelf costs.
+     * The [MAX_RECOMMENDED_SHELVES] strongest positive genres in the taste profile, strongest first, or
+     * an empty list when the profile cannot earn a shelf yet. This is the whole of what
+     * [loadRecommendedShelf] reads from [TasteProfile], which is what makes it the only profile change
+     * worth reacting to: comparing it against the genres a feed was built from is what flags
+     * [DiscoverFeed.hasStaleRecommendations] without a network call, and asking for a candidate pool of
+     * each one is the only network cost the personalised shelves add.
      *
      * Negative weights are excluded outright — those are genres the user has actively dropped.
      *
@@ -140,9 +152,13 @@ class GetDiscoverFeedUseCase @Inject constructor(
      * weights are normalized within their own map, so the top developer always scores 1.0 whether it
      * was inferred from six saved games or one, and the profile carries no count to tell those apart.
      */
-    private fun recommendedGenreId(): Flow<Int?> = getTasteProfile().map { profile ->
-        if (profile.sampleSize < MIN_SAMPLE_SIZE) return@map null
-        profile.genreWeights.filterValues { it > 0.0 }.maxByOrNull { it.value }?.key
+    private fun recommendedGenreIds(): Flow<List<Int>> = getTasteProfile().map { profile ->
+        if (profile.sampleSize < MIN_SAMPLE_SIZE) return@map emptyList()
+        profile.genreWeights.filterValues { it > 0.0 }
+            .entries
+            .sortedByDescending { it.value }
+            .take(MAX_RECOMMENDED_SHELVES)
+            .map { it.key }
     }
 
     private suspend fun loadRecommendedShelf(genreId: Int, platformIds: Set<Int>): RecommendedShelf? {
@@ -179,9 +195,27 @@ class GetDiscoverFeedUseCase @Inject constructor(
     private fun List<Game>.ids(): Set<Int> = mapTo(mutableSetOf()) { it.id }
 
     /**
-     * Drops what the user already saved and whatever the generic shelves are showing in the same feed,
-     * then caps the rest. Recommending a game that sits two rows above, or one already in the user's
-     * library, is the fastest way to make the whole feed look untrustworthy.
+     * Prunes every shelf against what the user already saved, what the generic shelves are showing, and
+     * every stronger shelf that came before it in [this] -- a game that qualifies for two genres is kept
+     * once, in the shelf for the genre it matches most strongly, rather than recommended twice for two
+     * different reasons in the same feed.
+     */
+    private fun List<RecommendedShelf>.pruned(excludedIds: Set<Int>): List<RecommendedShelf> {
+        var excluded = excludedIds
+        val result = mutableListOf<RecommendedShelf>()
+        for (shelf in this) {
+            val prunedShelf = shelf.pruned(excluded) ?: continue
+            result += prunedShelf
+            excluded = excluded + prunedShelf.games.ids()
+        }
+        return result
+    }
+
+    /**
+     * Drops what the user already saved and whatever the generic shelves (or a stronger personalised
+     * shelf) are already showing in the same feed, then caps the rest. Recommending a game that sits two
+     * rows above, or one already in the user's library, is the fastest way to make the whole feed look
+     * untrustworthy.
      */
     private fun RecommendedShelf.pruned(excludedIds: Set<Int>): RecommendedShelf? {
         val remaining = games

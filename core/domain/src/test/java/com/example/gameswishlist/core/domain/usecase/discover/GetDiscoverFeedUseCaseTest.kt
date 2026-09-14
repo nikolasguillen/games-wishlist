@@ -22,7 +22,6 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -32,6 +31,7 @@ private val ANTICIPATED = Game(id = 2, name = "Ashborne Reverie")
 
 private val RPG = Genre(id = 12, name = "RPG")
 private val SHOOTER = Genre(id = 5, name = "Shooter")
+private val PLATFORMER = Genre(id = 7, name = "Platformer")
 
 /** Enough saved games to clear the use case's minimum sample size. */
 private const val TRUSTED_SAMPLE_SIZE = 8
@@ -39,15 +39,20 @@ private const val TRUSTED_SAMPLE_SIZE = 8
 private fun rpgGame(id: Int, rating: Double = 0.0, ratingCount: Int = 0) =
     Game(id = id, name = "RPG $id", rating = rating, ratingCount = ratingCount, genres = listOf(RPG))
 
+private fun platformerGame(id: Int, rating: Double = 0.0, ratingCount: Int = 0) = Game(
+    id = id, name = "Platformer $id", rating = rating, ratingCount = ratingCount, genres = listOf(PLATFORMER)
+)
+
 /**
  * Covers [GetDiscoverFeedUseCase]: the two generic shelves are combined into one [DiscoverFeed] when
  * both sources succeed, a single generic failure fails the whole feed, the platforms the user picked in
- * Settings reach every shelf, and the personalised shelf appears only when the taste profile earns it —
- * ranked by confidence-weighted rating, then pruned of saved games and of duplicates from the generic
- * shelves. Also covers the two ways the feed can change after the initial load without the platform
- * selection moving: an explicit [refresh][GetDiscoverFeedUseCase.invoke] re-fetches everything, while a
- * taste-profile edit that moves the strongest genre only flags [DiscoverFeed.hasStaleRecommendations] —
- * the whole point being that the second case costs no network call.
+ * Settings reach every shelf, and the personalised shelves appear only for genres the taste profile
+ * earns, capped at the two strongest and ranked by confidence-weighted rating within each, then pruned
+ * of saved games, of duplicates from the generic shelves, and of duplicates across each other. Also
+ * covers the two ways the feed can change after the initial load without the platform selection moving:
+ * an explicit [refresh][GetDiscoverFeedUseCase.invoke] re-fetches everything, while a taste-profile edit
+ * that moves the strongest genres only flags [DiscoverFeed.hasStaleRecommendations] — the whole point
+ * being that the second case costs no network call.
  */
 class GetDiscoverFeedUseCaseTest {
 
@@ -70,6 +75,12 @@ class GetDiscoverFeedUseCaseTest {
     /** A profile the use case will trust, leaning towards [RPG] and away from [SHOOTER]. */
     private fun rpgProfile(sampleSize: Int = TRUSTED_SAMPLE_SIZE) = TasteProfile(
         genreWeights = mapOf(RPG.id to 1.0, SHOOTER.id to -0.4),
+        sampleSize = sampleSize
+    )
+
+    /** A profile with two positive genres, [RPG] comfortably ahead of [PLATFORMER]. */
+    private fun multiGenreProfile(sampleSize: Int = TRUSTED_SAMPLE_SIZE) = TasteProfile(
+        genreWeights = mapOf(RPG.id to 1.0, PLATFORMER.id to 0.5, SHOOTER.id to -0.4),
         sampleSize = sampleSize
     )
 
@@ -115,15 +126,76 @@ class GetDiscoverFeedUseCaseTest {
     }
 
     @Test
-    fun `builds the personalised shelf from the strongest positive genre`() = runTest {
+    fun `builds a personalised shelf from the strongest positive genre`() = runTest {
         every { getTasteProfile() } returns flowOf(rpgProfile())
         coEvery { repository.getGamesByGenre(RPG.id, any()) } returns
             AppResult.success((10..20).map { rpgGame(it) })
 
-        val shelf = feedOrNull(useCase().first())?.recommended
+        val shelf = feedOrNull(useCase().first())?.recommended?.firstOrNull()
 
         assertEquals(RPG, shelf?.genre)
         assertEquals((10..20).toList(), shelf?.games?.map { it.id })
+    }
+
+    @Test
+    fun `builds a shelf for each of the two strongest positive genres, strongest first`() = runTest {
+        every { getTasteProfile() } returns flowOf(multiGenreProfile())
+        coEvery { repository.getGamesByGenre(RPG.id, any()) } returns
+            AppResult.success((10..20).map { rpgGame(it) })
+        coEvery { repository.getGamesByGenre(PLATFORMER.id, any()) } returns
+            AppResult.success((30..40).map { platformerGame(it) })
+
+        val shelves = feedOrNull(useCase().first())?.recommended.orEmpty()
+
+        assertEquals(listOf(RPG, PLATFORMER), shelves.map { it.genre })
+    }
+
+    @Test
+    fun `never queries beyond the two strongest positive genres`() = runTest {
+        val thirdGenre = Genre(id = 21, name = "Strategy")
+        every { getTasteProfile() } returns flowOf(
+            TasteProfile(
+                genreWeights = mapOf(RPG.id to 1.0, PLATFORMER.id to 0.5, thirdGenre.id to 0.2),
+                sampleSize = TRUSTED_SAMPLE_SIZE
+            )
+        )
+        coEvery { repository.getGamesByGenre(RPG.id, any()) } returns
+            AppResult.success((10..20).map { rpgGame(it) })
+        coEvery { repository.getGamesByGenre(PLATFORMER.id, any()) } returns
+            AppResult.success((30..40).map { platformerGame(it) })
+
+        val shelves = feedOrNull(useCase().first())?.recommended.orEmpty()
+
+        assertEquals(2, shelves.size)
+        coVerify(exactly = 0) { repository.getGamesByGenre(thirdGenre.id, any()) }
+    }
+
+    @Test
+    fun `keeps a game that qualifies for two genres only in the stronger genre's shelf`() = runTest {
+        every { getTasteProfile() } returns flowOf(multiGenreProfile())
+        val hybrid = Game(id = 99, name = "Hybrid", genres = listOf(RPG, PLATFORMER))
+        coEvery { repository.getGamesByGenre(RPG.id, any()) } returns
+            AppResult.success(listOf(hybrid) + (10..17).map { rpgGame(it) })
+        coEvery { repository.getGamesByGenre(PLATFORMER.id, any()) } returns
+            AppResult.success(listOf(hybrid) + (30..37).map { platformerGame(it) })
+
+        val shelves = feedOrNull(useCase().first())?.recommended.orEmpty()
+
+        assertTrue(99 in shelves[0].games.map { it.id })
+        assertFalse(99 in shelves[1].games.map { it.id })
+    }
+
+    @Test
+    fun `a failing second shelf does not take the first shelf down with it`() = runTest {
+        every { getTasteProfile() } returns flowOf(multiGenreProfile())
+        coEvery { repository.getGamesByGenre(RPG.id, any()) } returns
+            AppResult.success((10..20).map { rpgGame(it) })
+        coEvery { repository.getGamesByGenre(PLATFORMER.id, any()) } returns
+            AppResult.failure(RepositoryError.NoNetwork)
+
+        val shelves = feedOrNull(useCase().first())?.recommended.orEmpty()
+
+        assertEquals(listOf(RPG), shelves.map { it.genre })
     }
 
     @Test
@@ -137,7 +209,7 @@ class GetDiscoverFeedUseCaseTest {
             listOf(twoVotesPerfect, wellRatedNiche, establishedGreat, popularButMediocre)
         )
 
-        val shelf = feedOrNull(useCase().first())?.recommended
+        val shelf = feedOrNull(useCase().first())?.recommended?.firstOrNull()
 
         // The two-vote 100 is pushed below the scores people actually voted on, but it is still on the
         // shelf and still ahead of a mediocre game -- a hard rating-count floor would have dropped it,
@@ -185,15 +257,15 @@ class GetDiscoverFeedUseCaseTest {
         every { getTasteProfile() } returns
             flowOf(TasteProfile(genreWeights = mapOf(SHOOTER.id to -1.0), sampleSize = TRUSTED_SAMPLE_SIZE))
 
-        assertNull(feedOrNull(useCase().first())?.recommended)
+        assertTrue(feedOrNull(useCase().first())?.recommended.isNullOrEmpty())
         coVerify(exactly = 0) { repository.getGamesByGenre(any(), any()) }
     }
 
     @Test
-    fun `skips the personalised shelf when the library is too small to trust`() = runTest {
+    fun `skips the personalised shelves when the library is too small to trust`() = runTest {
         every { getTasteProfile() } returns flowOf(rpgProfile(sampleSize = 2))
 
-        assertNull(feedOrNull(useCase().first())?.recommended)
+        assertTrue(feedOrNull(useCase().first())?.recommended.isNullOrEmpty())
         coVerify(exactly = 0) { repository.getGamesByGenre(any(), any()) }
     }
 
@@ -206,18 +278,18 @@ class GetDiscoverFeedUseCaseTest {
         coEvery { repository.getGamesByGenre(RPG.id, any()) } returns
             AppResult.success((10..20).map { rpgGame(it) })
 
-        val shelf = feedOrNull(useCase().first())?.recommended
+        val shelf = feedOrNull(useCase().first())?.recommended?.firstOrNull()
 
         assertEquals((13..20).toList(), shelf?.games?.map { it.id })
     }
 
     @Test
-    fun `drops the personalised shelf when too little survives the pruning`() = runTest {
+    fun `drops a personalised shelf when too little survives the pruning`() = runTest {
         every { getTasteProfile() } returns flowOf(rpgProfile())
         coEvery { repository.getGamesByGenre(RPG.id, any()) } returns
             AppResult.success(listOf(rpgGame(10), rpgGame(11)))
 
-        assertNull(feedOrNull(useCase().first())?.recommended)
+        assertTrue(feedOrNull(useCase().first())?.recommended.isNullOrEmpty())
     }
 
     @Test
@@ -228,7 +300,7 @@ class GetDiscoverFeedUseCaseTest {
 
         val feed = feedOrNull(useCase().first())
 
-        assertNull(feed?.recommended)
+        assertTrue(feed?.recommended.isNullOrEmpty())
         assertEquals(listOf(PLAYING), feed?.popular)
         assertEquals(listOf(ANTICIPATED), feed?.upcoming)
     }

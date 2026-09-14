@@ -43,21 +43,21 @@ is the cold-start signal. The "My platforms" picker is built end to end (`OwnedP
 from the Settings hub) and `SyncPlatformCatalogUseCase` fills the local `platforms` table from IGDB's
 `/platforms` endpoint, so the picker offers the whole catalogue instead of only what the user's saved
 games happen to cover. `GetDiscoverFeedUseCase` reads the selection and narrows every Discover shelf with
-it, so the setting is live. It also reads `GetTasteProfileUseCase` to build the personalised shelf, so
+it, so the setting is live. It also reads `GetTasteProfileUseCase` to build the personalised shelves, so
 every use case in `usecase/discover/` now has a consumer.
 
 **The feed observes the selection**: `GetDiscoverFeedUseCase` returns a `Flow` keyed on the picked
 platforms and re-fetches when they change, so the shelves follow the setting without waiting for a new
 process. The taste profile is *not* refetched the same way — it is derived from the saved games, which
-change on every status, priority or list edit, and refetching five calls on each of those costs far more
-than the shelf is worth. But the feed does not simply go stale and say nothing: the use case also tracks
-the single genre the personalised shelf is built from, which is the only part of the profile it actually
-reads, and re-derives that cheaply on every library change. Once it no longer matches the genre a loaded
-feed was built against, `DiscoverFeed.hasStaleRecommendations` flips, `SearchViewModel` surfaces it as
-`DiscoverContentState.Content.isStale`, and `DiscoverFeed` (the composable) anchors a "Refresh
-suggestions" prompt over the top of the list. Tapping it is what actually re-fetches, via an explicit
-`refresh: Flow<Unit>` the use case also accepts — the network call stays opt-in, the staleness signal is
-free.
+change on every status, priority or list edit, and refetching several calls on each of those costs far
+more than the shelves are worth. But the feed does not simply go stale and say nothing: the use case also
+tracks the genres the personalised shelves are built from (up to two, strongest first — see below), which
+is the only part of the profile it actually reads, and re-derives that cheaply on every library change.
+Once it no longer matches the ordered genre list a loaded feed was built against, `DiscoverFeed.
+hasStaleRecommendations` flips, `SearchViewModel` surfaces it as `DiscoverContentState.Content.isStale`,
+and `DiscoverFeed` (the composable) renders a sticky "Refresh suggestions" prompt pinned to the top of the
+list. Tapping it is what actually re-fetches, via an explicit `refresh: Flow<Unit>` the use case also
+accepts — the network call stays opt-in, the staleness signal is free.
 
 `SearchViewModel` collects that flow for its whole life and gates the *display* instead of cancelling
 the collection. The race it guards against — a committed search and a slower feed fetch both landing in
@@ -86,23 +86,31 @@ recently viewed games — the feed lives in the body, behind it.
 - New API surface on `IgdbApiService`: same `@POST("games")` endpoint, different apicalypse bodies.
   Worth checking `popularity_primitives` for real hype signal instead of the raw `hypes` field.
 
-**Personalisation is one extra shelf, not a reshuffle of the generic two.** The generic lanes are the
+**Personalisation is its own shelves, not a reshuffle of the generic two.** The generic lanes are the
 global popularity top-N; reordering them by taste only reorders what was already globally popular, which
-is not what the user's profile says. So the taste profile buys its own query (`where genres = (...)`) and
-its own shelf, titled with the reason. Reasons sit on the shelf rather than on each card: a 140dp cover
-has no room for a sentence, and every game in the shelf is there for the same reason anyway.
+is not what the user's profile says. So the taste profile buys its own query (`where genres = (...)`) per
+genre it leans towards, each its own shelf, titled with the reason. Reasons sit on the shelf rather than
+on each card: a 140dp cover has no room for a sentence, and every game in a shelf is there for the same
+reason anyway.
 
-Deliberate limits of the shelf as built, each one a place to extend rather than a bug:
+Deliberate limits of the shelves as built, each one a place to extend rather than a bug:
 
-- **One shelf, one signal — the top positive genre.** Every extra shelf is another network call on a
-  screen the user opens constantly.
+- **Up to two shelves, one signal each — the two strongest positive genres, strongest first.** Every
+  extra shelf is another network call on a screen the user opens constantly, so the cap (
+  `MAX_RECOMMENDED_SHELVES` in `GetDiscoverFeedUseCase`) is a cost decision, not a belief that a third
+  genre would not also be worth showing.
+- **A game that qualifies for two genres is kept once**, in the stronger shelf only — pruning runs in
+  rank order, each shelf excluding what every stronger one already kept, on top of saved games and the
+  generic shelves. Recommending the same game twice for two different reasons in one feed reads as a bug,
+  not as extra confidence.
 - **Developers are not a signal yet**, though `TasteProfile` documents them as the better predictor.
   Weights are normalised within their own map, so the top developer scores 1.0 whether it came from six
   saved games or one, and the profile carries no count to tell those apart. Giving `TasteProfile` raw
   counts is the prerequisite.
-- **The shelf disappears rather than degrading**: below a minimum sample size, with no positive genre, on
-  a failed fetch, or when pruning saved games and generic-shelf duplicates leaves too few entries. A
-  half-empty personalised row next to two full generic ones reads as a loading bug.
+- **Each shelf disappears rather than degrading, independently of the others**: below a minimum sample
+  size, with no positive genre left for it, on a failed fetch, or when pruning leaves too few entries. A
+  half-empty personalised row next to two full generic ones reads as a loading bug — losing one of two
+  personalised shelves to this does not take the other down with it.
 
 **No rating-count floor — rank by confidence instead.** IGDB can sort by raw score but not by a score
 weighted for how many people voted, so `sort total_rating desc` leads with whatever scores 100 across

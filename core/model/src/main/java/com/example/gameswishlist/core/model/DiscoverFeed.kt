@@ -6,19 +6,20 @@ package com.example.gameswishlist.core.model
  * they rank the whole catalogue and are the same for every user. Either may be empty when its source
  * returns nothing.
  *
- * [recommended] is the personalised part, and it is `null` far more often than not: a user who has
- * saved nothing has no taste to recommend against, which is the cold-start case the generic shelves
- * exist to cover.
+ * [recommended] is the personalised part, one shelf per genre the user leans towards, and it is empty
+ * far more often than not: a user who has saved nothing has no taste to recommend against, which is the
+ * cold-start case the generic shelves exist to cover. Ordered strongest genre first; a game that
+ * qualifies for more than one shelf is kept only in the strongest one it belongs to.
  *
- * [hasStaleRecommendations] is true once the strongest genre in the user's taste profile has moved on
- * from the genre [recommended] was built against — a status, priority or list edit made after this feed
- * was fetched, that would change what the personalised shelf recommends. It is a signal to offer a
- * refresh, not an instruction to fetch one: re-deriving the profile is cheap, but re-fetching the shelf
- * is a network call, and firing one on every library edit would cost far more than the shelf is worth.
+ * [hasStaleRecommendations] is true once the genres the user's taste profile would recommend today have
+ * moved on from the ones [recommended] was built against — a status, priority or list edit made after
+ * this feed was fetched, that would change what the personalised shelves recommend. It is a signal to
+ * offer a refresh, not an instruction to fetch one: re-deriving the profile is cheap, but re-fetching the
+ * shelves is a network call, and firing one on every library edit would cost far more than they are worth.
  */
 data class DiscoverFeed(
     val popular: List<Game>,
     val upcoming: List<Game>,
-    val recommended: RecommendedShelf? = null,
+    val recommended: List<RecommendedShelf> = emptyList(),
     val hasStaleRecommendations: Boolean = false
 )

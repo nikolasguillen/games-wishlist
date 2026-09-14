@@ -40,13 +40,13 @@ import com.example.gameswishlist.feature.search.R
 import com.example.gameswishlist.feature.search.model.RecommendedShelfUiModel
 
 /**
- * The Discover feed: an editorial hero for the top anticipated pick, then the personalised shelf when
- * the user's library earned one, then "Most anticipated" (the rest of it) and "Popular this month" per
+ * The Discover feed: an editorial hero for the top anticipated pick, then the personalised shelves when
+ * the user's library earned any, then "Most anticipated" (the rest of it) and "Popular this month" per
  * the design -- upcoming leads the generic pair since it is the one shelf a personalised feed would not
- * already cover with saved-game recommendations. [recommended] sits directly under the hero because it
- * is the only row that is about this user; below the generic shelves it would read as an afterthought.
- * Falls back to the placeholder when every slot comes back empty rather than rendering nothing.
- * [hero] and [upcoming] are already disjoint -- [toDiscoverContentState][
+ * already cover with saved-game recommendations. [recommended] sits directly under the hero because
+ * those are the only rows that are about this user; below the generic shelves they would read as an
+ * afterthought. Falls back to the placeholder when every slot comes back empty rather than rendering
+ * nothing. [hero] and [upcoming] are already disjoint -- [toDiscoverContentState][
  * com.example.gameswishlist.feature.search.mapper.toDiscoverContentState] does that split, this
  * composable only renders what it is given.
  *
@@ -61,14 +61,14 @@ internal fun DiscoverFeed(
     upcoming: List<GameItemUiModel>,
     onGameClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    recommended: RecommendedShelfUiModel? = null,
+    recommended: List<RecommendedShelfUiModel> = emptyList(),
     isStale: Boolean = false,
     isRefreshing: Boolean = false,
     onRefreshClick: () -> Unit = {},
     onDismissRefreshClick: () -> Unit = {},
     state: LazyListState = rememberLazyListState()
 ) {
-    if (hero == null && popular.isEmpty() && upcoming.isEmpty() && recommended == null) {
+    if (hero == null && popular.isEmpty() && upcoming.isEmpty() && recommended.isEmpty()) {
         DiscoverPlaceholder(modifier = modifier)
         return
     }
@@ -103,11 +103,11 @@ internal fun DiscoverFeed(
                 )
             }
         }
-        if (recommended != null) {
-            item {
+        recommended.forEachIndexed { index, shelf ->
+            item(key = "recommended_$index") {
                 DiscoverShelf(
-                    title = recommended.title.asString(),
-                    games = recommended.games,
+                    title = shelf.title.asString(),
+                    games = shelf.games,
                     onGameClick = onGameClick
                 )
             }
@@ -257,9 +257,15 @@ private fun DiscoverFeedRecommendedPreview() {
             popular = previewGames,
             upcoming = previewGames.drop(1),
             onGameClick = {},
-            recommended = RecommendedShelfUiModel(
-                title = UiText.StringResource(R.string.discover_because_you_like, "RPG"),
-                games = previewGames
+            recommended = listOf(
+                RecommendedShelfUiModel(
+                    title = UiText.StringResource(R.string.discover_because_you_like, "RPG"),
+                    games = previewGames
+                ),
+                RecommendedShelfUiModel(
+                    title = UiText.StringResource(R.string.discover_because_you_like, "Platformer"),
+                    games = previewGames.reversed()
+                )
             )
         )
     }
