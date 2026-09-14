@@ -3,6 +3,7 @@ package com.example.gameswishlist.core.ui.component
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.outlined.ImageNotSupported
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -50,21 +53,36 @@ import com.example.gameswishlist.core.ui.util.fadingEdge
 fun VerticalGameCard(
     game: GameItemUiModel,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSaveClick: () -> Unit = {},
+    onLongClick: () -> Unit = {}
 ) {
     val cardHeight = 250.dp
+    val chooseListLabel = stringResource(R.string.choose_list_content_description)
     OutlinedCard(
         border = BorderStroke(1.dp, MaterialTheme.appColors.cardContainerColor),
         modifier = modifier
             .width(180.dp)
             .height(cardHeight)
             .clip(RoundedCornerShape(MaterialTheme.spacing.mediumLarge))
-            .clickable(onClick = onClick)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick,
+                onLongClickLabel = chooseListLabel
+            )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             GameCoverHeader(
                 coverImage = game.coverImage,
                 height = cardHeight
+            )
+
+            SaveToWishlistButton(
+                isSaved = game.isSaved,
+                onSaveClick = onSaveClick,
+                onLongClick = onLongClick,
+                longClickLabel = chooseListLabel,
+                modifier = Modifier.align(Alignment.TopEnd)
             )
 
             Column(
@@ -91,6 +109,55 @@ fun VerticalGameCard(
                     rating = game.rating,
                     developer = game.developer,
                     releaseYear = game.releaseYear
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Toggles the game's membership in the default wishlist. A tap toggles it directly; a long press
+ * (shared with the card underneath it, so it fires regardless of which of the two catches the gesture)
+ * opens the list selector instead.
+ */
+@Composable
+private fun SaveToWishlistButton(
+    isSaved: Boolean,
+    onSaveClick: () -> Unit,
+    onLongClick: () -> Unit,
+    longClickLabel: String,
+    modifier: Modifier = Modifier
+) {
+    // The touch target (48dp, accessibility minimum) is kept larger than the visible circle (32dp),
+    // the same way Material's own IconButton pads a 24dp icon inside a 48dp target.
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .padding(MaterialTheme.spacing.small)
+            .size(48.dp)
+            .combinedClickable(
+                onClick = onSaveClick,
+                onLongClick = onLongClick,
+                onLongClickLabel = longClickLabel
+            )
+    ) {
+        Surface(
+            color = Color.Black.copy(alpha = 0.6f),
+            shape = CircleShape,
+            modifier = Modifier.size(32.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                Icon(
+                    imageVector = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = stringResource(
+                        if (isSaved) {
+                            R.string.remove_from_wishlist_content_description
+                        } else {
+                            R.string.add_to_wishlist_content_description
+                        }
+                    ),
+                    tint = if (isSaved) MaterialTheme.colorScheme.primary else Color.White,
+                    modifier = Modifier.size(MaterialTheme.spacing.large)
                 )
             }
         }
@@ -357,6 +424,17 @@ private fun GameCardPreview() {
     GamesWishlistTheme {
         VerticalGameCard(
             game = GameItemUiModel.getDummy(),
+            onClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun GameCardSavedPreview() {
+    GamesWishlistTheme {
+        VerticalGameCard(
+            game = GameItemUiModel.getDummy().copy(isSaved = true),
             onClick = {}
         )
     }
