@@ -6,7 +6,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.common.calculateGameRelevanceScore
+import com.example.gameswishlist.core.domain.usecase.ToggleWishlistUseCase
 import com.example.gameswishlist.core.domain.usecase.discover.GetDiscoverFeedUseCase
+import com.example.gameswishlist.core.domain.usecase.list.GetWishlistedGameIdsUseCase
 import com.example.gameswishlist.core.domain.usecase.search.AddSearchToHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.ClearAllHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.ClearRecentGamesUseCase
@@ -73,7 +75,9 @@ class SearchViewModel @Inject constructor(
     private val removeRecentGameUseCase: RemoveRecentGameUseCase,
     private val clearRecentGamesUseCase: ClearRecentGamesUseCase,
     private val getSearchSuggestionsUseCase: GetSearchSuggestionsUseCase,
-    private val getDiscoverFeedUseCase: GetDiscoverFeedUseCase
+    private val getDiscoverFeedUseCase: GetDiscoverFeedUseCase,
+    private val getWishlistedGameIdsUseCase: GetWishlistedGameIdsUseCase,
+    private val toggleWishlistUseCase: ToggleWishlistUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -97,10 +101,16 @@ class SearchViewModel @Inject constructor(
     // for the same reason: it has no meaningful value at rest, only the fact that a tap happened.
     private val discoverRefresh = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
+    // Cached alongside the collector below so a freshly built SearchContentState.Success (a new search,
+    // a filter or sort change) can be stamped with membership synchronously, instead of starting every
+    // card unsaved for one frame until the collector's next emission patches it.
+    private val wishlistedGameIds = MutableStateFlow<Set<Int>>(emptySet())
+
     init {
         initSearchHistory()
         initSearchSuggestions()
         observeDiscoverFeed()
+        observeWishlistedGameIds()
     }
 
     internal fun onEvent(event: SearchUiEvent) {
@@ -135,6 +145,10 @@ class SearchViewModel @Inject constructor(
 
             is SearchUiEvent.OnFilterClick -> {
                 handleFilterClick(event.filter)
+            }
+
+            is SearchUiEvent.OnToggleSave -> {
+                toggleSave(event.gameId)
             }
 
             SearchUiEvent.OnOpenFilters -> {
@@ -264,6 +278,18 @@ class SearchViewModel @Inject constructor(
 
         val newFilters = toggleFilterSelection(contentState.filters, eventFilter)
         updateSearchContent(contentState, newFilters)
+    }
+
+    /**
+     * No optimistic update: the toggle writes to Room, which [observeWishlistedGameIds] re-emits from,
+     * and that is what actually patches the card.
+     */
+    private fun toggleSave(gameId: Int) {
+        val contentState = _uiState.value.contentState
+        if (contentState !is SearchContentState.Success) return
+
+        val game = contentState.allGames.find { it.id == gameId } ?: return
+        viewModelScope.launch { toggleWishlistUseCase(game) }
     }
 
     private fun handleBottomSheetFilterClick(eventFilter: GameFilterUiModel) {
@@ -400,7 +426,7 @@ class SearchViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 contentState = contentState.copy(
-                    games = sortedGames.toGameItemList(), filters = newFilters
+                    games = sortedGames.toGameItemList(wishlistedGameIds.value), filters = newFilters
                 )
             )
         }
@@ -427,7 +453,7 @@ class SearchViewModel @Inject constructor(
                         searchResult.platforms.toPlatformFilters() + searchResult.genres.toGenreFilters() + getInitialGameTypeFilters()
 
                     SearchContentState.Success(
-                        games = sortedGames.toGameItemList(),
+                        games = sortedGames.toGameItemList(wishlistedGameIds.value),
                         filters = filters,
                         allGames = sortedGames
                     )
@@ -478,6 +504,31 @@ class SearchViewModel @Inject constructor(
                     is AppResult.Failure -> DiscoverContentState.Error(result.error.toUiText())
                 }
                 _uiState.update { it.copy(discover = newState) }
+            }
+        }
+    }
+
+    /**
+     * Patches [SearchContentState.Success.games] with the games currently in the default wishlist,
+     * in place -- filtering and sorting are not re-run, only each card's saved flag changes. Collected
+     * for the whole life of the ViewModel, the same way [observeDiscoverFeed] is, since a toggle from
+     * the card has to reach a search result that was already on screen before the toggle.
+     */
+    private fun observeWishlistedGameIds() {
+        viewModelScope.launch {
+            getWishlistedGameIdsUseCase().collect { ids ->
+                wishlistedGameIds.value = ids
+
+                _uiState.update { current ->
+                    val contentState = current.contentState
+                    if (contentState !is SearchContentState.Success) return@update current
+
+                    current.copy(
+                        contentState = contentState.copy(
+                            games = contentState.games.map { it.copy(isSaved = it.id in ids) }
+                        )
+                    )
+                }
             }
         }
     }

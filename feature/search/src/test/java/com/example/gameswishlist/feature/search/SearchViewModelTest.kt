@@ -2,7 +2,9 @@ package com.example.gameswishlist.feature.search
 
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
+import com.example.gameswishlist.core.domain.usecase.ToggleWishlistUseCase
 import com.example.gameswishlist.core.domain.usecase.discover.GetDiscoverFeedUseCase
+import com.example.gameswishlist.core.domain.usecase.list.GetWishlistedGameIdsUseCase
 import com.example.gameswishlist.core.domain.usecase.search.AddSearchToHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.ClearAllHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.ClearRecentGamesUseCase
@@ -76,6 +78,8 @@ class SearchViewModelTest {
     private val clearRecentGamesUseCase = mockk<ClearRecentGamesUseCase>(relaxed = true)
     private val getSearchSuggestionsUseCase = mockk<GetSearchSuggestionsUseCase>()
     private val getDiscoverFeedUseCase = mockk<GetDiscoverFeedUseCase>()
+    private val getWishlistedGameIdsUseCase = mockk<GetWishlistedGameIdsUseCase>()
+    private val toggleWishlistUseCase = mockk<ToggleWishlistUseCase>(relaxed = true)
 
     @Before
     fun setUp() {
@@ -86,6 +90,7 @@ class SearchViewModelTest {
         every { getDiscoverFeedUseCase(any()) } returns flowOf(
             AppResult.success(DiscoverFeed(popular = emptyList(), upcoming = emptyList()))
         )
+        every { getWishlistedGameIdsUseCase() } returns flowOf(emptySet())
     }
 
     @After
@@ -111,7 +116,9 @@ class SearchViewModelTest {
             removeRecentGameUseCase = removeRecentGameUseCase,
             clearRecentGamesUseCase = clearRecentGamesUseCase,
             getSearchSuggestionsUseCase = getSearchSuggestionsUseCase,
-            getDiscoverFeedUseCase = getDiscoverFeedUseCase
+            getDiscoverFeedUseCase = getDiscoverFeedUseCase,
+            getWishlistedGameIdsUseCase = getWishlistedGameIdsUseCase,
+            toggleWishlistUseCase = toggleWishlistUseCase
         ).also { advanceUntilIdle() }
     }
 

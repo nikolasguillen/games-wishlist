@@ -8,6 +8,9 @@ internal sealed interface SearchUiEvent {
     data class OnRecentGameRemoved(val gameId: Int) : SearchUiEvent
     data class OnFilterClick(val filter: GameFilterUiModel) : SearchUiEvent
 
+    /** The user tapped a search result's save button, toggling its membership in the default wishlist. */
+    data class OnToggleSave(val gameId: Int) : SearchUiEvent
+
     // Bottom Sheet Events
     data object OnOpenFilters : SearchUiEvent
     data object OnDismissFilters : SearchUiEvent
