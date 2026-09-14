@@ -41,6 +41,8 @@ internal fun SearchResultGrid(
     activeFilters: List<GameFilterUiModel>,
     onFilterClick: (GameFilterUiModel) -> Unit,
     onGameClick: (Int) -> Unit,
+    onSaveClick: (Int) -> Unit,
+    onLongClick: (Int) -> Unit,
     state: LazyGridState,
     modifier: Modifier = Modifier
 ) {
@@ -86,6 +88,8 @@ internal fun SearchResultGrid(
                 VerticalGameCard(
                     game = game,
                     onClick = { onGameClick(game.id) },
+                    onSaveClick = { onSaveClick(game.id) },
+                    onLongClick = { onLongClick(game.id) },
                     modifier = Modifier
                         .animateItem(fadeOutSpec = null)
                         .padding(
@@ -152,6 +156,8 @@ private fun SearchResultGridPreview() {
             activeFilters = previewFilters,
             onFilterClick = {},
             onGameClick = {},
+            onSaveClick = {},
+            onLongClick = {},
             state = rememberLazyGridState()
         )
     }
@@ -166,6 +172,8 @@ private fun SearchResultGridNoMatchPreview() {
             activeFilters = previewFilters,
             onFilterClick = {},
             onGameClick = {},
+            onSaveClick = {},
+            onLongClick = {},
             state = rememberLazyGridState()
         )
     }

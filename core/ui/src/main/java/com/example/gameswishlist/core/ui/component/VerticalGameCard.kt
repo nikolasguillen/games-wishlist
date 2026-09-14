@@ -135,6 +135,7 @@ private fun SaveToWishlistButton(
         modifier = modifier
             .padding(MaterialTheme.spacing.small)
             .size(48.dp)
+            .clip(CircleShape)
             .combinedClickable(
                 onClick = onSaveClick,
                 onLongClick = onLongClick,
