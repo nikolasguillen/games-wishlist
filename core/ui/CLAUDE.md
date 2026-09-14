@@ -10,7 +10,7 @@ Shared wrappers are prefixed `Custom*`:
 `CustomFab`, `CustomFilterChip`, `CustomInfoChip`, `CustomModalBottomSheet`, `CustomSegmentedButton`.
 
 Screen-level and domain components:
-`EmptyPage`, `ErrorPage`, `LoadingPage`, `ControllerLoadingAnimation`, `GameCard`, `VerticalGameCard`
+`EmptyPage`, `ErrorPage`, `LoadingPage`, `ControllerLoadingAnimation`, `VerticalGameCard`
 (also hosts `RecentGameCard` and `GameCompactCard`), `RatingBadge`, `ImageGalleryPager` (+
 `CustomPagerIndicator`), `FullScreenImageViewer`, `ImmersiveDetailLayout`, `StatusBarProtection`,
 `ProfileIconButton` (entry point to Settings, shared by every top-level screen), `MainScreenHeader` (2
