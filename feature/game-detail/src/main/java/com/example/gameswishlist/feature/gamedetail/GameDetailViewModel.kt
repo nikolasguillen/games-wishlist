@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel(assistedFactory = GameDetailViewModel.Factory::class)
 class GameDetailViewModel @AssistedInject constructor(
-    @Assisted gameId: Int,
+    @Assisted private val gameId: Int,
     getGameDetailUseCase: GetGameDetailUseCase,
     private val refreshGameDetailUseCase: RefreshGameDetailUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
@@ -78,7 +78,7 @@ class GameDetailViewModel @AssistedInject constructor(
 
     internal fun onEvent(event: GameDetailUiEvent) {
         when (event) {
-            is GameDetailUiEvent.LoadGame -> refreshGame(event.id)
+            GameDetailUiEvent.Retry -> refreshGame(gameId)
             is GameDetailUiEvent.UpdateNotes -> updateNotes(event.notes)
             is GameDetailUiEvent.UpdatePriority -> updatePriority(event.priorityId)
             is GameDetailUiEvent.UpdateStatus -> updateStatus(event.statusId)

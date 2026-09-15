@@ -32,7 +32,10 @@ internal fun GameDetailMainContent(
 
         is GameDetailContentState.Error -> {
             DetailErrorLoadingWrapper(onBackClick = onBackClick) {
-                ErrorPage(message = content.message)
+                ErrorPage(
+                    message = content.message,
+                    onRetryClick = { onEvent(GameDetailUiEvent.Retry) }
+                )
             }
         }
 

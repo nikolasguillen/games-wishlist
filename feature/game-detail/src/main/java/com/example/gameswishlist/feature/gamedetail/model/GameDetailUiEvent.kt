@@ -1,7 +1,9 @@
 package com.example.gameswishlist.feature.gamedetail.model
 
 internal sealed interface GameDetailUiEvent {
-    data class LoadGame(val id: Int) : GameDetailUiEvent
+
+    /** The user tapped "Retry" on the error state, reloading the same game the screen was opened for. */
+    data object Retry : GameDetailUiEvent
     data class UpdateNotes(val notes: String) : GameDetailUiEvent
     data class UpdatePriority(val priorityId: Int) : GameDetailUiEvent
     data class UpdateStatus(val statusId: Int) : GameDetailUiEvent

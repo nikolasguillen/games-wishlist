@@ -141,6 +141,38 @@ class GameDetailViewModelTest {
     }
 
     @Test
+    fun `Retry re-invokes the refresh use case for the same game and clears the earlier error`() =
+        runTest(testDispatcher) {
+            every { getGameDetailUseCase(GAME_ID) } returns flowOf(null)
+            coEvery { refreshGameDetailUseCase(GAME_ID) } returns AppResult.failure(RepositoryError.NoNetwork)
+
+            val viewModel = GameDetailViewModel(
+                gameId = GAME_ID,
+                getGameDetailUseCase = getGameDetailUseCase,
+                refreshGameDetailUseCase = refreshGameDetailUseCase,
+                updateGameUseCase = updateGameUseCase,
+                toggleWishlistUseCase = toggleWishlistUseCase,
+                getWishlistAssignmentsUseCase = getWishlistAssignmentsUseCase,
+                addGameToListUseCase = addGameToListUseCase,
+                removeGameFromListUseCase = removeGameFromListUseCase
+            )
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            advanceUntilIdle()
+            assertTrue(viewModel.uiState.value.contentState is GameDetailContentState.Error)
+
+            coEvery { refreshGameDetailUseCase(GAME_ID) } returns AppResult.success(Unit)
+            viewModel.onEvent(GameDetailUiEvent.Retry)
+            advanceUntilIdle()
+
+            // One call from init, one from Retry -- both for the game the screen was opened with.
+            coVerify(exactly = 2) { refreshGameDetailUseCase(GAME_ID) }
+            // No game is ever cached in this test (getGameDetailUseCase always emits null), so the
+            // state moves on to Loading rather than Success -- reaching Success is GetGameDetailUseCase's
+            // own Flow's job. This only proves the retry cleared the earlier error.
+            assertTrue(viewModel.uiState.value.contentState !is GameDetailContentState.Error)
+        }
+
+    @Test
     fun `Success is kept when a refresh fails but the game is already cached`() = runTest(testDispatcher) {
         val game = testGame()
         coEvery { refreshGameDetailUseCase(game.id) } returns AppResult.failure(RepositoryError.NoNetwork)
