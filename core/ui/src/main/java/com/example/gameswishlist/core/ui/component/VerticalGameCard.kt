@@ -1,5 +1,8 @@
 package com.example.gameswishlist.core.ui.component
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,11 +30,16 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,6 +56,7 @@ import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.util.ColorUtils
 import com.example.gameswishlist.core.ui.util.UiConstants
 import com.example.gameswishlist.core.ui.util.fadingEdge
+import kotlinx.coroutines.launch
 
 @Composable
 fun VerticalGameCard(
@@ -128,6 +137,13 @@ private fun SaveToWishlistButton(
     longClickLabel: String,
     modifier: Modifier = Modifier
 ) {
+    // Triggered from the click callback rather than derived from isSaved: keying it to the state would
+    // replay the pulse on every card that is already saved the moment the grid first composes, and again
+    // whenever a scrolled-away card re-enters composition.
+    val scale = remember { Animatable(1f) }
+    val scope = rememberCoroutineScope()
+    val haptics = LocalHapticFeedback.current
+
     // The touch target (48dp, accessibility minimum) is kept larger than the visible circle (32dp),
     // the same way Material's own IconButton pads a 24dp icon inside a 48dp target.
     Box(
@@ -137,7 +153,22 @@ private fun SaveToWishlistButton(
             .size(48.dp)
             .clip(CircleShape)
             .combinedClickable(
-                onClick = onSaveClick,
+                onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    scope.launch {
+                        scale.animateTo(1.3f, animationSpec = spring(stiffness = Spring.StiffnessHigh))
+                        scale.animateTo(
+                            1f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow
+                            )
+                        )
+                    }
+                    onSaveClick()
+                },
+                // combinedClickable already performs HapticFeedbackType.LongPress on its own, so the
+                // long-click branch needs no explicit call.
                 onLongClick = onLongClick,
                 onLongClickLabel = longClickLabel
             )
@@ -145,7 +176,9 @@ private fun SaveToWishlistButton(
         Surface(
             color = Color.Black.copy(alpha = 0.6f),
             shape = CircleShape,
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier
+                .size(32.dp)
+                .scale(scale.value)
         ) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                 Icon(
