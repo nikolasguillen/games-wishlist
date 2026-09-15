@@ -49,18 +49,17 @@ fun EmptyPage(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.size(80.dp)
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(60.dp)
             )
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.smallMedium))
             Text(
                 text = message,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.labelLarge,
                 textAlign = TextAlign.Center
             )
             if (actionLabel != null && onActionClick != null) {
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
                 TextButton(onClick = onActionClick) {
                     Text(text = actionLabel.asString())
                 }

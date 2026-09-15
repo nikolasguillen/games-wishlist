@@ -44,14 +44,14 @@ fun ErrorPage(
             Icon(
                 imageVector = Icons.Outlined.CloudOff,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.error,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(40.dp)
             )
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.mediumLarge))
             Text(
                 text = message.asString(),
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelLarge,
                 textAlign = TextAlign.Center
             )
             if (onRetryClick != null) {
