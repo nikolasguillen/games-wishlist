@@ -2,6 +2,7 @@ package com.example.gameswishlist.feature.search
 
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
+import com.example.gameswishlist.core.domain.model.WishlistAssignment
 import com.example.gameswishlist.core.domain.usecase.ToggleWishlistUseCase
 import com.example.gameswishlist.core.domain.usecase.discover.GetDiscoverFeedUseCase
 import com.example.gameswishlist.core.domain.usecase.list.AddGameToListUseCase
@@ -24,11 +25,13 @@ import com.example.gameswishlist.core.model.RecentSearchActivity
 import com.example.gameswishlist.core.model.RepositoryError
 import com.example.gameswishlist.core.model.SearchResult
 import com.example.gameswishlist.core.model.SearchSuggestion
+import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.model.DiscoverContentState
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchSort
+import com.example.gameswishlist.feature.search.model.SearchUiEffect
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SortingUiModel
 import io.mockk.coEvery
@@ -43,6 +46,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -599,5 +604,129 @@ class SearchViewModelTest {
             val contentState = viewModel.uiState.value.discover as DiscoverContentState.Content
             assertFalse(contentState.isStale)
             assertEquals(listOf(1), contentState.popular.map { it.id })
+        }
+
+    @Test
+    fun `OnToggleSave on an unsaved game toggles it and confirms the addition by name`() =
+        runTest(testDispatcher) {
+            val game = testGame(id = 1, name = "Elden Ring")
+            coEvery { searchGamesUseCase("elden") } returns AppResult.success(
+                SearchResult(games = listOf(game), platforms = emptyList(), genres = emptyList())
+            )
+            val viewModel = createViewModel()
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("elden"))
+            advanceUntilIdle()
+
+            val effects = mutableListOf<SearchUiEffect>()
+            val collectJob = launch { viewModel.uiEffect.toList(effects) }
+
+            viewModel.onEvent(SearchUiEvent.OnToggleSave(1))
+            advanceUntilIdle()
+
+            coVerify { toggleWishlistUseCase(game) }
+            val effect = effects.single() as SearchUiEffect.ShowSnackbar
+            assertEquals(UiText.StringResource(R.string.added_to_wishlist, "Elden Ring"), effect.message)
+            collectJob.cancel()
+        }
+
+    @Test
+    fun `OnToggleSave on a saved game toggles it and confirms the removal by name`() =
+        runTest(testDispatcher) {
+            val game = testGame(id = 1, name = "Elden Ring")
+            coEvery { searchGamesUseCase("elden") } returns AppResult.success(
+                SearchResult(games = listOf(game), platforms = emptyList(), genres = emptyList())
+            )
+            every { getWishlistedGameIdsUseCase() } returns flowOf(setOf(1))
+            val viewModel = createViewModel()
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("elden"))
+            advanceUntilIdle()
+
+            val effects = mutableListOf<SearchUiEffect>()
+            val collectJob = launch { viewModel.uiEffect.toList(effects) }
+
+            viewModel.onEvent(SearchUiEvent.OnToggleSave(1))
+            advanceUntilIdle()
+
+            coVerify { toggleWishlistUseCase(game) }
+            val effect = effects.single() as SearchUiEffect.ShowSnackbar
+            assertEquals(UiText.StringResource(R.string.removed_from_wishlist, "Elden Ring"), effect.message)
+            collectJob.cancel()
+        }
+
+    @Test
+    fun `a wishlisted-ids emission patches isSaved on the results already on screen`() =
+        runTest(testDispatcher) {
+            val ids = MutableStateFlow<Set<Int>>(emptySet())
+            every { getWishlistedGameIdsUseCase() } returns ids
+            coEvery { searchGamesUseCase("elden") } returns AppResult.success(
+                SearchResult(games = listOf(testGame(id = 1)), platforms = emptyList(), genres = emptyList())
+            )
+            val viewModel = createViewModel()
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("elden"))
+            advanceUntilIdle()
+            assertFalse(viewModel.successState().games.single().isSaved)
+
+            ids.value = setOf(1)
+            advanceUntilIdle()
+
+            assertTrue(viewModel.successState().games.single().isSaved)
+        }
+
+    @Test
+    fun `OnToggleSave for an id missing from allGames does nothing`() = runTest(testDispatcher) {
+        coEvery { searchGamesUseCase("elden") } returns AppResult.success(
+            SearchResult(games = listOf(testGame(id = 1)), platforms = emptyList(), genres = emptyList())
+        )
+        val viewModel = createViewModel()
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("elden"))
+        advanceUntilIdle()
+
+        val effects = mutableListOf<SearchUiEffect>()
+        val collectJob = launch { viewModel.uiEffect.toList(effects) }
+
+        viewModel.onEvent(SearchUiEvent.OnToggleSave(999))
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { toggleWishlistUseCase(any()) }
+        assertTrue(effects.isEmpty())
+        collectJob.cancel()
+    }
+
+    @Test
+    fun `OnConfirmListSelection adds only newly selected lists and removes only deselected ones`() =
+        runTest(testDispatcher) {
+            coEvery { searchGamesUseCase("elden") } returns AppResult.success(
+                SearchResult(games = listOf(testGame(id = 1)), platforms = emptyList(), genres = emptyList())
+            )
+            val listA = WishlistList(id = 10, name = "Wishlist")
+            val listB = WishlistList(id = 20, name = "Backlog")
+            val listC = WishlistList(id = 30, name = "Completed")
+            every { getWishlistAssignmentsUseCase(1) } returns flowOf(
+                listOf(
+                    WishlistAssignment(listA, isAssigned = true),
+                    WishlistAssignment(listB, isAssigned = false),
+                    WishlistAssignment(listC, isAssigned = false)
+                )
+            )
+            val viewModel = createViewModel()
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("elden"))
+            advanceUntilIdle()
+
+            viewModel.onEvent(SearchUiEvent.OnOpenListSelector(1))
+            advanceUntilIdle()
+
+            // Select Backlog, deselect Wishlist; Completed is left untouched.
+            viewModel.onEvent(SearchUiEvent.OnToggleListSelection(listB.id))
+            viewModel.onEvent(SearchUiEvent.OnToggleListSelection(listA.id))
+            viewModel.onEvent(SearchUiEvent.OnConfirmListSelection)
+            advanceUntilIdle()
+
+            coVerify(exactly = 1) { addGameToListUseCase(1, listB.id) }
+            coVerify(exactly = 0) { addGameToListUseCase(1, listA.id) }
+            coVerify(exactly = 0) { addGameToListUseCase(1, listC.id) }
+            coVerify(exactly = 1) { removeGameFromListUseCase(1, listA.id) }
+            coVerify(exactly = 0) { removeGameFromListUseCase(1, listB.id) }
+            coVerify(exactly = 0) { removeGameFromListUseCase(1, listC.id) }
+            assertEquals(null, viewModel.uiState.value.listSelectorState)
         }
 }
