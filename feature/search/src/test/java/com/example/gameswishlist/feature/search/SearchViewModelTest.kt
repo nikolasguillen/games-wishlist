@@ -245,6 +245,26 @@ class SearchViewModelTest {
     }
 
     @Test
+    fun `OnRetrySearch re-runs the query still held by the text field`() = runTest(testDispatcher) {
+        coEvery { searchGamesUseCase("boom") } returnsMany listOf(
+            AppResult.failure(RepositoryError.NoNetwork),
+            AppResult.success(
+                SearchResult(games = listOf(testGame(id = 1)), platforms = emptyList(), genres = emptyList())
+            )
+        )
+        val viewModel = createViewModel()
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("boom"))
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.contentState is SearchContentState.Error)
+
+        viewModel.onEvent(SearchUiEvent.OnRetrySearch)
+        advanceUntilIdle()
+
+        assertEquals(listOf(1), viewModel.successState().games.map { it.id })
+        coVerify(exactly = 2) { searchGamesUseCase("boom") }
+    }
+
+    @Test
     fun `a search committed before the Discover fetch resolves cannot be clobbered by it later`() =
         runTest(testDispatcher) {
             val discoverDeferred = CompletableDeferred<AppResult<DiscoverFeed>>()
@@ -583,6 +603,36 @@ class SearchViewModelTest {
             val contentState = viewModel.uiState.value.discover as DiscoverContentState.Content
             assertEquals(listOf(5), contentState.popular.map { it.id })
             assertFalse(contentState.isRefreshing)
+        }
+
+    @Test
+    fun `OnRetryDiscover moves the feed to Loading immediately, then re-fetches it`() =
+        runTest(testDispatcher) {
+            every { getDiscoverFeedUseCase(any()) } answers {
+                val refresh = firstArg<Flow<Unit>>()
+                flow {
+                    emit(AppResult.failure(RepositoryError.NoNetwork))
+                    refresh.collect {
+                        emit(
+                            AppResult.success(
+                                DiscoverFeed(popular = listOf(testGame(id = 1)), upcoming = emptyList())
+                            )
+                        )
+                    }
+                }
+            }
+            val viewModel = createViewModel()
+            assertTrue(viewModel.uiState.value.discover is DiscoverContentState.Error)
+
+            viewModel.onEvent(SearchUiEvent.OnRetryDiscover)
+
+            // No advanceUntilIdle() here: the state flips to Loading synchronously, before the use
+            // case reacts to the retry trigger -- the same reasoning as OnRefreshDiscover's own test.
+            assertTrue(viewModel.uiState.value.discover is DiscoverContentState.Loading)
+
+            advanceUntilIdle()
+            val contentState = viewModel.uiState.value.discover as DiscoverContentState.Content
+            assertEquals(listOf(1), contentState.popular.map { it.id })
         }
 
     @Test

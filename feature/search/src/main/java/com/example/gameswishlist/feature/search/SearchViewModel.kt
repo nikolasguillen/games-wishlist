@@ -278,6 +278,14 @@ class SearchViewModel @Inject constructor(
             SearchUiEvent.OnDismissDiscoverRefresh -> {
                 dismissDiscoverRefreshPrompt()
             }
+
+            SearchUiEvent.OnRetrySearch -> {
+                retrySearch()
+            }
+
+            SearchUiEvent.OnRetryDiscover -> {
+                retryDiscoverFeed()
+            }
         }
     }
 
@@ -567,6 +575,15 @@ class SearchViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Re-runs the query still held by [textFieldState]. [performSearch] re-adds it to history through
+     * [addSearchToHistoryUseCase], which is keyed by the query text, so this only refreshes its
+     * timestamp rather than creating a duplicate entry.
+     */
+    private fun retrySearch() {
+        performSearch(textFieldState.text.toString())
+    }
+
     private fun initSearchHistory() {
         viewModelScope.launch {
             getRecentSearchActivityUseCase().collect { activity ->
@@ -640,6 +657,19 @@ class SearchViewModel @Inject constructor(
         if (content !is DiscoverContentState.Content) return
 
         _uiState.update { it.copy(discover = content.copy(isRefreshing = true)) }
+        discoverRefresh.tryEmit(Unit)
+    }
+
+    /**
+     * Retries a failed feed load. Unlike [refreshDiscoverFeed], which only flags an already-loaded feed
+     * as refreshing, this applies to [DiscoverContentState.Error] -- there is no content to keep on
+     * screen while the retry runs, so the state goes back to [DiscoverContentState.Loading] instead.
+     */
+    private fun retryDiscoverFeed() {
+        val content = _uiState.value.discover
+        if (content !is DiscoverContentState.Error) return
+
+        _uiState.update { it.copy(discover = DiscoverContentState.Loading) }
         discoverRefresh.tryEmit(Unit)
     }
 

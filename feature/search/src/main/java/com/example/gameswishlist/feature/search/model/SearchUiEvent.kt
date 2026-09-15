@@ -32,4 +32,10 @@ internal sealed interface SearchUiEvent {
 
     /** The user closed the refresh prompt without acting on it. */
     data object OnDismissDiscoverRefresh : SearchUiEvent
+
+    /** The user tapped "Retry" on a failed search. Re-runs the same query still held by the text field. */
+    data object OnRetrySearch : SearchUiEvent
+
+    /** The user tapped "Retry" on a failed Discover feed load. */
+    data object OnRetryDiscover : SearchUiEvent
 }

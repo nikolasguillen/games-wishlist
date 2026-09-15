@@ -40,7 +40,10 @@ internal fun SearchMainContent(
                 onGameClick = onGameClick,
                 listState = discoverListState
             )
-            is SearchContentState.Error -> ErrorPage(message = contentState.message)
+            is SearchContentState.Error -> ErrorPage(
+                message = contentState.message,
+                onRetryClick = { onEvent(SearchUiEvent.OnRetrySearch) }
+            )
             is SearchContentState.Empty -> EmptySearchPlaceholder()
             is SearchContentState.Loading -> LoadingPage()
             is SearchContentState.Success -> {
@@ -67,7 +70,10 @@ private fun DiscoverContent(
 ) {
     when (state) {
         is DiscoverContentState.Loading -> LoadingPage()
-        is DiscoverContentState.Error -> ErrorPage(message = state.message)
+        is DiscoverContentState.Error -> ErrorPage(
+            message = state.message,
+            onRetryClick = { onEvent(SearchUiEvent.OnRetryDiscover) }
+        )
         is DiscoverContentState.Content -> DiscoverFeed(
             hero = state.hero,
             popular = state.popular,
