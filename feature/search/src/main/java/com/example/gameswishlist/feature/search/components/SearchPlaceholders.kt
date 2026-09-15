@@ -10,6 +10,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.ui.component.EmptyPage
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.R
 
 @Composable
@@ -22,19 +23,23 @@ internal fun DiscoverPlaceholder(modifier: Modifier = Modifier) {
 }
 
 @Composable
-internal fun EmptySearchPlaceholder(modifier: Modifier = Modifier) {
+internal fun EmptySearchPlaceholder(onClearSearchClick: () -> Unit, modifier: Modifier = Modifier) {
     EmptyPage(
         message = stringResource(R.string.search_no_results),
         icon = Icons.Outlined.SmartToy,
+        actionLabel = UiText.StringResource(R.string.clear_search_action),
+        onActionClick = onClearSearchClick,
         modifier = modifier
     )
 }
 
 @Composable
-internal fun NoFilteredResultsPlaceholder(modifier: Modifier = Modifier) {
+internal fun NoFilteredResultsPlaceholder(onClearFiltersClick: () -> Unit, modifier: Modifier = Modifier) {
     EmptyPage(
         message = stringResource(R.string.search_no_filtered_results),
         icon = Icons.Outlined.SearchOff,
+        actionLabel = UiText.StringResource(R.string.clear_filters_action),
+        onActionClick = onClearFiltersClick,
         modifier = modifier
     )
 }
@@ -51,7 +56,7 @@ private fun DiscoverPlaceholderPreview() {
 @Composable
 private fun EmptySearchPlaceholderPreview() {
     GamesWishlistTheme {
-        EmptySearchPlaceholder()
+        EmptySearchPlaceholder(onClearSearchClick = {})
     }
 }
 
@@ -59,6 +64,6 @@ private fun EmptySearchPlaceholderPreview() {
 @Composable
 private fun NoFilteredResultsPlaceholderPreview() {
     GamesWishlistTheme {
-        NoFilteredResultsPlaceholder()
+        NoFilteredResultsPlaceholder(onClearFiltersClick = {})
     }
 }

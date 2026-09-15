@@ -23,6 +23,13 @@ internal sealed interface SearchUiEvent {
     data class OnBottomSheetFilterClick(val filter: GameFilterUiModel) : SearchUiEvent
     data object OnApplyFilters : SearchUiEvent
     data object OnClearFilters : SearchUiEvent
+
+    /**
+     * The user tapped "Clear filters" on the no-matches empty state. Unlike [OnClearFilters], which only
+     * clears the bottom sheet's own draft selection, this also applies the clearing to the visible
+     * results -- there is no separate "apply" step from this empty state.
+     */
+    data object OnClearActiveFilters : SearchUiEvent
     data class OnSortChanged(val sort: SortingUiModel) : SearchUiEvent
     data object OnOpenSort : SearchUiEvent
     data object OnDismissSort : SearchUiEvent

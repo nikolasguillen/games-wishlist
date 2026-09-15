@@ -6,6 +6,8 @@
     <string name="expanded_search_initial_message">Search and discover some new games</string>
     <string name="search_no_results">No games found for this search</string>
     <string name="search_no_filtered_results">No games match the selected filters</string>
+    <string name="clear_search_action">Clear search</string>
+    <string name="clear_filters_action">Clear filters</string>
     <string name="recent_searches">Recent searches</string>
     <string name="suggestions_label">Suggestions</string>
     <string name="suggestions_section_recent">Recent</string>

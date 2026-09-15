@@ -381,6 +381,30 @@ class SearchViewModelTest {
     }
 
     @Test
+    fun `OnClearActiveFilters restores the full result list and deselects every filter`() =
+        runTest(testDispatcher) {
+            val pc = Platform(id = 1, name = "PC")
+            val matching = testGame(id = 1, platforms = listOf(pc))
+            val nonMatching = testGame(id = 2)
+            coEvery { searchGamesUseCase("query") } returns AppResult.success(
+                SearchResult(games = listOf(matching, nonMatching), platforms = listOf(pc), genres = emptyList())
+            )
+            val viewModel = createViewModel()
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("query"))
+            advanceUntilIdle()
+
+            val platformFilter =
+                viewModel.successState().filters.filterIsInstance<GameFilterUiModel.Platform>().first()
+            viewModel.onEvent(SearchUiEvent.OnFilterClick(platformFilter))
+            assertEquals(listOf(1), viewModel.successState().games.map { it.id })
+
+            viewModel.onEvent(SearchUiEvent.OnClearActiveFilters)
+
+            assertEquals(listOf(1, 2), viewModel.successState().games.map { it.id })
+            assertTrue(viewModel.successState().filters.all { !it.selected })
+        }
+
+    @Test
     fun `OnApplyFilters commits the bottom sheet selection into the visible games`() = runTest(testDispatcher) {
         val pc = Platform(id = 1, name = "PC")
         val matching = testGame(id = 1, platforms = listOf(pc))

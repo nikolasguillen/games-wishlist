@@ -43,6 +43,7 @@ internal fun SearchResultGrid(
     onGameClick: (Int) -> Unit,
     onSaveClick: (Int) -> Unit,
     onLongClick: (Int) -> Unit,
+    onClearFiltersClick: () -> Unit,
     state: LazyGridState,
     modifier: Modifier = Modifier
 ) {
@@ -60,6 +61,7 @@ internal fun SearchResultGrid(
         Column(modifier = modifier.fillMaxSize()) {
             filtersHeader()
             NoFilteredResultsPlaceholder(
+                onClearFiltersClick = onClearFiltersClick,
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = MaterialTheme.spacing.large)
@@ -158,6 +160,7 @@ private fun SearchResultGridPreview() {
             onGameClick = {},
             onSaveClick = {},
             onLongClick = {},
+            onClearFiltersClick = {},
             state = rememberLazyGridState()
         )
     }
@@ -174,6 +177,7 @@ private fun SearchResultGridNoMatchPreview() {
             onGameClick = {},
             onSaveClick = {},
             onLongClick = {},
+            onClearFiltersClick = {},
             state = rememberLazyGridState()
         )
     }

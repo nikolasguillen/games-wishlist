@@ -286,6 +286,10 @@ class SearchViewModel @Inject constructor(
             SearchUiEvent.OnRetryDiscover -> {
                 retryDiscoverFeed()
             }
+
+            SearchUiEvent.OnClearActiveFilters -> {
+                handleClearActiveFilters()
+            }
         }
     }
 
@@ -294,13 +298,7 @@ class SearchViewModel @Inject constructor(
         val contentState = _uiState.value.contentState
         if (contentState !is SearchContentState.Success) return
 
-        val clearedFilters = bsState.filters.map { filter ->
-            when (filter) {
-                is GameFilterUiModel.Platform -> filter.copy(selected = false)
-                is GameFilterUiModel.Genre -> filter.copy(selected = false)
-                is GameFilterUiModel.GameType -> filter.copy(selected = false)
-            }
-        }
+        val clearedFilters = bsState.filters.deselectAll()
 
         val matchCount = calculateMatchCount(contentState.allGames, clearedFilters)
         _uiState.update {
@@ -309,6 +307,25 @@ class SearchViewModel @Inject constructor(
                     filters = clearedFilters, matchCount = matchCount
                 )
             )
+        }
+    }
+
+    /**
+     * Clears the filters currently applied to the visible results, not just the bottom sheet's draft
+     * selection -- see [SearchUiEvent.OnClearActiveFilters].
+     */
+    private fun handleClearActiveFilters() {
+        val contentState = _uiState.value.contentState
+        if (contentState !is SearchContentState.Success) return
+
+        updateSearchContent(contentState, contentState.filters.deselectAll())
+    }
+
+    private fun List<GameFilterUiModel>.deselectAll(): List<GameFilterUiModel> = map { filter ->
+        when (filter) {
+            is GameFilterUiModel.Platform -> filter.copy(selected = false)
+            is GameFilterUiModel.Genre -> filter.copy(selected = false)
+            is GameFilterUiModel.GameType -> filter.copy(selected = false)
         }
     }
 

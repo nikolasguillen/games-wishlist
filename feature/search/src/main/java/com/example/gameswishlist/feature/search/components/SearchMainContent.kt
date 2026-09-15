@@ -44,7 +44,9 @@ internal fun SearchMainContent(
                 message = contentState.message,
                 onRetryClick = { onEvent(SearchUiEvent.OnRetrySearch) }
             )
-            is SearchContentState.Empty -> EmptySearchPlaceholder()
+            is SearchContentState.Empty -> EmptySearchPlaceholder(
+                onClearSearchClick = { onEvent(SearchUiEvent.OnClearSearch) }
+            )
             is SearchContentState.Loading -> LoadingPage()
             is SearchContentState.Success -> {
                 SearchResultGrid(
@@ -54,6 +56,7 @@ internal fun SearchMainContent(
                     onGameClick = onGameClick,
                     onSaveClick = { onEvent(SearchUiEvent.OnToggleSave(it)) },
                     onLongClick = { onEvent(SearchUiEvent.OnOpenListSelector(it)) },
+                    onClearFiltersClick = { onEvent(SearchUiEvent.OnClearActiveFilters) },
                     state = gridState
                 )
             }
