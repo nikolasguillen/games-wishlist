@@ -95,20 +95,19 @@ reason anyway.
 
 Deliberate limits of the shelves as built, each one a place to extend rather than a bug:
 
-- **Up to two shelves, one signal each — the two strongest positive genres, strongest first.** Every
-  extra shelf is another network call on a screen the user opens constantly, so the cap (
-  `MAX_RECOMMENDED_SHELVES` in `GetDiscoverFeedUseCase`) is a cost decision, not a belief that a third
-  genre would not also be worth showing.
-- **A game that qualifies for two genres is kept once**, in the stronger shelf only — pruning runs in
+- **Up to two shelves — a recurring developer first when the library earns one, then the strongest
+  positive genres.** Every extra shelf is another network call on a screen the user opens constantly, so
+  the cap (`MAX_RECOMMENDED_SHELVES` in `GetDiscoverFeedUseCase`) is a cost decision, not a belief that a
+  third shelf would not also be worth showing. A developer only takes the lead slot at
+  `MIN_DEVELOPER_SAVED_GAMES` (2) saved games from it with a positive weight — one game is a coincidence,
+  not a pattern — which is what `TasteSignal.count` in `TasteProfile` exists to tell apart from a
+  normalised weight alone.
+- **A game that qualifies for two shelves is kept once**, in the stronger shelf only — pruning runs in
   rank order, each shelf excluding what every stronger one already kept, on top of saved games and the
   generic shelves. Recommending the same game twice for two different reasons in one feed reads as a bug,
   not as extra confidence.
-- **Developers are not a signal yet**, though `TasteProfile` documents them as the better predictor.
-  Weights are normalised within their own map, so the top developer scores 1.0 whether it came from six
-  saved games or one, and the profile carries no count to tell those apart. Giving `TasteProfile` raw
-  counts is the prerequisite.
 - **Each shelf disappears rather than degrading, independently of the others**: below a minimum sample
-  size, with no positive genre left for it, on a failed fetch, or when pruning leaves too few entries. A
+  size, with no positive signal left for it, on a failed fetch, or when pruning leaves too few entries. A
   half-empty personalised row next to two full generic ones reads as a loading bug — losing one of two
   personalised shelves to this does not take the other down with it.
 
@@ -118,7 +117,9 @@ three votes. Excluding thinly-rated games is the wrong fix: it drops every niche
 title in the genre, which is what the shelf exists to surface, and does nothing about a mediocre game
 that clears the floor. So the query keeps only a token floor and the use case re-ranks the whole pool by
 a Bayesian average against a neutral prior. That is why the pool is far wider than the shelf: a narrow
-one would already be filled by the games the ranking is meant to demote.
+one would already be filled by the games the ranking is meant to demote. The developer shelf drops even
+that token floor — it exists to surface a followed studio's unreleased titles too, which have no ratings
+at all yet, and orders them ahead of the rest by hype instead.
 
 `RATING_CONFIDENCE_THRESHOLD` and `NEUTRAL_RATING` in `GetDiscoverFeedUseCase` are the knob — raise the
 prior and thin gems climb, lower it and the shelf fills with established titles. **Both are reasoned

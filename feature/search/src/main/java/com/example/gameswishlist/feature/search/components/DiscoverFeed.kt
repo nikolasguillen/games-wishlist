@@ -259,11 +259,11 @@ private fun DiscoverFeedRecommendedPreview() {
             onGameClick = {},
             recommended = listOf(
                 RecommendedShelfUiModel(
-                    title = UiText.StringResource(R.string.discover_because_you_like, "RPG"),
+                    title = UiText.StringResource(R.string.discover_more_from, "Larian Studios"),
                     games = previewGames
                 ),
                 RecommendedShelfUiModel(
-                    title = UiText.StringResource(R.string.discover_because_you_like, "Platformer"),
+                    title = UiText.StringResource(R.string.discover_because_you_like, "RPG"),
                     games = previewGames.reversed()
                 )
             )

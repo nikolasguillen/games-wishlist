@@ -64,13 +64,14 @@ class GetTasteProfileUseCaseTest {
     }
 
     @Test
-    fun `a completed game gives its genre and developer a positive weight`() = runTest {
+    fun `a completed game gives its genre and developer a positive weight and a count of one`() = runTest {
         givenSavedGames(game(id = 1, status = GameStatus.COMPLETED))
 
         val profile = useCase().first()
 
-        assertEquals(1.0, profile.genreWeights.getValue(RPG), 0.0001)
-        assertEquals(1.0, profile.developerWeights.getValue(LARIAN), 0.0001)
+        assertEquals(1.0, profile.genres.getValue(RPG).weight, 0.0001)
+        assertEquals(1.0, profile.developers.getValue(LARIAN).weight, 0.0001)
+        assertEquals(1, profile.developers.getValue(LARIAN).count)
         assertEquals(1, profile.sampleSize)
     }
 
@@ -87,8 +88,57 @@ class GetTasteProfileUseCaseTest {
 
         val profile = useCase().first()
 
-        assertTrue(profile.genreWeights.getValue(SHOOTER) < 0.0)
-        assertTrue(profile.genreWeights.getValue(RPG) > 0.0)
+        assertTrue(profile.genres.getValue(SHOOTER).weight < 0.0)
+        assertTrue(profile.genres.getValue(RPG).weight > 0.0)
+    }
+
+    /**
+     * A dropped game is a rejection, not a recurrence: it must not inflate the count of the developer
+     * or genre it carried, even though it still moves the weight (see the test above).
+     */
+    @Test
+    fun `a dropped game does not count towards its developer's recurrence`() = runTest {
+        givenSavedGames(
+            game(id = 1, developerIds = listOf(LARIAN), status = GameStatus.DROPPED)
+        )
+
+        val profile = useCase().first()
+
+        assertEquals(0, profile.developers.getValue(LARIAN).count)
+    }
+
+    /**
+     * Two saved games from the same studio is the signal the "More from <studio>" shelf keys off of.
+     */
+    @Test
+    fun `two saved games from the same developer give it a count of two`() = runTest {
+        givenSavedGames(
+            game(id = 1, developerIds = listOf(LARIAN), status = GameStatus.COMPLETED),
+            game(id = 2, developerIds = listOf(LARIAN), status = GameStatus.PLAYING)
+        )
+
+        val profile = useCase().first()
+
+        assertEquals(2, profile.developers.getValue(LARIAN).count)
+    }
+
+    /**
+     * Weight and count answer different questions and must not be conflated: a single high-priority
+     * completed game can outweigh two low-priority want-to-buy games from a different developer, while
+     * still recurring less often.
+     */
+    @Test
+    fun `weight and count rank developers independently`() = runTest {
+        givenSavedGames(
+            game(id = 1, developerIds = listOf(LARIAN), status = GameStatus.COMPLETED, priority = Priority.HIGH),
+            game(id = 2, developerIds = listOf(FROM_SOFTWARE), status = GameStatus.WANT_TO_BUY, priority = Priority.LOW),
+            game(id = 3, developerIds = listOf(FROM_SOFTWARE), status = GameStatus.WANT_TO_BUY, priority = Priority.LOW)
+        )
+
+        val profile = useCase().first()
+
+        assertTrue(profile.developers.getValue(LARIAN).weight > profile.developers.getValue(FROM_SOFTWARE).weight)
+        assertTrue(profile.developers.getValue(LARIAN).count < profile.developers.getValue(FROM_SOFTWARE).count)
     }
 
     /**
@@ -106,7 +156,7 @@ class GetTasteProfileUseCaseTest {
 
         val profile = useCase().first()
 
-        assertEquals(0.0, profile.genreWeights.getValue(RPG), 0.0001)
+        assertEquals(0.0, profile.genres.getValue(RPG).weight, 0.0001)
     }
 
     /**
@@ -123,7 +173,7 @@ class GetTasteProfileUseCaseTest {
 
         val profile = useCase().first()
 
-        assertTrue(profile.genreWeights.isEmpty())
+        assertTrue(profile.genres.isEmpty())
         assertEquals(2, profile.sampleSize)
         assertTrue(!profile.isEmpty)
     }
@@ -137,7 +187,7 @@ class GetTasteProfileUseCaseTest {
 
         val profile = useCase().first()
 
-        assertTrue(profile.genreWeights.getValue(RPG) > profile.genreWeights.getValue(SHOOTER))
+        assertTrue(profile.genres.getValue(RPG).weight > profile.genres.getValue(SHOOTER).weight)
     }
 
     /**
@@ -153,7 +203,7 @@ class GetTasteProfileUseCaseTest {
 
         val profile = useCase().first()
 
-        assertTrue(profile.genreWeights.getValue(SHOOTER) < profile.genreWeights.getValue(RPG))
+        assertTrue(profile.genres.getValue(SHOOTER).weight < profile.genres.getValue(RPG).weight)
     }
 
     @Test
@@ -170,7 +220,7 @@ class GetTasteProfileUseCaseTest {
 
         val profile = useCase().first()
 
-        assertEquals(setOf(LARIAN), profile.developerWeights.keys)
+        assertEquals(setOf(LARIAN), profile.developers.keys)
     }
 
     /**
@@ -187,8 +237,8 @@ class GetTasteProfileUseCaseTest {
 
         val profile = useCase().first()
 
-        assertTrue(profile.genreWeights.getValue(RPG) > profile.genreWeights.getValue(SHOOTER))
-        assertTrue(profile.genreWeights.getValue(3) < profile.genreWeights.getValue(SHOOTER))
+        assertTrue(profile.genres.getValue(RPG).weight > profile.genres.getValue(SHOOTER).weight)
+        assertTrue(profile.genres.getValue(3).weight < profile.genres.getValue(SHOOTER).weight)
     }
 
     @Test
@@ -201,8 +251,8 @@ class GetTasteProfileUseCaseTest {
 
         val profile = useCase().first()
 
-        assertEquals(1.0, profile.genreWeights.getValue(RPG), 0.0001)
-        val allWeights = profile.genreWeights.values + profile.developerWeights.values
+        assertEquals(1.0, profile.genres.getValue(RPG).weight, 0.0001)
+        val allWeights = profile.genres.values.map { it.weight } + profile.developers.values.map { it.weight }
         assertTrue(allWeights.all { it >= -1.0 && it <= 1.0 })
     }
 
@@ -219,8 +269,8 @@ class GetTasteProfileUseCaseTest {
 
         val profile = useCase().first()
 
-        val shooter = profile.genreWeights.getValue(SHOOTER)
+        val shooter = profile.genres.getValue(SHOOTER).weight
         assertTrue(shooter > 0.0)
-        assertTrue(shooter < profile.genreWeights.getValue(RPG))
+        assertTrue(shooter < profile.genres.getValue(RPG).weight)
     }
 }

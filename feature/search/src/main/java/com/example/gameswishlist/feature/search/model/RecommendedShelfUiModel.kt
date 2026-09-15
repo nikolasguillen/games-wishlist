@@ -7,8 +7,8 @@ import com.example.gameswishlist.core.ui.model.UiText
 /**
  * The personalised Discover shelf, ready to render.
  *
- * [title] is the reason the shelf exists, not a heading: it names the genre the recommendation came
- * from, so the row explains itself the way the generic shelves cannot.
+ * [title] is the reason the shelf exists, not a heading: it names the genre or studio the
+ * recommendation came from, so the row explains itself the way the generic shelves cannot.
  */
 @Immutable
 internal data class RecommendedShelfUiModel(

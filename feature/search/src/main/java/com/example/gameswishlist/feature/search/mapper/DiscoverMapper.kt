@@ -2,6 +2,7 @@ package com.example.gameswishlist.feature.search.mapper
 
 import com.example.gameswishlist.core.model.DiscoverFeed
 import com.example.gameswishlist.core.model.RecommendedShelf
+import com.example.gameswishlist.core.model.ShelfReason
 import com.example.gameswishlist.core.ui.mapper.toGameItem
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
 import com.example.gameswishlist.core.ui.model.UiText
@@ -28,10 +29,14 @@ internal fun DiscoverFeed.toDiscoverContentState(): DiscoverContentState.Content
 }
 
 /**
- * The genre name is a data-source value, so it goes into the resource as a plain argument — the
- * sentence around it is what gets localised.
+ * The genre or studio name is a data-source value, so it goes into the resource as a plain argument —
+ * the sentence around it is what gets localised.
  */
 private fun RecommendedShelf.toUiModel(): RecommendedShelfUiModel = RecommendedShelfUiModel(
-    title = UiText.StringResource(R.string.discover_because_you_like, genre.name),
+    // Bound to a local val: a property from another module cannot smart-cast in place.
+    title = when (val shelfReason = reason) {
+        is ShelfReason.ByGenre -> UiText.StringResource(R.string.discover_because_you_like, shelfReason.genre.name)
+        is ShelfReason.ByDeveloper -> UiText.StringResource(R.string.discover_more_from, shelfReason.developer.name)
+    },
     games = games.toGameItemList()
 )

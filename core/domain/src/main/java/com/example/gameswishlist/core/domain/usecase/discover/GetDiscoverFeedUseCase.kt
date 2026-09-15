@@ -1,11 +1,14 @@
 package com.example.gameswishlist.core.domain.usecase.discover
 
+import com.example.gameswishlist.core.common.DateUtils
 import com.example.gameswishlist.core.domain.repository.GameRepository
 import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.DiscoverFeed
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.RecommendedShelf
+import com.example.gameswishlist.core.model.ShelfReason
 import com.example.gameswishlist.core.model.TasteProfile
+import com.example.gameswishlist.core.model.TasteSignal
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -18,6 +21,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import java.time.LocalDate
 import javax.inject.Inject
 
 /**
@@ -28,16 +32,23 @@ import javax.inject.Inject
 private const val MIN_SAMPLE_SIZE = 3
 
 /**
- * How many personalised shelves the feed builds at most, one per genre. Each one is its own network
+ * How many personalised shelves the feed builds at most, one per signal. Each one is its own network
  * call on a screen the user opens constantly, so this is the cap on that cost, not a design ideal.
  */
 private const val MAX_RECOMMENDED_SHELVES = 2
+
+/**
+ * Saved games from the same developer below which a studio does not earn its own shelf. One saved game
+ * from a studio is a coincidence; two is the first point it reads as a pattern the user would recognise
+ * in a "More from <studio>" row.
+ */
+private const val MIN_DEVELOPER_SAVED_GAMES = 2
 
 /** How many games a personalized shelf shows once saved games and duplicates are stripped. */
 private const val RECOMMENDED_SHELF_SIZE = 20
 
 /**
- * Below this a shelf is dropped rather than rendered half-empty: a genre row holding two covers next
+ * Below this a shelf is dropped rather than rendered half-empty: a shelf holding two covers next
  * to two full generic shelves reads as a loading bug.
  */
 private const val MIN_RECOMMENDED_SHELF_SIZE = 4
@@ -65,8 +76,8 @@ private const val NEUTRAL_RATING = 75.0
 
 /**
  * Use case to load the Discover feed: the two generic shelves plus, when the user's library supports
- * them, up to [MAX_RECOMMENDED_SHELVES] personalized shelves, one per genre the taste profile leans
- * towards, strongest first.
+ * them, up to [MAX_RECOMMENDED_SHELVES] personalized shelves — a recurring developer first when the
+ * library earns one, then the strongest genres — per [recommendationPlan].
  *
  * The shelves come from independent network calls, fired concurrently. The two generic ones must both
  * succeed — a feed missing half its content with no error reads as a bug, so a single failure fails the
@@ -81,9 +92,9 @@ private const val NEUTRAL_RATING = 75.0
  * The taste profile is *not* re-fetched the same way, on purpose: it is derived from the saved games,
  * which change every time the user touches a status, a priority or a list, and re-running several network
  * calls on each of those would be far more traffic than the shelves are worth. What the profile actually
- * changes for this use case is much narrower than the profile itself — see [recommendedGenreIds] — and
- * that narrower signal is cheap to keep live. So the feed does not silently go stale: once the genres it
- * would recommend today no longer match the ones [DiscoverFeed] was built from, the result is flagged
+ * changes for this use case is much narrower than the profile itself — see [recommendationPlan] — and
+ * that narrower signal is cheap to keep live. So the feed does not silently go stale: once the plan it
+ * would recommend today no longer matches the one [DiscoverFeed] was built from, the result is flagged
  * via [DiscoverFeed.hasStaleRecommendations] rather than refetched, leaving the decision to ask the
  * network again to the caller — see [refresh].
  */
@@ -108,22 +119,25 @@ class GetDiscoverFeedUseCase @Inject constructor(
         ) { platformIds, _ -> platformIds }
             .flatMapLatest { platformIds ->
                 // Captured once, before the fetch: both what the personalised shelves are built from and
-                // the baseline the live genres are compared against afterwards to flag the feed stale.
-                // Order matters here, not just membership -- swapping which genre leads still changes
+                // the baseline the live plan is compared against afterwards to flag the feed stale.
+                // Order matters here, not just membership -- swapping which signal leads still changes
                 // which shelf the user sees first, so it counts as going stale too.
-                val builtFrom = recommendedGenreIds().first()
+                val builtFrom = recommendationPlan().first()
                 val feed = loadFeed(platformIds, builtFrom)
 
-                recommendedGenreIds().distinctUntilChanged().map { currentGenreIds ->
-                    feed.map { it.copy(hasStaleRecommendations = currentGenreIds != builtFrom) }
+                recommendationPlan().distinctUntilChanged().map { currentPlan ->
+                    feed.map { it.copy(hasStaleRecommendations = currentPlan != builtFrom) }
                 }
             }
 
-    private suspend fun loadFeed(platformIds: Set<Int>, genreIds: List<Int>): AppResult<DiscoverFeed> =
+    private suspend fun loadFeed(
+        platformIds: Set<Int>,
+        plan: List<RecommendationSource>
+    ): AppResult<DiscoverFeed> =
         coroutineScope {
             val popular = async { repository.getPopularGames(platformIds) }
             val upcoming = async { repository.getUpcomingGames(platformIds) }
-            val recommended = genreIds.map { genreId -> async { loadRecommendedShelf(genreId, platformIds) } }
+            val recommended = plan.map { source -> async { loadRecommendedShelf(source, platformIds) } }
             val savedIds = async { repository.getSavedGames().first().mapTo(mutableSetOf()) { it.id } }
 
             val shelves = recommended.awaitAll().filterNotNull()
@@ -139,29 +153,47 @@ class GetDiscoverFeedUseCase @Inject constructor(
         }
 
     /**
-     * The [MAX_RECOMMENDED_SHELVES] strongest positive genres in the taste profile, strongest first, or
-     * an empty list when the profile cannot earn a shelf yet. This is the whole of what
+     * The [MAX_RECOMMENDED_SHELVES] personalised shelves the feed builds, in the order they are shown,
+     * or an empty list when the profile cannot earn a shelf yet. This is the whole of what
      * [loadRecommendedShelf] reads from [TasteProfile], which is what makes it the only profile change
-     * worth reacting to: comparing it against the genres a feed was built from is what flags
+     * worth reacting to: comparing it against the plan a feed was built from is what flags
      * [DiscoverFeed.hasStaleRecommendations] without a network call, and asking for a candidate pool of
-     * each one is the only network cost the personalised shelves add.
+     * each entry is the only network cost the personalised shelves add.
      *
-     * Negative weights are excluded outright — those are genres the user has actively dropped.
-     *
-     * Developers are a better predictor than genres per [TasteProfile], but not yet a usable one here:
-     * weights are normalized within their own map, so the top developer always scores 1.0 whether it
-     * was inferred from six saved games or one, and the profile carries no count to tell those apart.
+     * A recurring developer leads when the library earns one — [TasteSignal.count] at least
+     * [MIN_DEVELOPER_SAVED_GAMES] with a positive weight — because a studio is a stronger predictor than
+     * a genre. The remaining slots (or all of them, with no qualifying developer) go to the strongest
+     * positive genres. Negative weights are excluded outright in both maps — those are signals the user
+     * has actively dropped.
      */
-    private fun recommendedGenreIds(): Flow<List<Int>> = getTasteProfile().map { profile ->
+    private fun recommendationPlan(): Flow<List<RecommendationSource>> = getTasteProfile().map { profile ->
         if (profile.sampleSize < MIN_SAMPLE_SIZE) return@map emptyList()
-        profile.genreWeights.filterValues { it > 0.0 }
+
+        val developer = profile.developers.entries
+            .filter { it.value.weight > 0.0 && it.value.count >= MIN_DEVELOPER_SAVED_GAMES }
+            .maxByOrNull { it.value.weight }
+
+        val plan = mutableListOf<RecommendationSource>()
+        developer?.let { plan += RecommendationSource.Developer(it.key) }
+
+        profile.genres.filterValues { it.weight > 0.0 }
             .entries
-            .sortedByDescending { it.value }
-            .take(MAX_RECOMMENDED_SHELVES)
-            .map { it.key }
+            .sortedByDescending { it.value.weight }
+            .take(MAX_RECOMMENDED_SHELVES - plan.size)
+            .forEach { plan += RecommendationSource.Genre(it.key) }
+
+        plan
     }
 
-    private suspend fun loadRecommendedShelf(genreId: Int, platformIds: Set<Int>): RecommendedShelf? {
+    private suspend fun loadRecommendedShelf(
+        source: RecommendationSource,
+        platformIds: Set<Int>
+    ): RecommendedShelf? = when (source) {
+        is RecommendationSource.Genre -> loadGenreShelf(source.genreId, platformIds)
+        is RecommendationSource.Developer -> loadDeveloperShelf(source.companyId, platformIds)
+    }
+
+    private suspend fun loadGenreShelf(genreId: Int, platformIds: Set<Int>): RecommendedShelf? {
         val result = repository.getGamesByGenre(genreId, platformIds)
         val games = (result as? AppResult.Success)?.data ?: return null
         // The profile stores ids, so the name has to come off the results themselves. No match means
@@ -170,7 +202,23 @@ class GetDiscoverFeedUseCase @Inject constructor(
             game.genres.firstOrNull { it.id == genreId }
         } ?: return null
 
-        return RecommendedShelf(genre = genre, games = games.rankedByWeightedRating())
+        return RecommendedShelf(reason = ShelfReason.ByGenre(genre), games = games.rankedByWeightedRating())
+    }
+
+    private suspend fun loadDeveloperShelf(companyId: Int, platformIds: Set<Int>): RecommendedShelf? {
+        val result = repository.getGamesByDeveloper(companyId, platformIds)
+        val rawGames = (result as? AppResult.Success)?.data ?: return null
+        // getGamesByDeveloper's server-side filter also matches games this studio only published --
+        // narrow to the ones it actually developed before this shelf claims to be "more from" it.
+        val games = rawGames.filter { game -> game.developers.any { it.id == companyId } }
+        val developer = games.firstNotNullOfOrNull { game ->
+            game.developers.firstOrNull { it.id == companyId }
+        } ?: return null
+
+        return RecommendedShelf(
+            reason = ShelfReason.ByDeveloper(developer),
+            games = games.rankedForDeveloperShelf()
+        )
     }
 
     /**
@@ -192,12 +240,37 @@ class GetDiscoverFeedUseCase @Inject constructor(
             (count + RATING_CONFIDENCE_THRESHOLD)
     }
 
+    /**
+     * Unlike [rankedByWeightedRating], which the genre shelf uses alone, this shelf exists to surface a
+     * followed studio's unreleased titles too — exactly what a rating floor would hide, since an
+     * unreleased game has no ratings to weigh. Unreleased games lead, newest hype first; everything else
+     * (released, or with no parsable release date at all) follows in weighted-rating order.
+     *
+     * A game with no parsable date falls into the second group rather than the first: IGDB's date field
+     * cannot tell "unannounced upcoming" apart from "date lost to history" without the date-precision
+     * flag the Radar timeline will depend on (see the Phase 2 note in `docs/roadmap.md`), so treating an
+     * unparsable date as upcoming would risk surfacing old, wrongly-dated games ahead of the studio's
+     * actual new work.
+     */
+    private fun List<Game>.rankedForDeveloperShelf(): List<Game> {
+        val (unreleased, rest) = partition { it.isUnreleased() }
+        return unreleased.sortedByDescending { it.hypes } + rest.rankedByWeightedRating()
+    }
+
+    // DateUtils is java.time-backed, which the KMP section of the root CLAUDE.md rules out for date
+    // math going forward -- fine for this single comparison since core/common/DateUtils.kt is the
+    // thing a KMP move rewrites wholesale anyway, but worth flagging rather than passing silently.
+    private fun Game.isUnreleased(): Boolean {
+        val date = DateUtils.parseIsoDate(releaseDate) ?: return false
+        return date.isAfter(LocalDate.now())
+    }
+
     private fun List<Game>.ids(): Set<Int> = mapTo(mutableSetOf()) { it.id }
 
     /**
      * Prunes every shelf against what the user already saved, what the generic shelves are showing, and
-     * every stronger shelf that came before it in [this] -- a game that qualifies for two genres is kept
-     * once, in the shelf for the genre it matches most strongly, rather than recommended twice for two
+     * every stronger shelf that came before it in [this] -- a game that qualifies for two shelves is kept
+     * once, in the shelf for the signal it matches most strongly, rather than recommended twice for two
      * different reasons in the same feed.
      */
     private fun List<RecommendedShelf>.pruned(excludedIds: Set<Int>): List<RecommendedShelf> {

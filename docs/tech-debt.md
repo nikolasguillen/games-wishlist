@@ -36,6 +36,17 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
 - **Release is signed with the debug key**: `app/build.gradle.kts` still uses
   `signingConfigs.getByName("debug")`, so the APK cannot be distributed. Needs a real keystore read from a
   git-ignored `keystore.properties`.
+- **The Discover "More from &lt;studio&gt;" shelf misses multi-studio franchises**: IGDB gives each
+  sub-studio its own `Company` id (e.g. Ubisoft Montreal, Ubisoft Quebec, Ubisoft Singapore all developed
+  different Assassin's Creed entries), so `GetTasteProfileUseCase` splits the recurrence count for one
+  series across several ids and none of them clears `MIN_DEVELOPER_SAVED_GAMES` in
+  `GetDiscoverFeedUseCase`. Rolling counts up to the parent/publisher company was considered and rejected:
+  that is exactly what the developer signal was built to avoid (see the "publishers are deliberately not
+  a signal" comment in `GetTasteProfileUseCase`) — a big publisher's catalogue spans genres the user never
+  chose. The better fix is a signal keyed on IGDB's franchise/collection field rather than the developer,
+  which is a real feature addition (new IGDB field, new `ShelfReason` case, a precedence rule against the
+  developer and genre shelves for the two available slots), not a tweak. Left alone for now: the common
+  case — one prolific single-studio developer — already works.
 
 ## Infrastructure
 

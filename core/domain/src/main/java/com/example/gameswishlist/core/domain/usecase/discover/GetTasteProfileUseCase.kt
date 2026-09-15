@@ -5,6 +5,7 @@ import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.model.TasteProfile
+import com.example.gameswishlist.core.model.TasteSignal
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -48,19 +49,31 @@ class GetTasteProfileUseCase @Inject constructor(
             .toSet()
 
         val genreScores = mutableMapOf<Int, Double>()
+        val genreCounts = mutableMapOf<Int, Int>()
         val developerScores = mutableMapOf<Int, Double>()
+        val developerCounts = mutableMapOf<Int, Int>()
 
         games.forEach { game ->
             val weight = gameWeight(game, isRecentlyViewed = game.id in recentlyViewedIds)
+            // Counts only accumulate for a positive contribution: a dropped game (negative weight)
+            // is a rejection, not a recurrence, and must not make a genre or studio look more
+            // frequent than it actually is to the user.
+            val countsPositively = weight > 0.0
             // Publishers are deliberately not a signal: a publisher's catalogue spans genres the
             // user never chose, so it predicts far worse than the studio that made the game.
-            game.genres.forEach { genreScores.merge(it.id, weight, Double::plus) }
-            game.developers.forEach { developerScores.merge(it.id, weight, Double::plus) }
+            game.genres.forEach { genre ->
+                genreScores.merge(genre.id, weight, Double::plus)
+                if (countsPositively) genreCounts.merge(genre.id, 1, Int::plus)
+            }
+            game.developers.forEach { developer ->
+                developerScores.merge(developer.id, weight, Double::plus)
+                if (countsPositively) developerCounts.merge(developer.id, 1, Int::plus)
+            }
         }
 
         return TasteProfile(
-            genreWeights = genreScores.normalised(),
-            developerWeights = developerScores.normalised(),
+            genres = genreScores.toSignals(genreCounts),
+            developers = developerScores.toSignals(developerCounts),
             sampleSize = games.size
         )
     }
@@ -100,10 +113,14 @@ class GetTasteProfileUseCase @Inject constructor(
      * Rescales to `-1.0..1.0` against the largest magnitude in the map, so the profile of a user
      * with forty saved games is comparable to one with four and a caller can apply a fixed
      * threshold. Dividing by the largest *absolute* value keeps the sign of negative weights.
+     *
+     * Pairs the rescaled weight with the raw positive-contribution count from [counts] — the count is
+     * never rescaled, since it is the thing a caller reads precisely because a normalised weight alone
+     * cannot tell a pattern from a coincidence (see [TasteSignal.count]).
      */
-    private fun Map<Int, Double>.normalised(): Map<Int, Double> {
+    private fun Map<Int, Double>.toSignals(counts: Map<Int, Int>): Map<Int, TasteSignal> {
         val peak = values.maxOfOrNull { kotlin.math.abs(it) } ?: 0.0
         if (peak == 0.0) return emptyMap()
-        return mapValues { (_, score) -> score / peak }
+        return mapValues { (id, score) -> TasteSignal(weight = score / peak, count = counts[id] ?: 0) }
     }
 }

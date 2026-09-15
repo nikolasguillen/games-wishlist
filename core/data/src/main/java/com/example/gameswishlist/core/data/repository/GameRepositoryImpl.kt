@@ -96,6 +96,13 @@ private const val RECOMMENDED_POOL_LIMIT = 200
 private const val RECOMMENDED_MIN_RATING_COUNT = 3
 
 /**
+ * Candidate pool for the "More from <studio>" shelf. A studio's catalogue is far smaller than a whole
+ * genre, so this is headroom rather than a page size -- matches [RECOMMENDED_POOL_LIMIT] for the same
+ * reason that one does.
+ */
+private const val DEVELOPER_POOL_LIMIT = 200
+
+/**
  * Page size for the platform catalogue sync. 500 is IGDB's hard `limit` cap, so the loop pages with
  * `offset` rather than assuming the catalogue fits in one response — it grows with every new console,
  * and a silent truncation would show up as platforms simply missing from the picker.
@@ -173,6 +180,27 @@ class GameRepositoryImpl @Inject constructor(
                 where genres = ($genreId) & game_type != ($excludedIds) & version_parent = null & cover != null & total_rating_count >= $RECOMMENDED_MIN_RATING_COUNT$platformFilter;
                 sort total_rating desc;
                 limit $RECOMMENDED_POOL_LIMIT;
+            """.trimIndent()
+            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+            AppResult.success(apiService.searchGames(body).map { it.toGame() })
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override suspend fun getGamesByDeveloper(companyId: Int, platformIds: Set<Int>): AppResult<List<Game>> {
+        return try {
+            val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
+            val platformFilter = platformIds.toPlatformFilter()
+            // No rating floor here, unlike getGamesByGenre: an unreleased title from a followed studio
+            // has no ratings at all yet, and that is exactly what this shelf exists to surface. Sorted
+            // by release date so a truncated pool still keeps the recent-and-upcoming end of the
+            // catalogue rather than the studio's oldest games.
+            val queryText = """
+                fields name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                where involved_companies.company = ($companyId) & game_type != ($excludedIds) & version_parent = null & cover != null$platformFilter;
+                sort first_release_date desc;
+                limit $DEVELOPER_POOL_LIMIT;
             """.trimIndent()
             val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
             AppResult.success(apiService.searchGames(body).map { it.toGame() })

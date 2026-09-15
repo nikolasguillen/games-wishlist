@@ -39,6 +39,18 @@ interface GameRepository {
      * Not persisted, like the other two shelves.
      */
     suspend fun getGamesByGenre(genreId: Int, platformIds: Set<Int>): AppResult<List<Game>>
+
+    /**
+     * Games involving this developer, for the "More from <studio>" personalised Discover shelf. Same
+     * coarse-server/fine-local split as [getGamesByGenre], but carries no rating floor — unlike a genre
+     * shelf, this one is meant to surface a followed studio's unreleased titles, which a rating floor
+     * would hide outright. [platformIds] behaves as in [getPopularGames].
+     *
+     * IGDB's `involved_companies.company` filter matches a game where [companyId] only *published* it
+     * too, so the result can include games this studio did not develop — the caller filters those out.
+     * Not persisted, like the other Discover shelves.
+     */
+    suspend fun getGamesByDeveloper(companyId: Int, platformIds: Set<Int>): AppResult<List<Game>>
     suspend fun addSearchToHistory(query: String)
     fun getRecentSearchHistory(): Flow<List<String>>
     suspend fun getFilteredSearchHistory(query: String): List<String>
