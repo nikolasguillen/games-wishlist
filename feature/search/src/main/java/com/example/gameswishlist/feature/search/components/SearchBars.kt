@@ -1,5 +1,6 @@
 package com.example.gameswishlist.feature.search.components
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -13,12 +14,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.History
@@ -26,6 +31,7 @@ import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarColors
@@ -37,8 +43,10 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,10 +56,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
@@ -74,6 +84,23 @@ import com.example.gameswishlist.core.ui.R as CoreUiR
 /** Rows of shimmer while the debounced fetch runs. The remote call caps the real rows at four. */
 private const val LOADING_SUGGESTION_COUNT = 3
 
+/**
+ * Corner radius that turns a [SearchBarDefaults.InputFieldHeight]-tall shape into a full pill (the
+ * search bar) or a perfect circle (the back-to-discover button) — half of that fixed height.
+ */
+private val FullyRoundedCornerRadius = SearchBarDefaults.InputFieldHeight / 2
+
+/**
+ * The flat corner radius on the side where the back-to-discover button and the search bar meet, once
+ * both are visible. The single source for [SearchTopBar]'s animation target and [CollapsedSearchBar]'s
+ * static button shape — the two would otherwise have to independently agree on the same literal for the
+ * shapes to still read as cut from the same pill once the button settles in.
+ */
+private val AdjoiningFlatCornerRadius: Dp
+    @Composable
+    @ReadOnlyComposable
+    get() = MaterialTheme.spacing.small
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SearchTopBar(
@@ -91,10 +118,32 @@ internal fun SearchTopBar(
         dividerColor = SearchBarDefaults.colors().dividerColor.copy(alpha = 0.5f)
     )
 
+    // Idle is the only state where the Discover feed already owns the content area: there is nothing
+    // to go back to, so the arrow only exists while committed results hold the screen.
+    val isShowingResults = uiState.contentState !is SearchContentState.Idle
+
+    // The corner radius of the side where the back button and the search bar meet: fully rounded when
+    // the button is hidden (a separate pill and circle), animated down to flat when both are visible, so
+    // the two read as cut from the same pill — still kept visually apart by the gap in the button's own
+    // slot. Computed once here, alongside [isShowingResults], because [inputField] below is the same
+    // instance Material3 carries through the collapsed-to-expanded transition, so the input field's own
+    // shape has to come from the same source as the collapsed pill's.
+    val adjoiningCornerRadius by animateDpAsState(
+        targetValue = if (isShowingResults) AdjoiningFlatCornerRadius else FullyRoundedCornerRadius,
+        label = "adjoiningCornerRadius"
+    )
+    val searchBarShape = RoundedCornerShape(
+        topStart = adjoiningCornerRadius,
+        bottomStart = adjoiningCornerRadius,
+        topEnd = FullyRoundedCornerRadius,
+        bottomEnd = FullyRoundedCornerRadius
+    )
+
     val inputField = @Composable {
         SearchInputField(
             textFieldState = textFieldState,
             searchBarState = searchBarState,
+            shape = searchBarShape,
             onSearch = { onSearch(textFieldState.text.toString()) },
             onClearSearch = { onEvent(SearchUiEvent.OnClearSearch) }
         )
@@ -106,6 +155,9 @@ internal fun SearchTopBar(
         inputField = inputField,
         onProfileClick = onProfileClick,
         backgroundColor = backgroundColor,
+        showBackToDiscover = isShowingResults,
+        onBackToDiscover = { onEvent(SearchUiEvent.OnClearSearch) },
+        searchBarShape = searchBarShape,
         modifier = scrollBehavior.searchBarScrollBehaviorModifier,
         bottomContent = {
             val state = uiState.contentState
@@ -143,7 +195,8 @@ internal fun SearchInputField(
     textFieldState: TextFieldState,
     searchBarState: SearchBarState,
     onSearch: () -> Unit,
-    onClearSearch: () -> Unit
+    onClearSearch: () -> Unit,
+    shape: Shape = SearchBarDefaults.inputFieldShape
 ) {
     val searchInputFieldColor = if (searchBarState.currentValue == SearchBarValue.Collapsed) {
         MaterialTheme.appColors.searchBarInputFieldColor
@@ -154,6 +207,7 @@ internal fun SearchInputField(
     SearchBarDefaults.InputField(
         textFieldState = textFieldState,
         searchBarState = searchBarState,
+        shape = shape,
         colors = TextFieldDefaults.colors(
             focusedContainerColor = searchInputFieldColor,
             unfocusedContainerColor = searchInputFieldColor
@@ -199,6 +253,9 @@ internal fun CollapsedSearchBar(
     inputField: @Composable () -> Unit,
     onProfileClick: () -> Unit,
     backgroundColor: Color,
+    showBackToDiscover: Boolean,
+    onBackToDiscover: () -> Unit,
+    searchBarShape: Shape,
     modifier: Modifier = Modifier,
     bottomContent: @Composable ColumnScope.() -> Unit = {}
 ) {
@@ -206,21 +263,56 @@ internal fun CollapsedSearchBar(
     // instant currentValue has already reached Expanded but the target has moved back to Collapsed,
     // the only moment both the collapsed pill and the full-screen bar would otherwise render at once.
     val isPillVisible = searchBarState.currentValue != SearchBarValue.Expanded ||
-        searchBarState.targetValue == SearchBarValue.Expanded
+            searchBarState.targetValue == SearchBarValue.Expanded
+    val pillAlpha = if (isPillVisible) 1f else 0f
+
+    // Mirrors [searchBarShape]'s adjoining corner (computed by the caller, alongside the input field's
+    // own shape): fully rounded into a circle when the button is hidden, flat on the side facing the
+    // search bar when both are visible.
+    val backButtonShape = RoundedCornerShape(
+        topStart = FullyRoundedCornerRadius,
+        bottomStart = FullyRoundedCornerRadius,
+        topEnd = AdjoiningFlatCornerRadius,
+        bottomEnd = AdjoiningFlatCornerRadius
+    )
 
     MainScreenHeader(
         onProfileClick = onProfileClick,
         modifier = modifier,
         containerColor = backgroundColor,
+        leadingContent = {
+            if (showBackToDiscover) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = onBackToDiscover,
+                        shape = backButtonShape,
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = MaterialTheme.appColors.searchBarInputFieldColor,
+                            contentColor = contentColorFor(MaterialTheme.appColors.searchBarInputFieldColor)
+                        ),
+                        modifier = Modifier
+                            .size(SearchBarDefaults.InputFieldHeight)
+                            .alpha(pillAlpha)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back_to_discover_content_description)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(MaterialTheme.spacing.medium))
+                }
+            }
+        },
         bottomContent = bottomContent,
         content = {
             SearchBar(
                 state = searchBarState,
                 inputField = inputField,
                 colors = searchBarColors,
+                shape = searchBarShape,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .alpha(if (isPillVisible) 1f else 0f)
+                    .alpha(pillAlpha)
             )
         }
     )
@@ -567,7 +659,43 @@ private fun CollapsedSearchBarPreview() {
                 )
             },
             onProfileClick = {},
-            backgroundColor = Color.Transparent
+            backgroundColor = Color.Transparent,
+            showBackToDiscover = false,
+            onBackToDiscover = {},
+            searchBarShape = RoundedCornerShape(FullyRoundedCornerRadius)
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+private fun CollapsedSearchBarWithBackButtonPreview() {
+    GamesWishlistTheme {
+        val searchBarState = rememberContainedSearchBarState()
+        val textFieldState = rememberTextFieldState("The Witcher")
+
+        CollapsedSearchBar(
+            searchBarState = searchBarState,
+            searchBarColors = SearchBarDefaults.colors(),
+            inputField = {
+                SearchInputField(
+                    textFieldState = textFieldState,
+                    searchBarState = searchBarState,
+                    onSearch = {},
+                    onClearSearch = {}
+                )
+            },
+            onProfileClick = {},
+            backgroundColor = Color.Transparent,
+            showBackToDiscover = true,
+            onBackToDiscover = {},
+            searchBarShape = RoundedCornerShape(
+                topStart = AdjoiningFlatCornerRadius,
+                bottomStart = AdjoiningFlatCornerRadius,
+                topEnd = FullyRoundedCornerRadius,
+                bottomEnd = FullyRoundedCornerRadius
+            )
         )
     }
 }

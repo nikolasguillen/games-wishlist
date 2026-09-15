@@ -1,6 +1,6 @@
 package com.example.gameswishlist.core.ui.component
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -9,6 +9,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
@@ -17,6 +21,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,12 +40,17 @@ import com.example.gameswishlist.core.designsystem.theme.spacing
  * background on scroll (Search) only has to pass the color once instead of syncing two surfaces.
  * [bottomContent] is for anything that scrolls with the header but isn't part of its fixed-height row
  * (Search's result count / sort-and-filter row).
+ *
+ * [leadingContent] is an optional slot to the left of [content] (Search's back-to-feed arrow). It is
+ * always laid out, empty included, and animates its width, so a caller that shows or hides an icon there
+ * gets [content] resized instead of jumped.
  */
 @Composable
 fun MainScreenHeader(
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
     containerColor: Color = Color.Transparent,
+    leadingContent: @Composable () -> Unit = {},
     bottomContent: @Composable ColumnScope.() -> Unit = {},
     content: @Composable () -> Unit
 ) {
@@ -48,17 +58,33 @@ fun MainScreenHeader(
         Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
                 modifier = Modifier
                     .fillMaxWidth()
                     .windowInsetsPadding(TopAppBarDefaults.windowInsets)
                     .height(MainScreenHeaderDefaults.Height)
                     .padding(horizontal = MaterialTheme.spacing.large)
             ) {
+                // Always emitted, even when empty: this slot's animated width is what resizes [content],
+                // and a slot that entered and left the composition would snap instead of animating.
+                // alignment = Center makes the resize expand/collapse outward from the icon's own
+                // center instead of animateContentSize's default TopStart, which — combined with this
+                // Row's CenterVertically — read as the icon sliding up from the bottom.
+                Box(
+                    modifier = Modifier
+                        .clipToBounds()
+                        .animateContentSize(alignment = Alignment.Center)
+                ) {
+                    leadingContent()
+                }
                 Box(modifier = Modifier.weight(1f)) {
                     content()
                 }
-                ProfileIconButton(onClick = onProfileClick)
+                // The gap to [content] rides on the button rather than on Arrangement.spacedBy, which
+                // would also open a gap in front of an empty leading slot.
+                ProfileIconButton(
+                    onClick = onProfileClick,
+                    modifier = Modifier.padding(start = MaterialTheme.spacing.medium)
+                )
             }
             bottomContent()
         }
@@ -109,6 +135,27 @@ private fun MainScreenHeaderPreview() {
     GamesWishlistTheme {
         MainScreenHeader(
             onProfileClick = {},
+            content = {
+                Text(text = "Games Wishlist")
+            }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MainScreenHeaderWithLeadingContentPreview() {
+    GamesWishlistTheme {
+        MainScreenHeader(
+            onProfileClick = {},
+            leadingContent = {
+                IconButton(onClick = {}) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = null
+                    )
+                }
+            },
             content = {
                 Text(text = "Games Wishlist")
             }

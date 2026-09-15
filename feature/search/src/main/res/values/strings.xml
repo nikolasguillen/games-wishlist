@@ -41,6 +41,7 @@
     <string name="scroll_to_top_content_description">Scroll to top</string>
     <string name="clear_search_content_description">Clear search</string>
     <string name="search_content_description">Search</string>
+    <string name="back_to_discover_content_description">Back to discover</string>
     <string name="remove_filter_content_description">Remove %1$s filter</string>
 
     <!-- Wishlist toggle -->

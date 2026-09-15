@@ -16,8 +16,10 @@ Screen-level and domain components:
 `ProfileIconButton` (entry point to Settings, shared by every top-level screen), `MainScreenHeader` (2
 overloads — the title one for a plain heading, the slot one for a search bar or anything else; fixes the
 header height and the `ProfileIconButton` slot so top-level screens line up, see
-`MainScreenHeaderDefaults.Height`), `ListSelectorSheet` (bottom sheet for adding a game to one or more
-lists, working against `ListSelectorItemUiModel`).
+`MainScreenHeaderDefaults.Height`; the slot overload also exposes an optional `leadingContent` to the left
+of the main slot — always laid out, width-animated, empty by default — for a caller that needs a
+conditional icon there, such as Search's back-to-feed arrow), `ListSelectorSheet` (bottom sheet for adding
+a game to one or more lists, working against `ListSelectorItemUiModel`).
 
 Every component file ends with a `private fun XPreview()` annotated `@Preview(showBackground = true)` and
 wrapped in `GamesWishlistTheme { }`. Match that when adding a component.
