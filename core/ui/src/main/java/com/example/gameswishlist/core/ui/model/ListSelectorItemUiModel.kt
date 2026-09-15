@@ -1,11 +1,10 @@
-package com.example.gameswishlist.feature.gamedetail.model
+package com.example.gameswishlist.core.ui.model
 
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Immutable
-import com.example.gameswishlist.core.ui.model.UiText
 
 /**
- * UI Model for a wishlist list in the selector dialog.
+ * UI Model for a wishlist list in the list selector bottom sheet.
  *
  * @property id The unique identifier of the wishlist list.
  * @property name The name of the wishlist list.
@@ -13,7 +12,7 @@ import com.example.gameswishlist.core.ui.model.UiText
  * @property isSelected Whether the current game is already in this list.
  */
 @Immutable
-internal data class WishlistListUiModel(
+data class ListSelectorItemUiModel(
     val id: Long,
     val name: UiText,
     @DrawableRes val iconRes: Int,

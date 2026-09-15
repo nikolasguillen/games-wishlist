@@ -11,6 +11,7 @@ import com.example.gameswishlist.core.ui.mapper.getRatingUiText
 import com.example.gameswishlist.core.ui.mapper.toDrawableRes
 import com.example.gameswishlist.core.ui.mapper.toGameItem
 import com.example.gameswishlist.core.ui.mapper.toUiText
+import com.example.gameswishlist.core.ui.model.ListSelectorItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.PlatformVisuals
 import com.example.gameswishlist.feature.gamedetail.R
@@ -23,7 +24,6 @@ import com.example.gameswishlist.feature.gamedetail.model.PlatformTileUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PriorityUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RelatedGamesUiModel
-import com.example.gameswishlist.feature.gamedetail.model.WishlistListUiModel
 import java.util.Locale
 import com.example.gameswishlist.core.ui.R as CoreUiR
 
@@ -178,8 +178,8 @@ internal fun Priority.toUiModel(selected: Boolean): PriorityUiModel {
     )
 }
 
-internal fun WishlistAssignment.toUiModel(): WishlistListUiModel {
-    return WishlistListUiModel(
+internal fun WishlistAssignment.toUiModel(): ListSelectorItemUiModel {
+    return ListSelectorItemUiModel(
         id = list.id,
         name = UiText.DynamicString(list.name),
         iconRes = list.icon.toDrawableRes(),

@@ -1,6 +1,7 @@
 package com.example.gameswishlist.feature.gamedetail.model
 
 import androidx.compose.runtime.Immutable
+import com.example.gameswishlist.core.ui.model.ListSelectorItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 
 /**
@@ -13,5 +14,5 @@ import com.example.gameswishlist.core.ui.model.UiText
 @Immutable
 internal data class WishlistSelectorState(
     val gameName: UiText,
-    val availableLists: List<WishlistListUiModel> = emptyList()
+    val availableLists: List<ListSelectorItemUiModel> = emptyList()
 )

@@ -14,8 +14,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
+import com.example.gameswishlist.core.ui.component.ListSelectorSheet
 import com.example.gameswishlist.feature.gamedetail.components.GameDetailMainContent
-import com.example.gameswishlist.feature.gamedetail.components.ListSelectorSheet
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailContentState
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEffect
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
