@@ -73,18 +73,24 @@ class OwnedPlatformsViewModel @Inject constructor(
         viewModelScope.launch {
             pinnedPlatformIds.value = getSelectedPlatformIdsUseCase().first()
         }
-        // Fire and forget: the list renders from Room either way, so a failed sync leaves whatever is
-        // already cached rather than blanking the screen. Only an empty cache reaches the user, as the
-        // Empty state.
-        viewModelScope.launch {
-            syncPlatformCatalogUseCase()
-        }
+        syncCatalog()
     }
 
     internal fun onEvent(event: OwnedPlatformsUiEvent) {
         when (event) {
             is OwnedPlatformsUiEvent.OnPlatformToggled -> togglePlatform(event.platformId)
             is OwnedPlatformsUiEvent.OnClearQuery -> textFieldState.clearText()
+            OwnedPlatformsUiEvent.OnRetrySync -> syncCatalog()
+        }
+    }
+
+    // Fire and forget: the list renders from Room either way, so a failed sync leaves whatever is
+    // already cached rather than blanking the screen. Only an empty cache reaches the user, as the
+    // Empty state -- which is also what OnRetrySync retries, since there is nothing else to show for
+    // a failed sync until the next successful one lands.
+    private fun syncCatalog() {
+        viewModelScope.launch {
+            syncPlatformCatalogUseCase()
         }
     }
 

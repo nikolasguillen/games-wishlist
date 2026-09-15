@@ -149,6 +149,19 @@ class OwnedPlatformsViewModelTest {
     }
 
     @Test
+    fun `OnRetrySync re-syncs the platform catalogue in addition to the one on open`() = runTest {
+        every { getKnownPlatformsUseCase() } returns flowOf(emptyList())
+
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        viewModel.onEvent(OwnedPlatformsUiEvent.OnRetrySync)
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) { syncPlatformCatalogUseCase() }
+    }
+
+    @Test
     fun `selecting a platform persists the whole new set and checks the row`() = runTest {
         every { getKnownPlatformsUseCase() } returns flowOf(catalogue)
         storedSelection.value = setOf(ps5.id)

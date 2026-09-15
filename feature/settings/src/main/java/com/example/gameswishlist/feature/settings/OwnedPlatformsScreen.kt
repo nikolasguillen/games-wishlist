@@ -36,6 +36,7 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.EmptyPage
 import com.example.gameswishlist.core.ui.component.LoadingPage
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.settings.components.PlatformRow
 import com.example.gameswishlist.feature.settings.components.PlatformSearchField
 import com.example.gameswishlist.feature.settings.model.OwnedPlatformsContentState
@@ -143,12 +144,16 @@ internal fun OwnedPlatformsContent(
 
                 is OwnedPlatformsContentState.Empty -> EmptyPage(
                     message = stringResource(R.string.owned_platforms_empty),
-                    icon = Icons.Default.SportsEsports
+                    icon = Icons.Default.SportsEsports,
+                    actionLabel = UiText.StringResource(CoreUiR.string.retry),
+                    onActionClick = { onEvent(OwnedPlatformsUiEvent.OnRetrySync) }
                 )
 
                 is OwnedPlatformsContentState.NoSearchResults -> EmptyPage(
                     message = stringResource(R.string.owned_platforms_no_results),
-                    icon = Icons.Default.SearchOff
+                    icon = Icons.Default.SearchOff,
+                    actionLabel = UiText.StringResource(R.string.owned_platforms_clear_search_action),
+                    onActionClick = { onEvent(OwnedPlatformsUiEvent.OnClearQuery) }
                 )
 
                 is OwnedPlatformsContentState.Success -> LazyColumn(
