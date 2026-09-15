@@ -23,6 +23,7 @@ import com.example.gameswishlist.core.model.SearchSuggestion
 import com.example.gameswishlist.core.ui.mapper.getDisplayRating
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
 import com.example.gameswishlist.core.ui.mapper.toUiText
+import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.mapper.getInitialGameTypeFilters
 import com.example.gameswishlist.feature.search.mapper.getInitialSortFilters
 import com.example.gameswishlist.feature.search.mapper.isSortActive
@@ -37,12 +38,14 @@ import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
 import com.example.gameswishlist.feature.search.model.SearchSort
 import com.example.gameswishlist.feature.search.model.SearchSuggestionsUiModel
+import com.example.gameswishlist.feature.search.model.SearchUiEffect
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import com.example.gameswishlist.feature.search.model.SortBottomSheetState
 import com.example.gameswishlist.feature.search.model.SortingUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,6 +54,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -89,6 +93,9 @@ class SearchViewModel @Inject constructor(
         )
     )
     internal val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
+
+    private val _uiEffect = Channel<SearchUiEffect>(Channel.BUFFERED)
+    internal val uiEffect = _uiEffect.receiveAsFlow()
 
     internal val textFieldState = TextFieldState()
 
@@ -282,14 +289,22 @@ class SearchViewModel @Inject constructor(
 
     /**
      * No optimistic update: the toggle writes to Room, which [observeWishlistedGameIds] re-emits from,
-     * and that is what actually patches the card.
+     * and that is what actually patches the card. The confirmation snackbar does not wait for that
+     * round trip either -- [wasSaved] is read from the card's own state, from before the toggle.
      */
     private fun toggleSave(gameId: Int) {
         val contentState = _uiState.value.contentState
         if (contentState !is SearchContentState.Success) return
 
         val game = contentState.allGames.find { it.id == gameId } ?: return
+        val wasSaved = contentState.games.find { it.id == gameId }?.isSaved == true
+
         viewModelScope.launch { toggleWishlistUseCase(game) }
+
+        val messageRes = if (wasSaved) R.string.removed_from_wishlist else R.string.added_to_wishlist
+        _uiEffect.trySend(
+            SearchUiEffect.ShowSnackbar(message = UiText.StringResource(messageRes, game.name))
+        )
     }
 
     private fun handleBottomSheetFilterClick(eventFilter: GameFilterUiModel) {

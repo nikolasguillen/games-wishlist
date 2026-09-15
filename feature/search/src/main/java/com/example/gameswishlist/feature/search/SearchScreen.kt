@@ -21,9 +21,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarValue
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.animateFloatingActionButton
 import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -33,9 +36,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.ui.component.CustomFab
@@ -49,6 +56,7 @@ import com.example.gameswishlist.feature.search.components.SearchTopBar
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
+import com.example.gameswishlist.feature.search.model.SearchUiEffect
 import com.example.gameswishlist.feature.search.model.SearchUiEvent
 import com.example.gameswishlist.feature.search.model.SearchUiState
 import kotlinx.coroutines.delay
@@ -68,6 +76,30 @@ fun SearchScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val context = LocalContext.current
+
+    LaunchedEffect(viewModel, lifecycle) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.uiEffect.collect { effect ->
+                when (effect) {
+                    is SearchUiEffect.ShowSnackbar -> {
+                        // showSnackbar suspends until its snackbar is dismissed, so it must not run on
+                        // this collecting coroutine -- otherwise a fast second toggle sits buffered in
+                        // the channel and its dismiss() never gets a chance to run until the first
+                        // snackbar times out on its own. Launched on its own, each new effect can
+                        // dismiss whatever is still showing (including a previous launch still waiting
+                        // its turn) the instant it arrives.
+                        launch {
+                            snackbarHostState.currentSnackbarData?.dismiss()
+                            snackbarHostState.showSnackbar(effect.message.asString(context))
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     SearchScreenContent(
         uiState = uiState,
@@ -75,6 +107,7 @@ fun SearchScreen(
         onEvent = viewModel::onEvent,
         onGameClick = onGameClick,
         onProfileClick = onProfileClick,
+        snackbarHostState = snackbarHostState,
         modifier = modifier
     )
 }
@@ -86,6 +119,7 @@ internal fun SearchScreenContent(
     onEvent: (SearchUiEvent) -> Unit,
     onGameClick: (Int) -> Unit,
     onProfileClick: () -> Unit,
+    snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier
 ) {
 
@@ -183,6 +217,7 @@ internal fun SearchScreenContent(
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.appColors.appBackground,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             SearchTopBar(
                 uiState = uiState,
@@ -265,7 +300,8 @@ private fun SearchScreenPreview() {
             textFieldState = rememberTextFieldState(),
             onEvent = {},
             onGameClick = {},
-            onProfileClick = {}
+            onProfileClick = {},
+            snackbarHostState = remember { SnackbarHostState() }
         )
     }
 }
@@ -288,7 +324,8 @@ private fun SearchScreenInitialWithHistoryPreview() {
             textFieldState = rememberTextFieldState(),
             onEvent = {},
             onGameClick = {},
-            onProfileClick = {}
+            onProfileClick = {},
+            snackbarHostState = remember { SnackbarHostState() }
         )
     }
 }
@@ -304,7 +341,8 @@ private fun SearchScreenLoadingPreview() {
             textFieldState = rememberTextFieldState(),
             onEvent = {},
             onGameClick = {},
-            onProfileClick = {}
+            onProfileClick = {},
+            snackbarHostState = remember { SnackbarHostState() }
         )
     }
 }
@@ -318,7 +356,8 @@ private fun SearchScreenInitialPreview() {
             textFieldState = rememberTextFieldState(),
             onEvent = {},
             onGameClick = {},
-            onProfileClick = {}
+            onProfileClick = {},
+            snackbarHostState = remember { SnackbarHostState() }
         )
     }
 }
@@ -334,7 +373,8 @@ private fun SearchScreenEmptyPreview() {
             textFieldState = rememberTextFieldState(),
             onEvent = {},
             onGameClick = {},
-            onProfileClick = {}
+            onProfileClick = {},
+            snackbarHostState = remember { SnackbarHostState() }
         )
     }
 }

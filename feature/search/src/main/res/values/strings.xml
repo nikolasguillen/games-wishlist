@@ -41,4 +41,8 @@
     <string name="clear_search_content_description">Clear search</string>
     <string name="search_content_description">Search</string>
     <string name="remove_filter_content_description">Remove %1$s filter</string>
+
+    <!-- Wishlist toggle -->
+    <string name="added_to_wishlist">Added %1$s to Wishlist</string>
+    <string name="removed_from_wishlist">Removed %1$s from Wishlist</string>
 </resources>
