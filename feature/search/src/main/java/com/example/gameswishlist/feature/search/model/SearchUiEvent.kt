@@ -11,6 +11,12 @@ internal sealed interface SearchUiEvent {
     /** The user tapped a search result's save button, toggling its membership in the default wishlist. */
     data class OnToggleSave(val gameId: Int) : SearchUiEvent
 
+    /** The user long-pressed a search result, opening the list selector for it. */
+    data class OnOpenListSelector(val gameId: Int) : SearchUiEvent
+    data class OnToggleListSelection(val listId: Long) : SearchUiEvent
+    data object OnConfirmListSelection : SearchUiEvent
+    data object OnDismissListSelector : SearchUiEvent
+
     // Bottom Sheet Events
     data object OnOpenFilters : SearchUiEvent
     data object OnDismissFilters : SearchUiEvent

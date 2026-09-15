@@ -8,7 +8,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.common.calculateGameRelevanceScore
 import com.example.gameswishlist.core.domain.usecase.ToggleWishlistUseCase
 import com.example.gameswishlist.core.domain.usecase.discover.GetDiscoverFeedUseCase
+import com.example.gameswishlist.core.domain.usecase.list.AddGameToListUseCase
+import com.example.gameswishlist.core.domain.usecase.list.GetWishlistAssignmentsUseCase
 import com.example.gameswishlist.core.domain.usecase.list.GetWishlistedGameIdsUseCase
+import com.example.gameswishlist.core.domain.usecase.list.RemoveGameFromListUseCase
 import com.example.gameswishlist.core.domain.usecase.search.AddSearchToHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.ClearAllHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.ClearRecentGamesUseCase
@@ -30,10 +33,12 @@ import com.example.gameswishlist.feature.search.mapper.isSortActive
 import com.example.gameswishlist.feature.search.mapper.toDiscoverContentState
 import com.example.gameswishlist.feature.search.mapper.toGenreFilters
 import com.example.gameswishlist.feature.search.mapper.toPlatformFilters
+import com.example.gameswishlist.feature.search.mapper.toSelectorItem
 import com.example.gameswishlist.feature.search.mapper.toSuggestionUiModels
 import com.example.gameswishlist.feature.search.model.DiscoverContentState
 import com.example.gameswishlist.feature.search.model.FilterBottomSheetState
 import com.example.gameswishlist.feature.search.model.GameFilterUiModel
+import com.example.gameswishlist.feature.search.model.ListSelectorState
 import com.example.gameswishlist.feature.search.model.SearchContentState
 import com.example.gameswishlist.feature.search.model.SearchHistoryUiModel
 import com.example.gameswishlist.feature.search.model.SearchSort
@@ -53,6 +58,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
@@ -81,7 +87,10 @@ class SearchViewModel @Inject constructor(
     private val getSearchSuggestionsUseCase: GetSearchSuggestionsUseCase,
     private val getDiscoverFeedUseCase: GetDiscoverFeedUseCase,
     private val getWishlistedGameIdsUseCase: GetWishlistedGameIdsUseCase,
-    private val toggleWishlistUseCase: ToggleWishlistUseCase
+    private val toggleWishlistUseCase: ToggleWishlistUseCase,
+    private val getWishlistAssignmentsUseCase: GetWishlistAssignmentsUseCase,
+    private val addGameToListUseCase: AddGameToListUseCase,
+    private val removeGameFromListUseCase: RemoveGameFromListUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -156,6 +165,22 @@ class SearchViewModel @Inject constructor(
 
             is SearchUiEvent.OnToggleSave -> {
                 toggleSave(event.gameId)
+            }
+
+            is SearchUiEvent.OnOpenListSelector -> {
+                openListSelector(event.gameId)
+            }
+
+            is SearchUiEvent.OnToggleListSelection -> {
+                toggleListSelection(event.listId)
+            }
+
+            SearchUiEvent.OnConfirmListSelection -> {
+                confirmListSelection()
+            }
+
+            SearchUiEvent.OnDismissListSelector -> {
+                _uiState.update { it.copy(listSelectorState = null) }
             }
 
             SearchUiEvent.OnOpenFilters -> {
@@ -305,6 +330,62 @@ class SearchViewModel @Inject constructor(
         _uiEffect.trySend(
             SearchUiEffect.ShowSnackbar(message = UiText.StringResource(messageRes, game.name))
         )
+    }
+
+    private fun openListSelector(gameId: Int) {
+        val contentState = _uiState.value.contentState
+        if (contentState !is SearchContentState.Success) return
+
+        val game = contentState.allGames.find { it.id == gameId } ?: return
+
+        viewModelScope.launch {
+            val assignments = getWishlistAssignmentsUseCase(game.id).first()
+            _uiState.update {
+                it.copy(
+                    listSelectorState = ListSelectorState(
+                        gameId = game.id,
+                        gameName = game.name,
+                        availableLists = assignments.map { assignment -> assignment.toSelectorItem() }
+                    )
+                )
+            }
+        }
+    }
+
+    private fun toggleListSelection(listId: Long) {
+        _uiState.update { current ->
+            val selectorState = current.listSelectorState ?: return@update current
+            current.copy(
+                listSelectorState = selectorState.copy(
+                    availableLists = selectorState.availableLists.map {
+                        if (it.id == listId) it.copy(isSelected = !it.isSelected) else it
+                    }
+                )
+            )
+        }
+    }
+
+    /**
+     * No isSaved sync needed beyond what [observeWishlistedGameIds] already does: toggling the default
+     * list's membership through [addGameToListUseCase]/[removeGameFromListUseCase] re-emits from that
+     * collector the same way a card's own save button does.
+     */
+    private fun confirmListSelection() {
+        val selectorState = _uiState.value.listSelectorState ?: return
+
+        viewModelScope.launch {
+            val originalAssignments = getWishlistAssignmentsUseCase(selectorState.gameId).first()
+            val initialSelectedIds = originalAssignments.filter { it.isAssigned }.map { it.list.id }.toSet()
+            val finalSelectedIds = selectorState.availableLists.filter { it.isSelected }.map { it.id }.toSet()
+
+            val toAdd = finalSelectedIds - initialSelectedIds
+            val toRemove = initialSelectedIds - finalSelectedIds
+
+            toAdd.forEach { listId -> addGameToListUseCase(selectorState.gameId, listId) }
+            toRemove.forEach { listId -> removeGameFromListUseCase(selectorState.gameId, listId) }
+
+            _uiState.update { it.copy(listSelectorState = null) }
+        }
     }
 
     private fun handleBottomSheetFilterClick(eventFilter: GameFilterUiModel) {

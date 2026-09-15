@@ -46,6 +46,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.ui.component.CustomFab
+import com.example.gameswishlist.core.ui.component.ListSelectorSheet
 import com.example.gameswishlist.core.ui.component.StatusBarProtection
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
@@ -260,6 +261,16 @@ internal fun SearchScreenContent(
 
         SearchFilterBottomSheet(state = uiState.filtersBottomSheetState, onEvent = onEvent)
         SearchSortBottomSheet(state = uiState.sortBottomSheetState, onEvent = onEvent)
+
+        uiState.listSelectorState?.let { selectorState ->
+            ListSelectorSheet(
+                gameName = UiText.DynamicString(selectorState.gameName),
+                list = selectorState.availableLists,
+                onDismiss = { onEvent(SearchUiEvent.OnDismissListSelector) },
+                onConfirm = { onEvent(SearchUiEvent.OnConfirmListSelection) },
+                onToggleList = { listId -> onEvent(SearchUiEvent.OnToggleListSelection(listId)) }
+            )
+        }
 
         StatusBarProtection(color = backgroundColor)
     }

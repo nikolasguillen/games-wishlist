@@ -4,7 +4,10 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import com.example.gameswishlist.core.domain.usecase.ToggleWishlistUseCase
 import com.example.gameswishlist.core.domain.usecase.discover.GetDiscoverFeedUseCase
+import com.example.gameswishlist.core.domain.usecase.list.AddGameToListUseCase
+import com.example.gameswishlist.core.domain.usecase.list.GetWishlistAssignmentsUseCase
 import com.example.gameswishlist.core.domain.usecase.list.GetWishlistedGameIdsUseCase
+import com.example.gameswishlist.core.domain.usecase.list.RemoveGameFromListUseCase
 import com.example.gameswishlist.core.domain.usecase.search.AddSearchToHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.ClearAllHistoryUseCase
 import com.example.gameswishlist.core.domain.usecase.search.ClearRecentGamesUseCase
@@ -80,6 +83,9 @@ class SearchViewModelTest {
     private val getDiscoverFeedUseCase = mockk<GetDiscoverFeedUseCase>()
     private val getWishlistedGameIdsUseCase = mockk<GetWishlistedGameIdsUseCase>()
     private val toggleWishlistUseCase = mockk<ToggleWishlistUseCase>(relaxed = true)
+    private val getWishlistAssignmentsUseCase = mockk<GetWishlistAssignmentsUseCase>()
+    private val addGameToListUseCase = mockk<AddGameToListUseCase>(relaxed = true)
+    private val removeGameFromListUseCase = mockk<RemoveGameFromListUseCase>(relaxed = true)
 
     @Before
     fun setUp() {
@@ -118,7 +124,10 @@ class SearchViewModelTest {
             getSearchSuggestionsUseCase = getSearchSuggestionsUseCase,
             getDiscoverFeedUseCase = getDiscoverFeedUseCase,
             getWishlistedGameIdsUseCase = getWishlistedGameIdsUseCase,
-            toggleWishlistUseCase = toggleWishlistUseCase
+            toggleWishlistUseCase = toggleWishlistUseCase,
+            getWishlistAssignmentsUseCase = getWishlistAssignmentsUseCase,
+            addGameToListUseCase = addGameToListUseCase,
+            removeGameFromListUseCase = removeGameFromListUseCase
         ).also { advanceUntilIdle() }
     }
 

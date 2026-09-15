@@ -15,6 +15,7 @@ import androidx.compose.runtime.Immutable
  * @property contentState Current state of the search results (Idle, Loading, Success, Empty, Error).
  * @property filtersBottomSheetState State of the filters selection Bottom Sheet.
  * @property sortBottomSheetState State for the sorting options Bottom Sheet.
+ * @property listSelectorState State of the list-selector bottom sheet; `null` means it is closed.
  */
 @Immutable
 internal data class SearchUiState(
@@ -23,5 +24,6 @@ internal data class SearchUiState(
     val discover: DiscoverContentState = DiscoverContentState.Loading,
     val contentState: SearchContentState = SearchContentState.Idle,
     val filtersBottomSheetState: FilterBottomSheetState = FilterBottomSheetState(),
-    val sortBottomSheetState: SortBottomSheetState = SortBottomSheetState()
+    val sortBottomSheetState: SortBottomSheetState = SortBottomSheetState(),
+    val listSelectorState: ListSelectorState? = null
 )

@@ -50,8 +50,7 @@ internal fun SearchMainContent(
                     onFilterClick = { onEvent(SearchUiEvent.OnFilterClick(it)) },
                     onGameClick = onGameClick,
                     onSaveClick = { onEvent(SearchUiEvent.OnToggleSave(it)) },
-                    // TODO: open the list selector once it lands (see the long-press commit).
-                    onLongClick = {},
+                    onLongClick = { onEvent(SearchUiEvent.OnOpenListSelector(it)) },
                     state = gridState
                 )
             }
