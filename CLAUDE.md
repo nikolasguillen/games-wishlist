@@ -111,6 +111,7 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
 | Navigation entry point (`NavDisplay`) | `app/src/main/java/com/example/gameswishlist/MainActivity.kt` |
 | Shared UI constants | `core/ui/util/Constants.kt` (`object UiConstants`) |
 | Network↔domain↔entity mappers | `core/data/mapper/GameMapper.kt` |
+| `GameDescriptionTranslator` | `core/domain/translation/` (impl in `core/data/translation/`) |
 
 ## Directory-specific instructions
 
