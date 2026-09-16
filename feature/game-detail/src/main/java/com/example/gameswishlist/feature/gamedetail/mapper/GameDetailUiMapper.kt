@@ -78,9 +78,9 @@ internal fun Game.toUiModel(): GameDetailUiModel {
     val displayRating = getDisplayRating()
     val ratingModel = if (displayRating > 0 || hypes > 0 || ratingCount > 0) {
         RatingUiModel(
-            score = displayRating,
-            scoreText = UiText.DynamicString(displayRating.toString()),
-            scoreLabel = getRatingUiText(),
+            score = displayRating.takeIf { it > 0 },
+            scoreText = if (displayRating > 0) UiText.DynamicString(displayRating.toString()) else null,
+            scoreLabel = if (displayRating > 0) getRatingUiText() else null,
             hypes = if (hypes > 0) UiText.DynamicString(formatLargeNumber(hypes)) else null,
             hypesLabel = if (hypes > 0) UiText.StringResource(CoreUiR.string.hypes_title) else null,
             ratingCount = if (ratingCount > 0) UiText.DynamicString(formatLargeNumber(ratingCount)) else null,

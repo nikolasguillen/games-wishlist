@@ -42,6 +42,9 @@ internal fun GameRatingCard(
     rating: RatingUiModel,
     modifier: Modifier = Modifier
 ) {
+    val hasScore = rating.score != null && rating.scoreText != null && rating.scoreLabel != null
+    val hasHypes = rating.hypes != null && rating.hypesLabel != null
+
     CustomContentCard(modifier = modifier) {
         Row(
             modifier = Modifier
@@ -50,20 +53,27 @@ internal fun GameRatingCard(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Metascore
-            RatingStatItem(
-                label = rating.scoreLabel.asString(),
-                value = rating.scoreText.asString(),
-                score = rating.score,
-                modifier = Modifier.weight(1f)
-            )
+            // Metascore — absent for games with no rating yet (e.g. upcoming releases)
+            val score = rating.score
+            val scoreText = rating.scoreText
+            val scoreLabel = rating.scoreLabel
+            if (score != null && scoreText != null && scoreLabel != null) {
+                RatingStatItem(
+                    label = scoreLabel.asString(),
+                    value = scoreText.asString(),
+                    score = score,
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
             // Hypes
-            if (rating.hypes != null && rating.hypesLabel != null) {
-                VerticalDivider(modifier = Modifier.height(40.dp))
+            val hypes = rating.hypes
+            val hypesLabel = rating.hypesLabel
+            if (hypes != null && hypesLabel != null) {
+                if (hasScore) VerticalDivider(modifier = Modifier.height(40.dp))
                 RatingStatItem(
-                    label = rating.hypesLabel.asString(),
-                    value = rating.hypes.asString(),
+                    label = hypesLabel.asString(),
+                    value = hypes.asString(),
                     icon = Icons.Default.Whatshot,
                     iconColor = MaterialTheme.appColors.hypeColor,
                     modifier = Modifier.weight(1f)
@@ -71,11 +81,13 @@ internal fun GameRatingCard(
             }
 
             // Rating Count
-            if (rating.ratingCount != null && rating.ratingCountLabel != null) {
-                VerticalDivider(modifier = Modifier.height(40.dp))
+            val ratingCount = rating.ratingCount
+            val ratingCountLabel = rating.ratingCountLabel
+            if (ratingCount != null && ratingCountLabel != null) {
+                if (hasScore || hasHypes) VerticalDivider(modifier = Modifier.height(40.dp))
                 RatingStatItem(
-                    label = rating.ratingCountLabel.asString(),
-                    value = rating.ratingCount.asString(),
+                    label = ratingCountLabel.asString(),
+                    value = ratingCount.asString(),
                     icon = Icons.Default.Star,
                     iconColor = MaterialTheme.appColors.ratingCountColor,
                     modifier = Modifier.weight(1f)
@@ -142,6 +154,24 @@ private fun GameRatingCardPreview() {
                 hypesLabel = UiText.DynamicString("Hypes"),
                 ratingCount = UiText.DynamicString("450"),
                 ratingCountLabel = UiText.DynamicString("Ratings")
+            )
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun GameRatingCardUpcomingPreview() {
+    GamesWishlistTheme {
+        GameRatingCard(
+            rating = RatingUiModel(
+                score = null,
+                scoreText = null,
+                scoreLabel = null,
+                hypes = UiText.DynamicString("1.2K"),
+                hypesLabel = UiText.DynamicString("Hypes"),
+                ratingCount = null,
+                ratingCountLabel = null
             )
         )
     }
