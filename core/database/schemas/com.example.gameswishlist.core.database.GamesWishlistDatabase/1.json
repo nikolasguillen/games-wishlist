@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "120fedb346391b32f2b270bb3ff0e61b",
+    "identityHash": "32dfbb75eafcc43d9cda68ac79d07f31",
     "entities": [
       {
         "tableName": "search_history",
@@ -512,11 +512,48 @@
             "relationType"
           ]
         }
+      },
+      {
+        "tableName": "translated_descriptions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`gameId` INTEGER NOT NULL, `languageTag` TEXT NOT NULL, `sourceHash` INTEGER NOT NULL, `translatedText` TEXT NOT NULL, PRIMARY KEY(`gameId`, `languageTag`))",
+        "fields": [
+          {
+            "fieldPath": "gameId",
+            "columnName": "gameId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "languageTag",
+            "columnName": "languageTag",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceHash",
+            "columnName": "sourceHash",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "translatedText",
+            "columnName": "translatedText",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "gameId",
+            "languageTag"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '120fedb346391b32f2b270bb3ff0e61b')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '32dfbb75eafcc43d9cda68ac79d07f31')"
     ]
   }
 }

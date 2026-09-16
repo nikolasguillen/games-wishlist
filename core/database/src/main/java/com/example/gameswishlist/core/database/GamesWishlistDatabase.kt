@@ -7,6 +7,7 @@ import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
 import com.example.gameswishlist.core.database.dao.PlatformDao
 import com.example.gameswishlist.core.database.dao.SearchHistoryDao
+import com.example.gameswishlist.core.database.dao.TranslationDao
 import com.example.gameswishlist.core.database.entity.CompanyEntity
 import com.example.gameswishlist.core.database.entity.EngineEntity
 import com.example.gameswishlist.core.database.entity.GameArtworkEntity
@@ -22,6 +23,7 @@ import com.example.gameswishlist.core.database.entity.OwnedPlatformEntity
 import com.example.gameswishlist.core.database.entity.PlatformEntity
 import com.example.gameswishlist.core.database.entity.RelatedGameEntity
 import com.example.gameswishlist.core.database.entity.SearchHistoryEntity
+import com.example.gameswishlist.core.database.entity.TranslatedDescriptionEntity
 import com.example.gameswishlist.core.database.util.Converters
 
 @Database(
@@ -40,7 +42,8 @@ import com.example.gameswishlist.core.database.util.Converters
         EngineEntity::class,
         GameEngineCrossRef::class,
         GameArtworkEntity::class,
-        RelatedGameEntity::class
+        RelatedGameEntity::class,
+        TranslatedDescriptionEntity::class
     ],
     version = 1,
     exportSchema = true
@@ -51,6 +54,7 @@ abstract class GamesWishlistDatabase : RoomDatabase() {
     abstract fun listDao(): ListDao
     abstract fun platformDao(): PlatformDao
     abstract fun searchHistoryDao(): SearchHistoryDao
+    abstract fun translationDao(): TranslationDao
 
     companion object {
         const val DATABASE_NAME = "games_wishlist_database"

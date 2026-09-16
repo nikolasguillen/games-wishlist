@@ -28,7 +28,8 @@ So when you change an entity:
 
 - Entities: `<Name>Entity` with an explicit `@Entity(tableName = "snake_case")` —
   `GameEntity`("games"), `ListEntity`("wishlists"), `SearchHistoryEntity`("search_history"),
-  `PlatformEntity`, `GenreEntity`, `CompanyEntity`, `EngineEntity`, `GameArtworkEntity`("game_artworks").
+  `PlatformEntity`, `GenreEntity`, `CompanyEntity`, `EngineEntity`, `GameArtworkEntity`("game_artworks"),
+  `TranslatedDescriptionEntity`("translated_descriptions").
 - Junction tables: `<A><B>CrossRef` — **no `Entity` suffix** — with `primaryKeys = [...]`.
   `GameListCrossRef`, `GamePlatformCrossRef`, `GameGenreCrossRef`, `GameCompanyCrossRef`,
   `GameEngineCrossRef`.
