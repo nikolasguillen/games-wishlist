@@ -28,19 +28,24 @@ suggesting a command.
 
 ## Module graph and dependency rules
 
-15 modules, all under the `com.example.gameswishlist.*` namespace. Sources live in `src/main/java/`.
+16 modules, all under the `com.example.gameswishlist.*` namespace. Sources live in `src/main/java/`.
 
 ```
 :app  →  everything
 :feature:{search, game-detail, lists, wishlist, settings}
-:core:{common, model, network, database, data, domain, ui, designsystem, navigation}
+:core:{common, model, network, database, data, domain, ui, designsystem, navigation, ai}
 ```
 
 These boundaries are load-bearing — check them before adding a dependency:
 
 - **`:app` is the only module that knows about navigation.** Feature modules own no nav graph.
 - **`feature/*` depends only on** `:core:common`, `:core:model`, `:core:domain`, `:core:ui`,
-  `:core:navigation`, `:core:designsystem`. **Never** on `:core:data`, `:core:network`, or `:core:database`.
+  `:core:navigation`, `:core:designsystem`. **Never** on `:core:data`, `:core:network`, `:core:database`,
+  or `:core:ai`.
+- **`:core:ai` is reachable only from `:core:data`.** It wraps ML Kit's on-device GenAI client
+  (`GeminiNanoClient`) and depends on nothing but that SDK, Hilt and coroutines — not even `:core:model`.
+  A KMP move replaces it wholesale, since ML Kit GenAI has no multiplatform counterpart; see
+  `docs/roadmap.md`.
 - `:core:model` has no Android and no Compose dependency (only `kotlinx-serialization-core`). Keep it that way.
   `:core:model` and `:core:navigation` are the only modules without Hilt/KSP.
 - **There is no `build-logic` or `buildSrc`.** Every `build.gradle.kts` repeats `compileSdk = 37`,
