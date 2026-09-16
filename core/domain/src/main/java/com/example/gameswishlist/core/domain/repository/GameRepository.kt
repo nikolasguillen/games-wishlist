@@ -86,6 +86,10 @@ interface GameRepository {
     /** Replaces the selection wholesale; an empty [platformIds] turns the filter off. */
     suspend fun setOwnedPlatforms(platformIds: Set<Int>)
 
+    /** Whether on-device description translation is switched on. Defaults to `false`. */
+    fun isDescriptionTranslationEnabled(): Flow<Boolean>
+    suspend fun setDescriptionTranslationEnabled(enabled: Boolean)
+
     fun getAllLists(): Flow<List<WishlistList>>
     /** Emits `null` when no list with [listId] exists (e.g. it was deleted). */
     fun observeListById(listId: Long): Flow<WishlistList?>
