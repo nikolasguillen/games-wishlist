@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +32,7 @@ import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.settings.components.SettingsGroup
 import com.example.gameswishlist.feature.settings.components.SettingsRow
+import com.example.gameswishlist.feature.settings.model.SettingsUiEvent
 import com.example.gameswishlist.feature.settings.model.SettingsUiState
 import com.example.gameswishlist.core.ui.R as CoreUiR
 
@@ -47,6 +49,7 @@ fun SettingsScreen(
 
     SettingsContent(
         state = state,
+        onEvent = viewModel::onEvent,
         onBackClick = onBackClick,
         onOwnedPlatformsClick = onOwnedPlatformsClick,
         modifier = modifier
@@ -64,6 +67,7 @@ fun SettingsScreen(
 @Composable
 internal fun SettingsContent(
     state: SettingsUiState,
+    onEvent: (SettingsUiEvent) -> Unit,
     onBackClick: () -> Unit,
     onOwnedPlatformsClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -113,6 +117,17 @@ internal fun SettingsContent(
             }
 
             SettingsGroup(title = stringResource(R.string.settings_group_app)) {
+                if (state.isTranslationSupported) {
+                    SettingsRow(
+                        icon = Icons.Outlined.Translate,
+                        title = stringResource(R.string.settings_translate_descriptions),
+                        subtitle = stringResource(R.string.settings_translate_descriptions_subtitle),
+                        checked = state.isTranslationEnabled,
+                        onClick = {
+                            onEvent(SettingsUiEvent.SetDescriptionTranslation(!state.isTranslationEnabled))
+                        }
+                    )
+                }
                 SettingsRow(
                     icon = Icons.Outlined.Info,
                     title = stringResource(R.string.settings_about),
@@ -132,6 +147,7 @@ private fun SettingsContentPreview() {
                 ownedPlatformsSummary = UiText.DynamicString("PS5, PC, Switch"),
                 appVersion = "1.0"
             ),
+            onEvent = {},
             onBackClick = {},
             onOwnedPlatformsClick = {}
         )
@@ -147,6 +163,25 @@ private fun SettingsContentNoFilterPreview() {
                 ownedPlatformsSummary = UiText.StringResource(R.string.settings_owned_platforms_all),
                 appVersion = "1.0"
             ),
+            onEvent = {},
+            onBackClick = {},
+            onOwnedPlatformsClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SettingsContentTranslationSupportedPreview() {
+    GamesWishlistTheme {
+        SettingsContent(
+            state = SettingsUiState(
+                ownedPlatformsSummary = UiText.DynamicString("PS5, PC, Switch"),
+                appVersion = "1.0",
+                isTranslationSupported = true,
+                isTranslationEnabled = true
+            ),
+            onEvent = {},
             onBackClick = {},
             onOwnedPlatformsClick = {}
         )

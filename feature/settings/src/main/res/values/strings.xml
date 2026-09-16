@@ -6,6 +6,8 @@
 
     <string name="settings_owned_platforms">Owned platforms</string>
     <string name="settings_owned_platforms_all">All platforms</string>
+    <string name="settings_translate_descriptions">Translate descriptions</string>
+    <string name="settings_translate_descriptions_subtitle">Runs on-device, powered by Gemini Nano</string>
     <string name="settings_about">About</string>
 
     <string name="owned_platforms_title">Owned platforms</string>
