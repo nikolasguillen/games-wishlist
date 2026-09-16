@@ -5,4 +5,5 @@
     <string name="share_game_message">Check out %1$s!</string>
     <string name="share_game_with_url_message">Check out %1$s!\n\n%2$s</string>
     <string name="tba">TBA</string>
+    <string name="description_translated_on_device">Translated on-device</string>
 </resources>

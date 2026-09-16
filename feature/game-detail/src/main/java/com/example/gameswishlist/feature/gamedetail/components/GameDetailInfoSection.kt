@@ -13,6 +13,7 @@ import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.model.AvailabilityUiModel
+import com.example.gameswishlist.feature.gamedetail.model.DescriptionTranslationState
 import com.example.gameswishlist.feature.gamedetail.model.PlatformReleaseDateUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PlatformTileUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
@@ -23,6 +24,7 @@ import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 @Composable
 internal fun GameDetailInfoSection(
     description: UiText,
+    descriptionTranslation: DescriptionTranslationState,
     rating: RatingUiModel?,
     availability: AvailabilityUiModel,
     modifier: Modifier = Modifier
@@ -44,6 +46,7 @@ internal fun GameDetailInfoSection(
         if (descriptionString.isNotEmpty()) {
             GameDescriptionCard(
                 description = descriptionString,
+                translation = descriptionTranslation,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
@@ -57,6 +60,7 @@ private fun GameDetailInfoSectionPreview() {
     GamesWishlistTheme {
         GameDetailInfoSection(
             description = UiText.DynamicString("An epic adventure in a vast open world."),
+            descriptionTranslation = DescriptionTranslationState.Off,
             rating = RatingUiModel(
                 score = 95,
                 scoreText = UiText.DynamicString("95"),

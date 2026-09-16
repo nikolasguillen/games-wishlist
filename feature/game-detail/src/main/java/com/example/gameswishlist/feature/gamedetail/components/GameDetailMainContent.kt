@@ -42,6 +42,7 @@ internal fun GameDetailMainContent(
         is GameDetailContentState.Success -> {
             GameDetailSuccessContent(
                 game = content.game,
+                descriptionTranslation = uiState.descriptionTranslation,
                 onBackClick = onBackClick,
                 onEvent = onEvent,
                 modifier = modifier

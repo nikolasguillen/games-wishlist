@@ -31,6 +31,7 @@ import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.FullScreenImageViewer
 import com.example.gameswishlist.core.ui.component.ImmersiveDetailLayout
 import com.example.gameswishlist.core.ui.component.StatusBarProtection
+import com.example.gameswishlist.feature.gamedetail.model.DescriptionTranslationState
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import dev.chrisbanes.haze.rememberHazeState
@@ -42,6 +43,7 @@ import kotlinx.coroutines.launch
 @Composable
 internal fun GameDetailSuccessContent(
     game: GameDetailUiModel,
+    descriptionTranslation: DescriptionTranslationState,
     onBackClick: () -> Unit,
     onEvent: (GameDetailUiEvent) -> Unit,
     modifier: Modifier = Modifier
@@ -71,6 +73,7 @@ internal fun GameDetailSuccessContent(
         ) { innerPadding ->
             GameDetailSheetContent(
                 game = game,
+                descriptionTranslation = descriptionTranslation,
                 headerHeight = headerHeight,
                 onEvent = onEvent,
                 innerPadding = innerPadding
@@ -117,6 +120,7 @@ internal fun GameDetailSuccessContent(
 @Composable
 private fun GameDetailSheetContent(
     game: GameDetailUiModel,
+    descriptionTranslation: DescriptionTranslationState,
     headerHeight: Dp,
     onEvent: (GameDetailUiEvent) -> Unit,
     innerPadding: PaddingValues,
@@ -169,6 +173,7 @@ private fun GameDetailSheetContent(
             // Game Technical Info Section
             GameDetailInfoSection(
                 description = game.description,
+                descriptionTranslation = descriptionTranslation,
                 rating = game.rating,
                 availability = game.availability,
                 modifier = horizontalPadding
@@ -194,6 +199,7 @@ private fun GameDetailSuccessContentPreview() {
     GamesWishlistTheme {
         GameDetailSuccessContent(
             game = GameDetailUiModel.getDummy(),
+            descriptionTranslation = DescriptionTranslationState.Off,
             onBackClick = {},
             onEvent = {}
         )

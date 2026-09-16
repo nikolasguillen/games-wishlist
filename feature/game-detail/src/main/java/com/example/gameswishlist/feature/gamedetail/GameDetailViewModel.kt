@@ -9,11 +9,15 @@ import com.example.gameswishlist.core.domain.usecase.UpdateGameUseCase
 import com.example.gameswishlist.core.domain.usecase.list.AddGameToListUseCase
 import com.example.gameswishlist.core.domain.usecase.list.GetWishlistAssignmentsUseCase
 import com.example.gameswishlist.core.domain.usecase.list.RemoveGameFromListUseCase
+import com.example.gameswishlist.core.domain.usecase.translation.IsDescriptionTranslationSupportedUseCase
+import com.example.gameswishlist.core.domain.usecase.translation.ObserveDescriptionTranslationEnabledUseCase
+import com.example.gameswishlist.core.domain.usecase.translation.TranslateGameDescriptionUseCase
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.mapper.toUiModel
+import com.example.gameswishlist.feature.gamedetail.model.DescriptionTranslationState
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailContentState
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEffect
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
@@ -27,7 +31,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -43,7 +49,10 @@ class GameDetailViewModel @AssistedInject constructor(
     private val toggleWishlistUseCase: ToggleWishlistUseCase,
     private val getWishlistAssignmentsUseCase: GetWishlistAssignmentsUseCase,
     private val addGameToListUseCase: AddGameToListUseCase,
-    private val removeGameFromListUseCase: RemoveGameFromListUseCase
+    private val removeGameFromListUseCase: RemoveGameFromListUseCase,
+    private val translateGameDescriptionUseCase: TranslateGameDescriptionUseCase,
+    private val observeDescriptionTranslationEnabledUseCase: ObserveDescriptionTranslationEnabledUseCase,
+    private val isDescriptionTranslationSupportedUseCase: IsDescriptionTranslationSupportedUseCase
 ) : ViewModel() {
 
     // Single source of truth: reactively observes local storage. Mutations write through the
@@ -51,29 +60,71 @@ class GameDetailViewModel @AssistedInject constructor(
     private val currentGameFlow = getGameDetailUseCase(gameId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    private val _wishlistSelectorState = MutableStateFlow<WishlistSelectorState?>(null)
+    // Local only: refreshGame is the sole writer, and observeContentState is the sole reader.
     private val _refreshError = MutableStateFlow<UiText?>(null)
 
-    internal val uiState: StateFlow<GameDetailUiState> = combine(
-        currentGameFlow,
-        _wishlistSelectorState,
-        _refreshError
-    ) { game, selectorState, error ->
-        GameDetailUiState(
-            contentState = when {
-                game != null -> GameDetailContentState.Success(game.toUiModel())
-                error != null -> GameDetailContentState.Error(error)
-                else -> GameDetailContentState.Loading
-            },
-            wishlistSelectorState = selectorState
-        )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), GameDetailUiState())
+    private val _uiState = MutableStateFlow(GameDetailUiState())
+    internal val uiState: StateFlow<GameDetailUiState> = _uiState.asStateFlow()
 
     private val _uiEffect = Channel<GameDetailUiEffect>(Channel.BUFFERED)
     internal val uiEffect = _uiEffect.receiveAsFlow()
 
     init {
         refreshGame(gameId)
+        observeContentState()
+        observeDescriptionTranslation()
+    }
+
+    /**
+     * Success always wins over a stale error, and both are recomputed from scratch on every change of
+     * either input -- there is no second write site that has to remember to clear the error once a game
+     * arrives (e.g. from a retry, or any other write to this row). Collected for the whole life of the
+     * ViewModel, the same way `SearchViewModel.observeDiscoverFeed` is: this is the only piece of
+     * [uiState] derived from a continuously-observed source, and folding it into [_uiState] here keeps
+     * that the only place the derivation happens.
+     */
+    private fun observeContentState() {
+        viewModelScope.launch {
+            combine(currentGameFlow, _refreshError) { game, error ->
+                when {
+                    game != null -> GameDetailContentState.Success(game.toUiModel())
+                    error != null -> GameDetailContentState.Error(error)
+                    else -> GameDetailContentState.Loading
+                }
+            }.collect { contentState ->
+                _uiState.update { it.copy(contentState = contentState) }
+            }
+        }
+    }
+
+    /**
+     * Keyed on the description, not the whole game: currentGameFlow re-emits on every notes, status and
+     * priority edit too, and without this operator every keystroke in the notes field would re-run
+     * inference.
+     */
+    private fun observeDescriptionTranslation() {
+        viewModelScope.launch {
+            currentGameFlow
+                .distinctUntilChangedBy { it?.description }
+                .collect { game -> updateDescriptionTranslation(game?.description) }
+        }
+    }
+
+    private suspend fun updateDescriptionTranslation(description: String?) {
+        if (description.isNullOrBlank()) {
+            _uiState.update { it.copy(descriptionTranslation = DescriptionTranslationState.Off) }
+            return
+        }
+        val isEnabled = observeDescriptionTranslationEnabledUseCase().first()
+        if (!isEnabled || !isDescriptionTranslationSupportedUseCase()) {
+            _uiState.update { it.copy(descriptionTranslation = DescriptionTranslationState.Off) }
+            return
+        }
+        _uiState.update { it.copy(descriptionTranslation = DescriptionTranslationState.InProgress) }
+        val translation = translateGameDescriptionUseCase(gameId, description)
+            ?.let { DescriptionTranslationState.Ready(it) }
+            ?: DescriptionTranslationState.Off
+        _uiState.update { it.copy(descriptionTranslation = translation) }
     }
 
     internal fun onEvent(event: GameDetailUiEvent) {
@@ -85,7 +136,8 @@ class GameDetailViewModel @AssistedInject constructor(
             is GameDetailUiEvent.ToggleGameInList -> toggleGameInList(event.listId)
             GameDetailUiEvent.ConfirmListSelection -> confirmListSelection()
             GameDetailUiEvent.OpenListSelector -> openListSelector()
-            GameDetailUiEvent.DismissListSelector -> _wishlistSelectorState.value = null
+            GameDetailUiEvent.DismissListSelector ->
+                _uiState.update { it.copy(wishlistSelectorState = null) }
             GameDetailUiEvent.ToggleFavorite -> toggleFavorite()
             GameDetailUiEvent.ShareGame -> shareGame()
             is GameDetailUiEvent.NavigateToGame ->
@@ -125,25 +177,32 @@ class GameDetailViewModel @AssistedInject constructor(
         val game = currentGameFlow.value ?: return
         viewModelScope.launch {
             val assignments = getWishlistAssignmentsUseCase(game.id).first()
-            _wishlistSelectorState.value = WishlistSelectorState(
-                gameName = UiText.DynamicString(game.name),
-                availableLists = assignments.map { it.toUiModel() }
-            )
+            _uiState.update {
+                it.copy(
+                    wishlistSelectorState = WishlistSelectorState(
+                        gameName = UiText.DynamicString(game.name),
+                        availableLists = assignments.map { assignment -> assignment.toUiModel() }
+                    )
+                )
+            }
         }
     }
 
     private fun toggleGameInList(listId: Long) {
-        _wishlistSelectorState.update { selectorState ->
-            selectorState?.copy(
-                availableLists = selectorState.availableLists.map {
-                    if (it.id == listId) it.copy(isSelected = !it.isSelected) else it
-                }
+        _uiState.update { state ->
+            val selectorState = state.wishlistSelectorState ?: return@update state
+            state.copy(
+                wishlistSelectorState = selectorState.copy(
+                    availableLists = selectorState.availableLists.map {
+                        if (it.id == listId) it.copy(isSelected = !it.isSelected) else it
+                    }
+                )
             )
         }
     }
 
     private fun confirmListSelection() {
-        val selectorState = _wishlistSelectorState.value ?: return
+        val selectorState = _uiState.value.wishlistSelectorState ?: return
         val game = currentGameFlow.value ?: return
 
         viewModelScope.launch {
@@ -160,7 +219,7 @@ class GameDetailViewModel @AssistedInject constructor(
             // No manual isWishlisted sync needed: observeGameDetail recombines with the
             // default list's cross-ref rows, so toggling WishlistConstants.DEFAULT_WISHLIST_ID
             // above already flows back through currentGameFlow.
-            _wishlistSelectorState.value = null
+            _uiState.update { it.copy(wishlistSelectorState = null) }
         }
     }
 

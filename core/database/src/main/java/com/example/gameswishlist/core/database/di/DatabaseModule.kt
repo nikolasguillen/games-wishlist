@@ -10,6 +10,7 @@ import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
 import com.example.gameswishlist.core.database.dao.PlatformDao
 import com.example.gameswishlist.core.database.dao.SearchHistoryDao
+import com.example.gameswishlist.core.database.dao.TranslationDao
 import com.example.gameswishlist.core.database.util.Converters
 import com.example.gameswishlist.core.model.WishlistConstants
 import com.example.gameswishlist.core.model.WishlistIcon
@@ -70,5 +71,10 @@ object DatabaseModule {
     @Provides
     fun provideSearchHistoryDao(database: GamesWishlistDatabase): SearchHistoryDao {
         return database.searchHistoryDao()
+    }
+
+    @Provides
+    fun provideTranslationDao(database: GamesWishlistDatabase): TranslationDao {
+        return database.translationDao()
     }
 }

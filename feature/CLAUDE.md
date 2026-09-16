@@ -67,9 +67,15 @@ run, so check before adding it.
 Two state-pipeline shapes coexist; both are fine, pick the one that matches the source:
 
 - Derived from a use-case `Flow` → `.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Default())`
-  (wishlist, lists, game-detail).
+  (wishlist, lists). Fits a screen whose whole state is one or more continuously-observed sources and
+  `combine()`-ing them is the whole job.
 - Locally driven → `MutableStateFlow` + `_uiState.update { }` (search, which also owns a `TextFieldState`
-  and debounces via `snapshotFlow` + `collectLatest` + `delay`).
+  and debounces via `snapshotFlow` + `collectLatest` + `delay`; game-detail). Fits a screen that also owns
+  state with no upstream `Flow` of its own — a bottom sheet, an in-flight error, an async lookup's
+  lifecycle — mutated directly from event handlers. A continuously-observed source does not rule this shape
+  out: fold it in with its own `viewModelScope.launch { source.collect { _uiState.update { ... } } }` in
+  `init`, collected for the ViewModel's whole life rather than gated behind `WhileSubscribed`
+  (`SearchViewModel.observeDiscoverFeed`, `GameDetailViewModel.observeContentState`).
 
 ## ViewModel injection
 

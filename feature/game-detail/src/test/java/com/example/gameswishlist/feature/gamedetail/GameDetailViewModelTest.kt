@@ -8,6 +8,9 @@ import com.example.gameswishlist.core.domain.usecase.UpdateGameUseCase
 import com.example.gameswishlist.core.domain.usecase.list.AddGameToListUseCase
 import com.example.gameswishlist.core.domain.usecase.list.GetWishlistAssignmentsUseCase
 import com.example.gameswishlist.core.domain.usecase.list.RemoveGameFromListUseCase
+import com.example.gameswishlist.core.domain.usecase.translation.IsDescriptionTranslationSupportedUseCase
+import com.example.gameswishlist.core.domain.usecase.translation.ObserveDescriptionTranslationEnabledUseCase
+import com.example.gameswishlist.core.domain.usecase.translation.TranslateGameDescriptionUseCase
 import com.example.gameswishlist.core.model.AppResult
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
@@ -15,6 +18,7 @@ import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.model.RepositoryError
 import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.feature.gamedetail.model.DescriptionTranslationState
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailContentState
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEffect
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiEvent
@@ -24,9 +28,11 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -59,6 +65,11 @@ class GameDetailViewModelTest {
     private val getWishlistAssignmentsUseCase = mockk<GetWishlistAssignmentsUseCase>()
     private val addGameToListUseCase = mockk<AddGameToListUseCase>(relaxed = true)
     private val removeGameFromListUseCase = mockk<RemoveGameFromListUseCase>(relaxed = true)
+    private val translateGameDescriptionUseCase = mockk<TranslateGameDescriptionUseCase>()
+    private val observeDescriptionTranslationEnabledUseCase =
+        mockk<ObserveDescriptionTranslationEnabledUseCase>()
+    private val isDescriptionTranslationSupportedUseCase =
+        mockk<IsDescriptionTranslationSupportedUseCase>()
 
     @Before
     fun setUp() {
@@ -73,6 +84,7 @@ class GameDetailViewModelTest {
 
     private fun testGame(
         id: Int = GAME_ID,
+        description: String = "",
         priority: Priority? = null,
         status: GameStatus? = null,
         isWishlisted: Boolean = false,
@@ -80,29 +92,32 @@ class GameDetailViewModelTest {
     ) = Game(
         id = id,
         name = "Test Game",
+        description = description,
         priority = priority,
         status = status,
         isWishlisted = isWishlisted,
         url = url
     )
 
-    // uiState (and currentGameFlow) are shared with WhileSubscribed, so they only start collecting
-    // once they have a subscriber -- mirrors the screen's collectAsStateWithLifecycle.
+    private fun gameDetailViewModel(gameId: Int = GAME_ID) = GameDetailViewModel(
+        gameId = gameId,
+        getGameDetailUseCase = getGameDetailUseCase,
+        refreshGameDetailUseCase = refreshGameDetailUseCase,
+        updateGameUseCase = updateGameUseCase,
+        toggleWishlistUseCase = toggleWishlistUseCase,
+        getWishlistAssignmentsUseCase = getWishlistAssignmentsUseCase,
+        addGameToListUseCase = addGameToListUseCase,
+        removeGameFromListUseCase = removeGameFromListUseCase,
+        translateGameDescriptionUseCase = translateGameDescriptionUseCase,
+        observeDescriptionTranslationEnabledUseCase = observeDescriptionTranslationEnabledUseCase,
+        isDescriptionTranslationSupportedUseCase = isDescriptionTranslationSupportedUseCase
+    )
+
+    // uiState is a plain MutableStateFlow, updated by coroutines launched unconditionally from init --
+    // advanceUntilIdle alone is enough to drive them, no external subscriber needed to activate anything.
     private fun TestScope.createViewModel(game: Game = testGame()): GameDetailViewModel {
         every { getGameDetailUseCase(game.id) } returns flowOf(game)
-        return GameDetailViewModel(
-            gameId = game.id,
-            getGameDetailUseCase = getGameDetailUseCase,
-            refreshGameDetailUseCase = refreshGameDetailUseCase,
-            updateGameUseCase = updateGameUseCase,
-            toggleWishlistUseCase = toggleWishlistUseCase,
-            getWishlistAssignmentsUseCase = getWishlistAssignmentsUseCase,
-            addGameToListUseCase = addGameToListUseCase,
-            removeGameFromListUseCase = removeGameFromListUseCase
-        ).also { viewModel ->
-            backgroundScope.launch { viewModel.uiState.collect {} }
-            advanceUntilIdle()
-        }
+        return gameDetailViewModel(game.id).also { advanceUntilIdle() }
     }
 
     private fun GameDetailViewModel.successState(): GameDetailContentState.Success =
@@ -124,17 +139,7 @@ class GameDetailViewModelTest {
         every { getGameDetailUseCase(GAME_ID) } returns flowOf(null)
         coEvery { refreshGameDetailUseCase(GAME_ID) } returns AppResult.failure(RepositoryError.NoNetwork)
 
-        val viewModel = GameDetailViewModel(
-            gameId = GAME_ID,
-            getGameDetailUseCase = getGameDetailUseCase,
-            refreshGameDetailUseCase = refreshGameDetailUseCase,
-            updateGameUseCase = updateGameUseCase,
-            toggleWishlistUseCase = toggleWishlistUseCase,
-            getWishlistAssignmentsUseCase = getWishlistAssignmentsUseCase,
-            addGameToListUseCase = addGameToListUseCase,
-            removeGameFromListUseCase = removeGameFromListUseCase
-        )
-        backgroundScope.launch { viewModel.uiState.collect {} }
+        val viewModel = gameDetailViewModel()
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.contentState is GameDetailContentState.Error)
@@ -146,17 +151,7 @@ class GameDetailViewModelTest {
             every { getGameDetailUseCase(GAME_ID) } returns flowOf(null)
             coEvery { refreshGameDetailUseCase(GAME_ID) } returns AppResult.failure(RepositoryError.NoNetwork)
 
-            val viewModel = GameDetailViewModel(
-                gameId = GAME_ID,
-                getGameDetailUseCase = getGameDetailUseCase,
-                refreshGameDetailUseCase = refreshGameDetailUseCase,
-                updateGameUseCase = updateGameUseCase,
-                toggleWishlistUseCase = toggleWishlistUseCase,
-                getWishlistAssignmentsUseCase = getWishlistAssignmentsUseCase,
-                addGameToListUseCase = addGameToListUseCase,
-                removeGameFromListUseCase = removeGameFromListUseCase
-            )
-            backgroundScope.launch { viewModel.uiState.collect {} }
+            val viewModel = gameDetailViewModel()
             advanceUntilIdle()
             assertTrue(viewModel.uiState.value.contentState is GameDetailContentState.Error)
 
@@ -283,6 +278,88 @@ class GameDetailViewModelTest {
         assertEquals(GameDetailUiEffect.NavigateToGame(42), effects.single())
         collectJob.cancel()
     }
+
+    @Test
+    fun `translation stays Off and never calls the translator when the toggle is disabled`() =
+        runTest(testDispatcher) {
+            val game = testGame(description = "A legendary RPG.")
+            every { observeDescriptionTranslationEnabledUseCase() } returns flowOf(false)
+
+            val viewModel = createViewModel(game)
+
+            assertEquals(DescriptionTranslationState.Off, viewModel.uiState.value.descriptionTranslation)
+            coVerify(exactly = 0) { translateGameDescriptionUseCase(any(), any()) }
+        }
+
+    @Test
+    fun `translation moves from InProgress to Ready when enabled and supported`() = runTest(testDispatcher) {
+        val game = testGame(description = "A legendary RPG.")
+        every { getGameDetailUseCase(game.id) } returns flowOf(game)
+        every { observeDescriptionTranslationEnabledUseCase() } returns flowOf(true)
+        coEvery { isDescriptionTranslationSupportedUseCase() } returns true
+        coEvery {
+            translateGameDescriptionUseCase(game.id, game.description)
+        } coAnswers {
+            // A real translation call always suspends; without a suspension point here the whole
+            // update runs to completion in one dispatch and the collector below never observes the
+            // intermediate InProgress value before it is overwritten by Ready.
+            yield()
+            "Un GDR leggendario."
+        }
+
+        // Attached before advanceUntilIdle, unlike createViewModel: a StateFlow only replays the
+        // latest value to a new subscriber, so seeing the InProgress step requires collecting from
+        // before the pipeline has had a chance to run.
+        val viewModel = gameDetailViewModel(game.id)
+        val states = mutableListOf<DescriptionTranslationState>()
+        val job = launch { viewModel.uiState.collect { states.add(it.descriptionTranslation) } }
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf(
+                DescriptionTranslationState.Off,
+                DescriptionTranslationState.InProgress,
+                DescriptionTranslationState.Ready("Un GDR leggendario.")
+            ),
+            states.distinct()
+        )
+        job.cancel()
+    }
+
+    @Test
+    fun `a null translation result falls back to Off`() = runTest(testDispatcher) {
+        val game = testGame(description = "A legendary RPG.")
+        every { observeDescriptionTranslationEnabledUseCase() } returns flowOf(true)
+        coEvery { isDescriptionTranslationSupportedUseCase() } returns true
+        coEvery { translateGameDescriptionUseCase(game.id, game.description) } returns null
+
+        val viewModel = createViewModel(game)
+
+        assertEquals(DescriptionTranslationState.Off, viewModel.uiState.value.descriptionTranslation)
+    }
+
+    @Test
+    fun `a game re-emission with an unchanged description does not re-run translation`() =
+        runTest(testDispatcher) {
+            val game = testGame(description = "A legendary RPG.")
+            val gameFlow = MutableStateFlow(game)
+            every { getGameDetailUseCase(game.id) } returns gameFlow
+            every { observeDescriptionTranslationEnabledUseCase() } returns flowOf(true)
+            coEvery { isDescriptionTranslationSupportedUseCase() } returns true
+            coEvery {
+                translateGameDescriptionUseCase(game.id, game.description)
+            } returns "Un GDR leggendario."
+
+            val viewModel = gameDetailViewModel(game.id)
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            advanceUntilIdle()
+
+            // Same description, only notes differ -- what a notes edit round-trips as in practice.
+            gameFlow.value = game.copy(notes = "new notes")
+            advanceUntilIdle()
+
+            coVerify(exactly = 1) { translateGameDescriptionUseCase(game.id, game.description) }
+        }
 
     private companion object {
         const val GAME_ID = 1
