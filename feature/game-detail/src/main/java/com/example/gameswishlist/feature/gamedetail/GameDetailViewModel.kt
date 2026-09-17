@@ -9,11 +9,12 @@ import com.example.gameswishlist.core.domain.usecase.UpdateGameUseCase
 import com.example.gameswishlist.core.domain.usecase.list.AddGameToListUseCase
 import com.example.gameswishlist.core.domain.usecase.list.GetWishlistAssignmentsUseCase
 import com.example.gameswishlist.core.domain.usecase.list.RemoveGameFromListUseCase
-import com.example.gameswishlist.core.domain.usecase.translation.IsDescriptionTranslationSupportedUseCase
+import com.example.gameswishlist.core.domain.usecase.translation.GetTranslationModelStatusUseCase
 import com.example.gameswishlist.core.domain.usecase.translation.ObserveDescriptionTranslationEnabledUseCase
 import com.example.gameswishlist.core.domain.usecase.translation.TranslateGameDescriptionUseCase
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
+import com.example.gameswishlist.core.model.TranslationModelStatus
 import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.mapper.toUiModel
@@ -52,7 +53,7 @@ class GameDetailViewModel @AssistedInject constructor(
     private val removeGameFromListUseCase: RemoveGameFromListUseCase,
     private val translateGameDescriptionUseCase: TranslateGameDescriptionUseCase,
     private val observeDescriptionTranslationEnabledUseCase: ObserveDescriptionTranslationEnabledUseCase,
-    private val isDescriptionTranslationSupportedUseCase: IsDescriptionTranslationSupportedUseCase
+    private val getTranslationModelStatusUseCase: GetTranslationModelStatusUseCase
 ) : ViewModel() {
 
     // Single source of truth: reactively observes local storage. Mutations write through the
@@ -116,7 +117,7 @@ class GameDetailViewModel @AssistedInject constructor(
             return
         }
         val isEnabled = observeDescriptionTranslationEnabledUseCase().first()
-        if (!isEnabled || !isDescriptionTranslationSupportedUseCase()) {
+        if (!isEnabled || getTranslationModelStatusUseCase() != TranslationModelStatus.READY) {
             _uiState.update { it.copy(descriptionTranslation = DescriptionTranslationState.Off) }
             return
         }

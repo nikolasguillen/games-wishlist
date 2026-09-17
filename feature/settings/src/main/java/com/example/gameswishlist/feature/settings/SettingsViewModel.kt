@@ -4,9 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.common.AppVersionProvider
 import com.example.gameswishlist.core.domain.usecase.discover.GetSelectedPlatformsUseCase
-import com.example.gameswishlist.core.domain.usecase.translation.IsDescriptionTranslationSupportedUseCase
+import com.example.gameswishlist.core.domain.usecase.translation.GetTranslationModelStatusUseCase
 import com.example.gameswishlist.core.domain.usecase.translation.ObserveDescriptionTranslationEnabledUseCase
 import com.example.gameswishlist.core.domain.usecase.translation.SetDescriptionTranslationEnabledUseCase
+import com.example.gameswishlist.core.model.TranslationModelStatus
 import com.example.gameswishlist.feature.settings.mapper.toSummaryUiText
 import com.example.gameswishlist.feature.settings.model.SettingsUiEvent
 import com.example.gameswishlist.feature.settings.model.SettingsUiState
@@ -25,7 +26,7 @@ class SettingsViewModel @Inject constructor(
     getSelectedPlatformsUseCase: GetSelectedPlatformsUseCase,
     observeDescriptionTranslationEnabledUseCase: ObserveDescriptionTranslationEnabledUseCase,
     private val setDescriptionTranslationEnabledUseCase: SetDescriptionTranslationEnabledUseCase,
-    isDescriptionTranslationSupportedUseCase: IsDescriptionTranslationSupportedUseCase
+    getTranslationModelStatusUseCase: GetTranslationModelStatusUseCase
 ) : ViewModel() {
 
     private val appVersion: String = appVersionProvider.versionName
@@ -52,7 +53,7 @@ class SettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            isTranslationSupported.value = isDescriptionTranslationSupportedUseCase()
+            isTranslationSupported.value = getTranslationModelStatusUseCase() == TranslationModelStatus.READY
         }
     }
 

@@ -19,20 +19,22 @@ class GeminiNanoClient @Inject constructor() {
     private val model: GenerativeModel by lazy { Generation.getClient() }
 
     /**
-     * `true` only when Gemini Nano is already on the device and ready to use.
-     *
-     * [FeatureStatus.DOWNLOADABLE] and [FeatureStatus.DOWNLOADING] both count as *not* ready on
-     * purpose: this app must never trigger the system download of a shared, multi-hundred-MB model on
-     * the user's behalf, so [GenerativeModel.download] is intentionally never called anywhere in this
-     * client. A device that could get Gemini Nano but does not have it yet is, for this feature,
-     * indistinguishable from a device that never could.
+     * Gemini Nano's current availability on this device: never installed and never installable
+     * ([GeminiNanoStatus.UNAVAILABLE]), installable but not yet requested ([GeminiNanoStatus.DOWNLOADABLE]),
+     * mid-download ([GeminiNanoStatus.DOWNLOADING]), or ready to use ([GeminiNanoStatus.AVAILABLE]).
+     * An unrecognized status and any exception both map to [GeminiNanoStatus.UNAVAILABLE].
      */
-    suspend fun isModelReady(): Boolean = try {
-        model.checkStatus() == FeatureStatus.AVAILABLE
+    suspend fun status(): GeminiNanoStatus = try {
+        when (model.checkStatus()) {
+            FeatureStatus.AVAILABLE -> GeminiNanoStatus.AVAILABLE
+            FeatureStatus.DOWNLOADING -> GeminiNanoStatus.DOWNLOADING
+            FeatureStatus.DOWNLOADABLE -> GeminiNanoStatus.DOWNLOADABLE
+            else -> GeminiNanoStatus.UNAVAILABLE
+        }
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        false
+        GeminiNanoStatus.UNAVAILABLE
     }
 
     /**

@@ -2,9 +2,10 @@ package com.example.gameswishlist.feature.settings
 
 import com.example.gameswishlist.core.common.AppVersionProvider
 import com.example.gameswishlist.core.domain.usecase.discover.GetSelectedPlatformsUseCase
-import com.example.gameswishlist.core.domain.usecase.translation.IsDescriptionTranslationSupportedUseCase
+import com.example.gameswishlist.core.domain.usecase.translation.GetTranslationModelStatusUseCase
 import com.example.gameswishlist.core.domain.usecase.translation.ObserveDescriptionTranslationEnabledUseCase
 import com.example.gameswishlist.core.domain.usecase.translation.SetDescriptionTranslationEnabledUseCase
+import com.example.gameswishlist.core.model.TranslationModelStatus
 import com.example.gameswishlist.feature.settings.model.SettingsUiEvent
 import com.example.gameswishlist.feature.settings.model.SettingsUiState
 import io.mockk.coEvery
@@ -42,8 +43,7 @@ class SettingsViewModelTest {
     private val observeDescriptionTranslationEnabledUseCase =
         mockk<ObserveDescriptionTranslationEnabledUseCase>()
     private val setDescriptionTranslationEnabledUseCase = mockk<SetDescriptionTranslationEnabledUseCase>()
-    private val isDescriptionTranslationSupportedUseCase =
-        mockk<IsDescriptionTranslationSupportedUseCase>()
+    private val getTranslationModelStatusUseCase = mockk<GetTranslationModelStatusUseCase>()
 
     private val isTranslationEnabled = MutableStateFlow(false)
 
@@ -67,7 +67,7 @@ class SettingsViewModelTest {
         getSelectedPlatformsUseCase = getSelectedPlatformsUseCase,
         observeDescriptionTranslationEnabledUseCase = observeDescriptionTranslationEnabledUseCase,
         setDescriptionTranslationEnabledUseCase = setDescriptionTranslationEnabledUseCase,
-        isDescriptionTranslationSupportedUseCase = isDescriptionTranslationSupportedUseCase
+        getTranslationModelStatusUseCase = getTranslationModelStatusUseCase
     )
 
     // uiState is WhileSubscribed(5000): nothing upstream runs until something collects it.
@@ -78,7 +78,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `row stays hidden when the device does not support translation`() = runTest {
-        coEvery { isDescriptionTranslationSupportedUseCase() } returns false
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.UNSUPPORTED
 
         val viewModel = viewModel()
         val states = mutableListOf<SettingsUiState>()
@@ -91,7 +91,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `row reflects the stored toggle once the device is confirmed supported`() = runTest {
-        coEvery { isDescriptionTranslationSupportedUseCase() } returns true
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.READY
         isTranslationEnabled.value = true
 
         val viewModel = viewModel()
@@ -106,7 +106,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `toggling the row writes the flipped value through`() = runTest {
-        coEvery { isDescriptionTranslationSupportedUseCase() } returns true
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.READY
         isTranslationEnabled.value = false
 
         val viewModel = viewModel()

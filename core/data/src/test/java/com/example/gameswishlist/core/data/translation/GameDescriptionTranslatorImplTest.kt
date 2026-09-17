@@ -1,17 +1,17 @@
 package com.example.gameswishlist.core.data.translation
 
 import com.example.gameswishlist.core.ai.GeminiNanoClient
+import com.example.gameswishlist.core.ai.GeminiNanoStatus
 import com.example.gameswishlist.core.database.dao.TranslationDao
 import com.example.gameswishlist.core.database.entity.TranslatedDescriptionEntity
+import com.example.gameswishlist.core.model.TranslationModelStatus
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.util.Locale
@@ -19,7 +19,7 @@ import java.util.Locale
 /**
  * Covers [GameDescriptionTranslatorImpl]: the cache short-circuit in [GameDescriptionTranslatorImpl.translate],
  * the length/blank guard before Gemini Nano is ever called, and the two-part check in
- * [GameDescriptionTranslatorImpl.isSupported].
+ * [GameDescriptionTranslatorImpl.modelStatus].
  */
 class GameDescriptionTranslatorImplTest {
 
@@ -207,21 +207,40 @@ class GameDescriptionTranslatorImplTest {
     }
 
     @Test
-    fun `isSupported is false on an English device without asking the client`() = runTest {
+    fun `modelStatus is UNSUPPORTED on an English device without asking the client`() = runTest {
         Locale.setDefault(Locale.ENGLISH)
 
-        val result = translator.isSupported()
+        val result = translator.modelStatus()
 
-        assertFalse(result)
-        coVerify(exactly = 0) { geminiNanoClient.isModelReady() }
+        assertEquals(TranslationModelStatus.UNSUPPORTED, result)
+        coVerify(exactly = 0) { geminiNanoClient.status() }
     }
 
     @Test
-    fun `isSupported on a non-English device follows the client's readiness`() = runTest {
-        coEvery { geminiNanoClient.isModelReady() } returns true
+    fun `modelStatus maps an AVAILABLE client status to READY`() = runTest {
+        coEvery { geminiNanoClient.status() } returns GeminiNanoStatus.AVAILABLE
 
-        val result = translator.isSupported()
+        assertEquals(TranslationModelStatus.READY, translator.modelStatus())
+    }
 
-        assertTrue(result)
+    @Test
+    fun `modelStatus maps a DOWNLOADING client status to DOWNLOADING`() = runTest {
+        coEvery { geminiNanoClient.status() } returns GeminiNanoStatus.DOWNLOADING
+
+        assertEquals(TranslationModelStatus.DOWNLOADING, translator.modelStatus())
+    }
+
+    @Test
+    fun `modelStatus maps a DOWNLOADABLE client status to DOWNLOADABLE`() = runTest {
+        coEvery { geminiNanoClient.status() } returns GeminiNanoStatus.DOWNLOADABLE
+
+        assertEquals(TranslationModelStatus.DOWNLOADABLE, translator.modelStatus())
+    }
+
+    @Test
+    fun `modelStatus maps an UNAVAILABLE client status to UNSUPPORTED`() = runTest {
+        coEvery { geminiNanoClient.status() } returns GeminiNanoStatus.UNAVAILABLE
+
+        assertEquals(TranslationModelStatus.UNSUPPORTED, translator.modelStatus())
     }
 }

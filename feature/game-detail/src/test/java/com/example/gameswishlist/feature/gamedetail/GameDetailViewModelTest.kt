@@ -8,7 +8,7 @@ import com.example.gameswishlist.core.domain.usecase.UpdateGameUseCase
 import com.example.gameswishlist.core.domain.usecase.list.AddGameToListUseCase
 import com.example.gameswishlist.core.domain.usecase.list.GetWishlistAssignmentsUseCase
 import com.example.gameswishlist.core.domain.usecase.list.RemoveGameFromListUseCase
-import com.example.gameswishlist.core.domain.usecase.translation.IsDescriptionTranslationSupportedUseCase
+import com.example.gameswishlist.core.domain.usecase.translation.GetTranslationModelStatusUseCase
 import com.example.gameswishlist.core.domain.usecase.translation.ObserveDescriptionTranslationEnabledUseCase
 import com.example.gameswishlist.core.domain.usecase.translation.TranslateGameDescriptionUseCase
 import com.example.gameswishlist.core.model.AppResult
@@ -16,6 +16,7 @@ import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
 import com.example.gameswishlist.core.model.RepositoryError
+import com.example.gameswishlist.core.model.TranslationModelStatus
 import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.model.DescriptionTranslationState
@@ -68,8 +69,7 @@ class GameDetailViewModelTest {
     private val translateGameDescriptionUseCase = mockk<TranslateGameDescriptionUseCase>()
     private val observeDescriptionTranslationEnabledUseCase =
         mockk<ObserveDescriptionTranslationEnabledUseCase>()
-    private val isDescriptionTranslationSupportedUseCase =
-        mockk<IsDescriptionTranslationSupportedUseCase>()
+    private val getTranslationModelStatusUseCase = mockk<GetTranslationModelStatusUseCase>()
 
     @Before
     fun setUp() {
@@ -110,7 +110,7 @@ class GameDetailViewModelTest {
         removeGameFromListUseCase = removeGameFromListUseCase,
         translateGameDescriptionUseCase = translateGameDescriptionUseCase,
         observeDescriptionTranslationEnabledUseCase = observeDescriptionTranslationEnabledUseCase,
-        isDescriptionTranslationSupportedUseCase = isDescriptionTranslationSupportedUseCase
+        getTranslationModelStatusUseCase = getTranslationModelStatusUseCase
     )
 
     // uiState is a plain MutableStateFlow, updated by coroutines launched unconditionally from init --
@@ -296,7 +296,7 @@ class GameDetailViewModelTest {
         val game = testGame(description = "A legendary RPG.")
         every { getGameDetailUseCase(game.id) } returns flowOf(game)
         every { observeDescriptionTranslationEnabledUseCase() } returns flowOf(true)
-        coEvery { isDescriptionTranslationSupportedUseCase() } returns true
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.READY
         coEvery {
             translateGameDescriptionUseCase(game.id, game.description)
         } coAnswers {
@@ -330,7 +330,7 @@ class GameDetailViewModelTest {
     fun `a null translation result falls back to Off`() = runTest(testDispatcher) {
         val game = testGame(description = "A legendary RPG.")
         every { observeDescriptionTranslationEnabledUseCase() } returns flowOf(true)
-        coEvery { isDescriptionTranslationSupportedUseCase() } returns true
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.READY
         coEvery { translateGameDescriptionUseCase(game.id, game.description) } returns null
 
         val viewModel = createViewModel(game)
@@ -345,7 +345,7 @@ class GameDetailViewModelTest {
             val gameFlow = MutableStateFlow(game)
             every { getGameDetailUseCase(game.id) } returns gameFlow
             every { observeDescriptionTranslationEnabledUseCase() } returns flowOf(true)
-            coEvery { isDescriptionTranslationSupportedUseCase() } returns true
+            coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.READY
             coEvery {
                 translateGameDescriptionUseCase(game.id, game.description)
             } returns "Un GDR leggendario."

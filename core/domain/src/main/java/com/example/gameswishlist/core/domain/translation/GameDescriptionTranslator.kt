@@ -1,5 +1,7 @@
 package com.example.gameswishlist.core.domain.translation
 
+import com.example.gameswishlist.core.model.TranslationModelStatus
+
 /**
  * Translates a game's description on-device.
  *
@@ -11,11 +13,11 @@ package com.example.gameswishlist.core.domain.translation
 interface GameDescriptionTranslator {
 
     /**
-     * Whether this device can translate descriptions for the current user right now: Gemini Nano is
-     * ready **and** the device's language is not already English. Both call sites gate on this single
-     * method instead of re-deriving the same two conditions.
+     * The on-device model's status for the current user, folding in the device-language gate: a device
+     * already running in English reports [TranslationModelStatus.UNSUPPORTED] without even asking Gemini
+     * Nano. Both call sites read this single method instead of re-deriving the same two conditions.
      */
-    suspend fun isSupported(): Boolean
+    suspend fun modelStatus(): TranslationModelStatus
 
     /**
      * Translates [description] for game [gameId] into the device's language, or returns `null` when it

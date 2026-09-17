@@ -1,9 +1,11 @@
 package com.example.gameswishlist.core.data.translation
 
 import com.example.gameswishlist.core.ai.GeminiNanoClient
+import com.example.gameswishlist.core.ai.GeminiNanoStatus
 import com.example.gameswishlist.core.database.dao.TranslationDao
 import com.example.gameswishlist.core.database.entity.TranslatedDescriptionEntity
 import com.example.gameswishlist.core.domain.translation.GameDescriptionTranslator
+import com.example.gameswishlist.core.model.TranslationModelStatus
 import java.util.Locale
 import javax.inject.Inject
 
@@ -12,10 +14,10 @@ class GameDescriptionTranslatorImpl @Inject constructor(
     private val translationDao: TranslationDao
 ) : GameDescriptionTranslator {
 
-    override suspend fun isSupported(): Boolean {
+    override suspend fun modelStatus(): TranslationModelStatus {
         // Cheap check first: no point asking AICore about a language the device is already showing.
-        if (Locale.getDefault().language == Locale.ENGLISH.language) return false
-        return geminiNanoClient.isModelReady()
+        if (Locale.getDefault().language == Locale.ENGLISH.language) return TranslationModelStatus.UNSUPPORTED
+        return geminiNanoClient.status().toTranslationModelStatus()
     }
 
     override suspend fun translate(gameId: Int, description: String): String? {
@@ -84,6 +86,13 @@ class GameDescriptionTranslatorImpl @Inject constructor(
         }
 
         return text.trim()
+    }
+
+    private fun GeminiNanoStatus.toTranslationModelStatus(): TranslationModelStatus = when (this) {
+        GeminiNanoStatus.AVAILABLE -> TranslationModelStatus.READY
+        GeminiNanoStatus.DOWNLOADING -> TranslationModelStatus.DOWNLOADING
+        GeminiNanoStatus.DOWNLOADABLE -> TranslationModelStatus.DOWNLOADABLE
+        GeminiNanoStatus.UNAVAILABLE -> TranslationModelStatus.UNSUPPORTED
     }
 
     private companion object {
