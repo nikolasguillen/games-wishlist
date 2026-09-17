@@ -14,4 +14,6 @@ internal sealed interface GameDetailUiEvent {
     data object ToggleFavorite : GameDetailUiEvent
     data object ShareGame : GameDetailUiEvent
     data class NavigateToGame(val id: Int) : GameDetailUiEvent
+    data object TranslateDescription : GameDetailUiEvent
+    data object ShowOriginalDescription : GameDetailUiEvent
 }

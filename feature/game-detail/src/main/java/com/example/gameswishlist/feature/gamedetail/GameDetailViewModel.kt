@@ -10,7 +10,6 @@ import com.example.gameswishlist.core.domain.usecase.list.AddGameToListUseCase
 import com.example.gameswishlist.core.domain.usecase.list.GetWishlistAssignmentsUseCase
 import com.example.gameswishlist.core.domain.usecase.list.RemoveGameFromListUseCase
 import com.example.gameswishlist.core.domain.usecase.translation.GetTranslationModelStatusUseCase
-import com.example.gameswishlist.core.domain.usecase.translation.ObserveDescriptionTranslationEnabledUseCase
 import com.example.gameswishlist.core.domain.usecase.translation.TranslateGameDescriptionUseCase
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
@@ -52,7 +51,6 @@ class GameDetailViewModel @AssistedInject constructor(
     private val addGameToListUseCase: AddGameToListUseCase,
     private val removeGameFromListUseCase: RemoveGameFromListUseCase,
     private val translateGameDescriptionUseCase: TranslateGameDescriptionUseCase,
-    private val observeDescriptionTranslationEnabledUseCase: ObserveDescriptionTranslationEnabledUseCase,
     private val getTranslationModelStatusUseCase: GetTranslationModelStatusUseCase
 ) : ViewModel() {
 
@@ -107,25 +105,35 @@ class GameDetailViewModel @AssistedInject constructor(
         viewModelScope.launch {
             currentGameFlow
                 .distinctUntilChangedBy { it?.description }
-                .collect { game -> updateDescriptionTranslation(game?.description) }
+                .collect { game -> resetDescriptionTranslation(game?.description) }
         }
     }
 
-    private suspend fun updateDescriptionTranslation(description: String?) {
-        if (description.isNullOrBlank()) {
-            _uiState.update { it.copy(descriptionTranslation = DescriptionTranslationState.Off) }
-            return
+    private suspend fun resetDescriptionTranslation(description: String?) {
+        val state = if (description.isNullOrBlank() ||
+            getTranslationModelStatusUseCase() != TranslationModelStatus.READY
+        ) {
+            DescriptionTranslationState.Unavailable
+        } else {
+            DescriptionTranslationState.Available
         }
-        val isEnabled = observeDescriptionTranslationEnabledUseCase().first()
-        if (!isEnabled || getTranslationModelStatusUseCase() != TranslationModelStatus.READY) {
-            _uiState.update { it.copy(descriptionTranslation = DescriptionTranslationState.Off) }
-            return
+        _uiState.update { it.copy(descriptionTranslation = state) }
+    }
+
+    private fun translateDescription() {
+        if (_uiState.value.descriptionTranslation is DescriptionTranslationState.InProgress) return
+        val description = currentGameFlow.value?.description ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(descriptionTranslation = DescriptionTranslationState.InProgress) }
+            val translation = translateGameDescriptionUseCase(gameId, description)
+                ?.let { DescriptionTranslationState.Ready(it) }
+                ?: DescriptionTranslationState.Failed
+            _uiState.update { it.copy(descriptionTranslation = translation) }
         }
-        _uiState.update { it.copy(descriptionTranslation = DescriptionTranslationState.InProgress) }
-        val translation = translateGameDescriptionUseCase(gameId, description)
-            ?.let { DescriptionTranslationState.Ready(it) }
-            ?: DescriptionTranslationState.Off
-        _uiState.update { it.copy(descriptionTranslation = translation) }
+    }
+
+    private fun showOriginalDescription() {
+        _uiState.update { it.copy(descriptionTranslation = DescriptionTranslationState.Available) }
     }
 
     internal fun onEvent(event: GameDetailUiEvent) {
@@ -143,6 +151,8 @@ class GameDetailViewModel @AssistedInject constructor(
             GameDetailUiEvent.ShareGame -> shareGame()
             is GameDetailUiEvent.NavigateToGame ->
                 _uiEffect.trySend(GameDetailUiEffect.NavigateToGame(event.id))
+            GameDetailUiEvent.TranslateDescription -> translateDescription()
+            GameDetailUiEvent.ShowOriginalDescription -> showOriginalDescription()
         }
     }
 

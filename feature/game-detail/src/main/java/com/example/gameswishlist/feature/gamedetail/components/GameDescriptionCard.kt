@@ -3,8 +3,10 @@ package com.example.gameswishlist.feature.gamedetail.components
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,16 +38,21 @@ import com.example.gameswishlist.core.ui.R as CoreUiR
 /**
  * A card displaying the game description with expand/collapse functionality.
  *
- * [translation] drives what is actually shown: the original [description] while [DescriptionTranslationState.Off],
- * a shimmering skeleton while [DescriptionTranslationState.InProgress] (there is no partial description to
- * show meanwhile), or the translated text plus a disclosure label once [DescriptionTranslationState.Ready].
- * Expand/collapse state survives the swap from original to translated text: [hasOverflow] is recomputed by
- * `onTextLayout` against whichever text is currently displayed.
+ * [translation] drives what is shown alongside [description]: the original text alone while
+ * [DescriptionTranslationState.Unavailable], the original text plus a translate action while
+ * [DescriptionTranslationState.Available], a shimmering skeleton while
+ * [DescriptionTranslationState.InProgress] (there is no partial description to show meanwhile), the
+ * translated text plus a disclosure label and a "show original" action once
+ * [DescriptionTranslationState.Ready], or the original text plus a retry action on
+ * [DescriptionTranslationState.Failed]. Expand/collapse state survives every swap of displayed text:
+ * [hasOverflow] is recomputed by `onTextLayout` against whichever text is currently shown.
  */
 @Composable
 internal fun GameDescriptionCard(
     description: String,
     translation: DescriptionTranslationState,
+    onTranslateClick: () -> Unit,
+    onShowOriginalClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -86,21 +93,60 @@ internal fun GameDescriptionCard(
                     )
                 }
 
-                if (hasOverflow || expanded) {
-                    Text(
-                        text = stringResource(if (expanded) CoreUiR.string.show_less else CoreUiR.string.show_more),
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        ),
+                val translateActionLabel = when (translation) {
+                    is DescriptionTranslationState.Available -> R.string.description_translate_action
+                    is DescriptionTranslationState.Ready -> R.string.description_show_original
+                    is DescriptionTranslationState.Failed -> R.string.description_translation_failed
+                    else -> null
+                }
+
+                if (hasOverflow || expanded || translateActionLabel != null) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
                         modifier = Modifier
                             .padding(top = MaterialTheme.spacing.small)
                             .align(Alignment.End)
-                    )
+                    ) {
+                        if (hasOverflow || expanded) {
+                            DescriptionActionText(
+                                text = stringResource(
+                                    if (expanded) CoreUiR.string.show_less else CoreUiR.string.show_more
+                                ),
+                                onClick = { expanded = !expanded }
+                            )
+                        }
+                        if (translateActionLabel != null) {
+                            DescriptionActionText(
+                                text = stringResource(translateActionLabel),
+                                onClick = if (translation is DescriptionTranslationState.Ready) {
+                                    onShowOriginalClick
+                                } else {
+                                    onTranslateClick
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
     }
+}
+
+/** A small text-only action, styled like the card's own show more/less label. */
+@Composable
+private fun DescriptionActionText(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelLarge.copy(
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        ),
+        modifier = modifier.clickable(
+            onClick = onClick,
+            indication = null,
+            interactionSource = remember { MutableInteractionSource() }
+        )
+    )
 }
 
 /** Three shimmering lines standing in for the collapsed description while it is being translated. */
@@ -125,13 +171,15 @@ private fun DescriptionLoadingSkeleton(modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true)
 @Composable
-private fun GameDescriptionCardPreview() {
+private fun GameDescriptionCardAvailablePreview() {
     GamesWishlistTheme {
         GameDescriptionCard(
             description = "This is a long description that should overflow after three lines. " +
                     "It is designed to test the expand and collapse functionality of the card. " +
                     "When the user clicks on it, the full content will be revealed with a smooth animation.",
-            translation = DescriptionTranslationState.Off
+            translation = DescriptionTranslationState.Available,
+            onTranslateClick = {},
+            onShowOriginalClick = {}
         )
     }
 }
@@ -142,7 +190,9 @@ private fun GameDescriptionCardLoadingPreview() {
     GamesWishlistTheme {
         GameDescriptionCard(
             description = "This is a long description that should overflow after three lines.",
-            translation = DescriptionTranslationState.InProgress
+            translation = DescriptionTranslationState.InProgress,
+            onTranslateClick = {},
+            onShowOriginalClick = {}
         )
     }
 }
@@ -155,7 +205,22 @@ private fun GameDescriptionCardTranslatedPreview() {
             description = "This is a long description that should overflow after three lines.",
             translation = DescriptionTranslationState.Ready(
                 "Questa è una descrizione lunga che dovrebbe traboccare dopo tre righe."
-            )
+            ),
+            onTranslateClick = {},
+            onShowOriginalClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun GameDescriptionCardFailedPreview() {
+    GamesWishlistTheme {
+        GameDescriptionCard(
+            description = "This is a long description that should overflow after three lines.",
+            translation = DescriptionTranslationState.Failed,
+            onTranslateClick = {},
+            onShowOriginalClick = {}
         )
     }
 }

@@ -27,6 +27,8 @@ internal fun GameDetailInfoSection(
     descriptionTranslation: DescriptionTranslationState,
     rating: RatingUiModel?,
     availability: AvailabilityUiModel,
+    onTranslateClick: () -> Unit,
+    onShowOriginalClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val descriptionString = description.asString()
@@ -47,6 +49,8 @@ internal fun GameDetailInfoSection(
             GameDescriptionCard(
                 description = descriptionString,
                 translation = descriptionTranslation,
+                onTranslateClick = onTranslateClick,
+                onShowOriginalClick = onShowOriginalClick,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
@@ -60,7 +64,9 @@ private fun GameDetailInfoSectionPreview() {
     GamesWishlistTheme {
         GameDetailInfoSection(
             description = UiText.DynamicString("An epic adventure in a vast open world."),
-            descriptionTranslation = DescriptionTranslationState.Off,
+            descriptionTranslation = DescriptionTranslationState.Available,
+            onTranslateClick = {},
+            onShowOriginalClick = {},
             rating = RatingUiModel(
                 score = 95,
                 scoreText = UiText.DynamicString("95"),

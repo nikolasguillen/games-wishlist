@@ -176,6 +176,8 @@ private fun GameDetailSheetContent(
                 descriptionTranslation = descriptionTranslation,
                 rating = game.rating,
                 availability = game.availability,
+                onTranslateClick = { onEvent(GameDetailUiEvent.TranslateDescription) },
+                onShowOriginalClick = { onEvent(GameDetailUiEvent.ShowOriginalDescription) },
                 modifier = horizontalPadding
             )
 
@@ -199,7 +201,7 @@ private fun GameDetailSuccessContentPreview() {
     GamesWishlistTheme {
         GameDetailSuccessContent(
             game = GameDetailUiModel.getDummy(),
-            descriptionTranslation = DescriptionTranslationState.Off,
+            descriptionTranslation = DescriptionTranslationState.Unavailable,
             onBackClick = {},
             onEvent = {}
         )
