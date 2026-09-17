@@ -26,35 +26,64 @@ class GameDescriptionTranslatorImpl @Inject constructor(
 
         val cached = translationDao.getTranslation(gameId, languageTag)
         if (cached != null && cached.sourceHash == sourceHash) {
-            return cached.translatedText
+            // Rows written before the prompt fix can still carry a leaked label; sanitize on read too.
+            return cached.translatedText.stripTranslationArtifacts()
         }
 
         val translated = geminiNanoClient.generate(buildPrompt(description))
         if (translated.isNullOrBlank()) return null
 
+        val sanitized = translated.stripTranslationArtifacts()
         translationDao.saveTranslation(
             TranslatedDescriptionEntity(
                 gameId = gameId,
                 languageTag = languageTag,
                 sourceHash = sourceHash,
-                translatedText = translated
+                translatedText = sanitized
             )
         )
-        return translated
+        return sanitized
     }
 
     /** Built in English regardless of the target, so the instructions themselves stay unambiguous. */
     private fun buildPrompt(description: String): String {
         val targetLanguage = Locale.getDefault().getDisplayLanguage(Locale.ENGLISH)
         return """
-            Translate the following video game description from English into $targetLanguage.
+            You are translating text for a video game catalogue app.
+            Translate the text between the <text> tags from English into $targetLanguage.
             Keep game titles, character names, studio names and platform names untranslated.
-            Preserve the paragraph structure. Do not add any commentary, notes or preamble.
-            Reply with the translation only, nothing else.
+            Preserve the paragraph structure.
 
-            Description:
+            <text>
             $description
+            </text>
+
+            Output the translated text only: no tags, no labels, no quotes, no commentary.
         """.trimIndent()
+    }
+
+    /**
+     * A small on-device model will occasionally ignore the output-format instruction regardless of how
+     * the prompt is worded, most often by echoing a `Description:`/`Descrizione:`-style label or wrapping
+     * the answer in a code fence or the `<text>` tag from the prompt itself.
+     */
+    private fun String.stripTranslationArtifacts(): String {
+        var text = trim()
+
+        if (text.startsWith("```") && text.endsWith("```")) {
+            text = text.removePrefix("```").removeSuffix("```")
+            text = text.substringAfter("\n", text).trim()
+        }
+
+        text = text.removePrefix("<text>").removeSuffix("</text>").trim()
+
+        text = text.replaceFirst(Regex("^\\p{L}{1,20}:\\s*"), "")
+
+        if (text.length >= 2 && text.first() == '"' && text.last() == '"' && text.count { it == '"' } == 2) {
+            text = text.substring(1, text.length - 1)
+        }
+
+        return text.trim()
     }
 
     private companion object {

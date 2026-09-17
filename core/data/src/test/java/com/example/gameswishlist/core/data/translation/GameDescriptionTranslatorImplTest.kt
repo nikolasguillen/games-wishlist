@@ -122,6 +122,91 @@ class GameDescriptionTranslatorImplTest {
     }
 
     @Test
+    fun `a leading Description label is stripped from a fresh translation`() = runTest {
+        coEvery { translationDao.getTranslation(1, "it") } returns null
+        coEvery { geminiNanoClient.generate(any()) } returns "Description:\nUn GDR leggendario."
+
+        val result = translator.translate(1, "A legendary RPG.")
+
+        assertEquals("Un GDR leggendario.", result)
+    }
+
+    @Test
+    fun `a leading localized Descrizione label is stripped from a fresh translation`() = runTest {
+        coEvery { translationDao.getTranslation(1, "it") } returns null
+        coEvery { geminiNanoClient.generate(any()) } returns "Descrizione: Un GDR leggendario."
+
+        val result = translator.translate(1, "A legendary RPG.")
+
+        assertEquals("Un GDR leggendario.", result)
+    }
+
+    @Test
+    fun `a markdown code fence around the translation is stripped`() = runTest {
+        coEvery { translationDao.getTranslation(1, "it") } returns null
+        coEvery { geminiNanoClient.generate(any()) } returns "```\nUn GDR leggendario.\n```"
+
+        val result = translator.translate(1, "A legendary RPG.")
+
+        assertEquals("Un GDR leggendario.", result)
+    }
+
+    @Test
+    fun `enclosing quotes around the translation are removed`() = runTest {
+        coEvery { translationDao.getTranslation(1, "it") } returns null
+        coEvery { geminiNanoClient.generate(any()) } returns "\"Un GDR leggendario.\""
+
+        val result = translator.translate(1, "A legendary RPG.")
+
+        assertEquals("Un GDR leggendario.", result)
+    }
+
+    @Test
+    fun `a translation containing a colon mid-sentence is left untouched`() = runTest {
+        coEvery { translationDao.getTranslation(1, "it") } returns null
+        coEvery { geminiNanoClient.generate(any()) } returns "Capitolo 1: L'inizio."
+
+        val result = translator.translate(1, "A legendary RPG.")
+
+        assertEquals("Capitolo 1: L'inizio.", result)
+    }
+
+    @Test
+    fun `the sanitized text, not the raw model output, is what gets persisted`() = runTest {
+        coEvery { translationDao.getTranslation(1, "it") } returns null
+        coEvery { geminiNanoClient.generate(any()) } returns "Description:\nUn GDR leggendario."
+
+        translator.translate(1, "A legendary RPG.")
+
+        coVerify {
+            translationDao.saveTranslation(
+                TranslatedDescriptionEntity(
+                    gameId = 1,
+                    languageTag = "it",
+                    sourceHash = "A legendary RPG.".hashCode(),
+                    translatedText = "Un GDR leggendario."
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `a cached row still carrying a leaked label is sanitized on read`() = runTest {
+        val description = "A legendary RPG."
+        coEvery { translationDao.getTranslation(1, "it") } returns TranslatedDescriptionEntity(
+            gameId = 1,
+            languageTag = "it",
+            sourceHash = description.hashCode(),
+            translatedText = "Description:\nUn GDR leggendario."
+        )
+
+        val result = translator.translate(1, description)
+
+        assertEquals("Un GDR leggendario.", result)
+        coVerify(exactly = 0) { geminiNanoClient.generate(any()) }
+    }
+
+    @Test
     fun `isSupported is false on an English device without asking the client`() = runTest {
         Locale.setDefault(Locale.ENGLISH)
 
