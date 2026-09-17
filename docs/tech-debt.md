@@ -57,6 +57,9 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
 - **Test coverage gaps**: no tests at all for `:feature:wishlist`, `:core:database` DAOs, or `:core:ui`
   mappers. In `:core:domain` only the `usecase/discover/` use cases are covered; the search, list and
   detail ones are not. In `:core:network` only `IgdbAuthManager` is covered —
-  `IgdbHttpErrorInterceptor` and the API service are not. No Compose UI tests — `ui-test-junit4` is
+  `IgdbHttpErrorInterceptor` and the API service are not. `:core:ai` has no test source set at all:
+  `GeminiNanoClient` wraps `Generation.getClient()`, a static factory that would need static mocking to
+  reach, and the logic actually worth testing (mapping ML Kit's types) is covered where it lands, in
+  `:core:data`'s `GameDescriptionTranslatorImplTest`. No Compose UI tests — `ui-test-junit4` is
   wired into `:app` but only the template `ExampleInstrumentedTest` exists. `app/src/test/ExampleUnitTest.kt`
   is also an untouched template.

@@ -67,3 +67,11 @@ Reads are reactive `Flow`s off Room. `isWishlisted` is **derived**, not stored: 
 
 `local/WishlistCoverImageStorage.kt` is the best in-repo example of this codebase's comment style — it
 explains *why*, not *what*. Match it when writing non-obvious logic.
+
+## Translation
+
+`GameDescriptionTranslatorImpl` is Gemini Nano only — no second engine. ML Kit's classic Translation API
+was weighed and dropped: it downloads a per-language-pair NMT model, the per-app download this feature
+exists to avoid, and translates sentence by sentence with no notion of the domain. The seam for a fallback
+engine later is this class: a second client in `:core:ai` plus a branch here. Do not build that
+abstraction before a second engine actually exists.

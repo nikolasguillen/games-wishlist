@@ -29,7 +29,8 @@ So when you change an entity:
 - Entities: `<Name>Entity` with an explicit `@Entity(tableName = "snake_case")` —
   `GameEntity`("games"), `ListEntity`("wishlists"), `SearchHistoryEntity`("search_history"),
   `PlatformEntity`, `GenreEntity`, `CompanyEntity`, `EngineEntity`, `GameArtworkEntity`("game_artworks"),
-  `TranslatedDescriptionEntity`("translated_descriptions").
+  `TranslatedDescriptionEntity`("translated_descriptions") — keyed by game id + language tag, plus a hash
+  of the source text so an IGDB summary that gets edited in place is re-translated instead of served stale.
 - Junction tables: `<A><B>CrossRef` — **no `Entity` suffix** — with `primaryKeys = [...]`.
   `GameListCrossRef`, `GamePlatformCrossRef`, `GameGenreCrossRef`, `GameCompanyCrossRef`,
   `GameEngineCrossRef`.
