@@ -1,6 +1,8 @@
 package com.example.gameswishlist.core.domain.translation
 
+import com.example.gameswishlist.core.model.TranslationModelDownload
 import com.example.gameswishlist.core.model.TranslationModelStatus
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Translates a game's description on-device.
@@ -26,4 +28,7 @@ interface GameDescriptionTranslator {
      * typed failure here the way `RepositoryError` models network failures.
      */
     suspend fun translate(gameId: Int, description: String): String?
+
+    /** Downloads the on-device translation model, called only from an explicit user tap in Settings. */
+    fun downloadModel(): Flow<TranslationModelDownload>
 }

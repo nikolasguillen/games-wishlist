@@ -10,10 +10,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.SportsEsports
-import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,9 +24,9 @@ import com.example.gameswishlist.core.designsystem.theme.spacing
 
 /**
  * One row inside a [SettingsGroup]: leading icon, title, optional subtitle, and a trailing value, a
- * chevron or a switch. The chevron appears only when [onClick] is set and [checked] is not, so a row
- * that goes nowhere never looks tappable; [checked] non-null renders a [Switch] instead, since a toggle
- * already reads as interactive on its own.
+ * chevron or custom [trailingContent]. The chevron appears only when [onClick] is set and
+ * [trailingContent] is not, so a row that goes nowhere never looks tappable and a row that already has
+ * its own trailing action does not also grow a chevron.
  */
 @Composable
 internal fun SettingsRow(
@@ -37,7 +35,7 @@ internal fun SettingsRow(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     trailingText: String? = null,
-    checked: Boolean? = null,
+    trailingContent: (@Composable () -> Unit)? = null,
     onClick: (() -> Unit)? = null
 ) {
     Row(
@@ -73,14 +71,14 @@ internal fun SettingsRow(
             }
         }
         when {
-            checked != null -> Switch(checked = checked, onCheckedChange = { onClick?.invoke() })
+            trailingContent != null -> trailingContent()
             trailingText != null -> Text(
                 text = trailingText,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        if (onClick != null && checked == null) {
+        if (onClick != null && trailingContent == null) {
             Spacer(modifier = Modifier.width(MaterialTheme.spacing.medium))
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -112,20 +110,6 @@ private fun SettingsRowValueOnlyPreview() {
             icon = Icons.Default.SportsEsports,
             title = "About",
             trailingText = "1.0"
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun SettingsRowSwitchPreview() {
-    GamesWishlistTheme {
-        SettingsRow(
-            icon = Icons.Outlined.Translate,
-            title = "Translate descriptions",
-            subtitle = "Runs on-device, powered by Gemini Nano",
-            checked = true,
-            onClick = {}
         )
     }
 }

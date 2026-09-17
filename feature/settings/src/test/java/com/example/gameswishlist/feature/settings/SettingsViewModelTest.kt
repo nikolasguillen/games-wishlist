@@ -2,12 +2,13 @@ package com.example.gameswishlist.feature.settings
 
 import com.example.gameswishlist.core.common.AppVersionProvider
 import com.example.gameswishlist.core.domain.usecase.discover.GetSelectedPlatformsUseCase
+import com.example.gameswishlist.core.domain.usecase.translation.DownloadTranslationModelUseCase
 import com.example.gameswishlist.core.domain.usecase.translation.GetTranslationModelStatusUseCase
-import com.example.gameswishlist.core.domain.usecase.translation.ObserveDescriptionTranslationEnabledUseCase
-import com.example.gameswishlist.core.domain.usecase.translation.SetDescriptionTranslationEnabledUseCase
+import com.example.gameswishlist.core.model.TranslationModelDownload
 import com.example.gameswishlist.core.model.TranslationModelStatus
 import com.example.gameswishlist.feature.settings.model.SettingsUiEvent
 import com.example.gameswishlist.feature.settings.model.SettingsUiState
+import com.example.gameswishlist.feature.settings.model.TranslationModelRowState
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -15,23 +16,26 @@ import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.yield
 import org.junit.After
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
 /**
- * Covers the on-device translation row: hidden until the async support check resolves, reflects the
- * stored toggle once supported, and writes the flipped value through on tap.
+ * Covers the on-device translation model row: the state seeded from [GetTranslationModelStatusUseCase]
+ * per [TranslationModelStatus], the download progressing the row from Downloading to Ready, a failed
+ * download landing on Failed, and a second tap while a download is already running being ignored.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
@@ -40,21 +44,13 @@ class SettingsViewModelTest {
 
     private val appVersionProvider = mockk<AppVersionProvider> { every { versionName } returns "1.0" }
     private val getSelectedPlatformsUseCase = mockk<GetSelectedPlatformsUseCase>()
-    private val observeDescriptionTranslationEnabledUseCase =
-        mockk<ObserveDescriptionTranslationEnabledUseCase>()
-    private val setDescriptionTranslationEnabledUseCase = mockk<SetDescriptionTranslationEnabledUseCase>()
+    private val downloadTranslationModelUseCase = mockk<DownloadTranslationModelUseCase>()
     private val getTranslationModelStatusUseCase = mockk<GetTranslationModelStatusUseCase>()
-
-    private val isTranslationEnabled = MutableStateFlow(false)
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         every { getSelectedPlatformsUseCase() } returns flowOf(emptyList())
-        every { observeDescriptionTranslationEnabledUseCase() } returns isTranslationEnabled
-        coEvery { setDescriptionTranslationEnabledUseCase(any()) } answers {
-            isTranslationEnabled.value = firstArg()
-        }
     }
 
     @After
@@ -65,8 +61,7 @@ class SettingsViewModelTest {
     private fun viewModel() = SettingsViewModel(
         appVersionProvider = appVersionProvider,
         getSelectedPlatformsUseCase = getSelectedPlatformsUseCase,
-        observeDescriptionTranslationEnabledUseCase = observeDescriptionTranslationEnabledUseCase,
-        setDescriptionTranslationEnabledUseCase = setDescriptionTranslationEnabledUseCase,
+        downloadTranslationModelUseCase = downloadTranslationModelUseCase,
         getTranslationModelStatusUseCase = getTranslationModelStatusUseCase
     )
 
@@ -77,7 +72,7 @@ class SettingsViewModelTest {
     ) = launch { viewModel.uiState.collect { states.add(it) } }
 
     @Test
-    fun `row stays hidden when the device does not support translation`() = runTest {
+    fun `row state is seeded Hidden when the model status is UNSUPPORTED`() = runTest {
         coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.UNSUPPORTED
 
         val viewModel = viewModel()
@@ -85,40 +80,126 @@ class SettingsViewModelTest {
         val job = collectStates(viewModel, states)
         advanceUntilIdle()
 
-        assertFalse(states.last().isTranslationSupported)
+        assertEquals(TranslationModelRowState.Hidden, states.last().translationModel)
         job.cancel()
     }
 
     @Test
-    fun `row reflects the stored toggle once the device is confirmed supported`() = runTest {
-        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.READY
-        isTranslationEnabled.value = true
+    fun `row state is seeded Downloadable when the model status is DOWNLOADABLE`() = runTest {
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.DOWNLOADABLE
 
         val viewModel = viewModel()
         val states = mutableListOf<SettingsUiState>()
         val job = collectStates(viewModel, states)
         advanceUntilIdle()
 
-        assertTrue(states.last().isTranslationSupported)
-        assertTrue(states.last().isTranslationEnabled)
+        assertEquals(TranslationModelRowState.Downloadable, states.last().translationModel)
         job.cancel()
     }
 
     @Test
-    fun `toggling the row writes the flipped value through`() = runTest {
-        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.READY
-        isTranslationEnabled.value = false
+    fun `row state is seeded Downloading when the model status is DOWNLOADING`() = runTest {
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.DOWNLOADING
 
         val viewModel = viewModel()
         val states = mutableListOf<SettingsUiState>()
         val job = collectStates(viewModel, states)
         advanceUntilIdle()
 
-        viewModel.onEvent(SettingsUiEvent.SetDescriptionTranslation(true))
+        assertEquals(TranslationModelRowState.Downloading(null), states.last().translationModel)
+        job.cancel()
+    }
+
+    @Test
+    fun `row state is seeded Ready when the model status is READY`() = runTest {
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.READY
+
+        val viewModel = viewModel()
+        val states = mutableListOf<SettingsUiState>()
+        val job = collectStates(viewModel, states)
         advanceUntilIdle()
 
-        coVerify { setDescriptionTranslationEnabledUseCase(true) }
-        assertTrue(states.last().isTranslationEnabled)
+        assertEquals(TranslationModelRowState.Ready, states.last().translationModel)
+        job.cancel()
+    }
+
+    @Test
+    fun `DownloadTranslationModel drives the row from Downloading to Ready`() = runTest {
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.DOWNLOADABLE
+        coEvery { downloadTranslationModelUseCase() } returns flow {
+            emit(TranslationModelDownload.InProgress(fraction = null))
+            yield()
+            emit(TranslationModelDownload.InProgress(fraction = 0.5f))
+            yield()
+            emit(TranslationModelDownload.Completed)
+        }
+
+        val viewModel = viewModel()
+        val states = mutableListOf<SettingsUiState>()
+        val job = collectStates(viewModel, states)
+        advanceUntilIdle()
+
+        viewModel.onEvent(SettingsUiEvent.DownloadTranslationModel)
+        advanceUntilIdle()
+
+        // Hidden, the state's default, is not asserted here: unlike the old stateIn(WhileSubscribed)
+        // pipeline, a plain MutableStateFlow gives no guarantee that a new collector observes it before
+        // the two init { } launches (which run on the same test dispatcher) have already moved it on.
+        assertEquals(
+            listOf(
+                TranslationModelRowState.Downloadable,
+                TranslationModelRowState.Downloading(null),
+                TranslationModelRowState.Downloading(0.5f),
+                TranslationModelRowState.Ready
+            ),
+            states.map { it.translationModel }.distinct()
+        )
+        job.cancel()
+    }
+
+    @Test
+    fun `a download failure yields Failed`() = runTest {
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.DOWNLOADABLE
+        coEvery { downloadTranslationModelUseCase() } returns flowOf(TranslationModelDownload.Failed)
+
+        val viewModel = viewModel()
+        val states = mutableListOf<SettingsUiState>()
+        val job = collectStates(viewModel, states)
+        advanceUntilIdle()
+
+        viewModel.onEvent(SettingsUiEvent.DownloadTranslationModel)
+        advanceUntilIdle()
+
+        assertEquals(TranslationModelRowState.Failed, states.last().translationModel)
+        job.cancel()
+    }
+
+    @Test
+    fun `a second download press while one is already in progress is ignored`() = runTest {
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.DOWNLOADABLE
+        // An unlimited channel, not flowOf/flow{}: the test needs to land exactly one emission and
+        // then hold the flow open, so the row is provably still Downloading when the second press lands.
+        val downloadEvents = Channel<TranslationModelDownload>(Channel.UNLIMITED)
+        coEvery { downloadTranslationModelUseCase() } returns downloadEvents.receiveAsFlow()
+
+        val viewModel = viewModel()
+        val states = mutableListOf<SettingsUiState>()
+        val job = collectStates(viewModel, states)
+        advanceUntilIdle()
+
+        viewModel.onEvent(SettingsUiEvent.DownloadTranslationModel)
+        downloadEvents.trySend(TranslationModelDownload.InProgress(fraction = null))
+        advanceUntilIdle()
+        assertEquals(TranslationModelRowState.Downloading(null), states.last().translationModel)
+
+        viewModel.onEvent(SettingsUiEvent.DownloadTranslationModel)
+        advanceUntilIdle()
+
+        downloadEvents.trySend(TranslationModelDownload.Completed)
+        downloadEvents.close()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { downloadTranslationModelUseCase() }
         job.cancel()
     }
 }

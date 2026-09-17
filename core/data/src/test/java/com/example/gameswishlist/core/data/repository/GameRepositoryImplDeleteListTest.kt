@@ -1,6 +1,5 @@
 package com.example.gameswishlist.core.data.repository
 
-import com.example.gameswishlist.core.data.local.UserPreferencesDataSource
 import com.example.gameswishlist.core.data.local.WishlistCoverImageStorage
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
@@ -26,8 +25,7 @@ class GameRepositoryImplDeleteListTest {
         listDao = listDao,
         platformDao = mockk<PlatformDao>(relaxed = true),
         searchHistoryDao = mockk<SearchHistoryDao>(relaxed = true),
-        coverImageStorage = coverImageStorage,
-        userPreferencesDataSource = mockk<UserPreferencesDataSource>(relaxed = true)
+        coverImageStorage = coverImageStorage
     )
 
     private fun listEntity(id: Long = 7L, coverImagePath: String? = null) = ListEntity(

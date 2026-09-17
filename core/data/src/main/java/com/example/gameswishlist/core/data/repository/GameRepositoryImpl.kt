@@ -14,7 +14,6 @@ import com.example.gameswishlist.core.data.mapper.toPlatform
 import com.example.gameswishlist.core.data.mapper.toPlatformEntities
 import com.example.gameswishlist.core.data.mapper.toRelatedGameEntities
 import com.example.gameswishlist.core.data.mapper.toWishlistList
-import com.example.gameswishlist.core.data.local.UserPreferencesDataSource
 import com.example.gameswishlist.core.data.local.WishlistCoverImageStorage
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
@@ -116,8 +115,7 @@ class GameRepositoryImpl @Inject constructor(
     private val listDao: ListDao,
     private val platformDao: PlatformDao,
     private val searchHistoryDao: SearchHistoryDao,
-    private val coverImageStorage: WishlistCoverImageStorage,
-    private val userPreferencesDataSource: UserPreferencesDataSource
+    private val coverImageStorage: WishlistCoverImageStorage
 ) : GameRepository {
 
     override suspend fun searchGames(query: String): AppResult<List<Game>> {
@@ -434,14 +432,6 @@ class GameRepositoryImpl @Inject constructor(
 
     override suspend fun setOwnedPlatforms(platformIds: Set<Int>) {
         platformDao.setOwnedPlatforms(platformIds)
-    }
-
-    override fun isDescriptionTranslationEnabled(): Flow<Boolean> {
-        return userPreferencesDataSource.isDescriptionTranslationEnabled
-    }
-
-    override suspend fun setDescriptionTranslationEnabled(enabled: Boolean) {
-        userPreferencesDataSource.setDescriptionTranslationEnabled(enabled)
     }
 
     private suspend fun saveGameLocal(game: Game) {

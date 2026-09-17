@@ -1,6 +1,5 @@
 package com.example.gameswishlist.core.data.repository
 
-import com.example.gameswishlist.core.data.local.UserPreferencesDataSource
 import com.example.gameswishlist.core.data.local.WishlistCoverImageStorage
 import com.example.gameswishlist.core.database.dao.GameDao
 import com.example.gameswishlist.core.database.dao.ListDao
@@ -39,8 +38,7 @@ class GameRepositoryImplPopularGamesTest {
         listDao = mockk<ListDao>(relaxed = true),
         platformDao = mockk<PlatformDao>(relaxed = true),
         searchHistoryDao = mockk<SearchHistoryDao>(relaxed = true),
-        coverImageStorage = mockk<WishlistCoverImageStorage>(relaxed = true),
-        userPreferencesDataSource = mockk<UserPreferencesDataSource>(relaxed = true)
+        coverImageStorage = mockk<WishlistCoverImageStorage>(relaxed = true)
     )
 
     private fun primitive(gameId: Int, value: Double) =

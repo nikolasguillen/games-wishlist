@@ -1,9 +1,13 @@
 package com.example.gameswishlist.core.ai
 
+import com.google.mlkit.genai.common.DownloadStatus
 import com.google.mlkit.genai.common.FeatureStatus
 import com.google.mlkit.genai.prompt.Generation
 import com.google.mlkit.genai.prompt.GenerativeModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -48,5 +52,33 @@ class GeminiNanoClient @Inject constructor() {
         throw e
     } catch (e: Exception) {
         null
+    }
+
+    /**
+     * Triggers the system download of Gemini Nano, called only from an explicit user tap in Settings.
+     * The total size arrives once, in [DownloadStatus.DownloadStarted]; every later
+     * [DownloadStatus.DownloadProgress] reports a cumulative byte count against that same total, so it is
+     * held in a local for the life of the collection rather than re-read from each emission. A failure
+     * inside the underlying flow is mapped to [GeminiNanoDownload.Failed] rather than thrown, the same
+     * no-throw contract [generate] and [status] already follow.
+     */
+    fun download(): Flow<GeminiNanoDownload> = flow {
+        var bytesToDownload = 0L
+        model.download().collect { downloadStatus ->
+            when (downloadStatus) {
+                is DownloadStatus.DownloadStarted -> bytesToDownload = downloadStatus.bytesToDownload
+                is DownloadStatus.DownloadProgress -> {
+                    val fraction = bytesToDownload.takeIf { it > 0 }?.let {
+                        (downloadStatus.totalBytesDownloaded.toFloat() / it).coerceIn(0f, 1f)
+                    }
+                    emit(GeminiNanoDownload.Progress(fraction))
+                }
+                DownloadStatus.DownloadCompleted -> emit(GeminiNanoDownload.Completed)
+                is DownloadStatus.DownloadFailed -> emit(GeminiNanoDownload.Failed)
+            }
+        }
+    }.catch { e ->
+        if (e is CancellationException) throw e
+        emit(GeminiNanoDownload.Failed)
     }
 }

@@ -4,13 +4,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Translate
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
@@ -34,6 +41,7 @@ import com.example.gameswishlist.feature.settings.components.SettingsGroup
 import com.example.gameswishlist.feature.settings.components.SettingsRow
 import com.example.gameswishlist.feature.settings.model.SettingsUiEvent
 import com.example.gameswishlist.feature.settings.model.SettingsUiState
+import com.example.gameswishlist.feature.settings.model.TranslationModelRowState
 import com.example.gameswishlist.core.ui.R as CoreUiR
 
 // viewModel is the same instance for the route's whole lifetime, so ref-comparison skips correctly.
@@ -117,17 +125,10 @@ internal fun SettingsContent(
             }
 
             SettingsGroup(title = stringResource(R.string.settings_group_app)) {
-                if (state.isTranslationSupported) {
-                    SettingsRow(
-                        icon = Icons.Outlined.Translate,
-                        title = stringResource(R.string.settings_translate_descriptions),
-                        subtitle = stringResource(R.string.settings_translate_descriptions_subtitle),
-                        checked = state.isTranslationEnabled,
-                        onClick = {
-                            onEvent(SettingsUiEvent.SetDescriptionTranslation(!state.isTranslationEnabled))
-                        }
-                    )
-                }
+                TranslationModelRow(
+                    rowState = state.translationModel,
+                    onDownloadClick = { onEvent(SettingsUiEvent.DownloadTranslationModel) }
+                )
                 SettingsRow(
                     icon = Icons.Outlined.Info,
                     title = stringResource(R.string.settings_about),
@@ -136,6 +137,62 @@ internal fun SettingsContent(
             }
         }
     }
+}
+
+@Composable
+private fun TranslationModelRow(rowState: TranslationModelRowState, onDownloadClick: () -> Unit) {
+    val subtitle = when (rowState) {
+        TranslationModelRowState.Hidden -> null
+        TranslationModelRowState.Downloadable -> stringResource(R.string.settings_translation_model_downloadable)
+        is TranslationModelRowState.Downloading -> stringResource(R.string.settings_translation_model_downloading)
+        TranslationModelRowState.Ready -> stringResource(R.string.settings_translation_model_ready)
+        TranslationModelRowState.Failed -> stringResource(R.string.settings_translation_model_failed)
+    } ?: return
+
+    SettingsRow(
+        icon = Icons.Outlined.Translate,
+        title = stringResource(R.string.settings_translation_model),
+        subtitle = subtitle,
+        trailingContent = {
+            when (rowState) {
+                TranslationModelRowState.Hidden -> Unit
+                TranslationModelRowState.Downloadable -> IconButton(onClick = onDownloadClick) {
+                    Icon(
+                        imageVector = Icons.Default.Download,
+                        contentDescription = stringResource(R.string.settings_translation_model_download_action)
+                    )
+                }
+
+                is TranslationModelRowState.Downloading -> {
+                    val fraction = rowState.fraction
+                    if (fraction != null) {
+                        CircularWavyProgressIndicator(
+                            progress = { fraction },
+                            modifier = Modifier.size(24.dp)
+                        )
+                    } else {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    }
+                }
+
+                TranslationModelRowState.Ready -> Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                TranslationModelRowState.Failed -> IconButton(onClick = onDownloadClick) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = stringResource(R.string.settings_translation_model_download_action)
+                    )
+                }
+            }
+        }
+    )
 }
 
 @Preview(showBackground = true)
@@ -172,14 +229,64 @@ private fun SettingsContentNoFilterPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun SettingsContentTranslationSupportedPreview() {
+private fun SettingsContentTranslationDownloadablePreview() {
     GamesWishlistTheme {
         SettingsContent(
             state = SettingsUiState(
                 ownedPlatformsSummary = UiText.DynamicString("PS5, PC, Switch"),
                 appVersion = "1.0",
-                isTranslationSupported = true,
-                isTranslationEnabled = true
+                translationModel = TranslationModelRowState.Downloadable
+            ),
+            onEvent = {},
+            onBackClick = {},
+            onOwnedPlatformsClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SettingsContentTranslationDownloadingPreview() {
+    GamesWishlistTheme {
+        SettingsContent(
+            state = SettingsUiState(
+                ownedPlatformsSummary = UiText.DynamicString("PS5, PC, Switch"),
+                appVersion = "1.0",
+                translationModel = TranslationModelRowState.Downloading(fraction = 0.4f)
+            ),
+            onEvent = {},
+            onBackClick = {},
+            onOwnedPlatformsClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SettingsContentTranslationReadyPreview() {
+    GamesWishlistTheme {
+        SettingsContent(
+            state = SettingsUiState(
+                ownedPlatformsSummary = UiText.DynamicString("PS5, PC, Switch"),
+                appVersion = "1.0",
+                translationModel = TranslationModelRowState.Ready
+            ),
+            onEvent = {},
+            onBackClick = {},
+            onOwnedPlatformsClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SettingsContentTranslationFailedPreview() {
+    GamesWishlistTheme {
+        SettingsContent(
+            state = SettingsUiState(
+                ownedPlatformsSummary = UiText.DynamicString("PS5, PC, Switch"),
+                appVersion = "1.0",
+                translationModel = TranslationModelRowState.Failed
             ),
             onEvent = {},
             onBackClick = {},

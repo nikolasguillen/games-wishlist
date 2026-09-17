@@ -4,63 +4,78 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gameswishlist.core.common.AppVersionProvider
 import com.example.gameswishlist.core.domain.usecase.discover.GetSelectedPlatformsUseCase
+import com.example.gameswishlist.core.domain.usecase.translation.DownloadTranslationModelUseCase
 import com.example.gameswishlist.core.domain.usecase.translation.GetTranslationModelStatusUseCase
-import com.example.gameswishlist.core.domain.usecase.translation.ObserveDescriptionTranslationEnabledUseCase
-import com.example.gameswishlist.core.domain.usecase.translation.SetDescriptionTranslationEnabledUseCase
+import com.example.gameswishlist.core.model.TranslationModelDownload
 import com.example.gameswishlist.core.model.TranslationModelStatus
 import com.example.gameswishlist.feature.settings.mapper.toSummaryUiText
 import com.example.gameswishlist.feature.settings.model.SettingsUiEvent
 import com.example.gameswishlist.feature.settings.model.SettingsUiState
+import com.example.gameswishlist.feature.settings.model.TranslationModelRowState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     appVersionProvider: AppVersionProvider,
-    getSelectedPlatformsUseCase: GetSelectedPlatformsUseCase,
-    observeDescriptionTranslationEnabledUseCase: ObserveDescriptionTranslationEnabledUseCase,
-    private val setDescriptionTranslationEnabledUseCase: SetDescriptionTranslationEnabledUseCase,
-    getTranslationModelStatusUseCase: GetTranslationModelStatusUseCase
+    private val getSelectedPlatformsUseCase: GetSelectedPlatformsUseCase,
+    private val downloadTranslationModelUseCase: DownloadTranslationModelUseCase,
+    private val getTranslationModelStatusUseCase: GetTranslationModelStatusUseCase
 ) : ViewModel() {
 
-    private val appVersion: String = appVersionProvider.versionName
-
-    // Checked once: readiness does not change while the app is open, unlike the toggle itself.
-    private val isTranslationSupported = MutableStateFlow(false)
-
-    internal val uiState: StateFlow<SettingsUiState> = combine(
-        getSelectedPlatformsUseCase(),
-        observeDescriptionTranslationEnabledUseCase(),
-        isTranslationSupported
-    ) { platforms, isTranslationEnabled, isTranslationSupported ->
-        SettingsUiState(
-            ownedPlatformsSummary = platforms.toSummaryUiText(),
-            appVersion = appVersion,
-            isTranslationSupported = isTranslationSupported,
-            isTranslationEnabled = isTranslationEnabled
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = SettingsUiState(appVersion = appVersion)
-    )
+    private val _uiState = MutableStateFlow(SettingsUiState(appVersion = appVersionProvider.versionName))
+    internal val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            isTranslationSupported.value = getTranslationModelStatusUseCase() == TranslationModelStatus.READY
-        }
+        observeOwnedPlatforms()
+        loadTranslationModelStatus()
     }
 
     internal fun onEvent(event: SettingsUiEvent) {
         when (event) {
-            is SettingsUiEvent.SetDescriptionTranslation ->
-                viewModelScope.launch { setDescriptionTranslationEnabledUseCase(event.enabled) }
+            SettingsUiEvent.DownloadTranslationModel -> downloadTranslationModel()
+        }
+    }
+
+    // Collected for the ViewModel's whole life rather than gated behind WhileSubscribed, the same way
+    // GameDetailViewModel.observeContentState folds a continuously-observed source into a single
+    // MutableStateFlow instead of combine()-ing it with the locally driven parts of the state.
+    private fun observeOwnedPlatforms() {
+        viewModelScope.launch {
+            getSelectedPlatformsUseCase().collect { platforms ->
+                _uiState.update { it.copy(ownedPlatformsSummary = platforms.toSummaryUiText()) }
+            }
+        }
+    }
+
+    private fun loadTranslationModelStatus() {
+        viewModelScope.launch {
+            val rowState = when (getTranslationModelStatusUseCase()) {
+                TranslationModelStatus.UNSUPPORTED -> TranslationModelRowState.Hidden
+                TranslationModelStatus.DOWNLOADABLE -> TranslationModelRowState.Downloadable
+                TranslationModelStatus.DOWNLOADING -> TranslationModelRowState.Downloading(null)
+                TranslationModelStatus.READY -> TranslationModelRowState.Ready
+            }
+            _uiState.update { it.copy(translationModel = rowState) }
+        }
+    }
+
+    private fun downloadTranslationModel() {
+        if (_uiState.value.translationModel is TranslationModelRowState.Downloading) return
+        viewModelScope.launch {
+            downloadTranslationModelUseCase().collect { download ->
+                val rowState = when (download) {
+                    is TranslationModelDownload.InProgress -> TranslationModelRowState.Downloading(download.fraction)
+                    TranslationModelDownload.Completed -> TranslationModelRowState.Ready
+                    TranslationModelDownload.Failed -> TranslationModelRowState.Failed
+                }
+                _uiState.update { it.copy(translationModel = rowState) }
+            }
         }
     }
 }

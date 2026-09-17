@@ -1,13 +1,18 @@
 package com.example.gameswishlist.core.data.translation
 
 import com.example.gameswishlist.core.ai.GeminiNanoClient
+import com.example.gameswishlist.core.ai.GeminiNanoDownload
 import com.example.gameswishlist.core.ai.GeminiNanoStatus
 import com.example.gameswishlist.core.database.dao.TranslationDao
 import com.example.gameswishlist.core.database.entity.TranslatedDescriptionEntity
+import com.example.gameswishlist.core.model.TranslationModelDownload
 import com.example.gameswishlist.core.model.TranslationModelStatus
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -18,8 +23,8 @@ import java.util.Locale
 
 /**
  * Covers [GameDescriptionTranslatorImpl]: the cache short-circuit in [GameDescriptionTranslatorImpl.translate],
- * the length/blank guard before Gemini Nano is ever called, and the two-part check in
- * [GameDescriptionTranslatorImpl.modelStatus].
+ * the length/blank guard before Gemini Nano is ever called, the two-part check in
+ * [GameDescriptionTranslatorImpl.modelStatus], and the [GameDescriptionTranslatorImpl.downloadModel] mapping.
  */
 class GameDescriptionTranslatorImplTest {
 
@@ -242,5 +247,27 @@ class GameDescriptionTranslatorImplTest {
         coEvery { geminiNanoClient.status() } returns GeminiNanoStatus.UNAVAILABLE
 
         assertEquals(TranslationModelStatus.UNSUPPORTED, translator.modelStatus())
+    }
+
+    @Test
+    fun `downloadModel maps the client's Progress, Completed and Failed emissions`() = runTest {
+        every { geminiNanoClient.download() } returns flowOf(
+            GeminiNanoDownload.Progress(fraction = null),
+            GeminiNanoDownload.Progress(fraction = 0.5f),
+            GeminiNanoDownload.Completed,
+            GeminiNanoDownload.Failed
+        )
+
+        val result = translator.downloadModel().toList()
+
+        assertEquals(
+            listOf(
+                TranslationModelDownload.InProgress(fraction = null),
+                TranslationModelDownload.InProgress(fraction = 0.5f),
+                TranslationModelDownload.Completed,
+                TranslationModelDownload.Failed
+            ),
+            result
+        )
     }
 }

@@ -1,11 +1,15 @@
 package com.example.gameswishlist.core.data.translation
 
 import com.example.gameswishlist.core.ai.GeminiNanoClient
+import com.example.gameswishlist.core.ai.GeminiNanoDownload
 import com.example.gameswishlist.core.ai.GeminiNanoStatus
 import com.example.gameswishlist.core.database.dao.TranslationDao
 import com.example.gameswishlist.core.database.entity.TranslatedDescriptionEntity
 import com.example.gameswishlist.core.domain.translation.GameDescriptionTranslator
+import com.example.gameswishlist.core.model.TranslationModelDownload
 import com.example.gameswishlist.core.model.TranslationModelStatus
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.util.Locale
 import javax.inject.Inject
 
@@ -88,11 +92,21 @@ class GameDescriptionTranslatorImpl @Inject constructor(
         return text.trim()
     }
 
+    override fun downloadModel(): Flow<TranslationModelDownload> {
+        return geminiNanoClient.download().map { it.toTranslationModelDownload() }
+    }
+
     private fun GeminiNanoStatus.toTranslationModelStatus(): TranslationModelStatus = when (this) {
         GeminiNanoStatus.AVAILABLE -> TranslationModelStatus.READY
         GeminiNanoStatus.DOWNLOADING -> TranslationModelStatus.DOWNLOADING
         GeminiNanoStatus.DOWNLOADABLE -> TranslationModelStatus.DOWNLOADABLE
         GeminiNanoStatus.UNAVAILABLE -> TranslationModelStatus.UNSUPPORTED
+    }
+
+    private fun GeminiNanoDownload.toTranslationModelDownload(): TranslationModelDownload = when (this) {
+        is GeminiNanoDownload.Progress -> TranslationModelDownload.InProgress(fraction)
+        GeminiNanoDownload.Completed -> TranslationModelDownload.Completed
+        GeminiNanoDownload.Failed -> TranslationModelDownload.Failed
     }
 
     private companion object {
