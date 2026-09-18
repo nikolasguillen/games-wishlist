@@ -1,11 +1,13 @@
 package com.example.gameswishlist.feature.settings
 
 import com.example.gameswishlist.core.common.AppVersionProvider
+import com.example.gameswishlist.core.common.NetworkStatusProvider
 import com.example.gameswishlist.core.domain.usecase.discover.GetSelectedPlatformsUseCase
 import com.example.gameswishlist.core.domain.usecase.translation.DownloadTranslationModelUseCase
 import com.example.gameswishlist.core.domain.usecase.translation.GetTranslationModelStatusUseCase
 import com.example.gameswishlist.core.model.TranslationModelDownload
 import com.example.gameswishlist.core.model.TranslationModelStatus
+import com.example.gameswishlist.feature.settings.model.SettingsUiEffect
 import com.example.gameswishlist.feature.settings.model.SettingsUiEvent
 import com.example.gameswishlist.feature.settings.model.SettingsUiState
 import com.example.gameswishlist.feature.settings.model.TranslationModelRowState
@@ -34,8 +36,11 @@ import org.junit.Test
 
 /**
  * Covers the on-device translation model row: the state seeded from [GetTranslationModelStatusUseCase]
- * per [TranslationModelStatus], the download progressing the row from Downloading to Ready, a failed
- * download landing on Failed, and a second tap while a download is already running being ignored.
+ * per [TranslationModelStatus] — including a DOWNLOADING status resuming live progress rather than a
+ * static indeterminate spinner — the download progressing the row from Downloading to Ready, a failed
+ * download landing on Failed, a second tap while a download is already running being ignored, and a tap
+ * off an unmetered network being refused with [SettingsUiEffect.ShowWifiRequiredDialog] instead of
+ * starting a download AICore would silently never progress.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
@@ -46,6 +51,8 @@ class SettingsViewModelTest {
     private val getSelectedPlatformsUseCase = mockk<GetSelectedPlatformsUseCase>()
     private val downloadTranslationModelUseCase = mockk<DownloadTranslationModelUseCase>()
     private val getTranslationModelStatusUseCase = mockk<GetTranslationModelStatusUseCase>()
+    private val networkStatusProvider =
+        mockk<NetworkStatusProvider> { every { isUnmeteredNetworkAvailable } returns true }
 
     @Before
     fun setUp() {
@@ -62,7 +69,8 @@ class SettingsViewModelTest {
         appVersionProvider = appVersionProvider,
         getSelectedPlatformsUseCase = getSelectedPlatformsUseCase,
         downloadTranslationModelUseCase = downloadTranslationModelUseCase,
-        getTranslationModelStatusUseCase = getTranslationModelStatusUseCase
+        getTranslationModelStatusUseCase = getTranslationModelStatusUseCase,
+        networkStatusProvider = networkStatusProvider
     )
 
     // uiState is WhileSubscribed(5000): nothing upstream runs until something collects it.
@@ -98,15 +106,26 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `row state is seeded Downloading when the model status is DOWNLOADING`() = runTest {
+    fun `a DOWNLOADING status resumes reporting progress instead of seeding a static Downloading`() = runTest {
         coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.DOWNLOADING
+        coEvery { downloadTranslationModelUseCase() } returns flow {
+            emit(TranslationModelDownload.InProgress(fraction = 0.3f))
+            yield()
+            emit(TranslationModelDownload.InProgress(fraction = 0.7f))
+        }
 
         val viewModel = viewModel()
         val states = mutableListOf<SettingsUiState>()
         val job = collectStates(viewModel, states)
         advanceUntilIdle()
 
-        assertEquals(TranslationModelRowState.Downloading(null), states.last().translationModel)
+        assertEquals(
+            listOf(
+                TranslationModelRowState.Downloading(0.3f),
+                TranslationModelRowState.Downloading(0.7f)
+            ),
+            states.map { it.translationModel }.distinct()
+        )
         job.cancel()
     }
 
@@ -199,6 +218,45 @@ class SettingsViewModelTest {
         downloadEvents.close()
         advanceUntilIdle()
 
+        coVerify(exactly = 1) { downloadTranslationModelUseCase() }
+        job.cancel()
+    }
+
+    @Test
+    fun `DownloadTranslationModel off an unmetered network shows the Wi-Fi required effect instead of starting`() =
+        runTest {
+            coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.DOWNLOADABLE
+            every { networkStatusProvider.isUnmeteredNetworkAvailable } returns false
+
+            val viewModel = viewModel()
+            val effects = mutableListOf<SettingsUiEffect>()
+            val effectJob = launch { viewModel.uiEffect.collect { effects.add(it) } }
+            val stateJob = collectStates(viewModel, mutableListOf())
+            advanceUntilIdle()
+
+            viewModel.onEvent(SettingsUiEvent.DownloadTranslationModel)
+            advanceUntilIdle()
+
+            assertEquals(listOf(SettingsUiEffect.ShowWifiRequiredDialog), effects)
+            coVerify(exactly = 0) { downloadTranslationModelUseCase() }
+            effectJob.cancel()
+            stateJob.cancel()
+        }
+
+    @Test
+    fun `DownloadTranslationModel on an unmetered network starts the download as usual`() = runTest {
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.DOWNLOADABLE
+        coEvery { downloadTranslationModelUseCase() } returns flowOf(TranslationModelDownload.Completed)
+
+        val viewModel = viewModel()
+        val states = mutableListOf<SettingsUiState>()
+        val job = collectStates(viewModel, states)
+        advanceUntilIdle()
+
+        viewModel.onEvent(SettingsUiEvent.DownloadTranslationModel)
+        advanceUntilIdle()
+
+        assertEquals(TranslationModelRowState.Ready, states.last().translationModel)
         coVerify(exactly = 1) { downloadTranslationModelUseCase() }
         job.cancel()
     }

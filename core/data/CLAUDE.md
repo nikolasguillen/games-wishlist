@@ -47,12 +47,14 @@ Mapped cases: `UnknownHostException` / `ConnectException` / `SocketException` �
 
 ## Mappers
 
-Top-level **extension functions**, not mapper classes or interfaces. Two files only:
+Top-level **extension functions**, not mapper classes or interfaces. One file per source type family:
 
 - `mapper/GameMapper.kt` — all three directions: network→domain (`IgdbGame.toGame()`), entity→domain
   (`GameWithAllDetails.toGame()`), domain→entity (`Game.toEntity()`, `Game.toPlatformEntities()`,
   `Game.toGamePlatformCrossRefs()`).
 - `mapper/ListMapper.kt` — `ListEntity.toWishlistList()`, `ListWithGameCount.toWishlistList()`.
+- `mapper/TranslationMapper.kt` — `GeminiNanoStatus.toTranslationModelStatus()`,
+  `GeminiNanoDownload.toTranslationModelDownload()`.
 
 Naming: `toX()` for a single object, `toXEntities()` / `toXCrossRefs()` for collections.
 

@@ -3,19 +3,27 @@ package com.example.gameswishlist.core.data.translation
 import com.example.gameswishlist.core.ai.GeminiNanoClient
 import com.example.gameswishlist.core.ai.GeminiNanoDownload
 import com.example.gameswishlist.core.ai.GeminiNanoStatus
+import com.example.gameswishlist.core.data.mapper.toTranslationModelDownload
+import com.example.gameswishlist.core.data.mapper.toTranslationModelStatus
 import com.example.gameswishlist.core.database.dao.TranslationDao
 import com.example.gameswishlist.core.database.entity.TranslatedDescriptionEntity
 import com.example.gameswishlist.core.domain.translation.GameDescriptionTranslator
 import com.example.gameswishlist.core.model.TranslationModelDownload
 import com.example.gameswishlist.core.model.TranslationModelStatus
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
 
 class GameDescriptionTranslatorImpl @Inject constructor(
     private val geminiNanoClient: GeminiNanoClient,
-    private val translationDao: TranslationDao
+    private val translationDao: TranslationDao,
+    private val downloadScope: CoroutineScope
 ) : GameDescriptionTranslator {
 
     override suspend fun modelStatus(): TranslationModelStatus {
@@ -36,7 +44,7 @@ class GameDescriptionTranslatorImpl @Inject constructor(
             return cached.translatedText.stripTranslationArtifacts()
         }
 
-        val translated = geminiNanoClient.generate(buildPrompt(description))
+        val translated = geminiNanoClient.generate(buildTranslationPrompt(description))
         if (translated.isNullOrBlank()) return null
 
         val sanitized = translated.stripTranslationArtifacts()
@@ -51,66 +59,72 @@ class GameDescriptionTranslatorImpl @Inject constructor(
         return sanitized
     }
 
-    /** Built in English regardless of the target, so the instructions themselves stay unambiguous. */
-    private fun buildPrompt(description: String): String {
-        val targetLanguage = Locale.getDefault().getDisplayLanguage(Locale.ENGLISH)
-        return """
-            You are translating text for a video game catalogue app.
-            Translate the text between the <text> tags from English into $targetLanguage.
-            Keep game titles, character names, studio names and platform names untranslated.
-            Preserve the paragraph structure.
+    // Held here rather than started fresh per call: GeminiNanoClient.download() is a cold Flow, and
+    // cancelling its collector cancels the SDK's own download job along with it. Collecting it from
+    // SettingsViewModel's scope would silently abort a real, in-flight download every time the user
+    // navigates away from Settings, not just lose the UI's visibility into it — so the collection lives
+    // in downloadScope, which outlives any single ViewModel, and every caller shares the one StateFlow.
+    private val downloadState =
+        MutableStateFlow<TranslationModelDownload>(TranslationModelDownload.InProgress(fraction = null))
+    private var downloadJob: Job? = null
 
-            <text>
-            $description
-            </text>
-
-            Output the translated text only: no tags, no labels, no quotes, no commentary.
-        """.trimIndent()
+    override fun downloadModel(): Flow<TranslationModelDownload> {
+        val job = downloadJob
+        if (job == null || !job.isActive) {
+            downloadJob = downloadScope.launch { runDownload() }
+        }
+        return downloadState
     }
 
     /**
-     * A small on-device model will occasionally ignore the output-format instruction regardless of how
-     * the prompt is worded, most often by echoing a `Description:`/`Descrizione:`-style label or wrapping
-     * the answer in a code fence or the `<text>` tag from the prompt itself.
+     * Reaching here with no job already tracked means either a genuine fresh start (status
+     * [GeminiNanoStatus.DOWNLOADABLE]) or a status inherited from a download that was running in a
+     * previous, now-dead process. [GeminiNanoClient.download] excludes any feature that is not itself
+     * [GeminiNanoStatus.DOWNLOADABLE] from the batch it (re)downloads, so calling it in the second case
+     * resolves as an immediate, false [GeminiNanoDownload.Completed] instead of real progress — confirmed
+     * on-device, and present even in Google's own AICoreModelHelper reference implementation
+     * (google-ai-edge/gallery), which does not guard against it either. There is no supported way to
+     * re-attach to that download's byte-level progress, so the inherited case falls through to
+     * [pollInheritedDownload] instead of touching the SDK again.
      */
-    private fun String.stripTranslationArtifacts(): String {
-        var text = trim()
-
-        if (text.startsWith("```") && text.endsWith("```")) {
-            text = text.removePrefix("```").removeSuffix("```")
-            text = text.substringAfter("\n", text).trim()
+    private suspend fun runDownload() {
+        if (geminiNanoClient.status() != GeminiNanoStatus.DOWNLOADABLE) {
+            pollInheritedDownload()
+            return
         }
+        geminiNanoClient.download().collect { downloadState.value = it.toTranslationModelDownload() }
+    }
 
-        text = text.removePrefix("<text>").removeSuffix("</text>").trim()
-
-        text = text.replaceFirst(Regex("^\\p{L}{1,20}:\\s*"), "")
-
-        if (text.length >= 2 && text.first() == '"' && text.last() == '"' && text.count { it == '"' } == 2) {
-            text = text.substring(1, text.length - 1)
+    /**
+     * Polls [GeminiNanoClient.status] for a download this process never started itself, so the row
+     * still resolves to Ready on its own if the app was closed and reopened after the download finished
+     * while it wasn't running — rather than sitting on the indeterminate state forever until the user
+     * manually leaves and re-enters Settings. [STATUS_POLL_INTERVAL] is coarse on purpose: status is a
+     * 4-value enum, not a byte count, so polling it every second buys nothing.
+     */
+    private suspend fun pollInheritedDownload() {
+        downloadState.value = TranslationModelDownload.InProgress(fraction = null)
+        while (true) {
+            delay(STATUS_POLL_INTERVAL)
+            when (geminiNanoClient.status()) {
+                GeminiNanoStatus.AVAILABLE -> {
+                    downloadState.value = TranslationModelDownload.Completed
+                    return
+                }
+                // Still going: loop again without touching downloadState, already indeterminate.
+                GeminiNanoStatus.DOWNLOADING -> Unit
+                // Reverted rather than progressed — cancelled or failed on the system side.
+                GeminiNanoStatus.DOWNLOADABLE, GeminiNanoStatus.UNAVAILABLE -> {
+                    downloadState.value = TranslationModelDownload.Failed
+                    return
+                }
+            }
         }
-
-        return text.trim()
-    }
-
-    override fun downloadModel(): Flow<TranslationModelDownload> {
-        return geminiNanoClient.download().map { it.toTranslationModelDownload() }
-    }
-
-    private fun GeminiNanoStatus.toTranslationModelStatus(): TranslationModelStatus = when (this) {
-        GeminiNanoStatus.AVAILABLE -> TranslationModelStatus.READY
-        GeminiNanoStatus.DOWNLOADING -> TranslationModelStatus.DOWNLOADING
-        GeminiNanoStatus.DOWNLOADABLE -> TranslationModelStatus.DOWNLOADABLE
-        GeminiNanoStatus.UNAVAILABLE -> TranslationModelStatus.UNSUPPORTED
-    }
-
-    private fun GeminiNanoDownload.toTranslationModelDownload(): TranslationModelDownload = when (this) {
-        is GeminiNanoDownload.Progress -> TranslationModelDownload.InProgress(fraction)
-        GeminiNanoDownload.Completed -> TranslationModelDownload.Completed
-        GeminiNanoDownload.Failed -> TranslationModelDownload.Failed
     }
 
     private companion object {
         // Well inside the Prompt API's ~4000-token ceiling; no IGDB summary comes close to this.
         const val MAX_TRANSLATABLE_CHARS = 8000
+        val STATUS_POLL_INTERVAL = 15.seconds
     }
 }

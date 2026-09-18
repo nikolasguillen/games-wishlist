@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,22 +25,32 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.settings.components.SettingsGroup
 import com.example.gameswishlist.feature.settings.components.SettingsRow
+import com.example.gameswishlist.feature.settings.components.WifiRequiredDialog
+import com.example.gameswishlist.feature.settings.model.SettingsUiEffect
 import com.example.gameswishlist.feature.settings.model.SettingsUiEvent
 import com.example.gameswishlist.feature.settings.model.SettingsUiState
 import com.example.gameswishlist.feature.settings.model.TranslationModelRowState
+import kotlin.math.roundToInt
 import com.example.gameswishlist.core.ui.R as CoreUiR
 
 // viewModel is the same instance for the route's whole lifetime, so ref-comparison skips correctly.
@@ -54,6 +63,18 @@ fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    var showWifiRequiredDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(viewModel, lifecycle) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.uiEffect.collect { effect ->
+                when (effect) {
+                    SettingsUiEffect.ShowWifiRequiredDialog -> showWifiRequiredDialog = true
+                }
+            }
+        }
+    }
 
     SettingsContent(
         state = state,
@@ -62,6 +83,10 @@ fun SettingsScreen(
         onOwnedPlatformsClick = onOwnedPlatformsClick,
         modifier = modifier
     )
+
+    if (showWifiRequiredDialog) {
+        WifiRequiredDialog(onDismiss = { showWifiRequiredDialog = false })
+    }
 }
 
 /**
@@ -144,7 +169,18 @@ private fun TranslationModelRow(rowState: TranslationModelRowState, onDownloadCl
     val subtitle = when (rowState) {
         TranslationModelRowState.Hidden -> null
         TranslationModelRowState.Downloadable -> stringResource(R.string.settings_translation_model_downloadable)
-        is TranslationModelRowState.Downloading -> stringResource(R.string.settings_translation_model_downloading)
+        is TranslationModelRowState.Downloading -> {
+            val fraction = rowState.fraction
+            if (fraction != null) {
+                stringResource(
+                    R.string.settings_translation_model_downloading_progress,
+                    (fraction * 100).roundToInt()
+                )
+            } else {
+                stringResource(R.string.settings_translation_model_downloading)
+            }
+        }
+
         TranslationModelRowState.Ready -> stringResource(R.string.settings_translation_model_ready)
         TranslationModelRowState.Failed -> stringResource(R.string.settings_translation_model_failed)
     } ?: return
@@ -156,19 +192,20 @@ private fun TranslationModelRow(rowState: TranslationModelRowState, onDownloadCl
         trailingContent = {
             when (rowState) {
                 TranslationModelRowState.Hidden -> Unit
-                TranslationModelRowState.Downloadable -> IconButton(onClick = onDownloadClick) {
+                TranslationModelRowState.Downloadable ->
                     Icon(
                         imageVector = Icons.Default.Download,
-                        contentDescription = stringResource(R.string.settings_translation_model_download_action)
+                        contentDescription = stringResource(R.string.settings_translation_model_download_action),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                }
 
                 is TranslationModelRowState.Downloading -> {
                     val fraction = rowState.fraction
                     if (fraction != null) {
-                        CircularWavyProgressIndicator(
+                        CircularProgressIndicator(
                             progress = { fraction },
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
                         )
                     } else {
                         CircularProgressIndicator(
@@ -190,6 +227,11 @@ private fun TranslationModelRow(rowState: TranslationModelRowState, onDownloadCl
                         contentDescription = stringResource(R.string.settings_translation_model_download_action)
                     )
                 }
+            }
+        },
+        onClick = {
+            if (rowState is TranslationModelRowState.Downloadable) {
+                onDownloadClick()
             }
         }
     )

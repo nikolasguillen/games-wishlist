@@ -11,9 +11,18 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.toList
+import io.mockk.verify
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -24,14 +33,21 @@ import java.util.Locale
 /**
  * Covers [GameDescriptionTranslatorImpl]: the cache short-circuit in [GameDescriptionTranslatorImpl.translate],
  * the length/blank guard before Gemini Nano is ever called, the two-part check in
- * [GameDescriptionTranslatorImpl.modelStatus], and the [GameDescriptionTranslatorImpl.downloadModel] mapping.
+ * [GameDescriptionTranslatorImpl.modelStatus], and [GameDescriptionTranslatorImpl.downloadModel] — its
+ * mapping of the client's emissions, sharing one running download across callers instead of starting a
+ * second one, and polling status instead of calling the client again when nothing here is tracking an
+ * active download, so a download inherited from a dead process still resolves on its own.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class GameDescriptionTranslatorImplTest {
+
+    private val testDispatcher = StandardTestDispatcher()
+    private val testScope = TestScope(testDispatcher)
 
     private val geminiNanoClient = mockk<GeminiNanoClient>()
     private val translationDao = mockk<TranslationDao>(relaxed = true)
 
-    private val translator = GameDescriptionTranslatorImpl(geminiNanoClient, translationDao)
+    private val translator = GameDescriptionTranslatorImpl(geminiNanoClient, translationDao, testScope)
 
     private lateinit var originalLocale: Locale
 
@@ -250,24 +266,85 @@ class GameDescriptionTranslatorImplTest {
     }
 
     @Test
-    fun `downloadModel maps the client's Progress, Completed and Failed emissions`() = runTest {
-        every { geminiNanoClient.download() } returns flowOf(
-            GeminiNanoDownload.Progress(fraction = null),
-            GeminiNanoDownload.Progress(fraction = 0.5f),
-            GeminiNanoDownload.Completed,
-            GeminiNanoDownload.Failed
-        )
+    fun `downloadModel reflects the client's Progress and terminal emissions`() = runTest(testDispatcher) {
+        coEvery { geminiNanoClient.status() } returns GeminiNanoStatus.DOWNLOADABLE
+        // yield() between emissions, same as GameDescriptionTranslatorImplTest's sibling in
+        // SettingsViewModelTest: it forces a suspension point so the StateFlow's other collector — the
+        // one asserting below — gets scheduled in between and observes the intermediate value instead of
+        // it being conflated away by the terminal one.
+        every { geminiNanoClient.download() } returns flow {
+            emit(GeminiNanoDownload.Progress(fraction = 0.5f))
+            yield()
+            emit(GeminiNanoDownload.Completed)
+        }
 
-        val result = translator.downloadModel().toList()
+        val collected = mutableListOf<TranslationModelDownload>()
+        val job = launch { translator.downloadModel().collect { collected.add(it) } }
+        advanceUntilIdle()
+        job.cancel()
 
-        assertEquals(
-            listOf(
-                TranslationModelDownload.InProgress(fraction = null),
-                TranslationModelDownload.InProgress(fraction = 0.5f),
-                TranslationModelDownload.Completed,
-                TranslationModelDownload.Failed
-            ),
-            result
-        )
+        assertEquals(TranslationModelDownload.Completed, collected.last())
+        assertEquals(true, collected.contains(TranslationModelDownload.InProgress(fraction = 0.5f)))
     }
+
+    @Test
+    fun `a second call to downloadModel while a download is active does not start a second one`() = runTest(testDispatcher) {
+        coEvery { geminiNanoClient.status() } returns GeminiNanoStatus.DOWNLOADABLE
+        // Never completes on its own, mirroring a download still in flight at the SDK level, so
+        // downloadJob is still active when the second caller — e.g. a freshly recreated SettingsViewModel
+        // after re-entering Settings — arrives.
+        every { geminiNanoClient.download() } returns flow {
+            emit(GeminiNanoDownload.Progress(fraction = 0.1f))
+            awaitCancellation()
+        }
+
+        val firstCollectJob = launch { translator.downloadModel().collect {} }
+        runCurrent()
+
+        translator.downloadModel()
+        runCurrent()
+
+        verify(exactly = 1) { geminiNanoClient.download() }
+        firstCollectJob.cancel()
+    }
+
+    @Test
+    fun `downloadModel polls status instead of calling the client, then resolves once AVAILABLE`() =
+        runTest(testDispatcher) {
+            // A status inherited from a download that was running in a previous, now-dead process: this
+            // process never called geminiNanoClient.download() itself, so downloadJob is null even though
+            // the model is genuinely still downloading. The first value is runDownload()'s own initial
+            // check; the rest are consumed one per poll inside pollInheritedDownload().
+            coEvery { geminiNanoClient.status() } returnsMany listOf(
+                GeminiNanoStatus.DOWNLOADING,
+                GeminiNanoStatus.DOWNLOADING,
+                GeminiNanoStatus.AVAILABLE
+            )
+
+            val result = translator.downloadModel()
+            runCurrent() // only the initial check runs before the first delay() suspends the poll loop
+
+            assertEquals(TranslationModelDownload.InProgress(fraction = null), result.first())
+            verify(exactly = 0) { geminiNanoClient.download() }
+
+            advanceUntilIdle() // safe: the third status() call resolves and ends the poll loop
+            assertEquals(TranslationModelDownload.Completed, result.first())
+        }
+
+    @Test
+    fun `downloadModel resolves to Failed when the inherited download reverts instead of completing`() =
+        runTest(testDispatcher) {
+            // The system cancelled or dropped the download instead of finishing it: status goes back to
+            // DOWNLOADABLE (or UNAVAILABLE) rather than reaching AVAILABLE.
+            coEvery { geminiNanoClient.status() } returnsMany listOf(
+                GeminiNanoStatus.DOWNLOADING,
+                GeminiNanoStatus.DOWNLOADABLE
+            )
+
+            val result = translator.downloadModel()
+            advanceUntilIdle()
+
+            assertEquals(TranslationModelDownload.Failed, result.first())
+            verify(exactly = 0) { geminiNanoClient.download() }
+        }
 }
