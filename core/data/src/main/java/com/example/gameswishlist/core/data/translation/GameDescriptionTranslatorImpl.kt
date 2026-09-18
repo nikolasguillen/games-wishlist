@@ -44,7 +44,10 @@ class GameDescriptionTranslatorImpl @Inject constructor(
             return cached.translatedText.stripTranslationArtifacts()
         }
 
-        val translated = geminiNanoClient.generate(buildTranslationPrompt(description))
+        val translated = geminiNanoClient.generate(
+            prefix = buildTranslationPromptPrefix(),
+            suffix = buildTranslationPromptSuffix(description)
+        )
         if (translated.isNullOrBlank()) return null
 
         val sanitized = translated.stripTranslationArtifacts()

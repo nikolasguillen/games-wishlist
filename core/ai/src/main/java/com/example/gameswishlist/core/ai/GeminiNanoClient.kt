@@ -4,6 +4,9 @@ import com.google.mlkit.genai.common.DownloadStatus
 import com.google.mlkit.genai.common.FeatureStatus
 import com.google.mlkit.genai.prompt.Generation
 import com.google.mlkit.genai.prompt.GenerativeModel
+import com.google.mlkit.genai.prompt.PromptPrefix
+import com.google.mlkit.genai.prompt.TextPart
+import com.google.mlkit.genai.prompt.generateContentRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -42,12 +45,18 @@ class GeminiNanoClient @Inject constructor() {
     }
 
     /**
-     * Runs [prompt] through Gemini Nano, returning `null` on any failure. Callers treat `null` as
-     * "translation unavailable right now", not as an error to surface — this client has no typed
-     * failure the way the network layer maps exceptions to a `RepositoryError`.
+     * Runs [prefix] + [suffix] through Gemini Nano, returning `null` on any failure. [prefix] is sent as
+     * the request's prompt prefix rather than concatenated into one string: callers that pass the same
+     * [prefix] across calls let ML Kit skip re-processing its tokens instead of paying for them on every
+     * call. `null` on failure is treated as "translation unavailable right now", not as an error to
+     * surface — this client has no typed failure the way the network layer maps exceptions to a
+     * `RepositoryError`.
      */
-    suspend fun generate(prompt: String): String? = try {
-        model.generateContent(prompt).candidates.firstOrNull()?.text
+    suspend fun generate(prefix: String, suffix: String): String? = try {
+        val request = generateContentRequest(TextPart(suffix)) {
+            promptPrefix = PromptPrefix(prefix)
+        }
+        model.generateContent(request).candidates.firstOrNull()?.text
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {

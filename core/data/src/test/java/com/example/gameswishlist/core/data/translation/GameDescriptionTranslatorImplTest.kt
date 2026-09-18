@@ -75,7 +75,7 @@ class GameDescriptionTranslatorImplTest {
         val result = translator.translate(1, description)
 
         assertEquals("Un GDR leggendario.", result)
-        coVerify(exactly = 0) { geminiNanoClient.generate(any()) }
+        coVerify(exactly = 0) { geminiNanoClient.generate(any(), any()) }
     }
 
     @Test
@@ -87,7 +87,7 @@ class GameDescriptionTranslatorImplTest {
             sourceHash = "old description".hashCode(),
             translatedText = "Un vecchio testo."
         )
-        coEvery { geminiNanoClient.generate(any()) } returns "Un GDR leggendario, aggiornato."
+        coEvery { geminiNanoClient.generate(any(), any()) } returns "Un GDR leggendario, aggiornato."
 
         val result = translator.translate(1, description)
 
@@ -98,7 +98,7 @@ class GameDescriptionTranslatorImplTest {
     fun `a successful translation is persisted keyed by game id and language`() = runTest {
         val description = "A legendary RPG."
         coEvery { translationDao.getTranslation(1, "it") } returns null
-        coEvery { geminiNanoClient.generate(any()) } returns "Un GDR leggendario."
+        coEvery { geminiNanoClient.generate(any(), any()) } returns "Un GDR leggendario."
 
         translator.translate(1, description)
 
@@ -117,7 +117,7 @@ class GameDescriptionTranslatorImplTest {
     @Test
     fun `a null result from the client yields null and writes nothing`() = runTest {
         coEvery { translationDao.getTranslation(1, "it") } returns null
-        coEvery { geminiNanoClient.generate(any()) } returns null
+        coEvery { geminiNanoClient.generate(any(), any()) } returns null
 
         val result = translator.translate(1, "A legendary RPG.")
 
@@ -130,7 +130,7 @@ class GameDescriptionTranslatorImplTest {
         val result = translator.translate(1, "   ")
 
         assertNull(result)
-        coVerify(exactly = 0) { geminiNanoClient.generate(any()) }
+        coVerify(exactly = 0) { geminiNanoClient.generate(any(), any()) }
         coVerify(exactly = 0) { translationDao.getTranslation(any(), any()) }
     }
 
@@ -139,13 +139,13 @@ class GameDescriptionTranslatorImplTest {
         val result = translator.translate(1, "a".repeat(8001))
 
         assertNull(result)
-        coVerify(exactly = 0) { geminiNanoClient.generate(any()) }
+        coVerify(exactly = 0) { geminiNanoClient.generate(any(), any()) }
     }
 
     @Test
     fun `a leading Description label is stripped from a fresh translation`() = runTest {
         coEvery { translationDao.getTranslation(1, "it") } returns null
-        coEvery { geminiNanoClient.generate(any()) } returns "Description:\nUn GDR leggendario."
+        coEvery { geminiNanoClient.generate(any(), any()) } returns "Description:\nUn GDR leggendario."
 
         val result = translator.translate(1, "A legendary RPG.")
 
@@ -155,7 +155,7 @@ class GameDescriptionTranslatorImplTest {
     @Test
     fun `a leading localized Descrizione label is stripped from a fresh translation`() = runTest {
         coEvery { translationDao.getTranslation(1, "it") } returns null
-        coEvery { geminiNanoClient.generate(any()) } returns "Descrizione: Un GDR leggendario."
+        coEvery { geminiNanoClient.generate(any(), any()) } returns "Descrizione: Un GDR leggendario."
 
         val result = translator.translate(1, "A legendary RPG.")
 
@@ -165,7 +165,7 @@ class GameDescriptionTranslatorImplTest {
     @Test
     fun `a markdown code fence around the translation is stripped`() = runTest {
         coEvery { translationDao.getTranslation(1, "it") } returns null
-        coEvery { geminiNanoClient.generate(any()) } returns "```\nUn GDR leggendario.\n```"
+        coEvery { geminiNanoClient.generate(any(), any()) } returns "```\nUn GDR leggendario.\n```"
 
         val result = translator.translate(1, "A legendary RPG.")
 
@@ -175,7 +175,7 @@ class GameDescriptionTranslatorImplTest {
     @Test
     fun `enclosing quotes around the translation are removed`() = runTest {
         coEvery { translationDao.getTranslation(1, "it") } returns null
-        coEvery { geminiNanoClient.generate(any()) } returns "\"Un GDR leggendario.\""
+        coEvery { geminiNanoClient.generate(any(), any()) } returns "\"Un GDR leggendario.\""
 
         val result = translator.translate(1, "A legendary RPG.")
 
@@ -185,7 +185,7 @@ class GameDescriptionTranslatorImplTest {
     @Test
     fun `a translation containing a colon mid-sentence is left untouched`() = runTest {
         coEvery { translationDao.getTranslation(1, "it") } returns null
-        coEvery { geminiNanoClient.generate(any()) } returns "Capitolo 1: L'inizio."
+        coEvery { geminiNanoClient.generate(any(), any()) } returns "Capitolo 1: L'inizio."
 
         val result = translator.translate(1, "A legendary RPG.")
 
@@ -195,7 +195,7 @@ class GameDescriptionTranslatorImplTest {
     @Test
     fun `the sanitized text, not the raw model output, is what gets persisted`() = runTest {
         coEvery { translationDao.getTranslation(1, "it") } returns null
-        coEvery { geminiNanoClient.generate(any()) } returns "Description:\nUn GDR leggendario."
+        coEvery { geminiNanoClient.generate(any(), any()) } returns "Description:\nUn GDR leggendario."
 
         translator.translate(1, "A legendary RPG.")
 
@@ -224,7 +224,7 @@ class GameDescriptionTranslatorImplTest {
         val result = translator.translate(1, description)
 
         assertEquals("Un GDR leggendario.", result)
-        coVerify(exactly = 0) { geminiNanoClient.generate(any()) }
+        coVerify(exactly = 0) { geminiNanoClient.generate(any(), any()) }
     }
 
     @Test
