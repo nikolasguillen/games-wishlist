@@ -1,51 +1,56 @@
 package com.example.gameswishlist.feature.gamedetail.components
 
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.outlined.Translate
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomContentCard
-import com.example.gameswishlist.core.ui.util.modifiers.shimmerEffect
+import com.example.gameswishlist.core.ui.util.modifiers.lineShimmer
+import com.example.gameswishlist.core.ui.util.modifiers.rainbowMetallicBorder
+import com.example.gameswishlist.core.ui.util.modifiers.rememberLineShimmerState
 import com.example.gameswishlist.feature.gamedetail.R
 import com.example.gameswishlist.feature.gamedetail.model.DescriptionTranslationState
 import com.example.gameswishlist.core.ui.R as CoreUiR
 
+private val TranslationProgressIndicatorTouchTarget = 48.dp
+private val TranslationProgressIndicatorStrokeWidth = 2.dp
+
 /**
- * A card displaying the game description with expand/collapse functionality.
+ * A card displaying the game description.
  *
- * [translation] drives what is shown alongside [description]: the original text alone while
- * [DescriptionTranslationState.Unavailable], the original text plus a translate action while
- * [DescriptionTranslationState.Available], a shimmering skeleton while
- * [DescriptionTranslationState.InProgress] (there is no partial description to show meanwhile), the
- * translated text plus a disclosure label and a "show original" action once
- * [DescriptionTranslationState.Ready], or the original text plus a retry action on
- * [DescriptionTranslationState.Failed]. Expand/collapse state survives every swap of displayed text:
- * [hasOverflow] is recomputed by `onTextLayout` against whichever text is currently shown.
+ * [translation] drives the translate action shown next to the card title — hidden while
+ * [DescriptionTranslationState.Unavailable], a translate icon while
+ * [DescriptionTranslationState.Available], a progress indicator while
+ * [DescriptionTranslationState.InProgress] (also swapping the body for a shimmering skeleton, since
+ * there is no partial description to show meanwhile), a highlighted "show original" icon plus a
+ * disclosure label under the text once [DescriptionTranslationState.Ready], or a retry icon on
+ * [DescriptionTranslationState.Failed] — same action as [DescriptionTranslationState.Available], since
+ * retrying is just asking for a translation again.
  */
 @Composable
 internal fun GameDescriptionCard(
@@ -55,117 +60,128 @@ internal fun GameDescriptionCard(
     onShowOriginalClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    var hasOverflow by rememberSaveable { mutableStateOf(false) }
     val isLoading = translation is DescriptionTranslationState.InProgress
     val displayedText = (translation as? DescriptionTranslationState.Ready)?.text ?: description
+    val shimmerState = rememberLineShimmerState()
 
     CustomContentCard(
         title = stringResource(CoreUiR.string.description_title),
-        modifier = modifier.clickable(
-            enabled = !isLoading && (hasOverflow || expanded),
-            onClick = { expanded = !expanded },
-            indication = null,
-            interactionSource = remember { MutableInteractionSource() }
-        )
+        titleAction = {
+            DescriptionTitleAction(
+                translation = translation,
+                onTranslateClick = onTranslateClick,
+                onShowOriginalClick = onShowOriginalClick
+            )
+        },
+        modifier = modifier
     ) {
-        if (isLoading) {
-            DescriptionLoadingSkeleton()
-        } else {
-            Column(modifier = Modifier.animateContentSize()) {
-                Text(
-                    text = displayedText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = if (expanded) Int.MAX_VALUE else 3,
-                    overflow = TextOverflow.Ellipsis,
-                    onTextLayout = { textLayoutResult ->
-                        hasOverflow = textLayoutResult.hasVisualOverflow
-                    }
+        Column {
+            Text(
+                text = displayedText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                onTextLayout = { shimmerState.updateLayout(it) },
+                modifier = Modifier
+                    .lineShimmer(state = shimmerState, visible = isLoading)
+                    .then(if (isLoading) Modifier.clearAndSetSemantics { } else Modifier)
+            )
+
+            if (translation is DescriptionTranslationState.Ready) {
+                TranslatedOnDeviceBadge(
+                    modifier = Modifier
+                        .padding(top = MaterialTheme.spacing.mediumLarge)
+                        .align(Alignment.Start)
                 )
-
-                if (translation is DescriptionTranslationState.Ready) {
-                    Text(
-                        text = stringResource(R.string.description_translated_on_device),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = MaterialTheme.spacing.small)
-                    )
-                }
-
-                val translateActionLabel = when (translation) {
-                    is DescriptionTranslationState.Available -> R.string.description_translate_action
-                    is DescriptionTranslationState.Ready -> R.string.description_show_original
-                    is DescriptionTranslationState.Failed -> R.string.description_translation_failed
-                    else -> null
-                }
-
-                if (hasOverflow || expanded || translateActionLabel != null) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
-                        modifier = Modifier
-                            .padding(top = MaterialTheme.spacing.small)
-                            .align(Alignment.End)
-                    ) {
-                        if (hasOverflow || expanded) {
-                            DescriptionActionText(
-                                text = stringResource(
-                                    if (expanded) CoreUiR.string.show_less else CoreUiR.string.show_more
-                                ),
-                                onClick = { expanded = !expanded }
-                            )
-                        }
-                        if (translateActionLabel != null) {
-                            DescriptionActionText(
-                                text = stringResource(translateActionLabel),
-                                onClick = if (translation is DescriptionTranslationState.Ready) {
-                                    onShowOriginalClick
-                                } else {
-                                    onTranslateClick
-                                }
-                            )
-                        }
-                    }
-                }
             }
         }
     }
 }
 
-/** A small text-only action, styled like the card's own show more/less label. */
+/**
+ * The icon shown next to the card title for the current [translation] state, or nothing while
+ * [DescriptionTranslationState.Unavailable]. Retrying a [DescriptionTranslationState.Failed]
+ * attempt reuses [onTranslateClick] — from the caller's side a retry is just another translate
+ * request, the failure is only a display concern here.
+ */
 @Composable
-private fun DescriptionActionText(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelLarge.copy(
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        ),
-        modifier = modifier.clickable(
-            onClick = onClick,
-            indication = null,
-            interactionSource = remember { MutableInteractionSource() }
-        )
-    )
+private fun DescriptionTitleAction(
+    translation: DescriptionTranslationState,
+    onTranslateClick: () -> Unit,
+    onShowOriginalClick: () -> Unit
+) {
+    when (translation) {
+        DescriptionTranslationState.Unavailable -> Unit
+
+        DescriptionTranslationState.Available -> {
+            DescriptionTitleIconButton(
+                icon = Icons.Outlined.Translate,
+                contentDescription = stringResource(R.string.description_translate_action),
+                onClick = onTranslateClick
+            )
+        }
+
+        DescriptionTranslationState.InProgress -> {
+            val translatingDescription = stringResource(R.string.description_translating)
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .size(TranslationProgressIndicatorTouchTarget)
+                    .padding(MaterialTheme.spacing.medium)
+                    .semantics { contentDescription = translatingDescription },
+                strokeWidth = TranslationProgressIndicatorStrokeWidth
+            )
+        }
+
+        is DescriptionTranslationState.Ready -> {
+            DescriptionTitleIconButton(
+                icon = Icons.Filled.Translate,
+                contentDescription = stringResource(R.string.description_show_original),
+                tint = MaterialTheme.colorScheme.primary,
+                onClick = onShowOriginalClick
+            )
+        }
+
+        DescriptionTranslationState.Failed -> {
+            DescriptionTitleIconButton(
+                icon = Icons.Filled.Refresh,
+                contentDescription = stringResource(R.string.description_retry_translation_action),
+                onClick = onTranslateClick
+            )
+        }
+    }
 }
 
-/** Three shimmering lines standing in for the collapsed description while it is being translated. */
 @Composable
-private fun DescriptionLoadingSkeleton(modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
-        val lineWidthFractions = listOf(1f, 1f, 0.6f)
-        lineWidthFractions.forEachIndexed { index, widthFraction ->
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(widthFraction)
-                    .height(16.dp)
-                    .clip(MaterialTheme.shapes.extraSmall)
-                    .shimmerEffect()
-            )
-            if (index != lineWidthFractions.lastIndex) {
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
-            }
-        }
+private fun TranslatedOnDeviceBadge(modifier: Modifier = Modifier) {
+    val shape = MaterialTheme.shapes.small
+    Box(
+        modifier = modifier
+            .clip(shape)
+            .rainbowMetallicBorder(width = 2.dp, shape = shape)
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Text(
+            text = stringResource(R.string.description_translated_on_device),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.padding(MaterialTheme.spacing.medium)
+        )
+    }
+}
+
+@Composable
+private fun DescriptionTitleIconButton(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    tint: Color = LocalContentColor.current
+) {
+    IconButton(onClick = onClick, modifier = modifier) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = tint
+        )
     }
 }
 
@@ -174,9 +190,9 @@ private fun DescriptionLoadingSkeleton(modifier: Modifier = Modifier) {
 private fun GameDescriptionCardAvailablePreview() {
     GamesWishlistTheme {
         GameDescriptionCard(
-            description = "This is a long description that should overflow after three lines. " +
-                    "It is designed to test the expand and collapse functionality of the card. " +
-                    "When the user clicks on it, the full content will be revealed with a smooth animation.",
+            description = "This is a long description that showcases how the card grows to fit its " +
+                    "full content. There is no expand/collapse here — the whole text is always shown, " +
+                    "however long it is.",
             translation = DescriptionTranslationState.Available,
             onTranslateClick = {},
             onShowOriginalClick = {}
@@ -189,7 +205,8 @@ private fun GameDescriptionCardAvailablePreview() {
 private fun GameDescriptionCardLoadingPreview() {
     GamesWishlistTheme {
         GameDescriptionCard(
-            description = "This is a long description that should overflow after three lines.",
+            description = "This is a long description that showcases how the card grows to fit its " +
+                    "full content.",
             translation = DescriptionTranslationState.InProgress,
             onTranslateClick = {},
             onShowOriginalClick = {}
@@ -202,9 +219,11 @@ private fun GameDescriptionCardLoadingPreview() {
 private fun GameDescriptionCardTranslatedPreview() {
     GamesWishlistTheme {
         GameDescriptionCard(
-            description = "This is a long description that should overflow after three lines.",
+            description = "This is a long description that showcases how the card grows to fit its " +
+                    "full content.",
             translation = DescriptionTranslationState.Ready(
-                "Questa è una descrizione lunga che dovrebbe traboccare dopo tre righe."
+                "Questa è una descrizione lunga che mostra come la card cresca per adattarsi al " +
+                        "contenuto completo."
             ),
             onTranslateClick = {},
             onShowOriginalClick = {}
@@ -217,7 +236,8 @@ private fun GameDescriptionCardTranslatedPreview() {
 private fun GameDescriptionCardFailedPreview() {
     GamesWishlistTheme {
         GameDescriptionCard(
-            description = "This is a long description that should overflow after three lines.",
+            description = "This is a long description that showcases how the card grows to fit its " +
+                    "full content.",
             translation = DescriptionTranslationState.Failed,
             onTranslateClick = {},
             onShowOriginalClick = {}

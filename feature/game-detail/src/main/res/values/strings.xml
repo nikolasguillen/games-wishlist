@@ -8,5 +8,6 @@
     <string name="description_translated_on_device">Translated on-device</string>
     <string name="description_translate_action">Translate</string>
     <string name="description_show_original">Show original</string>
-    <string name="description_translation_failed">Translation failed. Tap to retry.</string>
+    <string name="description_retry_translation_action">Retry translation</string>
+    <string name="description_translating">Translating</string>
 </resources>
