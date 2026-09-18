@@ -26,12 +26,19 @@ wrapped in `GamesWishlistTheme { }`. Match that when adding a component.
 
 ## Utilities (`util/`)
 
-**`Modifiers.kt` already provides `Modifier.fadingEdge(...)`, `Modifier.dashedBorder(...)` and
-`Modifier.shimmerEffect()`.** Look here before implementing a visual effect by hand — a gradient fade, a
-dashed outline or a loading shimmer is already solved.
+**`util/modifiers/` already provides a set of visual effect modifiers** — check here before implementing
+one by hand:
 
-Also: `ColorUtils.kt`, `HtmlUtils.kt`, `MetallicEffects.kt`, `PlatformVisuals.kt`, and `Constants.kt`
-(`object UiConstants` — IGDB platform category/family ids, `MAX_PLATFORM_NAME_LENGTH`,
+- `VisualModifiers.kt` — `Modifier.fadingEdge(...)` (gradient fade for scrollable edges),
+  `Modifier.dashedBorder(...)`.
+- `ShimmerModifiers.kt` — `Modifier.shimmerEffect()` for a single shimmering block.
+- `MetallicModifiers.kt` — `Modifier.brushedMetal(...)`, `Modifier.metallicBorder(...)`,
+  `Modifier.metallicBackground(...)` and `Modifier.animatedMetallicBorder(...)`, all wrapping the brushes
+  from `MetallicEffects.kt`.
+
+Also: `ColorUtils.kt`, `HtmlUtils.kt`, `MetallicEffects.kt` (brush factories:
+`primaryMetallicGradient()`, `rememberAnimatedMetallicGradient()`), `PlatformVisuals.kt`, and
+`Constants.kt` (`object UiConstants` — IGDB platform category/family ids, `MAX_PLATFORM_NAME_LENGTH`,
 `RECENT_GENERATION_THRESHOLD`). Shared UI constants belong in `UiConstants`, not inline in a composable.
 
 ## UiText (`model/UiText.kt`)

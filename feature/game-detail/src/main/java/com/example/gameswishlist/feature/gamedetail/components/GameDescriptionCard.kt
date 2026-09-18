@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomContentCard
-import com.example.gameswishlist.core.ui.util.shimmerEffect
+import com.example.gameswishlist.core.ui.util.modifiers.shimmerEffect
 import com.example.gameswishlist.feature.gamedetail.R
 import com.example.gameswishlist.feature.gamedetail.model.DescriptionTranslationState
 import com.example.gameswishlist.core.ui.R as CoreUiR

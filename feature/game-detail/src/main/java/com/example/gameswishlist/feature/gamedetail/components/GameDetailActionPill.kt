@@ -33,8 +33,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.util.animatedMetallicBorder
-import com.example.gameswishlist.core.ui.util.brushedMetal
+import com.example.gameswishlist.core.ui.util.modifiers.animatedMetallicBorder
+import com.example.gameswishlist.core.ui.util.modifiers.brushedMetal
 import com.example.gameswishlist.feature.gamedetail.R
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeTint

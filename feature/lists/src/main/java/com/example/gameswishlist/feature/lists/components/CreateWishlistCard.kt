@@ -24,7 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.util.dashedBorder
+import com.example.gameswishlist.core.ui.util.modifiers.dashedBorder
 import com.example.gameswishlist.feature.lists.R
 
 @Composable

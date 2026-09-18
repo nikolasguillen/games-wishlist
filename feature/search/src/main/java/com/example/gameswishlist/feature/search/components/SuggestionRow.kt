@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.util.shimmerEffect
+import com.example.gameswishlist.core.ui.util.modifiers.shimmerEffect
 import com.example.gameswishlist.feature.search.R
 import com.example.gameswishlist.feature.search.model.GameSuggestionUiModel
 import com.example.gameswishlist.core.ui.R as CoreUiR

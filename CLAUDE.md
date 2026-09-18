@@ -95,7 +95,7 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
   never in a composable. Composables render and emit events, nothing else.
 - Collect flows with `collectAsStateWithLifecycle()`.
 - **Before writing a modifier or a component, check whether it already exists** in
-  `core/ui/util/Modifiers.kt` and `core/ui/component/`.
+  `core/ui/util/modifiers/` and `core/ui/component/`.
 - Comments, KDoc, and all internal documentation are written **in English**, regardless of the language of
   the conversation.
 
@@ -106,7 +106,7 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
 | `AppResult`, `RepositoryError` | `core/model/` (not `core/data`) |
 | `UiText` | `core/ui/model/UiText.kt` |
 | Spacing / color / typography tokens | `core/designsystem/theme/` |
-| Shared composables, reusable modifiers | `core/ui/component/`, `core/ui/util/Modifiers.kt` |
+| Shared composables, reusable modifiers | `core/ui/component/`, `core/ui/util/modifiers/` |
 | Nav routes (`NavKey`) | `core/navigation/Routes.kt` |
 | Navigation entry point (`NavDisplay`) | `app/src/main/java/com/example/gameswishlist/MainActivity.kt` |
 | Shared UI constants | `core/ui/util/Constants.kt` (`object UiConstants`) |

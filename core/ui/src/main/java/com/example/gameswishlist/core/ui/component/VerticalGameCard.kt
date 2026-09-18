@@ -55,7 +55,7 @@ import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.util.ColorUtils
 import com.example.gameswishlist.core.ui.util.UiConstants
-import com.example.gameswishlist.core.ui.util.fadingEdge
+import com.example.gameswishlist.core.ui.util.modifiers.fadingEdge
 import kotlinx.coroutines.launch
 
 @Composable
