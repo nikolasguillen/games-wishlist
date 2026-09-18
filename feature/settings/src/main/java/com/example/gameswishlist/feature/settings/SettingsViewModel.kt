@@ -46,7 +46,9 @@ class SettingsViewModel @Inject constructor(
 
     internal fun onEvent(event: SettingsUiEvent) {
         when (event) {
-            SettingsUiEvent.DownloadTranslationModel -> downloadTranslationModel()
+            SettingsUiEvent.DownloadTranslationModel -> requestTranslationModelDownload()
+            SettingsUiEvent.ConfirmDownloadTranslationModel ->
+                viewModelScope.launch { observeTranslationModelDownload() }
         }
     }
 
@@ -79,7 +81,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun downloadTranslationModel() {
+    private fun requestTranslationModelDownload() {
         if (_uiState.value.translationModel is TranslationModelRowState.Downloading) return
         if (!networkStatusProvider.isUnmeteredNetworkAvailable) {
             // AICore only transfers the model's several GB over an unmetered connection; on mobile data
@@ -88,7 +90,7 @@ class SettingsViewModel @Inject constructor(
             viewModelScope.launch { _uiEffect.send(SettingsUiEffect.ShowWifiRequiredDialog) }
             return
         }
-        viewModelScope.launch { observeTranslationModelDownload() }
+        viewModelScope.launch { _uiEffect.send(SettingsUiEffect.ShowDownloadConfirmDialog) }
     }
 
     private suspend fun observeTranslationModelDownload() {

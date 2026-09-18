@@ -43,6 +43,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.feature.settings.components.DownloadTranslationModelDialog
 import com.example.gameswishlist.feature.settings.components.SettingsGroup
 import com.example.gameswishlist.feature.settings.components.SettingsRow
 import com.example.gameswishlist.feature.settings.components.WifiRequiredDialog
@@ -65,12 +66,14 @@ fun SettingsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     var showWifiRequiredDialog by remember { mutableStateOf(false) }
+    var showDownloadConfirmDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel, lifecycle) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.uiEffect.collect { effect ->
                 when (effect) {
                     SettingsUiEffect.ShowWifiRequiredDialog -> showWifiRequiredDialog = true
+                    SettingsUiEffect.ShowDownloadConfirmDialog -> showDownloadConfirmDialog = true
                 }
             }
         }
@@ -86,6 +89,16 @@ fun SettingsScreen(
 
     if (showWifiRequiredDialog) {
         WifiRequiredDialog(onDismiss = { showWifiRequiredDialog = false })
+    }
+
+    if (showDownloadConfirmDialog) {
+        DownloadTranslationModelDialog(
+            onConfirm = {
+                showDownloadConfirmDialog = false
+                viewModel.onEvent(SettingsUiEvent.ConfirmDownloadTranslationModel)
+            },
+            onDismiss = { showDownloadConfirmDialog = false }
+        )
     }
 }
 

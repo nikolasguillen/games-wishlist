@@ -38,9 +38,11 @@ import org.junit.Test
  * Covers the on-device translation model row: the state seeded from [GetTranslationModelStatusUseCase]
  * per [TranslationModelStatus] — including a DOWNLOADING status resuming live progress rather than a
  * static indeterminate spinner — the download progressing the row from Downloading to Ready, a failed
- * download landing on Failed, a second tap while a download is already running being ignored, and a tap
- * off an unmetered network being refused with [SettingsUiEffect.ShowWifiRequiredDialog] instead of
- * starting a download AICore would silently never progress.
+ * download landing on Failed, a second tap while a download is already running being ignored, a tap on
+ * an unmetered network asking for confirmation via [SettingsUiEffect.ShowDownloadConfirmDialog] rather
+ * than starting immediately, and a tap off an unmetered network being refused with
+ * [SettingsUiEffect.ShowWifiRequiredDialog] instead of starting a download AICore would silently never
+ * progress.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
@@ -159,6 +161,7 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         viewModel.onEvent(SettingsUiEvent.DownloadTranslationModel)
+        viewModel.onEvent(SettingsUiEvent.ConfirmDownloadTranslationModel)
         advanceUntilIdle()
 
         // Hidden, the state's default, is not asserted here: unlike the old stateIn(WhileSubscribed)
@@ -187,6 +190,7 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         viewModel.onEvent(SettingsUiEvent.DownloadTranslationModel)
+        viewModel.onEvent(SettingsUiEvent.ConfirmDownloadTranslationModel)
         advanceUntilIdle()
 
         assertEquals(TranslationModelRowState.Failed, states.last().translationModel)
@@ -207,6 +211,7 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         viewModel.onEvent(SettingsUiEvent.DownloadTranslationModel)
+        viewModel.onEvent(SettingsUiEvent.ConfirmDownloadTranslationModel)
         downloadEvents.trySend(TranslationModelDownload.InProgress(fraction = null))
         advanceUntilIdle()
         assertEquals(TranslationModelRowState.Downloading(null), states.last().translationModel)
@@ -244,7 +249,26 @@ class SettingsViewModelTest {
         }
 
     @Test
-    fun `DownloadTranslationModel on an unmetered network starts the download as usual`() = runTest {
+    fun `DownloadTranslationModel on an unmetered network asks for confirmation instead of starting`() = runTest {
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.DOWNLOADABLE
+
+        val viewModel = viewModel()
+        val effects = mutableListOf<SettingsUiEffect>()
+        val effectJob = launch { viewModel.uiEffect.collect { effects.add(it) } }
+        val stateJob = collectStates(viewModel, mutableListOf())
+        advanceUntilIdle()
+
+        viewModel.onEvent(SettingsUiEvent.DownloadTranslationModel)
+        advanceUntilIdle()
+
+        assertEquals(listOf(SettingsUiEffect.ShowDownloadConfirmDialog), effects)
+        coVerify(exactly = 0) { downloadTranslationModelUseCase() }
+        effectJob.cancel()
+        stateJob.cancel()
+    }
+
+    @Test
+    fun `ConfirmDownloadTranslationModel starts the download`() = runTest {
         coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.DOWNLOADABLE
         coEvery { downloadTranslationModelUseCase() } returns flowOf(TranslationModelDownload.Completed)
 
@@ -254,6 +278,7 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         viewModel.onEvent(SettingsUiEvent.DownloadTranslationModel)
+        viewModel.onEvent(SettingsUiEvent.ConfirmDownloadTranslationModel)
         advanceUntilIdle()
 
         assertEquals(TranslationModelRowState.Ready, states.last().translationModel)

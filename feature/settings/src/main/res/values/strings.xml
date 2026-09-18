@@ -7,12 +7,15 @@
     <string name="settings_owned_platforms">Owned platforms</string>
     <string name="settings_owned_platforms_all">All platforms</string>
     <string name="settings_translation_model">Offline translation model</string>
-    <string name="settings_translation_model_downloadable">Download it to translate game descriptions into your language on this device, with no internet connection.</string>
+    <string name="settings_translation_model_downloadable">Translate game descriptions offline on this device.</string>
     <string name="settings_translation_model_downloading">Downloading…</string>
     <string name="settings_translation_model_downloading_progress">Downloading… %1$d%%</string>
     <string name="settings_translation_model_ready">Ready. Translate a description from a game\'s page.</string>
     <string name="settings_translation_model_failed">Download failed. Tap to try again.</string>
     <string name="settings_translation_model_download_action">Download</string>
+    <string name="settings_translation_model_confirm_title">Download translation model?</string>
+    <string name="settings_translation_model_confirm_message">The model is several gigabytes and can only download over Wi-Fi.</string>
+    <string name="settings_translation_model_confirm_action">Continue</string>
     <string name="settings_translation_model_wifi_required_title">Wi-Fi required</string>
     <string name="settings_translation_model_wifi_required_message">The offline translation model is several gigabytes. It can only download over Wi-Fi — connect to a Wi-Fi network and try again.</string>
     <string name="settings_translation_model_wifi_required_action">Got it</string>
