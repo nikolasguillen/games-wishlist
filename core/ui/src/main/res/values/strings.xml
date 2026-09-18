@@ -95,8 +95,6 @@
     <string name="related_expansions">Expansions</string>
     <string name="related_remakes">Remakes</string>
     <string name="related_remasters">Remasters</string>
-    <string name="show_more">Show more</string>
-    <string name="show_less">Show less</string>
     <string name="main_release_date_title">Release date</string>
 
     <!-- Platform Codes (compact, max 3 characters, for icon tiles) -->
