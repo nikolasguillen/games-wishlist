@@ -36,12 +36,13 @@ one by hand:
   skeleton that traces the lines of a `Text` that has already been laid out — prefer it over
   `shimmerEffect()` whenever the shimmer stands in for real text.
 - `MetallicModifiers.kt` — `Modifier.brushedMetal(...)`, `Modifier.metallicBorder(...)`,
-  `Modifier.metallicBackground(...)` and `Modifier.animatedMetallicBorder(...)`, all wrapping the brushes
-  from `MetallicEffects.kt`.
+  `Modifier.metallicBackground(...)`, `Modifier.animatedMetallicBorder(...)` and
+  `Modifier.rainbowMetallicBorder(...)`, all wrapping the brushes from `MetallicEffects.kt`.
 
 Also: `ColorUtils.kt`, `HtmlUtils.kt`, `MetallicEffects.kt` (brush factories:
-`primaryMetallicGradient()`, `rememberAnimatedMetallicGradient()`), `PlatformVisuals.kt`, and
-`Constants.kt` (`object UiConstants` — IGDB platform category/family ids, `MAX_PLATFORM_NAME_LENGTH`,
+`primaryMetallicGradient()`, `rememberAnimatedMetallicGradient()`, `rainbowMetallicGradient()`),
+`PlatformVisuals.kt`, and `Constants.kt` (`object UiConstants` — IGDB platform category/family ids,
+`MAX_PLATFORM_NAME_LENGTH`,
 `RECENT_GENERATION_THRESHOLD`). Shared UI constants belong in `UiConstants`, not inline in a composable.
 
 ## UiText (`model/UiText.kt`)

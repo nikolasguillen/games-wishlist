@@ -68,3 +68,23 @@ fun rememberAnimatedMetallicGradient(
         )
     }
 }
+
+private val RainbowMetallicColors = listOf(
+    Color(0xFFFF595E), // Metallic Red
+    Color(0xFFFFCA3A), // Metallic Yellow
+    Color(0xFF8AC926), // Metallic Green
+    Color(0xFF1982C4), // Metallic Blue
+    Color(0xFF6A4C93), // Metallic Purple
+    Color(0xFFFF595E)  // Metallic Red repeat for continuity
+)
+
+/**
+ * Returns a linear gradient brush that simulates a rainbow metallic effect with a diagonal orientation.
+ */
+fun rainbowMetallicGradient(): Brush {
+    return Brush.linearGradient(
+        colors = RainbowMetallicColors,
+        start = Offset(0f, 0f),
+        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+    )
+}

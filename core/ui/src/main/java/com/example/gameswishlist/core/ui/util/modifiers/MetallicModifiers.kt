@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.ui.util.primaryMetallicGradient
+import com.example.gameswishlist.core.ui.util.rainbowMetallicGradient
 import com.example.gameswishlist.core.ui.util.rememberAnimatedMetallicGradient
 import kotlinx.coroutines.delay
 import kotlin.random.Random
@@ -190,3 +191,15 @@ fun Modifier.metallicBackground(
         shape = shape
     )
 }
+
+/**
+ * A modifier that applies a rainbow metallic border to a composable.
+ */
+fun Modifier.rainbowMetallicBorder(
+    width: Dp = 1.dp,
+    shape: Shape
+): Modifier = this.border(
+    width = width,
+    brush = rainbowMetallicGradient(),
+    shape = shape
+)
