@@ -67,7 +67,7 @@ import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomAlertDialog
 import com.example.gameswishlist.core.ui.component.MainScreenHeader
-import com.example.gameswishlist.core.ui.component.RecentGameCard
+import com.example.gameswishlist.core.ui.component.gamecard.RecentGameCard
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.annotatedStringResource

@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomFilterChip
-import com.example.gameswishlist.core.ui.component.VerticalGameCard
+import com.example.gameswishlist.core.ui.component.gamecard.VerticalGameCard
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.R
