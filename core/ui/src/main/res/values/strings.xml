@@ -130,5 +130,6 @@
     <string name="cancel">Cancel</string>
     <string name="add_label">Add</string>
     <string name="save_label">Save</string>
+    <string name="got_it">Got it</string>
     <string name="select_list_subtitle">Choose a list to add %1s to</string>
 </resources>
