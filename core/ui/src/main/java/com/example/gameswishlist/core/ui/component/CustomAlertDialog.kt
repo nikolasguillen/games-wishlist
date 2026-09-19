@@ -2,6 +2,7 @@ package com.example.gameswishlist.core.ui.component
 
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,7 +31,7 @@ fun CustomAlertDialog(
         text = content,
         confirmButton = {
             if (confirmButtonText.isNotEmpty()) {
-                TextButton(onClick = onConfirm) {
+                Button (onClick = onConfirm) {
                     Text(text = confirmButtonText)
                 }
             }
