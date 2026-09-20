@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.util.modifiers.animatedMetallicBorder
 import com.example.gameswishlist.feature.gamedetail.R
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeTint
@@ -42,8 +41,8 @@ import me.trishiraj.shadowglow.shadowGlow
 private val PILL_WIDTH = 220.dp
 private val PILL_HEIGHT = 76.dp
 private val MAIN_ACTION_SIZE = 60.dp
-private val PILL_BORDER_WIDTH = 2.dp
-private val GLOW_BLUR_RADIUS = 16.dp
+private val GLOW_BLUR_RADIUS = 12.dp
+private val GLOW_BLUR_SPREAD = 4.dp
 
 /**
  * A floating action pill for the Game Detail screen.
@@ -114,7 +113,6 @@ private fun PillBackground(
             .hazeEffect(state = hazeState) {
                 tints = listOf(HazeTint(tintColor))
             }
-            .animatedMetallicBorder(width = PILL_BORDER_WIDTH, shape = CircleShape)
     )
 }
 
@@ -162,7 +160,8 @@ private fun Modifier.pillGlow(color: Color, borderRadius: Dp): Modifier =
         borderRadius = borderRadius,
         blurRadius = GLOW_BLUR_RADIUS,
         offsetX = 0.dp,
-        offsetY = 0.dp
+        offsetY = 0.dp,
+        spread = GLOW_BLUR_SPREAD
     )
 
 @Preview
