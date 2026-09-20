@@ -41,6 +41,7 @@ hilt = "2.60.1"
 hiltNavigationCompose = "1.4.0"
 mockk = "1.14.11"
 mlkitGenaiPrompt = "1.0.0-beta4"
+shadowGlow = "2.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -90,6 +91,7 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.r
 hiltNavCompose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 mlkit-genai-prompt = { group = "com.google.mlkit", name = "genai-prompt", version.ref = "mlkitGenaiPrompt" }
+shadowglow = { group = "me.trishiraj", name = "shadowglow", version.ref = "shadowGlow" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
