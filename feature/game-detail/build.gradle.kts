@@ -47,7 +47,8 @@ dependencies {
     implementation(libs.hiltNavCompose)
     implementation(libs.coil.compose)
     implementation(libs.shadowglow)
-    
+    implementation(libs.haze.blur)
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 

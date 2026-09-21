@@ -32,9 +32,11 @@ import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.feature.gamedetail.R
+import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.blur.HazeBlurStyle
+import dev.chrisbanes.haze.blur.HazeColorEffect
+import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.rememberHazeState
 import me.trishiraj.shadowglow.shadowGlow
 
@@ -110,9 +112,12 @@ private fun PillBackground(
             .pillGlow(color = MaterialTheme.colorScheme.primary, borderRadius = PILL_HEIGHT / 2)
             .size(width = PILL_WIDTH, height = PILL_HEIGHT)
             .clip(CircleShape)
-            .hazeEffect(state = hazeState) {
-                tints = listOf(HazeTint(tintColor))
-            }
+            .hazeBlur(
+                input = HazeInput.Sources(hazeState),
+                style = HazeBlurStyle {
+                    colorEffects(listOf(HazeColorEffect.tint(tintColor)))
+                }
+            )
     )
 }
 

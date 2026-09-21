@@ -46,7 +46,7 @@ import dev.chrisbanes.haze.hazeSource
  * @param onBackClick Callback for the back navigation button.
  * @param modifier The modifier to be applied to the layout.
  * @param headerHeight The height of the hero header area.
- * @param hazeState When provided, registers the scrollable content as a source so callers can blur it from behind floating elements (e.g. via [dev.chrisbanes.haze.hazeEffect]).
+ * @param hazeState When provided, registers the scrollable content as a source so callers can blur it from behind floating elements (e.g. via `hazeBlur`).
  * @param heroContent Composable for the background/hero area. It receives a provider for the current scroll offset.
  * @param actions Composable for the TopAppBar actions. It receives the current TopAppBar alpha (0.0 to 1.0).
  * @param content Composable for the main scrollable content (the "sheet").
