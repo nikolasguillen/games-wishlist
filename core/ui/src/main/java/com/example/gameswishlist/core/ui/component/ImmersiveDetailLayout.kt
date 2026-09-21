@@ -27,8 +27,10 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -64,7 +66,10 @@ fun ImmersiveDetailLayout(
     content: @Composable (innerPadding: PaddingValues) -> Unit
 ) {
     val scrollState = rememberScrollState()
-    val titleThresholdPx = with(LocalDensity.current) { (headerHeight - 100.dp).toPx() }
+    val density = LocalDensity.current
+    val headerHeightPx = with(density) { headerHeight.toPx() }
+    val titleThresholdPx = headerHeightPx - with(density) { 100.dp.toPx() }
+    val topBarContainerColor = MaterialTheme.colorScheme.surfaceContainer
 
     // Calculate TopBar alpha based on scroll position
     val topBarAlpha by remember {
@@ -92,9 +97,7 @@ fun ImmersiveDetailLayout(
                     IconButton(
                         onClick = onBackClick,
                         colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(
-                                alpha = (1f - topBarAlpha)
-                            )
+                            containerColor = topBarContainerColor.copy(alpha = (1f - topBarAlpha))
                         )
                     ) {
                         Icon(
@@ -106,7 +109,7 @@ fun ImmersiveDetailLayout(
                 },
                 actions = { actions(topBarAlpha) },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = topBarAlpha),
+                    containerColor = topBarContainerColor.copy(alpha = topBarAlpha),
                     scrolledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = topBarAlpha),
                 ),
                 windowInsets = WindowInsets.statusBars
@@ -132,6 +135,18 @@ fun ImmersiveDetailLayout(
                     }
             ) {
                 heroContent { scrollState.value }
+
+                // Scrim: dims the header while scrolling, then blends it into the TopAppBar's
+                // own color so the two surfaces read as one by the time it's opaque. Drawn on top
+                // of the hero content (rather than as a colorFilter on it) so the image stays visible.
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .drawBehind {
+                            val dimAlpha = (scrollState.value / headerHeightPx).coerceIn(0f, 0.5f)
+                            drawRect(lerp(Color.Black.copy(alpha = dimAlpha), topBarContainerColor, topBarAlpha))
+                        }
+                )
             }
 
             // Sheet Layer (Top)
