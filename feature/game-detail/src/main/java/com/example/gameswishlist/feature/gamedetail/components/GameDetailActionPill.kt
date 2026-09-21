@@ -6,6 +6,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -37,6 +39,7 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.blur.HazeBlurStyle
 import dev.chrisbanes.haze.blur.HazeColorEffect
 import dev.chrisbanes.haze.blur.hazeBlur
+import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import me.trishiraj.shadowglow.shadowGlow
 
@@ -169,16 +172,38 @@ private fun Modifier.pillGlow(color: Color, borderRadius: Dp): Modifier =
         spread = GLOW_BLUR_SPREAD
     )
 
+private val PREVIEW_WIDTH = 320.dp
+private val PREVIEW_HEIGHT = 180.dp
+
+/**
+ * The pill blurs whatever a [hazeSource] captured, so the preview needs one: fake sheet content
+ * (title, subtitle, card) rather than the hero image, since that's what actually sits behind the
+ * pill at rest — matching it keeps the glow read against a realistic backdrop instead of an empty one.
+ */
 @Preview
 @Composable
 private fun GameDetailActionPillPreview() {
     GamesWishlistTheme {
-        GameDetailActionPill(
-            isFavorite = true,
-            onFavoriteClick = {},
-            onManageListClick = {},
-            onShareClick = {},
-            hazeState = rememberHazeState()
-        )
+        val hazeState = rememberHazeState()
+        Box(
+            modifier = Modifier
+                .size(width = PREVIEW_WIDTH, height = PREVIEW_HEIGHT)
+                .height(200.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeSource(hazeState)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            )
+            GameDetailActionPill(
+                isFavorite = true,
+                onFavoriteClick = {},
+                onManageListClick = {},
+                onShareClick = {},
+                hazeState = hazeState,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
     }
 }
