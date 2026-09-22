@@ -6,9 +6,11 @@ package com.example.gameswishlist.core.model
  * @property date Unix timestamp (seconds) of the release date.
  * @property platformId Internal IGDB unique identifier of the platform this release date refers to.
  * @property platformName The name of the platform this release date refers to.
+ * @property precision How precisely [date] is known.
  */
 data class ReleaseDate(
     val date: Long?,
     val platformId: Int,
-    val platformName: String
+    val platformName: String,
+    val precision: DatePrecision = DatePrecision.EXACT_DATE
 )
