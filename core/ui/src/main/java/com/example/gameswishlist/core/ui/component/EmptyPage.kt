@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SearchOff
@@ -28,13 +29,15 @@ import com.example.gameswishlist.core.ui.model.UiText
  * A full-screen empty state. [actionLabel] and [onActionClick] travel together -- the action renders
  * only when both are non-null -- because unlike [ErrorPage]'s fixed "Retry", what an empty state can do
  * about itself is caller-specific (clear a search, clear active filters, retry a sync, ...), so the label
- * has to come from the caller too.
+ * has to come from the caller too. [subtitle] is optional, second-line explanatory text (e.g. Radar's
+ * empty state) rendered de-emphasized below [message]; omitted entirely when null.
  */
 @Composable
 fun EmptyPage(
     message: String,
     icon: ImageVector,
     modifier: Modifier = Modifier,
+    subtitle: String? = null,
     actionLabel: UiText? = null,
     onActionClick: (() -> Unit)? = null
 ) {
@@ -59,6 +62,16 @@ fun EmptyPage(
                 style = MaterialTheme.typography.labelLarge,
                 textAlign = TextAlign.Center
             )
+            if (subtitle != null) {
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
+                Text(
+                    text = subtitle,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.extraLarge)
+                )
+            }
             if (actionLabel != null && onActionClick != null) {
                 TextButton(onClick = onActionClick) {
                     Text(text = actionLabel.asString())
@@ -88,6 +101,18 @@ private fun EmptyPageWithActionPreview() {
             icon = Icons.Outlined.SearchOff,
             actionLabel = UiText.DynamicString("Clear filters"),
             onActionClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun EmptyPageWithSubtitlePreview() {
+    GamesWishlistTheme {
+        EmptyPage(
+            message = "Nothing on the radar yet",
+            subtitle = "Save games with a release date and they'll show up here, sorted by when they launch.",
+            icon = Icons.Outlined.SearchOff
         )
     }
 }
