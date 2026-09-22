@@ -82,6 +82,8 @@ private fun DiscoverContent(
             popular = state.popular,
             upcoming = state.upcoming,
             onGameClick = onGameClick,
+            onSaveClick = { onEvent(SearchUiEvent.OnToggleSave(it)) },
+            onLongClick = { onEvent(SearchUiEvent.OnOpenListSelector(it)) },
             recommended = state.recommended,
             isStale = state.isStale,
             isRefreshing = state.isRefreshing,

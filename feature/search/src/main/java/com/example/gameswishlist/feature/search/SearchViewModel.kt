@@ -21,11 +21,13 @@ import com.example.gameswishlist.core.domain.usecase.search.GetSearchSuggestions
 import com.example.gameswishlist.core.domain.usecase.search.RemoveRecentGameUseCase
 import com.example.gameswishlist.core.domain.usecase.search.SearchGamesUseCase
 import com.example.gameswishlist.core.model.AppResult
+import com.example.gameswishlist.core.model.DiscoverFeed
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.SearchSuggestion
 import com.example.gameswishlist.core.ui.mapper.getDisplayRating
 import com.example.gameswishlist.core.ui.mapper.toGameItemList
 import com.example.gameswishlist.core.ui.mapper.toUiText
+import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.mapper.getInitialGameTypeFilters
 import com.example.gameswishlist.feature.search.mapper.getInitialSortFilters
@@ -121,6 +123,11 @@ class SearchViewModel @Inject constructor(
     // a filter or sort change) can be stamped with membership synchronously, instead of starting every
     // card unsaved for one frame until the collector's next emission patches it.
     private val wishlistedGameIds = MutableStateFlow<Set<Int>>(emptySet())
+
+    // The domain feed behind the currently rendered Discover state, so a save/long-press coming from one
+    // of its cards can resolve back to a Game the same way a search result's card does -- the Discover
+    // feed is shown while contentState is Idle, so it has no SearchContentState.Success.allGames to search.
+    private var discoverFeed: DiscoverFeed? = null
 
     init {
         initSearchHistory()
@@ -338,16 +345,32 @@ class SearchViewModel @Inject constructor(
     }
 
     /**
+     * Looks in whichever source the id could have come from: the search results grid, or the Discover
+     * feed cached by [observeDiscoverFeed]. The two content areas are mutually exclusive on screen, but
+     * either one's cards can hand a gameId to [toggleSave]/[openListSelector], so both need checking
+     * regardless of which is currently rendered.
+     */
+    private fun findGame(gameId: Int): Game? {
+        val contentState = _uiState.value.contentState
+        if (contentState is SearchContentState.Success) {
+            contentState.allGames.find { it.id == gameId }?.let { return it }
+        }
+
+        val feed = discoverFeed ?: return null
+        return feed.popular.find { it.id == gameId }
+            ?: feed.upcoming.find { it.id == gameId }
+            ?: feed.recommended.firstNotNullOfOrNull { shelf -> shelf.games.find { it.id == gameId } }
+    }
+
+    /**
      * No optimistic update: the toggle writes to Room, which [observeWishlistedGameIds] re-emits from,
      * and that is what actually patches the card. The confirmation snackbar does not wait for that
-     * round trip either -- [wasSaved] is read from the card's own state, from before the toggle.
+     * round trip either -- [wasSaved] is read from [wishlistedGameIds], the shared membership cache, so
+     * it agrees with the toggle regardless of whether it came from the search grid or the Discover feed.
      */
     private fun toggleSave(gameId: Int) {
-        val contentState = _uiState.value.contentState
-        if (contentState !is SearchContentState.Success) return
-
-        val game = contentState.allGames.find { it.id == gameId } ?: return
-        val wasSaved = contentState.games.find { it.id == gameId }?.isSaved == true
+        val game = findGame(gameId) ?: return
+        val wasSaved = gameId in wishlistedGameIds.value
 
         viewModelScope.launch { toggleWishlistUseCase(game) }
 
@@ -358,10 +381,7 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun openListSelector(gameId: Int) {
-        val contentState = _uiState.value.contentState
-        if (contentState !is SearchContentState.Success) return
-
-        val game = contentState.allGames.find { it.id == gameId } ?: return
+        val game = findGame(gameId) ?: return
 
         viewModelScope.launch {
             val assignments = getWishlistAssignmentsUseCase(game.id).first()
@@ -630,7 +650,10 @@ class SearchViewModel @Inject constructor(
         viewModelScope.launch {
             getDiscoverFeedUseCase(refresh = discoverRefresh).collect { result ->
                 val newState = when (result) {
-                    is AppResult.Success -> result.data.toDiscoverContentState()
+                    is AppResult.Success -> {
+                        discoverFeed = result.data
+                        result.data.toDiscoverContentState()
+                    }
                     is AppResult.Failure -> DiscoverContentState.Error(result.error.toUiText())
                 }
                 _uiState.update { it.copy(discover = newState) }
@@ -639,10 +662,10 @@ class SearchViewModel @Inject constructor(
     }
 
     /**
-     * Patches [SearchContentState.Success.games] with the games currently in the default wishlist,
-     * in place -- filtering and sorting are not re-run, only each card's saved flag changes. Collected
-     * for the whole life of the ViewModel, the same way [observeDiscoverFeed] is, since a toggle from
-     * the card has to reach a search result that was already on screen before the toggle.
+     * Patches both content areas' games with the ids currently in the default wishlist, in place --
+     * filtering, sorting and the shelf layout are not re-run, only each card's saved flag changes.
+     * Collected for the whole life of the ViewModel, the same way [observeDiscoverFeed] is, since a
+     * toggle from either area's card has to reach every card showing that same game, on screen or not.
      */
     private fun observeWishlistedGameIds() {
         viewModelScope.launch {
@@ -651,17 +674,34 @@ class SearchViewModel @Inject constructor(
 
                 _uiState.update { current ->
                     val contentState = current.contentState
-                    if (contentState !is SearchContentState.Success) return@update current
+                    val patchedContentState = if (contentState is SearchContentState.Success) {
+                        contentState.copy(games = contentState.games.withSavedState(ids))
+                    } else {
+                        contentState
+                    }
 
-                    current.copy(
-                        contentState = contentState.copy(
-                            games = contentState.games.map { it.copy(isSaved = it.id in ids) }
+                    val discover = current.discover
+                    val patchedDiscover = if (discover is DiscoverContentState.Content) {
+                        discover.copy(
+                            hero = discover.hero?.let { it.copy(isSaved = it.id in ids) },
+                            popular = discover.popular.withSavedState(ids),
+                            upcoming = discover.upcoming.withSavedState(ids),
+                            recommended = discover.recommended.map {
+                                it.copy(games = it.games.withSavedState(ids))
+                            }
                         )
-                    )
+                    } else {
+                        discover
+                    }
+
+                    current.copy(contentState = patchedContentState, discover = patchedDiscover)
                 }
             }
         }
     }
+
+    private fun List<GameItemUiModel>.withSavedState(ids: Set<Int>): List<GameItemUiModel> =
+        map { it.copy(isSaved = it.id in ids) }
 
     /**
      * Flags the current feed as reloading before the trigger even reaches the use case, so the prompt

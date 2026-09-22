@@ -38,6 +38,7 @@ import coil.compose.SubcomposeAsyncImage
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
+import com.example.gameswishlist.core.ui.component.gamecard.SaveToWishlistButton
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.util.UiConstants
 import com.example.gameswishlist.core.ui.util.modifiers.fadingEdge
@@ -53,9 +54,12 @@ import com.example.gameswishlist.core.ui.R as CoreUiR
 internal fun DiscoverHero(
     game: GameItemUiModel,
     onGameClick: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSaveClick: () -> Unit = {},
+    onLongClick: () -> Unit = {}
 ) {
     val heroHeight = 240.dp
+    val chooseListLabel = stringResource(CoreUiR.string.choose_list_content_description)
 
     Column(modifier = modifier) {
         Box(
@@ -98,6 +102,16 @@ internal fun DiscoverHero(
             } else {
                 HeroImageFallback()
             }
+
+            SaveToWishlistButton(
+                isSaved = game.isSaved,
+                onSaveClick = onSaveClick,
+                onLongClick = onLongClick,
+                longClickLabel = chooseListLabel,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(MaterialTheme.spacing.small)
+            )
 
             Surface(
                 color = Color.Black.copy(alpha = 0.8f),
@@ -200,6 +214,19 @@ private fun DiscoverHeroPreview() {
     GamesWishlistTheme {
         DiscoverHero(
             game = GameItemUiModel.getDummy().copy(name = "Hollow Knight: Silksong"),
+            onGameClick = {},
+            modifier = Modifier.padding(MaterialTheme.spacing.large)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun DiscoverHeroSavedPreview() {
+    GamesWishlistTheme {
+        DiscoverHero(
+            game = GameItemUiModel.getDummy()
+                .copy(name = "Hollow Knight: Silksong", isSaved = true),
             onGameClick = {},
             modifier = Modifier.padding(MaterialTheme.spacing.large)
         )

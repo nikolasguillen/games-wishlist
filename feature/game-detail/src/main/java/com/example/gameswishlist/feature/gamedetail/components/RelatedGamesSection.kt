@@ -19,7 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.component.gamecard.GameCompactCard
+import com.example.gameswishlist.core.ui.component.gamecard.CompactGameCard
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.model.RelatedGamesUiModel
@@ -49,7 +49,7 @@ internal fun RelatedGamesSection(
                 contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large)
             ) {
                 items(related.games) { game ->
-                    GameCompactCard(
+                    CompactGameCard(
                         game = game,
                         onClick = { onGameClick(game.id) },
                         modifier = Modifier.width(140.dp)

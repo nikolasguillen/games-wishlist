@@ -1,8 +1,5 @@
 package com.example.gameswishlist.core.ui.component.gamecard
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -16,25 +13,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,7 +35,6 @@ import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.util.ColorUtils
 import com.example.gameswishlist.core.ui.util.UiConstants
 import com.example.gameswishlist.core.ui.util.modifiers.fadingEdge
-import kotlinx.coroutines.launch
 
 @Composable
 fun VerticalGameCard(
@@ -83,7 +69,9 @@ fun VerticalGameCard(
                 onSaveClick = onSaveClick,
                 onLongClick = onLongClick,
                 longClickLabel = chooseListLabel,
-                modifier = Modifier.align(Alignment.TopEnd)
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(MaterialTheme.spacing.small)
             )
 
             Column(
@@ -110,83 +98,6 @@ fun VerticalGameCard(
                     rating = game.rating,
                     developer = game.developer,
                     releaseYear = game.releaseYear
-                )
-            }
-        }
-    }
-}
-
-/**
- * Toggles the game's membership in the default wishlist. A tap toggles it directly; a long press
- * (shared with the card underneath it, so it fires regardless of which of the two catches the gesture)
- * opens the list selector instead.
- */
-@Composable
-private fun SaveToWishlistButton(
-    isSaved: Boolean,
-    onSaveClick: () -> Unit,
-    onLongClick: () -> Unit,
-    longClickLabel: String,
-    modifier: Modifier = Modifier
-) {
-    // Triggered from the click callback rather than derived from isSaved: keying it to the state would
-    // replay the pulse on every card that is already saved the moment the grid first composes, and again
-    // whenever a scrolled-away card re-enters composition.
-    val scale = remember { Animatable(1f) }
-    val scope = rememberCoroutineScope()
-    val haptics = LocalHapticFeedback.current
-
-    // The touch target (48dp, accessibility minimum) is kept larger than the visible circle (32dp),
-    // the same way Material's own IconButton pads a 24dp icon inside a 48dp target.
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier
-            .padding(MaterialTheme.spacing.small)
-            .size(48.dp)
-            .clip(CircleShape)
-            .combinedClickable(
-                onClick = {
-                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-                    scope.launch {
-                        scale.animateTo(
-                            1.3f,
-                            animationSpec = spring(stiffness = Spring.StiffnessHigh)
-                        )
-                        scale.animateTo(
-                            1f,
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessLow
-                            )
-                        )
-                    }
-                    onSaveClick()
-                },
-                // combinedClickable already performs HapticFeedbackType.LongPress on its own, so the
-                // long-click branch needs no explicit call.
-                onLongClick = onLongClick,
-                onLongClickLabel = longClickLabel
-            )
-    ) {
-        Surface(
-            color = Color.Black.copy(alpha = 0.6f),
-            shape = CircleShape,
-            modifier = Modifier
-                .size(32.dp)
-                .scale(scale.value)
-        ) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                Icon(
-                    imageVector = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = stringResource(
-                        if (isSaved) {
-                            R.string.remove_from_wishlist_content_description
-                        } else {
-                            R.string.add_to_wishlist_content_description
-                        }
-                    ),
-                    tint = if (isSaved) MaterialTheme.colorScheme.primary else Color.White,
-                    modifier = Modifier.size(MaterialTheme.spacing.large)
                 )
             }
         }

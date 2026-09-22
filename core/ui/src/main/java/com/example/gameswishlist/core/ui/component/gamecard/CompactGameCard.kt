@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,20 +27,25 @@ import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.designsystem.theme.spacing
+import com.example.gameswishlist.core.ui.R
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.util.modifiers.fadingEdge
 
 @Composable
-fun GameCompactCard(
+fun CompactGameCard(
     game: GameItemUiModel,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onLongClick: (() -> Unit)? = null,
+    onSaveClick: (() -> Unit)? = null
 ) {
     val cardHeight = 150.dp
+    val chooseListLabel = stringResource(R.string.choose_list_content_description)
     OutlinedCard(
         border = BorderStroke(1.dp, MaterialTheme.appColors.cardContainerColor),
         modifier = modifier
             .height(cardHeight)
+            .aspectRatio(1f)
             .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
             .clickable(onClick = onClick)
     ) {
@@ -47,6 +54,16 @@ fun GameCompactCard(
                 coverImage = game.coverImage,
                 height = cardHeight
             )
+
+            if (onSaveClick != null) {
+                SaveToWishlistButton(
+                    isSaved = game.isSaved,
+                    onSaveClick = onSaveClick,
+                    onLongClick = onLongClick,
+                    longClickLabel = chooseListLabel,
+                    modifier = Modifier.align(Alignment.TopEnd)
+                )
+            }
 
             Column(
                 modifier = Modifier
@@ -80,11 +97,13 @@ fun GameCompactCard(
 
 @Preview(showBackground = true)
 @Composable
-private fun GameCompactCardPreview() {
+private fun CompactGameCardPreview() {
     GamesWishlistTheme {
-        GameCompactCard(
+        CompactGameCard(
             game = GameItemUiModel.getDummy(),
-            onClick = {}
+            onClick = {},
+            onSaveClick = {},
+            onLongClick = {}
         )
     }
 }

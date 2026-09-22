@@ -33,7 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
-import com.example.gameswishlist.core.ui.component.gamecard.GameCompactCard
+import com.example.gameswishlist.core.ui.component.gamecard.CompactGameCard
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.search.R
@@ -60,6 +60,8 @@ internal fun DiscoverFeed(
     popular: List<GameItemUiModel>,
     upcoming: List<GameItemUiModel>,
     onGameClick: (Int) -> Unit,
+    onSaveClick: (Int) -> Unit,
+    onLongClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
     recommended: List<RecommendedShelfUiModel> = emptyList(),
     isStale: Boolean = false,
@@ -99,6 +101,8 @@ internal fun DiscoverFeed(
                 DiscoverHero(
                     game = hero,
                     onGameClick = onGameClick,
+                    onSaveClick = { onSaveClick(hero.id) },
+                    onLongClick = { onLongClick(hero.id) },
                     modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
                 )
             }
@@ -108,7 +112,9 @@ internal fun DiscoverFeed(
                 DiscoverShelf(
                     title = shelf.title.asString(),
                     games = shelf.games,
-                    onGameClick = onGameClick
+                    onGameClick = onGameClick,
+                    onSaveClick = onSaveClick,
+                    onLongClick = onLongClick
                 )
             }
         }
@@ -117,7 +123,9 @@ internal fun DiscoverFeed(
                 DiscoverShelf(
                     title = stringResource(R.string.discover_most_anticipated),
                     games = upcoming,
-                    onGameClick = onGameClick
+                    onGameClick = onGameClick,
+                    onSaveClick = onSaveClick,
+                    onLongClick = onLongClick
                 )
             }
         }
@@ -126,7 +134,9 @@ internal fun DiscoverFeed(
                 DiscoverShelf(
                     title = stringResource(R.string.discover_popular_this_month),
                     games = popular,
-                    onGameClick = onGameClick
+                    onGameClick = onGameClick,
+                    onSaveClick = onSaveClick,
+                    onLongClick = onLongClick
                 )
             }
         }
@@ -201,6 +211,8 @@ private fun DiscoverShelf(
     title: String,
     games: List<GameItemUiModel>,
     onGameClick: (Int) -> Unit,
+    onSaveClick: (Int) -> Unit,
+    onLongClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -219,9 +231,11 @@ private fun DiscoverShelf(
             contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large)
         ) {
             items(items = games, key = { it.id }) { game ->
-                GameCompactCard(
+                CompactGameCard(
                     game = game,
                     onClick = { onGameClick(game.id) },
+                    onSaveClick = { onSaveClick(game.id) },
+                    onLongClick = { onLongClick(game.id) },
                     modifier = Modifier.width(140.dp)
                 )
             }
@@ -243,7 +257,9 @@ private fun DiscoverFeedPreview() {
             hero = previewGames.first(),
             popular = previewGames,
             upcoming = previewGames.drop(1),
-            onGameClick = {}
+            onGameClick = {},
+            onSaveClick = {},
+            onLongClick = {}
         )
     }
 }
@@ -257,6 +273,8 @@ private fun DiscoverFeedRecommendedPreview() {
             popular = previewGames,
             upcoming = previewGames.drop(1),
             onGameClick = {},
+            onSaveClick = {},
+            onLongClick = {},
             recommended = listOf(
                 RecommendedShelfUiModel(
                     title = UiText.StringResource(R.string.discover_more_from, "Larian Studios"),
@@ -280,6 +298,8 @@ private fun DiscoverFeedStalePreview() {
             popular = previewGames,
             upcoming = previewGames.drop(1),
             onGameClick = {},
+            onSaveClick = {},
+            onLongClick = {},
             isStale = true
         )
     }
@@ -294,6 +314,8 @@ private fun DiscoverFeedRefreshingPreview() {
             popular = previewGames,
             upcoming = previewGames.drop(1),
             onGameClick = {},
+            onSaveClick = {},
+            onLongClick = {},
             isStale = true,
             isRefreshing = true
         )
@@ -308,7 +330,9 @@ private fun DiscoverFeedEmptyPreview() {
             hero = null,
             popular = emptyList(),
             upcoming = emptyList(),
-            onGameClick = {}
+            onGameClick = {},
+            onSaveClick = {},
+            onLongClick = {}
         )
     }
 }

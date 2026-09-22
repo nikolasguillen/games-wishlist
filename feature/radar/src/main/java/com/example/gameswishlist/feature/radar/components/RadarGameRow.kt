@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -13,21 +12,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomInfoChip
+import com.example.gameswishlist.core.ui.component.gamecard.MiniGameCard
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.radar.model.RadarEntryUiModel
 import com.example.gameswishlist.feature.radar.model.RadarEntryUiModel.DateLabelStyle
-import com.example.gameswishlist.core.ui.R as CoreUiR
 
 @Composable
 internal fun RadarGameRow(
@@ -44,15 +38,7 @@ internal fun RadarGameRow(
                 vertical = MaterialTheme.spacing.mediumLarge
             )
     ) {
-        AsyncImage(
-            model = entry.coverImage,
-            contentDescription = null,
-            error = painterResource(CoreUiR.drawable.placeholder),
-            modifier = Modifier
-                .size(48.dp)
-                .clip(MaterialTheme.shapes.small),
-            contentScale = ContentScale.Crop
-        )
+        MiniGameCard(coverImage = entry.coverImage)
         Spacer(modifier = Modifier.width(MaterialTheme.spacing.large))
         Column(modifier = Modifier.weight(1f)) {
             Text(
