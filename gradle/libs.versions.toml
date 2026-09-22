@@ -42,6 +42,10 @@ hiltNavigationCompose = "1.4.0"
 mockk = "1.14.11"
 mlkitGenaiPrompt = "1.0.0-beta4"
 shadowGlow = "2.0.0"
+androidxWorkRuntimeKtx = "2.11.2"
+androidxHiltWork = "1.4.0"
+androidxHiltCompiler = "1.4.0"
+kotlinxDatetime = "0.8.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -93,6 +97,10 @@ hiltNavCompose = { group = "androidx.hilt", name = "hilt-navigation-compose", ve
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 mlkit-genai-prompt = { group = "com.google.mlkit", name = "genai-prompt", version.ref = "mlkitGenaiPrompt" }
 shadowglow = { group = "me.trishiraj", name = "shadowglow", version.ref = "shadowGlow" }
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "androidxWorkRuntimeKtx" }
+androidx-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "androidxHiltWork" }
+androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "androidxHiltCompiler" }
+kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
