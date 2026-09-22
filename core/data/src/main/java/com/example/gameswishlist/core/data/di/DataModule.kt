@@ -1,7 +1,9 @@
 package com.example.gameswishlist.core.data.di
 
 import com.example.gameswishlist.core.data.repository.GameRepositoryImpl
+import com.example.gameswishlist.core.data.scheduler.ReleaseRefreshSchedulerImpl
 import com.example.gameswishlist.core.data.translation.GameDescriptionTranslatorImpl
+import com.example.gameswishlist.core.domain.radar.ReleaseRefreshScheduler
 import com.example.gameswishlist.core.domain.repository.GameRepository
 import com.example.gameswishlist.core.domain.translation.GameDescriptionTranslator
 import dagger.Binds
@@ -29,6 +31,12 @@ abstract class DataModule {
     abstract fun bindGameDescriptionTranslator(
         gameDescriptionTranslatorImpl: GameDescriptionTranslatorImpl
     ): GameDescriptionTranslator
+
+    @Binds
+    @Singleton
+    abstract fun bindReleaseRefreshScheduler(
+        releaseRefreshSchedulerImpl: ReleaseRefreshSchedulerImpl
+    ): ReleaseRefreshScheduler
 
     companion object {
         // Backs GameDescriptionTranslatorImpl's model download: it must outlive any single
