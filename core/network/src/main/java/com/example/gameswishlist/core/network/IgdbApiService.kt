@@ -3,6 +3,7 @@ package com.example.gameswishlist.core.network
 import com.example.gameswishlist.core.network.model.IgdbGame
 import com.example.gameswishlist.core.network.model.IgdbPlatform
 import com.example.gameswishlist.core.network.model.IgdbPopularityPrimitive
+import com.example.gameswishlist.core.network.model.IgdbReleaseDateEntry
 import okhttp3.RequestBody
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -27,4 +28,9 @@ interface IgdbApiService {
     suspend fun getPlatforms(
         @Body body: RequestBody
     ): List<IgdbPlatform>
+
+    @POST("release_dates")
+    suspend fun getReleaseDates(
+        @Body body: RequestBody
+    ): List<IgdbReleaseDateEntry>
 }
