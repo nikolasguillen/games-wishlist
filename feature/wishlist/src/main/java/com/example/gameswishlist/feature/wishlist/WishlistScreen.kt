@@ -9,7 +9,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,6 +30,7 @@ import com.example.gameswishlist.core.ui.component.LoadingPage
 import com.example.gameswishlist.core.ui.model.GameItemUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.wishlist.components.DeleteWishlistDialog
+import com.example.gameswishlist.feature.wishlist.components.RemoveGameDialog
 import com.example.gameswishlist.feature.wishlist.components.WishlistGamesList
 import com.example.gameswishlist.feature.wishlist.components.WishlistTopBar
 import com.example.gameswishlist.feature.wishlist.model.WishlistContentState
@@ -59,15 +59,8 @@ fun WishlistScreen(
             viewModel.uiEffect.collect { effect ->
                 when (effect) {
                     WishlistUiEffect.NavigateBack -> onBackClick()
-                    is WishlistUiEffect.ShowSnackbar -> {
-                        val result = snackbarHostState.showSnackbar(
-                            message = effect.message.asString(context),
-                            actionLabel = effect.actionLabel?.asString(context)
-                        )
-                        if (result == SnackbarResult.ActionPerformed) {
-                            effect.actionEvent?.let(viewModel::onEvent)
-                        }
-                    }
+                    is WishlistUiEffect.ShowSnackbar ->
+                        snackbarHostState.showSnackbar(effect.message.asString(context))
                 }
             }
         }
@@ -94,6 +87,8 @@ internal fun WishlistContent(
     modifier: Modifier = Modifier
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var revealedGameId by remember { mutableStateOf<Int?>(null) }
+    var gamePendingRemoval by remember { mutableStateOf<GameItemUiModel?>(null) }
 
     Scaffold(
         topBar = {
@@ -120,8 +115,10 @@ internal fun WishlistContent(
 
             is WishlistContentState.Success -> WishlistGamesList(
                 sections = content.sections,
+                revealedGameId = revealedGameId,
+                onRevealedGameIdChange = { revealedGameId = it },
                 onGameClick = onGameClick,
-                onGameRemove = { game -> onEvent(WishlistUiEvent.OnGameRemoved(game.id)) },
+                onGameRemoveClick = { game -> gamePendingRemoval = game },
                 modifier = contentModifier
             )
         }
@@ -134,6 +131,21 @@ internal fun WishlistContent(
                     onEvent(WishlistUiEvent.OnWishlistDeleted)
                 },
                 onDismiss = { showDeleteDialog = false }
+            )
+        }
+
+        gamePendingRemoval?.let { game ->
+            RemoveGameDialog(
+                gameName = game.name,
+                onConfirm = {
+                    gamePendingRemoval = null
+                    revealedGameId = null
+                    onEvent(WishlistUiEvent.OnGameRemoved(game.id))
+                },
+                onDismiss = {
+                    gamePendingRemoval = null
+                    revealedGameId = null
+                }
             )
         }
     }

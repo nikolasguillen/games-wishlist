@@ -2,7 +2,6 @@ package com.example.gameswishlist.feature.wishlist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gameswishlist.core.domain.usecase.list.AddGameToListUseCase
 import com.example.gameswishlist.core.domain.usecase.list.DeleteListUseCase
 import com.example.gameswishlist.core.domain.usecase.list.GetWishlistDetailUseCase
 import com.example.gameswishlist.core.domain.usecase.list.RemoveGameFromListUseCase
@@ -32,7 +31,6 @@ class WishlistViewModel @AssistedInject constructor(
     getWishlistDetailUseCase: GetWishlistDetailUseCase,
     private val deleteListUseCase: DeleteListUseCase,
     private val removeGameFromListUseCase: RemoveGameFromListUseCase,
-    private val addGameToListUseCase: AddGameToListUseCase,
 ) : ViewModel() {
     private val _uiEffect = Channel<WishlistUiEffect>(Channel.BUFFERED)
     internal val uiEffect = _uiEffect.receiveAsFlow()
@@ -67,7 +65,6 @@ class WishlistViewModel @AssistedInject constructor(
         return when (event) {
             is WishlistUiEvent.OnWishlistDeleted -> deleteList()
             is WishlistUiEvent.OnGameRemoved -> removeGame(event.gameId)
-            is WishlistUiEvent.OnGameRemoveUndo -> undoRemoveGame(event.gameId)
         }
     }
 
@@ -88,19 +85,6 @@ class WishlistViewModel @AssistedInject constructor(
     private fun removeGame(gameId: Int) {
         viewModelScope.launch {
             removeGameFromListUseCase(gameId, listId)
-            _uiEffect.send(
-                WishlistUiEffect.ShowSnackbar(
-                    message = UiText.StringResource(R.string.game_removed_from_wishlist),
-                    actionLabel = UiText.StringResource(R.string.undo_action),
-                    actionEvent = WishlistUiEvent.OnGameRemoveUndo(gameId)
-                )
-            )
-        }
-    }
-
-    private fun undoRemoveGame(gameId: Int) {
-        viewModelScope.launch {
-            addGameToListUseCase(gameId, listId)
         }
     }
 
