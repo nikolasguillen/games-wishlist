@@ -1,0 +1,68 @@
+package com.example.gameswishlist.core.domain.radar
+
+import com.example.gameswishlist.core.domain.repository.GameRepository
+import com.example.gameswishlist.core.domain.usecase.discover.GetSelectedPlatformIdsUseCase
+import com.example.gameswishlist.core.model.Game
+import com.example.gameswishlist.core.model.RadarTimelineSection
+import com.example.gameswishlist.core.model.ReleaseBucket
+import com.example.gameswishlist.core.model.ReleaseDate
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlin.time.Clock
+import kotlin.time.Instant
+import javax.inject.Inject
+
+/**
+ * Builds the Radar timeline: every saved game with a release date, grouped into non-empty
+ * [RadarTimelineSection]s and sorted ascending by date within a bucket ([ReleaseBucket.TBA] sorted
+ * alphabetically instead, since it has no date to sort by).
+ */
+class GetRadarTimelineUseCase @Inject constructor(
+    private val gameRepository: GameRepository,
+    private val getSelectedPlatformIdsUseCase: GetSelectedPlatformIdsUseCase
+) {
+    operator fun invoke(): Flow<List<RadarTimelineSection>> {
+        return combine(
+            gameRepository.getSavedGames(),
+            getSelectedPlatformIdsUseCase()
+        ) { games, ownedPlatformIds ->
+            buildTimeline(games, ownedPlatformIds, Clock.System.now())
+        }
+    }
+
+    private fun buildTimeline(
+        games: List<Game>,
+        ownedPlatformIds: Set<Int>,
+        now: Instant
+    ): List<RadarTimelineSection> {
+        val bucketed = games.mapNotNull { game ->
+            val releaseDate = game.resolveReleaseDate(ownedPlatformIds) ?: return@mapNotNull null
+            val bucket = resolveBucket(releaseDate.date, releaseDate.precision, now) ?: return@mapNotNull null
+            BucketedGame(bucket, game, releaseDate)
+        }
+
+        return ReleaseBucket.entries.mapNotNull { bucket ->
+            val entries = bucketed.filter { it.bucket == bucket }
+            if (entries.isEmpty()) return@mapNotNull null
+            val sortedGames = if (bucket == ReleaseBucket.TBA) {
+                entries.sortedBy { it.game.name }
+            } else {
+                entries.sortedBy { it.releaseDate.date }
+            }.map { it.game }
+            RadarTimelineSection(bucket, sortedGames)
+        }
+    }
+
+    private data class BucketedGame(val bucket: ReleaseBucket, val game: Game, val releaseDate: ReleaseDate)
+}
+
+/**
+ * Per the multi-platform date resolution decision: the earliest release date among the platforms the user
+ * owns; if there's no selection or no match, falls back to the earliest date across all the game's
+ * platforms. `null` means the game has no release date data at all.
+ */
+private fun Game.resolveReleaseDate(ownedPlatformIds: Set<Int>): ReleaseDate? {
+    val ownedDates = releaseDates.filter { it.platformId in ownedPlatformIds }
+    val candidates = ownedDates.ifEmpty { releaseDates }
+    return candidates.minByOrNull { it.date ?: Long.MAX_VALUE }
+}
