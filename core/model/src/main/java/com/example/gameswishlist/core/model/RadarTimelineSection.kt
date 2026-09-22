@@ -6,5 +6,5 @@ package com.example.gameswishlist.core.model
  */
 data class RadarTimelineSection(
     val bucket: ReleaseBucket,
-    val games: List<Game>
+    val entries: List<RadarEntry>
 )

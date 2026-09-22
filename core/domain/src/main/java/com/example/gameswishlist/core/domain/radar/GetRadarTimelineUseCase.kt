@@ -3,6 +3,7 @@ package com.example.gameswishlist.core.domain.radar
 import com.example.gameswishlist.core.domain.repository.GameRepository
 import com.example.gameswishlist.core.domain.usecase.discover.GetSelectedPlatformIdsUseCase
 import com.example.gameswishlist.core.model.Game
+import com.example.gameswishlist.core.model.RadarEntry
 import com.example.gameswishlist.core.model.RadarTimelineSection
 import com.example.gameswishlist.core.model.ReleaseBucket
 import com.example.gameswishlist.core.model.ReleaseDate
@@ -38,22 +39,20 @@ class GetRadarTimelineUseCase @Inject constructor(
         val bucketed = games.mapNotNull { game ->
             val releaseDate = game.resolveReleaseDate(ownedPlatformIds) ?: return@mapNotNull null
             val bucket = resolveBucket(releaseDate.date, releaseDate.precision, now) ?: return@mapNotNull null
-            BucketedGame(bucket, game, releaseDate)
+            bucket to RadarEntry(game, releaseDate)
         }
 
         return ReleaseBucket.entries.mapNotNull { bucket ->
-            val entries = bucketed.filter { it.bucket == bucket }
+            val entries = bucketed.filter { it.first == bucket }.map { it.second }
             if (entries.isEmpty()) return@mapNotNull null
-            val sortedGames = if (bucket == ReleaseBucket.TBA) {
+            val sortedEntries = if (bucket == ReleaseBucket.TBA) {
                 entries.sortedBy { it.game.name }
             } else {
                 entries.sortedBy { it.releaseDate.date }
-            }.map { it.game }
-            RadarTimelineSection(bucket, sortedGames)
+            }
+            RadarTimelineSection(bucket, sortedEntries)
         }
     }
-
-    private data class BucketedGame(val bucket: ReleaseBucket, val game: Game, val releaseDate: ReleaseDate)
 }
 
 /**
