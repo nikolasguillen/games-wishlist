@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -26,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
-import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.navigation.ListsRoute
 import com.example.gameswishlist.core.navigation.SearchRoute
 import dagger.hilt.android.AndroidEntryPoint
@@ -51,7 +49,6 @@ class MainActivity : ComponentActivity() {
 fun MainContent() {
     val backStack = rememberNavBackStack(SearchRoute as NavKey)
     Scaffold(
-        containerColor = MaterialTheme.appColors.appBackground,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             AnimatedVisibility(

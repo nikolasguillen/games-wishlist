@@ -1,6 +1,7 @@
 package com.example.gameswishlist.core.designsystem.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -65,9 +66,12 @@ fun GamesWishlistTheme(
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = AppTypography,
-            content = content
-        )
+            typography = AppTypography
+        ) {
+            Surface(color = MaterialTheme.appColors.appBackground) {
+                content()
+            }
+        }
     }
 }
 
