@@ -22,6 +22,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.example.gameswishlist.core.navigation.GameDetailRoute
 import com.example.gameswishlist.core.navigation.ListsRoute
 import com.example.gameswishlist.core.navigation.OwnedPlatformsRoute
+import com.example.gameswishlist.core.navigation.RadarRoute
 import com.example.gameswishlist.core.navigation.SearchRoute
 import com.example.gameswishlist.core.navigation.SettingsRoute
 import com.example.gameswishlist.core.navigation.WishlistRoute
@@ -29,6 +30,8 @@ import com.example.gameswishlist.feature.gamedetail.GameDetailScreen
 import com.example.gameswishlist.feature.gamedetail.GameDetailViewModel
 import com.example.gameswishlist.feature.lists.ListsScreen
 import com.example.gameswishlist.feature.lists.ListsViewModel
+import com.example.gameswishlist.feature.radar.RadarScreen
+import com.example.gameswishlist.feature.radar.RadarViewModel
 import com.example.gameswishlist.feature.search.SearchScreen
 import com.example.gameswishlist.feature.search.SearchViewModel
 import com.example.gameswishlist.feature.settings.OwnedPlatformsScreen
@@ -67,6 +70,27 @@ fun GamesWishlistNavDisplay(
                 is SearchRoute -> NavEntry(key) {
                     val vm = hiltViewModel<SearchViewModel>()
                     SearchScreen(
+                        viewModel = vm,
+                        onGameClick = { gameId: Int ->
+                            val nextRoute = GameDetailRoute(gameId)
+                            if (backStack.lastOrNull() != nextRoute) {
+                                backStack.add(nextRoute)
+                            }
+                        },
+                        onProfileClick = {
+                            if (backStack.lastOrNull() != SettingsRoute) {
+                                backStack.add(SettingsRoute)
+                            }
+                        },
+                        modifier = cornerClipModifier
+                            .padding(innerPadding)
+                            .consumeWindowInsets(innerPadding)
+                    )
+                }
+
+                is RadarRoute -> NavEntry(key) {
+                    val vm = hiltViewModel<RadarViewModel>()
+                    RadarScreen(
                         viewModel = vm,
                         onGameClick = { gameId: Int ->
                             val nextRoute = GameDetailRoute(gameId)

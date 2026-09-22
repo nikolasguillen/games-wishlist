@@ -51,6 +51,7 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:navigation"))
+    implementation(project(":feature:radar"))
     implementation(project(":feature:search"))
     implementation(project(":feature:game-detail"))
     implementation(project(":feature:lists"))

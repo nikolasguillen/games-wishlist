@@ -13,6 +13,9 @@ data object SearchRoute : GameNavKey
 data object ListsRoute : GameNavKey
 
 @Serializable
+data object RadarRoute : GameNavKey
+
+@Serializable
 data object SettingsRoute : GameNavKey
 
 @Serializable

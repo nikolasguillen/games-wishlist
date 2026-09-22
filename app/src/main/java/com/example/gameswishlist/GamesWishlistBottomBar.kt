@@ -2,6 +2,7 @@ package com.example.gameswishlist
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +17,7 @@ import androidx.navigation3.runtime.NavKey
 import com.example.gameswishlist.core.designsystem.theme.AppComponentsColors
 import com.example.gameswishlist.core.designsystem.theme.appColors
 import com.example.gameswishlist.core.navigation.ListsRoute
+import com.example.gameswishlist.core.navigation.RadarRoute
 import com.example.gameswishlist.core.navigation.SearchRoute
 import com.example.gameswishlist.core.navigation.WishlistRoute
 
@@ -45,6 +47,22 @@ fun GamesWishlistBottomBar(
                 )
             },
             label = { Text(stringResource(R.string.search_nav_bar_item)) },
+            colors = AppComponentsColors.navBarItemColors
+        )
+        NavigationBarItem(
+            selected = currentRoute is RadarRoute,
+            onClick = {
+                if (currentRoute !is RadarRoute) {
+                    onNavigateToRoute(RadarRoute)
+                }
+            },
+            icon = {
+                Icon(
+                    Icons.Default.Radar,
+                    contentDescription = stringResource(R.string.radar_nav_bar_item)
+                )
+            },
+            label = { Text(stringResource(R.string.radar_nav_bar_item)) },
             colors = AppComponentsColors.navBarItemColors
         )
         NavigationBarItem(

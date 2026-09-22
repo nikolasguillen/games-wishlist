@@ -26,6 +26,7 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.navigation.ListsRoute
+import com.example.gameswishlist.core.navigation.RadarRoute
 import com.example.gameswishlist.core.navigation.SearchRoute
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -52,7 +53,9 @@ fun MainContent() {
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             AnimatedVisibility(
-                visible = backStack.last() is SearchRoute || backStack.last() is ListsRoute,
+                visible = backStack.last() is SearchRoute ||
+                        backStack.last() is RadarRoute ||
+                        backStack.last() is ListsRoute,
                 enter = slideInVertically(initialOffsetY = { it }),
                 exit = slideOutVertically(targetOffsetY = { it })
             ) {
