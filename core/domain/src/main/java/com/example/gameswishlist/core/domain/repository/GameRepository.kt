@@ -76,6 +76,12 @@ interface GameRepository {
     fun getKnownPlatforms(): Flow<List<Platform>>
 
     /**
+     * Refreshes the release dates of every saved game against IGDB, so Radar's timeline stays current
+     * without requiring the user to open each game's detail screen. Backs the periodic refresh job.
+     */
+    suspend fun refreshSavedGameReleaseDates(): AppResult<Unit>
+
+    /**
      * Fetches IGDB's platform catalogue and caches it, so the picker offers more than the platforms
      * the user's saved games happen to cover. Rows are written page by page, so a failure part-way
      * leaves what already landed rather than rolling back to nothing.

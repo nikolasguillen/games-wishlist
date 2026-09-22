@@ -32,9 +32,14 @@ import com.example.gameswishlist.core.model.WishlistConstants
 import com.example.gameswishlist.core.model.WishlistIcon
 import com.example.gameswishlist.core.model.WishlistList
 import com.example.gameswishlist.core.network.IgdbApiService
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
@@ -108,6 +113,19 @@ private const val DEVELOPER_POOL_LIMIT = 200
  * and a silent truncation would show up as platforms simply missing from the picker.
  */
 private const val PLATFORM_PAGE_LIMIT = 500
+
+/**
+ * One saved game can contribute several `release_dates` rows (platform × region), and the endpoint caps a
+ * response at 500, so the id list is chunked to stay well under that regardless of library size.
+ */
+private const val RADAR_GAME_ID_CHUNK_SIZE = 20
+
+/**
+ * Bounded concurrency for the chunked release-date refresh. Unconstrained `awaitAll` would fire every
+ * chunk at once; this runs inside a background Worker where latency isn't user-visible, and IGDB's free
+ * tier is rate-limited.
+ */
+private const val RADAR_REFRESH_CONCURRENCY = 3
 
 class GameRepositoryImpl @Inject constructor(
     private val apiService: IgdbApiService,
@@ -317,7 +335,7 @@ class GameRepositoryImpl @Inject constructor(
             } else {
                 // Fetch from network
                 val queryText = """
-                    fields name, url, game_type, summary, first_release_date, cover.url, total_rating, aggregated_rating, hypes, total_rating_count, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, release_dates.date, release_dates.platform.name, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, game_engines.name,
+                    fields name, url, game_type, summary, first_release_date, cover.url, total_rating, aggregated_rating, hypes, total_rating_count, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, release_dates.date, release_dates.platform.name, release_dates.category, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, game_engines.name,
                     dlcs.name, dlcs.cover.url, expansions.name, expansions.cover.url, remakes.name, remakes.cover.url, remasters.name, remasters.cover.url, parent_game.name, parent_game.cover.url, artworks.url, screenshots.url;
                     where id = $id;
                 """.trimIndent()
@@ -399,6 +417,39 @@ class GameRepositoryImpl @Inject constructor(
     override fun getKnownPlatforms(): Flow<List<Platform>> {
         return platformDao.getKnownPlatforms().map { entities ->
             entities.map { it.toPlatform() }
+        }
+    }
+
+    override suspend fun refreshSavedGameReleaseDates(): AppResult<Unit> {
+        return try {
+            val gameIds = gameDao.getSavedGameIds()
+            if (gameIds.isEmpty()) return AppResult.success(Unit)
+
+            val semaphore = Semaphore(RADAR_REFRESH_CONCURRENCY)
+            val entries = coroutineScope {
+                gameIds.chunked(RADAR_GAME_ID_CHUNK_SIZE).map { chunk ->
+                    async {
+                        semaphore.withPermit {
+                            val queryText = """
+                                fields id, game, platform.id, platform.name, date, category;
+                                where game = (${chunk.joinToString(",")});
+                                sort date asc;
+                                limit 500;
+                            """.trimIndent()
+                            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+                            apiService.getReleaseDates(body)
+                        }
+                    }
+                }.awaitAll().flatten()
+            }
+
+            val crossRefsWithPlatforms = entries.toGamePlatformCrossRefs()
+            crossRefsWithPlatforms.mapNotNull { it.second }.forEach { gameDao.insertPlatformIfAbsent(it) }
+            gameDao.upsertGamePlatformCrossRefs(crossRefsWithPlatforms.map { it.first })
+
+            AppResult.success(Unit)
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
         }
     }
 

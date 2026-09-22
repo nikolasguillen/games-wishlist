@@ -14,6 +14,12 @@ import com.example.gameswishlist.core.database.entity.PlatformEntity
 import com.example.gameswishlist.core.database.entity.RelatedGameEntity
 import com.example.gameswishlist.core.database.relation.GameWithAllDetails
 import com.example.gameswishlist.core.model.Company
+import com.example.gameswishlist.core.model.DatePrecision
+import com.example.gameswishlist.core.model.DatePrecision.EXACT_DATE
+import com.example.gameswishlist.core.model.DatePrecision.QUARTER
+import com.example.gameswishlist.core.model.DatePrecision.TBD
+import com.example.gameswishlist.core.model.DatePrecision.YEAR_MONTH
+import com.example.gameswishlist.core.model.DatePrecision.YEAR_ONLY
 import com.example.gameswishlist.core.model.Engine
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameType
@@ -28,6 +34,7 @@ import com.example.gameswishlist.core.network.model.IgdbGameEngine
 import com.example.gameswishlist.core.network.model.IgdbGenre
 import com.example.gameswishlist.core.network.model.IgdbPlatform
 import com.example.gameswishlist.core.network.model.IgdbReleaseDate
+import com.example.gameswishlist.core.network.model.IgdbReleaseDateEntry
 
 fun IgdbGame.toGame(): Game {
     val releasedDate = firstReleaseDate?.let { DateUtils.formatUnixTimestamp(it, "yyyy-MM-dd") }
@@ -105,8 +112,34 @@ fun IgdbReleaseDate.toReleaseDate(): ReleaseDate {
     return ReleaseDate(
         date = date,
         platformId = platform?.id ?: 0,
-        platformName = platform?.name ?: "Unknown"
+        platformName = platform?.name ?: "Unknown",
+        precision = fromIgdbCategory(category)
     )
+}
+
+/**
+ * Maps a Radar release-date refresh response into per-(game, platform) cross-refs, paired with the
+ * [PlatformEntity] to backfill if that platform isn't cached yet (null when IGDB returned no platform
+ * object for a row, which is dropped since a cross-ref needs a platform id).
+ *
+ * No `region` filter is applied upstream, so duplicate regional rows can land for the same
+ * (game, platform); the earliest [IgdbReleaseDateEntry.date] wins, sidestepping the deprecated `region`
+ * enum entirely.
+ */
+fun List<IgdbReleaseDateEntry>.toGamePlatformCrossRefs(): List<Pair<GamePlatformCrossRef, PlatformEntity?>> {
+    return this
+        .filter { it.platform != null }
+        .groupBy { it.game to it.platform!!.id }
+        .map { (_, entries) ->
+            val earliest = entries.minBy { it.date ?: Long.MAX_VALUE }
+            val crossRef = GamePlatformCrossRef(
+                gameId = earliest.game,
+                platformId = earliest.platform!!.id,
+                releaseDate = earliest.date,
+                releaseDatePrecision = earliest.category
+            )
+            crossRef to earliest.platform?.toPlatform()?.toEntity()
+        }
 }
 
 fun Platform.toEntity(): PlatformEntity {
@@ -191,7 +224,8 @@ fun GameWithAllDetails.toGame(): Game {
             ReleaseDate(
                 platformId = it.platform.id,
                 platformName = it.platform.name,
-                date = it.crossRef.releaseDate
+                date = it.crossRef.releaseDate,
+                precision = fromIgdbCategory(it.crossRef.releaseDatePrecision)
             )
         },
         genres = genres.map { it.toGenre() },
@@ -322,11 +356,12 @@ fun Game.toPlatformEntities(): List<PlatformEntity> {
 
 fun Game.toGamePlatformCrossRefs(): List<GamePlatformCrossRef> {
     return platforms.map { platform ->
-        val releaseDate = releaseDates.find { it.platformName == platform.name }?.date
+        val releaseDate = releaseDates.find { it.platformName == platform.name }
         GamePlatformCrossRef(
             gameId = id,
             platformId = platform.id,
-            releaseDate = releaseDate
+            releaseDate = releaseDate?.date,
+            releaseDatePrecision = releaseDate?.precision?.toIgdbCategory()
         )
     }
 }
@@ -370,4 +405,27 @@ fun Int.toPriority(): Priority {
         2 -> Priority.HIGH
         else -> Priority.LOW
     }
+}
+
+/** [category] is the raw IGDB `release_dates.category` value; an unrecognized or missing one defaults to [EXACT_DATE]. */
+fun fromIgdbCategory(category: Int?): DatePrecision = when (category) {
+    0 -> EXACT_DATE
+    1 -> YEAR_MONTH
+    2 -> YEAR_ONLY
+    3, 4, 5, 6 -> QUARTER
+    7 -> TBD
+    else -> EXACT_DATE
+}
+
+/**
+ * Reverse of [fromIgdbCategory], for persisting a domain-level [DatePrecision] back
+ * as the raw IGDB category column. Lossy for [DatePrecision.QUARTER], which collapses IGDB's four quarter
+ * categories into one value — round-trips back to [DatePrecision.QUARTER] regardless of which one.
+ */
+fun DatePrecision.toIgdbCategory(): Int = when (this) {
+    EXACT_DATE -> 0
+    YEAR_MONTH -> 1
+    YEAR_ONLY -> 2
+    QUARTER -> 3
+    TBD -> 7
 }
