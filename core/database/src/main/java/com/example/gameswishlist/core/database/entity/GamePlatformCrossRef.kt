@@ -9,5 +9,6 @@ import androidx.room.Entity
 data class GamePlatformCrossRef(
     val gameId: Int,
     val platformId: Int,
-    val releaseDate: Long? = null
+    val releaseDate: Long? = null,
+    val releaseDatePrecision: Int? = null
 )

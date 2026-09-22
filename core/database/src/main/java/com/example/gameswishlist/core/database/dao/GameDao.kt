@@ -50,6 +50,15 @@ interface GameDao {
     )
     fun getSavedGames(): Flow<List<GameWithAllDetails>>
 
+    /** One-shot mirror of [getSavedGames]'s WHERE clause, for the Radar refresh worker, which runs off a `Flow` collector. */
+    @Query(
+        "SELECT DISTINCT games.id FROM games " +
+                "LEFT JOIN game_list_cross_ref ON games.id = game_list_cross_ref.gameId " +
+                "WHERE game_list_cross_ref.gameId IS NOT NULL " +
+                "OR games.status IS NOT NULL OR games.priority IS NOT NULL"
+    )
+    suspend fun getSavedGameIds(): List<Int>
+
     @Transaction
     @Query("SELECT * FROM games WHERE id = :id")
     suspend fun getGameById(id: Int): GameWithAllDetails?
@@ -104,6 +113,23 @@ interface GameDao {
 
     @Query("DELETE FROM game_platform_cross_ref WHERE gameId = :gameId")
     suspend fun deletePlatformRefsByGameId(gameId: Int)
+
+    /**
+     * Targeted per-row upsert for the Radar release-date refresh, deliberately **not** routed through
+     * [saveGame]: that deletes and reinserts *all* platform refs for a game, which would drop platforms
+     * this chunked refresh didn't happen to touch in this pass.
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertGamePlatformCrossRefs(crossRefs: List<GamePlatformCrossRef>)
+
+    /**
+     * Backfills a [PlatformEntity] the Radar refresh learned a release date for but whose detail screen
+     * was never opened, so it doesn't silently drop out of the [GamePlatformWithDetails] `@Relation` join.
+     * `IGNORE`, not `REPLACE`: this refresh's query is lean (id + name only) and must never overwrite a
+     * richer [PlatformEntity] a prior detail fetch already populated.
+     */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertPlatformIfAbsent(platform: PlatformEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGenre(genre: GenreEntity)

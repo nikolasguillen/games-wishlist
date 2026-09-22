@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "32dfbb75eafcc43d9cda68ac79d07f31",
+    "identityHash": "ec2802a93c65104904ba0c276ed919ef",
     "entities": [
       {
         "tableName": "search_history",
@@ -234,7 +234,7 @@
       },
       {
         "tableName": "game_platform_cross_ref",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`gameId` INTEGER NOT NULL, `platformId` INTEGER NOT NULL, `releaseDate` INTEGER, PRIMARY KEY(`gameId`, `platformId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`gameId` INTEGER NOT NULL, `platformId` INTEGER NOT NULL, `releaseDate` INTEGER, `releaseDatePrecision` INTEGER, PRIMARY KEY(`gameId`, `platformId`))",
         "fields": [
           {
             "fieldPath": "gameId",
@@ -251,6 +251,11 @@
           {
             "fieldPath": "releaseDate",
             "columnName": "releaseDate",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "releaseDatePrecision",
+            "columnName": "releaseDatePrecision",
             "affinity": "INTEGER"
           }
         ],
@@ -553,7 +558,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '32dfbb75eafcc43d9cda68ac79d07f31')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ec2802a93c65104904ba0c276ed919ef')"
     ]
   }
 }
