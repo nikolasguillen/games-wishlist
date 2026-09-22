@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="radar_title">Radar</string>
+
+    <string name="radar_bucket_this_week">This week</string>
+    <string name="radar_bucket_this_month">This month</string>
+    <string name="radar_bucket_next_3_months">Next 3 months</string>
+    <string name="radar_bucket_later">Later</string>
+    <string name="radar_bucket_tba">TBA</string>
+
+    <string name="radar_date_tba">TBA</string>
+    <string name="radar_quarter_format">Q%1$d %2$d</string>
+
+    <string name="radar_empty_title">Nothing on the radar yet</string>
+    <string name="radar_empty_subtitle">Save games with a release date and they\'ll show up here, sorted by when they launch.</string>
+</resources>
