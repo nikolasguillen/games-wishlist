@@ -22,7 +22,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Games Wishlist"
+rootProject.name = "Quest Log"
 include(":app")
 include(":core:common")
 include(":core:model")

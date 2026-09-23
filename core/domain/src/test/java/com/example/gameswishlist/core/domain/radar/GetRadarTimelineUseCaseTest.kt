@@ -1,11 +1,11 @@
-package com.example.gameswishlist.core.domain.radar
+package com.example.questlog.core.domain.radar
 
-import com.example.gameswishlist.core.domain.repository.GameRepository
-import com.example.gameswishlist.core.domain.usecase.discover.GetSelectedPlatformIdsUseCase
-import com.example.gameswishlist.core.model.DatePrecision
-import com.example.gameswishlist.core.model.Game
-import com.example.gameswishlist.core.model.ReleaseBucket
-import com.example.gameswishlist.core.model.ReleaseDate
+import com.example.questlog.core.domain.repository.GameRepository
+import com.example.questlog.core.domain.usecase.discover.GetSelectedPlatformIdsUseCase
+import com.example.questlog.core.model.DatePrecision
+import com.example.questlog.core.model.Game
+import com.example.questlog.core.model.ReleaseBucket
+import com.example.questlog.core.model.ReleaseDate
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first

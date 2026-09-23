@@ -1,10 +1,10 @@
-package com.example.gameswishlist.core.data.mapper
+package com.example.questlog.core.data.mapper
 
-import com.example.gameswishlist.core.common.DateUtils
-import com.example.gameswishlist.core.model.DatePrecision
-import com.example.gameswishlist.core.model.Game
-import com.example.gameswishlist.core.model.Platform
-import com.example.gameswishlist.core.model.ReleaseDate
+import com.example.questlog.core.common.DateUtils
+import com.example.questlog.core.model.DatePrecision
+import com.example.questlog.core.model.Game
+import com.example.questlog.core.model.Platform
+import com.example.questlog.core.model.ReleaseDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test

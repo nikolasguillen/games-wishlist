@@ -1,4 +1,4 @@
-package com.example.gameswishlist
+package com.example.questlog
 
 import org.junit.Test
 

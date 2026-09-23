@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.gameswishlist.feature.lists"
+    namespace = "com.nikolasguillen.questlog.feature.lists"
     compileSdk = 37
 
     defaultConfig {

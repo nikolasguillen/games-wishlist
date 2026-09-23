@@ -1,12 +1,12 @@
-package com.example.gameswishlist.core.data.mapper
+package com.example.questlog.core.data.mapper
 
-import com.example.gameswishlist.core.database.entity.GameEntity
-import com.example.gameswishlist.core.database.entity.GamePlatformCrossRef
-import com.example.gameswishlist.core.database.entity.PlatformEntity
-import com.example.gameswishlist.core.database.relation.GamePlatformWithDetails
-import com.example.gameswishlist.core.database.relation.GameWithAllDetails
-import com.example.gameswishlist.core.model.DatePrecision
-import com.example.gameswishlist.core.model.GameType
+import com.example.questlog.core.database.entity.GameEntity
+import com.example.questlog.core.database.entity.GamePlatformCrossRef
+import com.example.questlog.core.database.entity.PlatformEntity
+import com.example.questlog.core.database.relation.GamePlatformWithDetails
+import com.example.questlog.core.database.relation.GameWithAllDetails
+import com.example.questlog.core.model.DatePrecision
+import com.example.questlog.core.model.GameType
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

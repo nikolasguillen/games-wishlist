@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.gameswishlist.feature.radar"
+    namespace = "com.nikolasguillen.questlog.feature.radar"
     compileSdk = 37
 
     defaultConfig {

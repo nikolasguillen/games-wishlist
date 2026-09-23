@@ -1,12 +1,12 @@
-package com.example.gameswishlist.core.data.translation
+package com.example.questlog.core.data.translation
 
-import com.example.gameswishlist.core.ai.GeminiNanoClient
-import com.example.gameswishlist.core.ai.GeminiNanoDownload
-import com.example.gameswishlist.core.ai.GeminiNanoStatus
-import com.example.gameswishlist.core.database.dao.TranslationDao
-import com.example.gameswishlist.core.database.entity.TranslatedDescriptionEntity
-import com.example.gameswishlist.core.model.TranslationModelDownload
-import com.example.gameswishlist.core.model.TranslationModelStatus
+import com.example.questlog.core.ai.GeminiNanoClient
+import com.example.questlog.core.ai.GeminiNanoDownload
+import com.example.questlog.core.ai.GeminiNanoStatus
+import com.example.questlog.core.database.dao.TranslationDao
+import com.example.questlog.core.database.entity.TranslatedDescriptionEntity
+import com.example.questlog.core.model.TranslationModelDownload
+import com.example.questlog.core.model.TranslationModelStatus
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

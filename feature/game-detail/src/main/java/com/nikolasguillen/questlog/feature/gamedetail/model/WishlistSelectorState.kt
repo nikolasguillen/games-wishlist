@@ -1,0 +1,18 @@
+package com.nikolasguillen.questlog.feature.gamedetail.model
+
+import androidx.compose.runtime.Immutable
+import com.nikolasguillen.questlog.core.ui.model.ListSelectorItemUiModel
+import com.nikolasguillen.questlog.core.ui.model.UiText
+
+/**
+ * Represents the state of the wishlist selection process.
+ * If this state is present (non-null) in the UI state, the selector should be displayed.
+ *
+ * @property gameName The name of the game being added to a list.
+ * @property availableLists The list of all wishlist categories available for the user (working state).
+ */
+@Immutable
+internal data class WishlistSelectorState(
+    val gameName: UiText,
+    val availableLists: List<ListSelectorItemUiModel> = emptyList()
+)

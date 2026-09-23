@@ -1,13 +1,13 @@
-package com.example.gameswishlist.core.data.mapper
+package com.example.questlog.core.data.mapper
 
-import com.example.gameswishlist.core.network.model.IgdbPlatform
-import com.example.gameswishlist.core.network.model.IgdbReleaseDateEntry
+import com.example.questlog.core.network.model.IgdbPlatform
+import com.example.questlog.core.network.model.IgdbReleaseDateEntry
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
  * Covers [toGamePlatformCrossRefs] on `List<IgdbReleaseDateEntry>`: raw `category` passthrough (no
- * [com.example.gameswishlist.core.model.DatePrecision] conversion at this boundary), duplicate
+ * [com.example.questlog.core.model.DatePrecision] conversion at this boundary), duplicate
  * (game, platform) rows collapsing to the earliest date, and dropping a row with no platform object since
  * a cross-ref needs a platform id.
  */

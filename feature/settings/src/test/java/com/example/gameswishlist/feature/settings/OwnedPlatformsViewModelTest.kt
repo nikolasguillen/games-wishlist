@@ -1,16 +1,16 @@
-package com.example.gameswishlist.feature.settings
+package com.example.questlog.feature.settings
 
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
-import com.example.gameswishlist.core.domain.usecase.discover.GetKnownPlatformsUseCase
-import com.example.gameswishlist.core.domain.usecase.discover.GetSelectedPlatformIdsUseCase
-import com.example.gameswishlist.core.domain.usecase.discover.SetOwnedPlatformsUseCase
-import com.example.gameswishlist.core.domain.usecase.discover.SyncPlatformCatalogUseCase
-import com.example.gameswishlist.core.model.AppResult
-import com.example.gameswishlist.core.model.Platform
-import com.example.gameswishlist.feature.settings.model.OwnedPlatformsContentState
-import com.example.gameswishlist.feature.settings.model.OwnedPlatformsUiEvent
-import com.example.gameswishlist.feature.settings.model.OwnedPlatformsUiState
+import com.example.questlog.core.domain.usecase.discover.GetKnownPlatformsUseCase
+import com.example.questlog.core.domain.usecase.discover.GetSelectedPlatformIdsUseCase
+import com.example.questlog.core.domain.usecase.discover.SetOwnedPlatformsUseCase
+import com.example.questlog.core.domain.usecase.discover.SyncPlatformCatalogUseCase
+import com.example.questlog.core.model.AppResult
+import com.example.questlog.core.model.Platform
+import com.example.questlog.feature.settings.model.OwnedPlatformsContentState
+import com.example.questlog.feature.settings.model.OwnedPlatformsUiEvent
+import com.example.questlog.feature.settings.model.OwnedPlatformsUiState
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

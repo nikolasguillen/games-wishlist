@@ -1,7 +1,7 @@
-package com.example.gameswishlist.core.data.repository
+package com.example.questlog.core.data.repository
 
-import com.example.gameswishlist.core.model.RepositoryError
-import com.example.gameswishlist.core.network.IgdbHttpException
+import com.example.questlog.core.model.RepositoryError
+import com.example.questlog.core.network.IgdbHttpException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows

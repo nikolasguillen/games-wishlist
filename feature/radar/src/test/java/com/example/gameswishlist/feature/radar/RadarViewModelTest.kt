@@ -1,12 +1,12 @@
-package com.example.gameswishlist.feature.radar
+package com.example.questlog.feature.radar
 
-import com.example.gameswishlist.core.domain.radar.GetRadarTimelineUseCase
-import com.example.gameswishlist.core.model.Game
-import com.example.gameswishlist.core.model.RadarEntry
-import com.example.gameswishlist.core.model.RadarTimelineSection
-import com.example.gameswishlist.core.model.ReleaseBucket
-import com.example.gameswishlist.core.model.ReleaseDate
-import com.example.gameswishlist.feature.radar.model.RadarContentState
+import com.example.questlog.core.domain.radar.GetRadarTimelineUseCase
+import com.example.questlog.core.model.Game
+import com.example.questlog.core.model.RadarEntry
+import com.example.questlog.core.model.RadarTimelineSection
+import com.example.questlog.core.model.ReleaseBucket
+import com.example.questlog.core.model.ReleaseDate
+import com.example.questlog.feature.radar.model.RadarContentState
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers

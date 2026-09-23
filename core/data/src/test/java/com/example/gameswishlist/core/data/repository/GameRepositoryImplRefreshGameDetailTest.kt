@@ -1,15 +1,15 @@
-package com.example.gameswishlist.core.data.repository
+package com.example.questlog.core.data.repository
 
-import com.example.gameswishlist.core.data.local.WishlistCoverImageStorage
-import com.example.gameswishlist.core.database.dao.GameDao
-import com.example.gameswishlist.core.database.dao.ListDao
-import com.example.gameswishlist.core.database.dao.PlatformDao
-import com.example.gameswishlist.core.database.dao.SearchHistoryDao
-import com.example.gameswishlist.core.database.entity.GameEntity
-import com.example.gameswishlist.core.database.relation.GameWithAllDetails
-import com.example.gameswishlist.core.model.GameType
-import com.example.gameswishlist.core.network.IgdbApiService
-import com.example.gameswishlist.core.network.model.IgdbGame
+import com.example.questlog.core.data.local.WishlistCoverImageStorage
+import com.example.questlog.core.database.dao.GameDao
+import com.example.questlog.core.database.dao.ListDao
+import com.example.questlog.core.database.dao.PlatformDao
+import com.example.questlog.core.database.dao.SearchHistoryDao
+import com.example.questlog.core.database.entity.GameEntity
+import com.example.questlog.core.database.relation.GameWithAllDetails
+import com.example.questlog.core.model.GameType
+import com.example.questlog.core.network.IgdbApiService
+import com.example.questlog.core.network.model.IgdbGame
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

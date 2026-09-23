@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.gameswishlist"
+    namespace = "com.nikolasguillen.questlog"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.example.gameswishlist"
+        applicationId = "com.nikolasguillen.questlog"
         minSdk = 29
         targetSdk = 37
         versionCode = 1

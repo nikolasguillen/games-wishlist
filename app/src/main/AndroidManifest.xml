@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
-        android:name=".GamesWishlistApp"
+        android:name=".QuestLogApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -14,11 +14,11 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.GamesWishlist">
+        android:theme="@style/Theme.QuestLog">
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.GamesWishlist">
+            android:theme="@style/Theme.QuestLog">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -26,7 +26,7 @@
             </intent-filter>
         </activity>
 
-        <!-- GamesWishlistApp supplies its own WorkManager Configuration (Hilt-injected worker
+        <!-- QuestLogApp supplies its own WorkManager Configuration (Hilt-injected worker
              factory); the default androidx.startup initializer would collide with that at launch. -->
         <provider
             android:name="androidx.startup.InitializationProvider"

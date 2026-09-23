@@ -1,0 +1,171 @@
+package com.nikolasguillen.questlog.feature.search.components
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.ui.component.ErrorPage
+import com.nikolasguillen.questlog.core.ui.component.LoadingPage
+import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
+import com.nikolasguillen.questlog.core.ui.model.UiText
+import com.nikolasguillen.questlog.feature.search.model.DiscoverContentState
+import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
+import com.nikolasguillen.questlog.feature.search.model.SearchContentState
+import com.nikolasguillen.questlog.feature.search.model.SearchUiEvent
+
+/**
+ * The screen's single content area, shared by two independent contents. [contentState] decides which:
+ * [SearchContentState.Idle] means no search is running, so the area belongs to [discoverState].
+ */
+@Composable
+internal fun SearchMainContent(
+    contentState: SearchContentState,
+    discoverState: DiscoverContentState,
+    onEvent: (SearchUiEvent) -> Unit,
+    onGameClick: (Int) -> Unit,
+    gridState: LazyGridState,
+    modifier: Modifier = Modifier,
+    discoverListState: LazyListState = rememberLazyListState()
+) {
+    Box(modifier = modifier) {
+        when (contentState) {
+            is SearchContentState.Idle -> DiscoverContent(
+                state = discoverState,
+                onEvent = onEvent,
+                onGameClick = onGameClick,
+                listState = discoverListState
+            )
+            is SearchContentState.Error -> ErrorPage(
+                message = contentState.message,
+                onRetryClick = { onEvent(SearchUiEvent.OnRetrySearch) }
+            )
+            is SearchContentState.Empty -> EmptySearchPlaceholder(
+                onClearSearchClick = { onEvent(SearchUiEvent.OnClearSearch) }
+            )
+            is SearchContentState.Loading -> LoadingPage()
+            is SearchContentState.Success -> {
+                SearchResultGrid(
+                    games = contentState.games,
+                    activeFilters = contentState.activeFilters,
+                    onFilterClick = { onEvent(SearchUiEvent.OnFilterClick(it)) },
+                    onGameClick = onGameClick,
+                    onSaveClick = { onEvent(SearchUiEvent.OnToggleSave(it)) },
+                    onLongClick = { onEvent(SearchUiEvent.OnOpenListSelector(it)) },
+                    onClearFiltersClick = { onEvent(SearchUiEvent.OnClearActiveFilters) },
+                    state = gridState
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiscoverContent(
+    state: DiscoverContentState,
+    onEvent: (SearchUiEvent) -> Unit,
+    onGameClick: (Int) -> Unit,
+    listState: LazyListState
+) {
+    when (state) {
+        is DiscoverContentState.Loading -> LoadingPage()
+        is DiscoverContentState.Error -> ErrorPage(
+            message = state.message,
+            onRetryClick = { onEvent(SearchUiEvent.OnRetryDiscover) }
+        )
+        is DiscoverContentState.Content -> DiscoverFeed(
+            hero = state.hero,
+            popular = state.popular,
+            upcoming = state.upcoming,
+            onGameClick = onGameClick,
+            onSaveClick = { onEvent(SearchUiEvent.OnToggleSave(it)) },
+            onLongClick = { onEvent(SearchUiEvent.OnOpenListSelector(it)) },
+            recommended = state.recommended,
+            isStale = state.isStale,
+            isRefreshing = state.isRefreshing,
+            onRefreshClick = { onEvent(SearchUiEvent.OnRefreshDiscover) },
+            onDismissRefreshClick = { onEvent(SearchUiEvent.OnDismissDiscoverRefresh) },
+            state = listState
+        )
+    }
+}
+
+@Composable
+private fun SearchMainContentPreview(
+    contentState: SearchContentState,
+    discoverState: DiscoverContentState = DiscoverContentState.Loading
+) {
+    QuestLogTheme {
+        SearchMainContent(
+            contentState = contentState,
+            discoverState = discoverState,
+            onEvent = {},
+            onGameClick = {},
+            gridState = rememberLazyGridState()
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SearchMainContentDiscoverPreview() {
+    SearchMainContentPreview(
+        contentState = SearchContentState.Idle,
+        discoverState = DiscoverContentState.Content(
+            hero = GameItemUiModel.getDummy().copy(id = 3, name = "Hollow Knight: Silksong"),
+            popular = listOf(GameItemUiModel.getDummy()),
+            upcoming = listOf(GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077"))
+        )
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SearchMainContentDiscoverErrorPreview() {
+    SearchMainContentPreview(
+        contentState = SearchContentState.Idle,
+        discoverState = DiscoverContentState.Error(
+            UiText.DynamicString("Could not load the feed.")
+        )
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SearchMainContentLoadingPreview() {
+    SearchMainContentPreview(SearchContentState.Loading)
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SearchMainContentEmptyPreview() {
+    SearchMainContentPreview(SearchContentState.Empty)
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SearchMainContentErrorPreview() {
+    SearchMainContentPreview(
+        SearchContentState.Error(UiText.DynamicString("No internet connection."))
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SearchMainContentSuccessPreview() {
+    SearchMainContentPreview(
+        SearchContentState.Success(
+            games = listOf(
+                GameItemUiModel.getDummy(),
+                GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077")
+            ),
+            filters = listOf(
+                GameFilterUiModel.Platform(id = 0, label = UiText.DynamicString("PC"), selected = true)
+            )
+        )
+    )
+}

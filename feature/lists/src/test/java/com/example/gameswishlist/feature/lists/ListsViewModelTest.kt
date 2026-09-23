@@ -1,15 +1,15 @@
-package com.example.gameswishlist.feature.lists
+package com.example.questlog.feature.lists
 
-import com.example.gameswishlist.core.domain.usecase.list.CreateListUseCase
-import com.example.gameswishlist.core.domain.usecase.list.GetListsUseCase
-import com.example.gameswishlist.core.model.AppResult
-import com.example.gameswishlist.core.model.RepositoryError
-import com.example.gameswishlist.core.model.WishlistIcon
-import com.example.gameswishlist.core.model.WishlistList
-import com.example.gameswishlist.core.ui.model.UiText
-import com.example.gameswishlist.feature.lists.model.ListsContentState
-import com.example.gameswishlist.feature.lists.model.ListsUiEffect
-import com.example.gameswishlist.feature.lists.model.ListsUiEvent
+import com.example.questlog.core.domain.usecase.list.CreateListUseCase
+import com.example.questlog.core.domain.usecase.list.GetListsUseCase
+import com.example.questlog.core.model.AppResult
+import com.example.questlog.core.model.RepositoryError
+import com.example.questlog.core.model.WishlistIcon
+import com.example.questlog.core.model.WishlistList
+import com.example.questlog.core.ui.model.UiText
+import com.example.questlog.feature.lists.model.ListsContentState
+import com.example.questlog.feature.lists.model.ListsUiEffect
+import com.example.questlog.feature.lists.model.ListsUiEvent
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

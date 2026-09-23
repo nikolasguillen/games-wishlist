@@ -1,13 +1,13 @@
-package com.example.gameswishlist.core.domain.usecase.discover
+package com.example.questlog.core.domain.usecase.discover
 
-import com.example.gameswishlist.core.domain.repository.GameRepository
-import com.example.gameswishlist.core.model.Company
-import com.example.gameswishlist.core.model.Engine
-import com.example.gameswishlist.core.model.Game
-import com.example.gameswishlist.core.model.GameStatus
-import com.example.gameswishlist.core.model.Genre
-import com.example.gameswishlist.core.model.Priority
-import com.example.gameswishlist.core.model.TasteProfile
+import com.example.questlog.core.domain.repository.GameRepository
+import com.example.questlog.core.model.Company
+import com.example.questlog.core.model.Engine
+import com.example.questlog.core.model.Game
+import com.example.questlog.core.model.GameStatus
+import com.example.questlog.core.model.Genre
+import com.example.questlog.core.model.Priority
+import com.example.questlog.core.model.TasteProfile
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first

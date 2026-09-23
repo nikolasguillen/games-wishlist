@@ -1,9 +1,9 @@
-package com.example.gameswishlist.feature.lists.mapper
+package com.example.questlog.feature.lists.mapper
 
-import com.example.gameswishlist.core.model.WishlistIcon
-import com.example.gameswishlist.core.model.WishlistList
-import com.example.gameswishlist.core.ui.mapper.toDrawableRes
-import com.example.gameswishlist.core.ui.model.UiText
+import com.example.questlog.core.model.WishlistIcon
+import com.example.questlog.core.model.WishlistList
+import com.example.questlog.core.ui.mapper.toDrawableRes
+import com.example.questlog.core.ui.model.UiText
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

@@ -1,0 +1,570 @@
+package com.nikolasguillen.questlog.core.data.repository
+
+import com.nikolasguillen.questlog.core.data.local.WishlistCoverImageStorage
+import com.nikolasguillen.questlog.core.data.mapper.toArtworkEntities
+import com.nikolasguillen.questlog.core.data.mapper.toCompanyEntities
+import com.nikolasguillen.questlog.core.data.mapper.toEngineEntities
+import com.nikolasguillen.questlog.core.data.mapper.toEntity
+import com.nikolasguillen.questlog.core.data.mapper.toGame
+import com.nikolasguillen.questlog.core.data.mapper.toGameCompanyCrossRefs
+import com.nikolasguillen.questlog.core.data.mapper.toGameEngineCrossRefs
+import com.nikolasguillen.questlog.core.data.mapper.toGameGenreCrossRefs
+import com.nikolasguillen.questlog.core.data.mapper.toGamePlatformCrossRefs
+import com.nikolasguillen.questlog.core.data.mapper.toGenreEntities
+import com.nikolasguillen.questlog.core.data.mapper.toPlatform
+import com.nikolasguillen.questlog.core.data.mapper.toPlatformEntities
+import com.nikolasguillen.questlog.core.data.mapper.toRelatedGameEntities
+import com.nikolasguillen.questlog.core.data.mapper.toWishlistList
+import com.nikolasguillen.questlog.core.database.dao.GameDao
+import com.nikolasguillen.questlog.core.database.dao.ListDao
+import com.nikolasguillen.questlog.core.database.dao.PlatformDao
+import com.nikolasguillen.questlog.core.database.dao.SearchHistoryDao
+import com.nikolasguillen.questlog.core.database.entity.GameListCrossRef
+import com.nikolasguillen.questlog.core.database.entity.ListEntity
+import com.nikolasguillen.questlog.core.database.entity.SearchHistoryEntity
+import com.nikolasguillen.questlog.core.domain.repository.GameRepository
+import com.nikolasguillen.questlog.core.model.AppResult
+import com.nikolasguillen.questlog.core.model.Game
+import com.nikolasguillen.questlog.core.model.GameType
+import com.nikolasguillen.questlog.core.model.Platform
+import com.nikolasguillen.questlog.core.model.RepositoryError
+import com.nikolasguillen.questlog.core.model.WishlistConstants
+import com.nikolasguillen.questlog.core.model.WishlistIcon
+import com.nikolasguillen.questlog.core.model.WishlistList
+import com.nikolasguillen.questlog.core.network.IgdbApiService
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
+import javax.inject.Inject
+
+/**
+ * The autocomplete dropdown shows at most four games — with the keyboard open there is no room for
+ * more once the recent queries and the "see all results" row are counted, so asking IGDB for ten
+ * only spends rate budget on rows nobody sees.
+ */
+private const val SUGGESTIONS_LIMIT = 4
+
+/**
+ * IGDB Popularity API type ids used by the two Discover lanes (IGDB source, `external_popularity_source`
+ * 121). "Want to Play" is anticipation — it drives the unreleased "Most anticipated" shelf; "Playing" is
+ * who is in a game right now — it drives the already-released "Popular this month" shelf. Full IGDB set:
+ * 1 = Visits, 2 = Want to Play, 3 = Playing, 4 = Played. Steam-source signals also exist (e.g.
+ * 9 = Global Top Sellers, 10 = Most Wishlisted Upcoming) but cover only Steam games. Values are not
+ * comparable across types, so each lane pins a single one.
+ */
+private const val POPULARITY_TYPE_WANT_TO_PLAY = 2
+private const val POPULARITY_TYPE_PLAYING = 3
+
+/**
+ * Size of a Discover lane's candidate pool. A few ids drop out at hydration (filtered game types, the
+ * release-window filter), so this is an upper bound on what a lane shows, not an exact count.
+ */
+private const val POPULARITY_POOL_LIMIT = 40
+
+/**
+ * "Want to play" ranks anticipation regardless of release status, so most of a [POPULARITY_POOL_LIMIT]
+ * pool is already-released games that the `first_release_date > now` filter then discards -- a pool
+ * sized for the other lane starves "Most anticipated" down to a handful of survivors. IGDB's `limit`
+ * caps at 500, so there is headroom to size this well above what actually needs to survive.
+ */
+private const val POPULARITY_POOL_LIMIT_UPCOMING = 300
+
+/**
+ * Pool size for a lane once the user's platform filter is active. The filter cannot be pushed into the
+ * ranking query (see `fetchPopularityRankedGames`), so it thins an already-ranked pool: a user who owns
+ * one console drops most of a [POPULARITY_POOL_LIMIT] pool and is left with a near-empty shelf. The
+ * upcoming lane already fetches [POPULARITY_POOL_LIMIT_UPCOMING] to survive its release-window filter
+ * and needs no separate widening.
+ */
+private const val POPULARITY_POOL_LIMIT_FILTERED = 300
+
+/**
+ * Candidate pool for the personalised shelf. Far bigger than the shelf itself, and deliberately so:
+ * `sort total_rating desc` puts thinly-rated games at the top, and the caller re-ranks the whole pool
+ * before taking a shelf out of it. A narrow pool would hand the shelf to those games instead.
+ */
+private const val RECOMMENDED_POOL_LIMIT = 200
+
+/**
+ * Rating floor for the personalised shelf. Low on purpose: this only drops games whose score is one or
+ * two votes -- a number that says nothing either way -- and it is not the defence against thin ratings.
+ * That is the caller's weighted ranking, which demotes a 100-from-six-votes without excluding it, so a
+ * niche or newly released game can still earn its place.
+ */
+private const val RECOMMENDED_MIN_RATING_COUNT = 3
+
+/**
+ * Candidate pool for the "More from <studio>" shelf. A studio's catalogue is far smaller than a whole
+ * genre, so this is headroom rather than a page size -- matches [RECOMMENDED_POOL_LIMIT] for the same
+ * reason that one does.
+ */
+private const val DEVELOPER_POOL_LIMIT = 200
+
+/**
+ * Page size for the platform catalogue sync. 500 is IGDB's hard `limit` cap, so the loop pages with
+ * `offset` rather than assuming the catalogue fits in one response — it grows with every new console,
+ * and a silent truncation would show up as platforms simply missing from the picker.
+ */
+private const val PLATFORM_PAGE_LIMIT = 500
+
+/**
+ * One saved game can contribute several `release_dates` rows (platform × region), and the endpoint caps a
+ * response at 500, so the id list is chunked to stay well under that regardless of library size.
+ */
+private const val RADAR_GAME_ID_CHUNK_SIZE = 20
+
+/**
+ * Bounded concurrency for the chunked release-date refresh. Unconstrained `awaitAll` would fire every
+ * chunk at once; this runs inside a background Worker where latency isn't user-visible, and IGDB's free
+ * tier is rate-limited.
+ */
+private const val RADAR_REFRESH_CONCURRENCY = 3
+
+class GameRepositoryImpl @Inject constructor(
+    private val apiService: IgdbApiService,
+    private val gameDao: GameDao,
+    private val listDao: ListDao,
+    private val platformDao: PlatformDao,
+    private val searchHistoryDao: SearchHistoryDao,
+    private val coverImageStorage: WishlistCoverImageStorage
+) : GameRepository {
+
+    override suspend fun searchGames(query: String): AppResult<List<Game>> {
+        return try {
+            val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
+            val queryText = """
+                search "$query";
+                fields name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                where game_type != ($excludedIds) & version_parent = null;
+                limit 500;
+            """.trimIndent()
+            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+            val response = apiService.searchGames(body)
+            AppResult.success(response.map { it.toGame() })
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override suspend fun getRemoteSearchSuggestions(query: String): AppResult<List<Game>> {
+        return try {
+            val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
+            val queryText = """
+                fields name, cover.url, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, first_release_date;
+                where name ~ *"$query"* & version_parent = null & game_type != ($excludedIds);
+                sort hypes desc;
+                limit $SUGGESTIONS_LIMIT;
+            """.trimIndent()
+            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+            val response = apiService.searchGames(body)
+            AppResult.success(response.map { it.toGame() })
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override suspend fun getPopularGames(platformIds: Set<Int>): AppResult<List<Game>> =
+        fetchPopularityRankedGames(
+            POPULARITY_TYPE_PLAYING,
+            upcomingOnly = false,
+            poolLimit = if (platformIds.isEmpty()) POPULARITY_POOL_LIMIT else POPULARITY_POOL_LIMIT_FILTERED,
+            platformIds = platformIds
+        )
+
+    override suspend fun getUpcomingGames(platformIds: Set<Int>): AppResult<List<Game>> =
+        fetchPopularityRankedGames(
+            POPULARITY_TYPE_WANT_TO_PLAY,
+            upcomingOnly = true,
+            poolLimit = POPULARITY_POOL_LIMIT_UPCOMING,
+            platformIds = platformIds
+        )
+
+    override suspend fun getGamesByGenre(genreId: Int, platformIds: Set<Int>): AppResult<List<Game>> {
+        return try {
+            val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
+            val platformFilter = platformIds.toPlatformFilter()
+            // Coarse half of the recommendation: narrow to the genre and hand back a wide, roughly
+            // good pool. Ordering it properly is the caller's job -- apicalypse cannot express a
+            // rating weighted by how many people voted, so sorting happens locally on the pool.
+            val queryText = """
+                fields name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                where genres = ($genreId) & game_type != ($excludedIds) & version_parent = null & cover != null & total_rating_count >= $RECOMMENDED_MIN_RATING_COUNT$platformFilter;
+                sort total_rating desc;
+                limit $RECOMMENDED_POOL_LIMIT;
+            """.trimIndent()
+            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+            AppResult.success(apiService.searchGames(body).map { it.toGame() })
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override suspend fun getGamesByDeveloper(companyId: Int, platformIds: Set<Int>): AppResult<List<Game>> {
+        return try {
+            val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
+            val platformFilter = platformIds.toPlatformFilter()
+            // No rating floor here, unlike getGamesByGenre: an unreleased title from a followed studio
+            // has no ratings at all yet, and that is exactly what this shelf exists to surface. Sorted
+            // by release date so a truncated pool still keeps the recent-and-upcoming end of the
+            // catalogue rather than the studio's oldest games.
+            val queryText = """
+                fields name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                where involved_companies.company = ($companyId) & game_type != ($excludedIds) & version_parent = null & cover != null$platformFilter;
+                sort first_release_date desc;
+                limit $DEVELOPER_POOL_LIMIT;
+            """.trimIndent()
+            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+            AppResult.success(apiService.searchGames(body).map { it.toGame() })
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    /**
+     * An empty selection is not a filter of "no platforms" -- the clause is dropped entirely, so the
+     * feed stays wide open until the user picks something in Settings. Apicalypse parentheses mean
+     * "contains at least one of", which is the ownership question being asked.
+     */
+    private fun Set<Int>.toPlatformFilter(): String =
+        if (isEmpty()) "" else " & platforms = (${joinToString(",")})"
+
+    /**
+     * Backs both generic Discover lanes. The Popularity API ranks ids only, so rank first, then
+     * hydrate on /games. [upcomingOnly] is the split the design asks for: unreleased "Most anticipated" vs
+     * already-released "Popular this month". The hydrate call loses the popularity order, so it is
+     * restored locally. Nothing is persisted -- these are catalogue results, not the user's games.
+     *
+     * [platformIds] can only be applied here, on the hydrate call: `/popularity_primitives` returns
+     * game ids and a score and knows nothing about platforms, so the pool is ranked before it can be
+     * filtered. That is what [POPULARITY_POOL_LIMIT_FILTERED] pays for.
+     */
+    private suspend fun fetchPopularityRankedGames(
+        popularityType: Int,
+        upcomingOnly: Boolean,
+        poolLimit: Int,
+        platformIds: Set<Int>
+    ): AppResult<List<Game>> {
+        return try {
+            val primitivesQuery = """
+                fields game_id, value;
+                where popularity_type = $popularityType;
+                sort value desc;
+                limit $poolLimit;
+            """.trimIndent()
+            val primitivesBody = primitivesQuery.toRequestBody("text/plain".toMediaTypeOrNull())
+            val rankedIds = apiService.getPopularityPrimitives(primitivesBody).map { it.gameId }
+            if (rankedIds.isEmpty()) return AppResult.success(emptyList())
+
+            val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
+            val idList = rankedIds.joinToString(",")
+            val nowSeconds = System.currentTimeMillis() / 1000
+            val releaseFilter = if (upcomingOnly) {
+                "first_release_date > $nowSeconds"
+            } else {
+                "first_release_date != null & first_release_date <= $nowSeconds"
+            }
+            val platformFilter = platformIds.toPlatformFilter()
+            // cover != null: the feed is a grid of covers, so a game that cannot render one is no
+            // use here -- and it doubles as a cheap floor that keeps most shovelware out.
+            val gamesQuery = """
+                fields name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                where id = ($idList) & game_type != ($excludedIds) & version_parent = null & cover != null & $releaseFilter$platformFilter;
+                limit $poolLimit;
+            """.trimIndent()
+            val gamesBody = gamesQuery.toRequestBody("text/plain".toMediaTypeOrNull())
+            val games = apiService.searchGames(gamesBody).map { it.toGame() }
+
+            // /games returns ids in its own order; restore the popularity ranking.
+            val rankByGameId = rankedIds.withIndex().associate { (index, id) -> id to index }
+            val ranked = games.sortedBy { rankByGameId[it.id] ?: Int.MAX_VALUE }
+            AppResult.success(ranked)
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override suspend fun addSearchToHistory(query: String) {
+        searchHistoryDao.insert(
+            SearchHistoryEntity(
+                query = query,
+                timestamp = System.currentTimeMillis()
+            )
+        )
+    }
+
+    override fun getRecentSearchHistory(): Flow<List<String>> {
+        return searchHistoryDao.getRecentSearches().map { it.map { entity -> entity.query } }
+    }
+
+    override suspend fun getFilteredSearchHistory(query: String): List<String> {
+        return searchHistoryDao.filterRecentSearches(query).map { entity -> entity.query }
+    }
+
+    override suspend fun deleteSearchHistoryItem(query: String) {
+        searchHistoryDao.delete(query)
+    }
+
+    override suspend fun clearSearchHistory() {
+        searchHistoryDao.deleteAll()
+    }
+
+    override fun observeGameDetail(id: Int): Flow<Game?> {
+        return combine(
+            gameDao.observeGameById(id),
+            gameDao.getGameIdsInList(WishlistConstants.DEFAULT_WISHLIST_ID)
+        ) { entity, wishlistIds ->
+            entity?.toGame()?.copy(isWishlisted = id in wishlistIds)
+        }
+    }
+
+    override suspend fun refreshGameDetail(id: Int): AppResult<Unit> {
+        return try {
+            val localGame = gameDao.getGameById(id)
+            val isWishlisted = gameDao.isGameInList(id, WishlistConstants.DEFAULT_WISHLIST_ID)
+
+            // A row written by a catalogue save has no description, no per-platform dates and no related
+            // games: it satisfies "cached" without being a detail. Only a row this method itself filled counts.
+            val game = if (localGame != null && localGame.game.detailsFetchedAt != null) {
+                localGame.toGame().copy(isWishlisted = isWishlisted)
+            } else {
+                val queryText = """
+                    fields name, url, game_type, summary, first_release_date, cover.url, total_rating, aggregated_rating, hypes, total_rating_count, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, release_dates.date, release_dates.platform.name, release_dates.date_format, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, game_engines.name,
+                    dlcs.name, dlcs.cover.url, expansions.name, expansions.cover.url, remakes.name, remakes.cover.url, remasters.name, remasters.cover.url, parent_game.name, parent_game.cover.url, artworks.url, screenshots.url;
+                    where id = $id;
+                """.trimIndent()
+                val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+                val networkGame = apiService.getGameDetail(body).first()
+                networkGame.toGame().copy(isWishlisted = isWishlisted, detailsFetchedAt = System.currentTimeMillis())
+            }
+
+            // Update last viewed timestamp and save local
+            val updatedGame = game.copy(lastViewedAt = System.currentTimeMillis())
+            saveGameLocal(updatedGame)
+            AppResult.success(Unit)
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override fun getRecentlyViewedGames(): Flow<List<Game>> {
+        return combine(
+            gameDao.getRecentlyViewedGames(),
+            gameDao.getGameIdsInList(WishlistConstants.DEFAULT_WISHLIST_ID)
+        ) { entities, wishlistIds ->
+            entities.map { it.toGame().copy(isWishlisted = it.game.id in wishlistIds) }
+        }
+    }
+
+    override suspend fun removeRecentGame(gameId: Int) {
+        gameDao.clearLastViewedAt(gameId)
+    }
+
+    override suspend fun clearRecentGames() {
+        gameDao.clearAllLastViewedAt()
+    }
+
+    override fun getWishlistedGames(): Flow<List<Game>> {
+        return gameDao.getWishlistedGames().map { entities ->
+            entities.map { it.toGame().copy(isWishlisted = true) }
+        }
+    }
+
+    override fun getWishlistedGameIds(): Flow<Set<Int>> {
+        return gameDao.getGameIdsInList(WishlistConstants.DEFAULT_WISHLIST_ID).map { it.toSet() }
+    }
+
+    override suspend fun toggleWishlist(game: Game): Boolean {
+        val isWishlisted = gameDao.isGameInList(game.id, WishlistConstants.DEFAULT_WISHLIST_ID)
+        if (isWishlisted) {
+            gameDao.deleteGameListCrossRef(
+                GameListCrossRef(
+                    game.id,
+                    WishlistConstants.DEFAULT_WISHLIST_ID
+                )
+            )
+            return false
+        } else {
+            // The Game handed in by the search grid or the Discover feed is a catalogue result: no per-platform
+            // dates, no engines, no artworks, and none of the user's own fields. Writing it over a row that a
+            // detail fetch already filled would wipe all of that, so an existing row is left exactly as it is.
+            if (!gameDao.gameExists(game.id)) {
+                saveGameLocal(game)
+            }
+            gameDao.insertGameListCrossRef(
+                GameListCrossRef(
+                    game.id,
+                    WishlistConstants.DEFAULT_WISHLIST_ID
+                )
+            )
+            return true
+        }
+    }
+
+    override suspend fun updateGameDetails(game: Game) {
+        saveGameLocal(game)
+    }
+
+    override fun getSavedGames(): Flow<List<Game>> {
+        return combine(
+            gameDao.getSavedGames(),
+            gameDao.getGameIdsInList(WishlistConstants.DEFAULT_WISHLIST_ID)
+        ) { entities, wishlistIds ->
+            entities.map { it.toGame().copy(isWishlisted = it.game.id in wishlistIds) }
+        }
+    }
+
+    override fun getKnownPlatforms(): Flow<List<Platform>> {
+        return platformDao.getKnownPlatforms().map { entities ->
+            entities.map { it.toPlatform() }
+        }
+    }
+
+    override suspend fun refreshSavedGameReleaseDates(): AppResult<Unit> {
+        return try {
+            val gameIds = gameDao.getSavedGameIds()
+            if (gameIds.isEmpty()) return AppResult.success(Unit)
+
+            val semaphore = Semaphore(RADAR_REFRESH_CONCURRENCY)
+            val entries = coroutineScope {
+                gameIds.chunked(RADAR_GAME_ID_CHUNK_SIZE).map { chunk ->
+                    async {
+                        semaphore.withPermit {
+                            val queryText = """
+                                fields id, game, platform.id, platform.name, date, date_format;
+                                where game = (${chunk.joinToString(",")});
+                                sort date asc;
+                                limit 500;
+                            """.trimIndent()
+                            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+                            apiService.getReleaseDates(body)
+                        }
+                    }
+                }.awaitAll().flatten()
+            }
+
+            val crossRefsWithPlatforms = entries.toGamePlatformCrossRefs()
+            crossRefsWithPlatforms.mapNotNull { it.second }.forEach { gameDao.insertPlatformIfAbsent(it) }
+            gameDao.upsertGamePlatformCrossRefs(crossRefsWithPlatforms.map { it.first })
+
+            AppResult.success(Unit)
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override suspend fun syncPlatformCatalog(): AppResult<Unit> {
+        return try {
+            var offset = 0
+            while (true) {
+                val queryText = """
+                    fields name, abbreviation, generation, category, platform_family;
+                    sort id asc;
+                    limit $PLATFORM_PAGE_LIMIT;
+                    offset $offset;
+                """.trimIndent()
+                val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
+                val page = apiService.getPlatforms(body)
+                if (page.isEmpty()) break
+
+                platformDao.insertPlatforms(page.map { it.toPlatform().toEntity() })
+                if (page.size < PLATFORM_PAGE_LIMIT) break
+                offset += PLATFORM_PAGE_LIMIT
+            }
+            AppResult.success(Unit)
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override fun getOwnedPlatformIds(): Flow<Set<Int>> {
+        return platformDao.observeOwnedPlatformIds().map { it.toSet() }
+    }
+
+    override suspend fun setOwnedPlatforms(platformIds: Set<Int>) {
+        platformDao.setOwnedPlatforms(platformIds)
+    }
+
+    private suspend fun saveGameLocal(game: Game) {
+        gameDao.saveGame(
+            game = game.toEntity(),
+            platforms = game.toPlatformEntities(),
+            platformCrossRefs = game.toGamePlatformCrossRefs(),
+            genres = game.toGenreEntities(),
+            genreCrossRefs = game.toGameGenreCrossRefs(),
+            companies = game.toCompanyEntities(),
+            companyCrossRefs = game.toGameCompanyCrossRefs(),
+            engines = game.toEngineEntities(),
+            engineCrossRefs = game.toGameEngineCrossRefs(),
+            artworks = game.toArtworkEntities(),
+            relatedGames = game.toRelatedGameEntities()
+        )
+    }
+
+    override fun getAllLists(): Flow<List<WishlistList>> {
+        return listDao.getAllLists().map { entities ->
+            entities.map { it.toWishlistList() }
+        }
+    }
+
+    override fun observeListById(listId: Long): Flow<WishlistList?> {
+        return listDao.observeListById(listId).map { it?.toWishlistList() }
+    }
+
+    override fun getListIdsForGame(gameId: Int): Flow<List<Long>> {
+        return gameDao.getListIdsForGame(gameId)
+    }
+
+    override suspend fun createList(
+        name: String,
+        description: String,
+        icon: WishlistIcon?,
+        coverImageUri: String?
+    ): AppResult<Unit> {
+        val coverImagePath = coverImageUri?.let { coverImageStorage.persist(it) }
+        listDao.insertList(
+            ListEntity(
+                name = name,
+                description = description,
+                icon = icon,
+                coverImagePath = coverImagePath
+            )
+        )
+        return if (coverImageUri != null && coverImagePath == null) {
+            AppResult.failure(RepositoryError.FileStorage)
+        } else {
+            AppResult.success(Unit)
+        }
+    }
+
+    override suspend fun deleteList(listId: Long) {
+        val list = listDao.getListById(listId) ?: return
+        // The row goes first: an orphaned file is invisible, whereas a surviving row whose
+        // cover file is already gone would render as a broken list.
+        listDao.deleteListWithGameRefs(list)
+        list.coverImagePath?.let { coverImageStorage.delete(it) }
+    }
+
+    override suspend fun addGameToList(gameId: Int, listId: Long) {
+        gameDao.insertGameListCrossRef(GameListCrossRef(gameId, listId))
+    }
+
+    override suspend fun removeGameFromList(gameId: Int, listId: Long) {
+        gameDao.deleteGameListCrossRef(GameListCrossRef(gameId, listId))
+    }
+
+    override fun getGamesByList(listId: Long): Flow<List<Game>> {
+        return combine(
+            gameDao.getGamesByListId(listId),
+            gameDao.getGameIdsInList(WishlistConstants.DEFAULT_WISHLIST_ID)
+        ) { entities, wishlistIds ->
+            entities.map { it.toGame().copy(isWishlisted = it.game.id in wishlistIds) }
+        }
+    }
+}

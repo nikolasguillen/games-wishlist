@@ -1,7 +1,7 @@
-package com.example.gameswishlist.core.domain.radar
+package com.example.questlog.core.domain.radar
 
-import com.example.gameswishlist.core.model.DatePrecision
-import com.example.gameswishlist.core.model.ReleaseBucket
+import com.example.questlog.core.model.DatePrecision
+import com.example.questlog.core.model.ReleaseBucket
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn

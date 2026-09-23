@@ -13,7 +13,7 @@ val localProps = Properties().also { props ->
 }
 
 android {
-    namespace = "com.example.gameswishlist.core.network"
+    namespace = "com.nikolasguillen.questlog.core.network"
     compileSdk = 37
 
     defaultConfig {

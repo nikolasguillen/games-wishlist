@@ -1,6 +1,6 @@
-package com.example.gameswishlist.core.network
+package com.example.questlog.core.network
 
-import com.example.gameswishlist.core.network.model.IgdbAuthResponse
+import com.example.questlog.core.network.model.IgdbAuthResponse
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi

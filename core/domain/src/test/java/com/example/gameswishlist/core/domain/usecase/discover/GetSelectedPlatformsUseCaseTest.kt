@@ -1,7 +1,7 @@
-package com.example.gameswishlist.core.domain.usecase.discover
+package com.example.questlog.core.domain.usecase.discover
 
-import com.example.gameswishlist.core.domain.repository.GameRepository
-import com.example.gameswishlist.core.model.Platform
+import com.example.questlog.core.domain.repository.GameRepository
+import com.example.questlog.core.model.Platform
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first

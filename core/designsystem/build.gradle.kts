@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.gameswishlist.core.designsystem"
+    namespace = "com.nikolasguillen.questlog.core.designsystem"
     compileSdk = 37
 
     defaultConfig {

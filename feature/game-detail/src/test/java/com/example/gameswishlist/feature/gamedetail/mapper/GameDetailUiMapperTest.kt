@@ -1,18 +1,18 @@
-package com.example.gameswishlist.feature.gamedetail.mapper
+package com.example.questlog.feature.gamedetail.mapper
 
-import com.example.gameswishlist.core.common.DateUtils
-import com.example.gameswishlist.core.model.DatePrecision
-import com.example.gameswishlist.core.model.Game
-import com.example.gameswishlist.core.model.Platform
-import com.example.gameswishlist.core.model.ReleaseDate
-import com.example.gameswishlist.core.ui.model.UiText
-import com.example.gameswishlist.feature.gamedetail.R
+import com.example.questlog.core.common.DateUtils
+import com.example.questlog.core.model.DatePrecision
+import com.example.questlog.core.model.Game
+import com.example.questlog.core.model.Platform
+import com.example.questlog.core.model.ReleaseDate
+import com.example.questlog.core.ui.model.UiText
+import com.example.questlog.feature.gamedetail.R
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
  * Covers the release-date formatting in [Game.toUiModel]: both the per-platform dates
- * ([com.example.gameswishlist.feature.gamedetail.model.AvailabilityUiModel.detailedDates]) and the
+ * ([com.example.questlog.feature.gamedetail.model.AvailabilityUiModel.detailedDates]) and the
  * game-level main date must respect precision instead of always showing a full day+month+year - a date
  * IGDB only ever knew to the year or the quarter would otherwise show a made-up day.
  */

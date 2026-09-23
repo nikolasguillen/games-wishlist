@@ -1,0 +1,18 @@
+package com.nikolasguillen.questlog.core.ui.model
+
+import androidx.compose.runtime.Immutable
+import androidx.compose.ui.graphics.Color
+
+/**
+ * A compact visual representation of a platform, for icon-tile display.
+ *
+ * @property id The platform's identifier.
+ * @property code A short, display-ready code (max 3 characters).
+ * @property color A distinguishing background color for the tile.
+ */
+@Immutable
+data class PlatformTileUiModel(
+    val id: Int,
+    val code: UiText,
+    val color: Color
+)

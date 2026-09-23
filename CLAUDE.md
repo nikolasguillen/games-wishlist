@@ -28,7 +28,7 @@ suggesting a command.
 
 ## Module graph and dependency rules
 
-16 modules, all under the `com.example.gameswishlist.*` namespace. Sources live in `src/main/java/`.
+16 modules, all under the `com.nikolasguillen.questlog.*` namespace. Sources live in `src/main/java/`.
 
 ```
 :app  →  everything
