@@ -652,7 +652,7 @@ class SearchViewModel @Inject constructor(
                 val newState = when (result) {
                     is AppResult.Success -> {
                         discoverFeed = result.data
-                        result.data.toDiscoverContentState()
+                        result.data.toDiscoverContentState(wishlistedGameIds.value)
                     }
                     is AppResult.Failure -> DiscoverContentState.Error(result.error.toUiText())
                 }

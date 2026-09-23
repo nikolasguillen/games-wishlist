@@ -169,6 +169,32 @@ class SearchViewModelTest {
         }
 
     @Test
+    fun `discover cards are marked saved from the ids cached before the feed lands`() = runTest(testDispatcher) {
+        every { getWishlistedGameIdsUseCase() } returns flowOf(setOf(1))
+        every { getDiscoverFeedUseCase(any()) } returns flowOf(
+            AppResult.success(DiscoverFeed(popular = listOf(testGame(id = 1)), upcoming = emptyList()))
+        )
+
+        val viewModel = createViewModel()
+
+        val content = viewModel.uiState.value.discover as DiscoverContentState.Content
+        assertTrue(content.popular.single().isSaved)
+    }
+
+    @Test
+    fun `the Discover hero is marked saved from the ids cached before the feed lands`() = runTest(testDispatcher) {
+        every { getWishlistedGameIdsUseCase() } returns flowOf(setOf(2))
+        every { getDiscoverFeedUseCase(any()) } returns flowOf(
+            AppResult.success(DiscoverFeed(popular = emptyList(), upcoming = listOf(testGame(id = 2))))
+        )
+
+        val viewModel = createViewModel()
+
+        val content = viewModel.uiState.value.discover as DiscoverContentState.Content
+        assertTrue(content.hero!!.isSaved)
+    }
+
+    @Test
     fun `a Discover feed failure lands on the feed and not on the search results`() =
         runTest(testDispatcher) {
             every { getDiscoverFeedUseCase(any()) } returns
