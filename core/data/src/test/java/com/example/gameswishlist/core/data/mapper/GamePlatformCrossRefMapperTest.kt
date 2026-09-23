@@ -69,6 +69,53 @@ class GamePlatformCrossRefMapperTest {
     }
 
     @Test
+    fun `a fallback date landing on 31 December is treated as year-only, not an exact date`() {
+        val game = Game(
+            id = 1,
+            name = "Cindergate",
+            platforms = listOf(pc),
+            releaseDates = emptyList(),
+            releaseDate = "2026-12-31"
+        )
+
+        val result = game.toGamePlatformCrossRefs()
+
+        assertEquals(2, result.single().releaseDatePrecision)
+    }
+
+    @Test
+    fun `a fallback date not landing on 31 December stays an exact date`() {
+        val game = Game(
+            id = 1,
+            name = "Cindergate",
+            platforms = listOf(pc),
+            releaseDates = emptyList(),
+            releaseDate = "2026-12-30"
+        )
+
+        val result = game.toGamePlatformCrossRefs()
+
+        assertEquals(0, result.single().releaseDatePrecision)
+    }
+
+    @Test
+    fun `a platform with its own 31 December date is not affected by the fallback heuristic`() {
+        val game = Game(
+            id = 1,
+            name = "Cindergate",
+            platforms = listOf(pc),
+            releaseDates = listOf(
+                ReleaseDate(date = 1_000L, platformId = 6, platformName = "PC", precision = DatePrecision.EXACT_DATE)
+            ),
+            releaseDate = "2026-12-31"
+        )
+
+        val result = game.toGamePlatformCrossRefs()
+
+        assertEquals(0, result.single().releaseDatePrecision)
+    }
+
+    @Test
     fun `the per-platform lookup matches on id, not on the platform name`() {
         val game = Game(
             id = 1,

@@ -2,6 +2,7 @@ package com.example.gameswishlist.feature.gamedetail.mapper
 
 import com.example.gameswishlist.core.common.DateUtils
 import com.example.gameswishlist.core.domain.model.WishlistAssignment
+import com.example.gameswishlist.core.model.DatePrecision
 import com.example.gameswishlist.core.model.Game
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Platform
@@ -108,14 +109,12 @@ internal fun Game.toUiModel(): GameDetailUiModel {
                 platformName = UiText.DynamicString(platform.name),
                 code = style.code,
                 color = style.color,
-                date = it.date?.let { date -> UiText.DynamicString(DateUtils.formatUnixTimestamp(date)) }
-                    ?: UiText.StringResource(R.string.tba)
+                date = formatPlatformReleaseDate(it.date, it.precision)
             )
         }
 
     val availability = AvailabilityUiModel(
-        mainDate = DateUtils.formatIsoDate(releaseDate)?.let { UiText.DynamicString(it) }
-            ?: UiText.StringResource(R.string.tba),
+        mainDate = formatMainReleaseDate(releaseDate),
         platforms = platforms
             .sortedByDescending { it.generation ?: Int.MIN_VALUE }
             .map {
@@ -144,6 +143,40 @@ internal fun Game.toUiModel(): GameDetailUiModel {
         ),
         relatedGames = related
     )
+}
+
+/**
+ * Formats a per-platform release date, respecting [precision] instead of always showing a full day+month+
+ * year: a [DatePrecision.YEAR_ONLY] or [DatePrecision.QUARTER] date only ever had that much precision to
+ * begin with, so showing more would be a made-up day.
+ */
+private fun formatPlatformReleaseDate(date: Long?, precision: DatePrecision): UiText {
+    if (date == null) return UiText.StringResource(R.string.tba)
+    return when (precision) {
+        DatePrecision.TBD -> UiText.StringResource(R.string.tba)
+        DatePrecision.YEAR_ONLY -> UiText.DynamicString(DateUtils.formatUnixTimestamp(date, "yyyy"))
+        DatePrecision.QUARTER -> {
+            val localDate = DateUtils.timestampToLocalDate(date)
+            val quarter = (localDate.monthValue - 1) / 3 + 1
+            UiText.StringResource(R.string.quarter_format, quarter, localDate.year)
+        }
+        DatePrecision.YEAR_MONTH -> UiText.DynamicString(DateUtils.formatUnixTimestamp(date, "MMM yyyy"))
+        DatePrecision.EXACT_DATE -> UiText.DynamicString(DateUtils.formatUnixTimestamp(date))
+    }
+}
+
+/**
+ * Formats the game-level release date shown above the platform tiles. Unlike [formatPlatformReleaseDate],
+ * this comes from [Game.releaseDate] alone - a plain ISO string with no precision of its own - so
+ * [DateUtils.isYearOnlyPlaceholder] is the only signal available that IGDB only ever knew the year.
+ */
+private fun formatMainReleaseDate(isoDate: String?): UiText {
+    if (isoDate == null) return UiText.StringResource(R.string.tba)
+    if (DateUtils.isYearOnlyPlaceholder(isoDate)) {
+        return DateUtils.getYearFromIsoDate(isoDate)?.let { UiText.DynamicString(it) }
+            ?: UiText.StringResource(R.string.tba)
+    }
+    return DateUtils.formatIsoDate(isoDate)?.let { UiText.DynamicString(it) } ?: UiText.StringResource(R.string.tba)
 }
 
 private fun formatLargeNumber(number: Int): String {

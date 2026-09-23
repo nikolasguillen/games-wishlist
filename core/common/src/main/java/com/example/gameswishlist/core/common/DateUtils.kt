@@ -100,4 +100,15 @@ object DateUtils {
      */
     fun isoDateToEpochSeconds(isoDate: String?): Long? =
         parseIsoDate(isoDate)?.atStartOfDay(ZoneId.systemDefault())?.toEpochSecond()
+
+    /**
+     * IGDB's placeholder for "only the year is known": when a release date has no month or day, IGDB fills
+     * `first_release_date` with midnight UTC on 31 December of that year. Landing on that exact day is the
+     * only signal available once the value has been flattened to a scalar date with no precision of its
+     * own, so a fallback built from it can be labelled "year only" instead of showing a made-up day.
+     */
+    fun isYearOnlyPlaceholder(isoDate: String?): Boolean {
+        val date = parseIsoDate(isoDate) ?: return false
+        return date.monthValue == 12 && date.dayOfMonth == 31
+    }
 }

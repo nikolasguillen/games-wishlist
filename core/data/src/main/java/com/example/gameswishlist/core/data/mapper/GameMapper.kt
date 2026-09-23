@@ -361,10 +361,16 @@ fun Game.toPlatformEntities(): List<PlatformEntity> {
  * or Discover, whose queries don't request `release_dates` - the game's own first release date stands in
  * for all of them, so the row lands in a real Radar bucket instead of TBA. The periodic refresh replaces
  * it with the precise per-platform dates.
+ *
+ * The fallback's precision defaults to [EXACT_DATE], except when [releaseDate] lands on 31 December -
+ * IGDB's placeholder for "only the year is known" (see [DateUtils.isYearOnlyPlaceholder]) - in which case
+ * it is [com.example.gameswishlist.core.model.DatePrecision.YEAR_ONLY] instead, so the day doesn't show up
+ * as if it were real.
  */
 fun Game.toGamePlatformCrossRefs(): List<GamePlatformCrossRef> {
     val datesByPlatformId = releaseDates.associateBy { it.platformId }
     val fallbackDate = DateUtils.isoDateToEpochSeconds(releaseDate)
+    val fallbackPrecision = if (DateUtils.isYearOnlyPlaceholder(releaseDate)) YEAR_ONLY else EXACT_DATE
 
     return platforms.map { platform ->
         val platformDate = datesByPlatformId[platform.id]
@@ -373,7 +379,7 @@ fun Game.toGamePlatformCrossRefs(): List<GamePlatformCrossRef> {
             platformId = platform.id,
             releaseDate = platformDate?.date ?: fallbackDate,
             releaseDatePrecision = platformDate?.precision?.toIgdbCategory()
-                ?: fallbackDate?.let { EXACT_DATE.toIgdbCategory() }
+                ?: fallbackDate?.let { fallbackPrecision.toIgdbCategory() }
         )
     }
 }
