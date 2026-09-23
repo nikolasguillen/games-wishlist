@@ -69,8 +69,10 @@ interface GameRepository {
      * only written to storage if it is not already stored: an existing row is never overwritten by a
      * catalogue [Game] such as one from a search result or the Discover feed, which carries none of the
      * user's own fields and none of the per-platform detail a prior fetch may have filled in.
+     *
+     * @return `true` if [game] is in the default wishlist after this call, `false` if it was just removed.
      */
-    suspend fun toggleWishlist(game: Game)
+    suspend fun toggleWishlist(game: Game): Boolean
     suspend fun updateGameDetails(game: Game)
 
     /**

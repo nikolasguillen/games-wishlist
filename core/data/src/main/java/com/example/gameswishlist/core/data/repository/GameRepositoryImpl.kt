@@ -380,7 +380,7 @@ class GameRepositoryImpl @Inject constructor(
         return gameDao.getGameIdsInList(WishlistConstants.DEFAULT_WISHLIST_ID).map { it.toSet() }
     }
 
-    override suspend fun toggleWishlist(game: Game) {
+    override suspend fun toggleWishlist(game: Game): Boolean {
         val isWishlisted = gameDao.isGameInList(game.id, WishlistConstants.DEFAULT_WISHLIST_ID)
         if (isWishlisted) {
             gameDao.deleteGameListCrossRef(
@@ -389,6 +389,7 @@ class GameRepositoryImpl @Inject constructor(
                     WishlistConstants.DEFAULT_WISHLIST_ID
                 )
             )
+            return false
         } else {
             // The Game handed in by the search grid or the Discover feed is a catalogue result: no per-platform
             // dates, no engines, no artworks, and none of the user's own fields. Writing it over a row that a
@@ -402,6 +403,7 @@ class GameRepositoryImpl @Inject constructor(
                     WishlistConstants.DEFAULT_WISHLIST_ID
                 )
             )
+            return true
         }
     }
 

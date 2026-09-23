@@ -7,4 +7,7 @@ package com.example.gameswishlist.core.domain.radar
  */
 interface ReleaseRefreshScheduler {
     fun schedulePeriodicRefresh()
+
+    /** One-shot refresh for when the saved set just changed, so a new game doesn't wait for the 24h cycle. */
+    fun scheduleImmediateRefresh()
 }

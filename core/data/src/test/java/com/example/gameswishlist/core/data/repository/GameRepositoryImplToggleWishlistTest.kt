@@ -11,11 +11,14 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
  * Covers [GameRepositoryImpl.toggleWishlist]: a catalogue [Game] (from search or Discover, carrying none
- * of the user's own fields or per-platform detail) must never overwrite a row already in storage.
+ * of the user's own fields or per-platform detail) must never overwrite a row already in storage, and the
+ * return value reports whether the game ended up in the wishlist.
  */
 class GameRepositoryImplToggleWishlistTest {
 
@@ -33,26 +36,40 @@ class GameRepositoryImplToggleWishlistTest {
     private val game = Game(id = 1, name = "Cindergate")
 
     @Test
-    fun `adding a game absent from storage saves it and adds the list cross-ref`() = runTest {
+    fun `adding a game absent from storage saves it, adds the list cross-ref and returns true`() = runTest {
         coEvery { gameDao.isGameInList(any(), any()) } returns false
         coEvery { gameDao.gameExists(1) } returns false
 
-        repository.toggleWishlist(game)
+        val result = repository.toggleWishlist(game)
 
         coVerify { gameDao.saveGame(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
         coVerify { gameDao.insertGameListCrossRef(any()) }
+        assertTrue(result)
     }
 
     @Test
-    fun `adding a game already stored does not overwrite it, but still adds the list cross-ref`() = runTest {
-        coEvery { gameDao.isGameInList(any(), any()) } returns false
-        coEvery { gameDao.gameExists(1) } returns true
+    fun `adding a game already stored does not overwrite it, but still adds the list cross-ref and returns true`() =
+        runTest {
+            coEvery { gameDao.isGameInList(any(), any()) } returns false
+            coEvery { gameDao.gameExists(1) } returns true
 
-        repository.toggleWishlist(game)
+            val result = repository.toggleWishlist(game)
 
-        coVerify(exactly = 0) {
-            gameDao.saveGame(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            coVerify(exactly = 0) {
+                gameDao.saveGame(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            }
+            coVerify { gameDao.insertGameListCrossRef(any()) }
+            assertTrue(result)
         }
-        coVerify { gameDao.insertGameListCrossRef(any()) }
+
+    @Test
+    fun `removing a game already in the wishlist deletes the list cross-ref and returns false`() = runTest {
+        coEvery { gameDao.isGameInList(any(), any()) } returns true
+
+        val result = repository.toggleWishlist(game)
+
+        coVerify { gameDao.deleteGameListCrossRef(any()) }
+        coVerify(exactly = 0) { gameDao.insertGameListCrossRef(any()) }
+        assertFalse(result)
     }
 }
