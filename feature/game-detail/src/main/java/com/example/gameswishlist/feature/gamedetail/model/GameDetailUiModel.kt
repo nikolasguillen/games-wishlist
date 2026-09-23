@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import com.example.gameswishlist.core.model.GameStatus
 import com.example.gameswishlist.core.model.Priority
+import com.example.gameswishlist.core.ui.model.PlatformTileUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.mapper.toUiModel
 import com.example.gameswishlist.core.ui.R as CoreUiR

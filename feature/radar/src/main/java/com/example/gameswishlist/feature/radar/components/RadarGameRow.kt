@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomInfoChip
+import com.example.gameswishlist.core.ui.component.PlatformTile
 import com.example.gameswishlist.core.ui.component.gamecard.MiniGameCard
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.radar.model.RadarEntryUiModel
@@ -60,6 +61,8 @@ internal fun RadarGameRow(
             }
         }
         Spacer(modifier = Modifier.width(MaterialTheme.spacing.medium))
+        PlatformTile(code = entry.platform.code, color = entry.platform.color)
+        Spacer(modifier = Modifier.width(MaterialTheme.spacing.smallMedium))
         RadarDateLabel(entry)
     }
 }

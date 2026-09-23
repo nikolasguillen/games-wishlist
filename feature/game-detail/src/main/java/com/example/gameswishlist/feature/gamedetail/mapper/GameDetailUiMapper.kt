@@ -12,6 +12,7 @@ import com.example.gameswishlist.core.ui.mapper.toDrawableRes
 import com.example.gameswishlist.core.ui.mapper.toGameItem
 import com.example.gameswishlist.core.ui.mapper.toUiText
 import com.example.gameswishlist.core.ui.model.ListSelectorItemUiModel
+import com.example.gameswishlist.core.ui.model.PlatformTileUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.core.ui.util.PlatformVisuals
 import com.example.gameswishlist.feature.gamedetail.R
@@ -20,7 +21,6 @@ import com.example.gameswishlist.feature.gamedetail.model.GameDetailPersonalUiMo
 import com.example.gameswishlist.feature.gamedetail.model.GameDetailUiModel
 import com.example.gameswishlist.feature.gamedetail.model.GameStatusUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PlatformReleaseDateUiModel
-import com.example.gameswishlist.feature.gamedetail.model.PlatformTileUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PriorityUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RatingUiModel
 import com.example.gameswishlist.feature.gamedetail.model.RelatedGamesUiModel

@@ -1,9 +1,7 @@
 package com.example.gameswishlist.feature.gamedetail.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,20 +23,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
 import com.example.gameswishlist.core.ui.component.CustomContentCard
 import com.example.gameswishlist.core.ui.component.CustomModalBottomSheet
+import com.example.gameswishlist.core.ui.component.PlatformTile
+import com.example.gameswishlist.core.ui.model.PlatformTileUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 import com.example.gameswishlist.feature.gamedetail.model.AvailabilityUiModel
 import com.example.gameswishlist.feature.gamedetail.model.PlatformReleaseDateUiModel
-import com.example.gameswishlist.feature.gamedetail.model.PlatformTileUiModel
 import com.example.gameswishlist.core.ui.R as CoreUiR
 
 private const val MAX_VISIBLE_PLATFORM_TILES = 4
@@ -178,29 +175,6 @@ private fun PlatformTileRow(
                 color = MaterialTheme.colorScheme.surfaceVariant
             )
         }
-    }
-}
-
-@Composable
-private fun PlatformTile(
-    code: UiText,
-    color: Color,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier
-            .size(32.dp)
-            .clip(MaterialTheme.shapes.small)
-            .background(color)
-    ) {
-        Text(
-            text = code.asString(),
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            maxLines = 1
-        )
     }
 }
 

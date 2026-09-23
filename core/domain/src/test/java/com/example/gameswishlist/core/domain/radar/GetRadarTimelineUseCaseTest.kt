@@ -20,11 +20,11 @@ private const val PS5 = 167
 private const val SWITCH = 130
 
 /**
- * Covers the multi-platform date resolution decision's three branches (owned-platform match, no-selection
- * fallback, no-matching-platform fallback) and that a game's platforms all resolve to one entry. Bucket
- * boundaries themselves are [ReleaseBucketResolverTest]'s job -- fixtures here use a date far enough in
- * the future to land in [ReleaseBucket.LATER] regardless of when the test runs, so only the resolved date
- * is asserted on.
+ * Covers the multi-platform date resolution decision's branches (single owned-platform match, multiple
+ * owned-platform matches producing one entry per platform, no-selection fallback, no-matching-platform
+ * fallback). Bucket boundaries themselves are [ReleaseBucketResolverTest]'s job -- fixtures here use a
+ * date far enough in the future to land in [ReleaseBucket.LATER] regardless of when the test runs, so only
+ * the resolved date is asserted on.
  */
 class GetRadarTimelineUseCaseTest {
 
@@ -64,6 +64,52 @@ class GetRadarTimelineUseCaseTest {
 
         assertEquals(farFuture + 1_000, entry.releaseDate.date)
         assertEquals(PC, entry.releaseDate.platformId)
+    }
+
+    @Test
+    fun `produces one entry per owned platform when the game has dates on multiple owned platforms`() = runTest {
+        given(
+            games = listOf(
+                Game(
+                    id = 1,
+                    name = "Game",
+                    releaseDates = listOf(
+                        releaseDate(PC, farFuture),
+                        releaseDate(PS5, farFuture + 1_000),
+                        releaseDate(SWITCH, farFuture + 2_000) // not owned
+                    )
+                )
+            ),
+            ownedPlatformIds = setOf(PC, PS5)
+        )
+
+        val entries = useCase().first().single().entries
+
+        assertEquals(
+            listOf(PC to farFuture, PS5 to (farFuture + 1_000)),
+            entries.map { it.releaseDate.platformId to it.releaseDate.date }
+        )
+    }
+
+    @Test
+    fun `keeps the earliest region date per owned platform`() = runTest {
+        given(
+            games = listOf(
+                Game(
+                    id = 1,
+                    name = "Game",
+                    releaseDates = listOf(
+                        releaseDate(PC, farFuture + 5_000), // later region release for PC
+                        releaseDate(PC, farFuture) // earlier region release for PC
+                    )
+                )
+            ),
+            ownedPlatformIds = setOf(PC)
+        )
+
+        val entry = useCase().first().single().entries.single()
+
+        assertEquals(farFuture, entry.releaseDate.date)
     }
 
     @Test

@@ -36,10 +36,11 @@ class GetRadarTimelineUseCase @Inject constructor(
         ownedPlatformIds: Set<Int>,
         now: Instant
     ): List<RadarTimelineSection> {
-        val bucketed = games.mapNotNull { game ->
-            val releaseDate = game.resolveReleaseDate(ownedPlatformIds) ?: return@mapNotNull null
-            val bucket = resolveBucket(releaseDate.date, releaseDate.precision, now) ?: return@mapNotNull null
-            bucket to RadarEntry(game, releaseDate)
+        val bucketed = games.flatMap { game ->
+            game.resolveReleaseDates(ownedPlatformIds).mapNotNull { releaseDate ->
+                val bucket = resolveBucket(releaseDate.date, releaseDate.precision, now) ?: return@mapNotNull null
+                bucket to RadarEntry(game, releaseDate)
+            }
         }
 
         return ReleaseBucket.entries.mapNotNull { bucket ->
@@ -56,12 +57,18 @@ class GetRadarTimelineUseCase @Inject constructor(
 }
 
 /**
- * Per the multi-platform date resolution decision: the earliest release date among the platforms the user
- * owns; if there's no selection or no match, falls back to the earliest date across all the game's
- * platforms. `null` means the game has no release date data at all.
+ * Per the multi-platform date resolution decision: one release date per platform the user owns that the
+ * game has a date for (earliest region date within each owned platform); if there's no selection or no
+ * match, falls back to a single entry for the earliest date across all the game's platforms. An empty list
+ * means the game has no release date data at all.
  */
-private fun Game.resolveReleaseDate(ownedPlatformIds: Set<Int>): ReleaseDate? {
+private fun Game.resolveReleaseDates(ownedPlatformIds: Set<Int>): List<ReleaseDate> {
     val ownedDates = releaseDates.filter { it.platformId in ownedPlatformIds }
-    val candidates = ownedDates.ifEmpty { releaseDates }
-    return candidates.minByOrNull { it.date ?: Long.MAX_VALUE }
+    if (ownedDates.isNotEmpty()) {
+        return ownedDates
+            .groupBy { it.platformId }
+            .mapNotNull { (_, datesForPlatform) -> datesForPlatform.minByOrNull { it.date ?: Long.MAX_VALUE } }
+    }
+    val fallback = releaseDates.minByOrNull { it.date ?: Long.MAX_VALUE } ?: return emptyList()
+    return listOf(fallback)
 }

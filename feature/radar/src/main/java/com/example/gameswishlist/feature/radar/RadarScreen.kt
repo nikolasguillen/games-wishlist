@@ -12,6 +12,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -86,7 +87,7 @@ internal fun RadarContent(
                     }
                     items(
                         items = section.entries,
-                        key = { "${section.bucket}_${it.id}" },
+                        key = { "${section.bucket}_${it.id}_${it.platform.id}" },
                         contentType = { "game" }
                     ) { entry ->
                         RadarGameRow(
@@ -120,7 +121,17 @@ private fun RadarContentSuccessPreview() {
                 RadarSectionUiModel(
                     bucket = ReleaseBucket.THIS_WEEK,
                     label = UiText.DynamicString("This week"),
-                    entries = listOf(RadarEntryUiModel.getDummy())
+                    // Same game, two owned platforms: one row per platform, same as GetRadarTimelineUseCase emits.
+                    entries = listOf(
+                        RadarEntryUiModel.getDummy(),
+                        RadarEntryUiModel.getDummy().copy(
+                            platform = RadarEntryUiModel.getDummy().platform.copy(
+                                id = 6,
+                                code = UiText.DynamicString("PC"),
+                                color = Color(0xFF5E5E5E)
+                            )
+                        )
+                    )
                 ),
                 RadarSectionUiModel(
                     bucket = ReleaseBucket.LATER,

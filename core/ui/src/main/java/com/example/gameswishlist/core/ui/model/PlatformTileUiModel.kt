@@ -1,8 +1,7 @@
-package com.example.gameswishlist.feature.gamedetail.model
+package com.example.gameswishlist.core.ui.model
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
-import com.example.gameswishlist.core.ui.model.UiText
 
 /**
  * A compact visual representation of a platform, for icon-tile display.
@@ -12,7 +11,7 @@ import com.example.gameswishlist.core.ui.model.UiText
  * @property color A distinguishing background color for the tile.
  */
 @Immutable
-internal data class PlatformTileUiModel(
+data class PlatformTileUiModel(
     val id: Int,
     val code: UiText,
     val color: Color

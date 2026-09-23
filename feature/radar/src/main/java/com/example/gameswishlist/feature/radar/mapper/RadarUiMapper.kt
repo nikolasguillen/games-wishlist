@@ -2,10 +2,13 @@ package com.example.gameswishlist.feature.radar.mapper
 
 import com.example.gameswishlist.core.common.DateUtils
 import com.example.gameswishlist.core.model.DatePrecision
+import com.example.gameswishlist.core.model.Platform
 import com.example.gameswishlist.core.model.RadarEntry
 import com.example.gameswishlist.core.model.RadarTimelineSection
 import com.example.gameswishlist.core.model.ReleaseBucket
+import com.example.gameswishlist.core.ui.model.PlatformTileUiModel
 import com.example.gameswishlist.core.ui.model.UiText
+import com.example.gameswishlist.core.ui.util.PlatformVisuals
 import com.example.gameswishlist.feature.radar.R
 import com.example.gameswishlist.feature.radar.model.RadarEntryUiModel
 import com.example.gameswishlist.feature.radar.model.RadarEntryUiModel.DateLabelStyle
@@ -25,11 +28,15 @@ private fun RadarTimelineSection.toUiModel(): RadarSectionUiModel {
 
 private fun RadarEntry.toUiModel(bucket: ReleaseBucket): RadarEntryUiModel {
     val label = resolveDateLabel(bucket)
+    val style = PlatformVisuals.styleFor(
+        Platform(id = releaseDate.platformId, name = releaseDate.platformName)
+    )
     return RadarEntryUiModel(
         id = game.id,
         coverImage = game.backgroundImage,
         title = game.name,
         studio = game.developers.takeIf { it.isNotEmpty() }?.joinToString { it.name },
+        platform = PlatformTileUiModel(id = releaseDate.platformId, code = style.code, color = style.color),
         dateLabel = label.primary,
         dateSubLabel = label.secondary,
         dateStyle = label.style

@@ -1,6 +1,7 @@
 package com.example.gameswishlist.feature.gamedetail.model
 
 import androidx.compose.runtime.Immutable
+import com.example.gameswishlist.core.ui.model.PlatformTileUiModel
 import com.example.gameswishlist.core.ui.model.UiText
 
 /**
