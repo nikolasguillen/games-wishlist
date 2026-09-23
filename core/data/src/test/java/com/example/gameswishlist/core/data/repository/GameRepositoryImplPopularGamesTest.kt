@@ -137,6 +137,24 @@ class GameRepositoryImplPopularGamesTest {
     }
 
     @Test
+    fun `getGamesByGenre bounds the pool to a recent release window`() = runTest {
+        val body = slot<RequestBody>()
+        coEvery { apiService.searchGames(capture(body)) } returns listOf(igdbGame(1))
+
+        repository.getGamesByGenre(genreId = 12, platformIds = emptySet())
+
+        val windowStart = body.captured.asText()
+            .substringAfter("first_release_date > ")
+            .takeWhile { it.isDigit() }
+            .toLong()
+        // A lower bound only: an unreleased game in the genre is still a candidate. The window itself is
+        // asserted loosely -- pinning the exact constant would only restate it.
+        val nowSeconds = System.currentTimeMillis() / 1000
+        assertTrue(windowStart < nowSeconds)
+        assertTrue(windowStart > nowSeconds - 30L * 365 * 24 * 60 * 60)
+    }
+
+    @Test
     fun `getGamesByGenre needs no ranking call of its own`() = runTest {
         coEvery { apiService.searchGames(any<RequestBody>()) } returns listOf(igdbGame(1))
 

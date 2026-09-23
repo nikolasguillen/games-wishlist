@@ -121,6 +121,16 @@ one would already be filled by the games the ranking is meant to demote. The dev
 that token floor — it exists to surface a followed studio's unreleased titles too, which have no ratings
 at all yet, and orders them ahead of the rest by hype instead.
 
+**The genre shelf only looks at a recent release window.** Rating order over a whole genre is that genre's
+all-time canon: unbounded, the shelf filled with 90s classics, which are the right answer to "best RPG ever"
+and the wrong one to "here is something to add to your wishlist" — and they outscore new releases partly by
+having had decades to collect votes. The window is a bound on the *pool*
+(`RECOMMENDED_RELEASE_WINDOW_YEARS` in `GameRepositoryImpl`, currently ten years), not on the ranking, since
+the local weighted ranking can only reorder whatever the query already returned. It is a lower bound only,
+so unreleased titles in the genre stay eligible; games with no release date at all fall out with it. The
+developer shelf needs no equivalent — it already sorts by release date and exists to surface a studio's
+newest work.
+
 `RATING_CONFIDENCE_THRESHOLD` and `NEUTRAL_RATING` in `GetDiscoverFeedUseCase` are the knob — raise the
 prior and thin gems climb, lower it and the shelf fills with established titles. **Both are reasoned
 guesses about IGDB's rating distribution that have never been checked against a real pool.** Validate

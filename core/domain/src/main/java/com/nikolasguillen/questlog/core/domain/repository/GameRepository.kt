@@ -31,10 +31,14 @@ interface GameRepository {
     suspend fun getUpcomingGames(platformIds: Set<Int>): AppResult<List<Game>>
 
     /**
-     * Well-rated games carrying [genreId], for the personalised Discover shelf. This is the coarse
+     * Well-rated recent games carrying [genreId], for the personalised Discover shelf. This is the coarse
      * server-side half of the recommendation: it narrows the catalogue to one genre the user leans
      * towards and orders by rating, leaving the caller to strip what the user has already saved and
      * whatever the generic shelves are showing. [platformIds] behaves as in [getPopularGames].
+     *
+     * Candidates are bounded to a recent release window — a genre's all-time rating order is its canon,
+     * which is not what a "because you like X" shelf is for. Unreleased titles in the genre still
+     * qualify; games with no release date at all do not.
      *
      * Not persisted, like the other two shelves.
      */

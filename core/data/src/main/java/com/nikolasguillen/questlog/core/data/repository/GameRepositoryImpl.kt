@@ -101,6 +101,28 @@ private const val RECOMMENDED_POOL_LIMIT = 200
 private const val RECOMMENDED_MIN_RATING_COUNT = 3
 
 /**
+ * How far back the personalised genre shelf will look for candidates.
+ *
+ * `sort total_rating desc` over a whole genre is a ranking of the genre's all-time canon, so without a
+ * window the shelf fills with the acclaimed classics of the 90s -- correct by score, useless as a
+ * recommendation: the user is being offered a wishlist entry, not a history lesson, and the games that
+ * actually score highest have had decades to accumulate votes. Bounding the *pool* is what fixes this, not
+ * re-ranking it: the weighted ranking can only reorder what the query returned.
+ *
+ * This is the shelf's recency knob. Widen it and the canon creeps back in; narrow it and a quiet genre
+ * runs out of candidates before it fills a shelf, which `GetDiscoverFeedUseCase` drops rather than
+ * renders half-empty. A decade is wide enough to survive a narrow platform selection in a niche genre.
+ */
+private const val RECOMMENDED_RELEASE_WINDOW_YEARS = 10
+
+/**
+ * Seconds in a year, for [RECOMMENDED_RELEASE_WINDOW_YEARS]. Leap days are ignored on purpose: the window
+ * is a fuzzy editorial cut-off measured in years, so being a few days off at the far end of it changes
+ * nothing about which games the shelf shows.
+ */
+private const val SECONDS_PER_YEAR = 365L * 24 * 60 * 60
+
+/**
  * Candidate pool for the "More from <studio>" shelf. A studio's catalogue is far smaller than a whole
  * genre, so this is headroom rather than a page size -- matches [RECOMMENDED_POOL_LIMIT] for the same
  * reason that one does.
@@ -190,12 +212,19 @@ class GameRepositoryImpl @Inject constructor(
         return try {
             val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
             val platformFilter = platformIds.toPlatformFilter()
+            val windowStart =
+                System.currentTimeMillis() / 1000 - RECOMMENDED_RELEASE_WINDOW_YEARS * SECONDS_PER_YEAR
             // Coarse half of the recommendation: narrow to the genre and hand back a wide, roughly
             // good pool. Ordering it properly is the caller's job -- apicalypse cannot express a
             // rating weighted by how many people voted, so sorting happens locally on the pool.
+            //
+            // The window has no upper bound, so an unreleased game in the genre still qualifies. A game
+            // with no first_release_date at all drops out, which the comparison does on its own: an
+            // undated game cannot be told apart from one whose date was lost to history, and this shelf
+            // is the wrong place to guess.
             val queryText = """
                 fields name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
-                where genres = ($genreId) & game_type != ($excludedIds) & version_parent = null & cover != null & total_rating_count >= $RECOMMENDED_MIN_RATING_COUNT$platformFilter;
+                where genres = ($genreId) & game_type != ($excludedIds) & version_parent = null & cover != null & total_rating_count >= $RECOMMENDED_MIN_RATING_COUNT & first_release_date > $windowStart$platformFilter;
                 sort total_rating desc;
                 limit $RECOMMENDED_POOL_LIMIT;
             """.trimIndent()
