@@ -113,7 +113,7 @@ fun IgdbReleaseDate.toReleaseDate(): ReleaseDate {
         date = date,
         platformId = platform?.id ?: 0,
         platformName = platform?.name ?: "Unknown",
-        precision = fromIgdbCategory(category)
+        precision = fromIgdbDateFormat(dateFormat)
     )
 }
 
@@ -136,7 +136,7 @@ fun List<IgdbReleaseDateEntry>.toGamePlatformCrossRefs(): List<Pair<GamePlatform
                 gameId = earliest.game,
                 platformId = earliest.platform!!.id,
                 releaseDate = earliest.date,
-                releaseDatePrecision = earliest.category
+                releaseDatePrecision = earliest.dateFormat
             )
             crossRef to earliest.platform?.toPlatform()?.toEntity()
         }
@@ -225,7 +225,7 @@ fun GameWithAllDetails.toGame(): Game {
                 platformId = it.platform.id,
                 platformName = it.platform.name,
                 date = it.crossRef.releaseDate,
-                precision = fromIgdbCategory(it.crossRef.releaseDatePrecision)
+                precision = storedPrecision(it.crossRef.releaseDatePrecision, it.crossRef.releaseDate)
             )
         },
         genres = genres.map { it.toGenre() },
@@ -378,8 +378,8 @@ fun Game.toGamePlatformCrossRefs(): List<GamePlatformCrossRef> {
             gameId = id,
             platformId = platform.id,
             releaseDate = platformDate?.date ?: fallbackDate,
-            releaseDatePrecision = platformDate?.precision?.toIgdbCategory()
-                ?: fallbackDate?.let { fallbackPrecision.toIgdbCategory() }
+            releaseDatePrecision = platformDate?.precision?.toIgdbDateFormat()
+                ?: fallbackDate?.let { fallbackPrecision.toIgdbDateFormat() }
         )
     }
 }
@@ -425,8 +425,26 @@ fun Int.toPriority(): Priority {
     }
 }
 
-/** [category] is the raw IGDB `release_dates.category` value; an unrecognized or missing one defaults to [EXACT_DATE]. */
-fun fromIgdbCategory(category: Int?): DatePrecision = when (category) {
+/**
+ * Reads a precision scalar back off a stored cross-ref row, where a missing value cannot be taken at face
+ * value: rows written while the app still asked IGDB for the removed `category` field carry either no
+ * scalar at all or the [EXACT_DATE] this mapper used to default to, both of which claim a precision IGDB
+ * never gave. For those, a date landing on IGDB's 31 December year-only placeholder is read as
+ * [YEAR_ONLY] rather than as a real day. Any other scalar was written from a value IGDB did return, so it
+ * is trusted as-is.
+ *
+ * The trade is that a game genuinely released on 31 December reads as year-only too. That is the same
+ * ambiguity [DateUtils.isYearOnlyPlaceholder] already accepts elsewhere, and it only applies to rows whose
+ * precision is unknown — the periodic release-date refresh replaces those with a real `date_format`.
+ */
+private fun storedPrecision(rawScalar: Int?, date: Long?): DatePrecision {
+    val precisionIsUnknown = rawScalar == null || rawScalar == EXACT_DATE.toIgdbDateFormat()
+    if (precisionIsUnknown && DateUtils.isYearOnlyPlaceholder(date)) return YEAR_ONLY
+    return fromIgdbDateFormat(rawScalar)
+}
+
+/** [dateFormat] is the raw IGDB `release_dates.date_format` value; an unrecognized or missing one defaults to [EXACT_DATE]. */
+fun fromIgdbDateFormat(dateFormat: Int?): DatePrecision = when (dateFormat) {
     0 -> EXACT_DATE
     1 -> YEAR_MONTH
     2 -> YEAR_ONLY
@@ -436,11 +454,11 @@ fun fromIgdbCategory(category: Int?): DatePrecision = when (category) {
 }
 
 /**
- * Reverse of [fromIgdbCategory], for persisting a domain-level [DatePrecision] back
- * as the raw IGDB category column. Lossy for [DatePrecision.QUARTER], which collapses IGDB's four quarter
- * categories into one value — round-trips back to [DatePrecision.QUARTER] regardless of which one.
+ * Reverse of [fromIgdbDateFormat], for persisting a domain-level [DatePrecision] back
+ * as the raw IGDB scalar column. Lossy for [DatePrecision.QUARTER], which collapses IGDB's four quarter
+ * values into one — round-trips back to [DatePrecision.QUARTER] regardless of which one.
  */
-fun DatePrecision.toIgdbCategory(): Int = when (this) {
+fun DatePrecision.toIgdbDateFormat(): Int = when (this) {
     EXACT_DATE -> 0
     YEAR_MONTH -> 1
     YEAR_ONLY -> 2

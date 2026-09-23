@@ -78,7 +78,7 @@ class GameRepositoryImplRefreshReleaseDatesTest {
                     id = 6, abbreviation = "PC", name = "PC", generation = null, category = null, platformFamily = null
                 ),
                 date = 1_000L,
-                category = 0
+                dateFormat = 0
             )
         )
         val upserted = slot<List<GamePlatformCrossRef>>()

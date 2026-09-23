@@ -18,15 +18,15 @@ class RadarReleaseDateMapperTest {
         game: Int,
         platform: IgdbPlatform?,
         date: Long?,
-        category: Int?
-    ) = IgdbReleaseDateEntry(id = id, game = game, platform = platform, date = date, category = category)
+        dateFormat: Int?
+    ) = IgdbReleaseDateEntry(id = id, game = game, platform = platform, date = date, dateFormat = dateFormat)
 
     private fun platform(id: Int, name: String = "Platform $id") =
         IgdbPlatform(id = id, abbreviation = null, name = name, generation = null, category = null, platformFamily = null)
 
     @Test
     fun `category is carried through unchanged as the raw IGDB value`() {
-        val result = listOf(entry(id = 1, game = 100, platform = platform(6), date = 1_000L, category = 3))
+        val result = listOf(entry(id = 1, game = 100, platform = platform(6), date = 1_000L, dateFormat = 3))
             .toGamePlatformCrossRefs()
 
         assertEquals(3, result.single().first.releaseDatePrecision)
@@ -35,9 +35,9 @@ class RadarReleaseDateMapperTest {
     @Test
     fun `duplicate regional rows for the same game and platform collapse to the earliest date`() {
         val result = listOf(
-            entry(id = 1, game = 100, platform = platform(6), date = 2_000L, category = 0),
-            entry(id = 2, game = 100, platform = platform(6), date = 1_000L, category = 0),
-            entry(id = 3, game = 100, platform = platform(6), date = 3_000L, category = 0)
+            entry(id = 1, game = 100, platform = platform(6), date = 2_000L, dateFormat = 0),
+            entry(id = 2, game = 100, platform = platform(6), date = 1_000L, dateFormat = 0),
+            entry(id = 3, game = 100, platform = platform(6), date = 3_000L, dateFormat = 0)
         ).toGamePlatformCrossRefs()
 
         assertEquals(1, result.size)
@@ -47,8 +47,8 @@ class RadarReleaseDateMapperTest {
     @Test
     fun `rows for different platforms of the same game stay separate`() {
         val result = listOf(
-            entry(id = 1, game = 100, platform = platform(6), date = 1_000L, category = 0),
-            entry(id = 2, game = 100, platform = platform(167), date = 2_000L, category = 0)
+            entry(id = 1, game = 100, platform = platform(6), date = 1_000L, dateFormat = 0),
+            entry(id = 2, game = 100, platform = platform(167), date = 2_000L, dateFormat = 0)
         ).toGamePlatformCrossRefs()
 
         assertEquals(setOf(6, 167), result.map { it.first.platformId }.toSet())
@@ -57,8 +57,8 @@ class RadarReleaseDateMapperTest {
     @Test
     fun `a row with no platform object is dropped since a cross-ref needs a platform id`() {
         val result = listOf(
-            entry(id = 1, game = 100, platform = null, date = 1_000L, category = 0),
-            entry(id = 2, game = 100, platform = platform(6), date = 1_000L, category = 0)
+            entry(id = 1, game = 100, platform = null, date = 1_000L, dateFormat = 0),
+            entry(id = 2, game = 100, platform = platform(6), date = 1_000L, dateFormat = 0)
         ).toGamePlatformCrossRefs()
 
         assertEquals(1, result.size)
@@ -67,7 +67,7 @@ class RadarReleaseDateMapperTest {
 
     @Test
     fun `the paired PlatformEntity backfills an uncached platform`() {
-        val result = listOf(entry(id = 1, game = 100, platform = platform(6, "PC"), date = 1_000L, category = 0))
+        val result = listOf(entry(id = 1, game = 100, platform = platform(6, "PC"), date = 1_000L, dateFormat = 0))
             .toGamePlatformCrossRefs()
 
         val platformEntity = result.single().second

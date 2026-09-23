@@ -335,7 +335,7 @@ class GameRepositoryImpl @Inject constructor(
                 localGame.toGame().copy(isWishlisted = isWishlisted)
             } else {
                 val queryText = """
-                    fields name, url, game_type, summary, first_release_date, cover.url, total_rating, aggregated_rating, hypes, total_rating_count, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, release_dates.date, release_dates.platform.name, release_dates.category, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, game_engines.name,
+                    fields name, url, game_type, summary, first_release_date, cover.url, total_rating, aggregated_rating, hypes, total_rating_count, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, release_dates.date, release_dates.platform.name, release_dates.date_format, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, game_engines.name,
                     dlcs.name, dlcs.cover.url, expansions.name, expansions.cover.url, remakes.name, remakes.cover.url, remasters.name, remasters.cover.url, parent_game.name, parent_game.cover.url, artworks.url, screenshots.url;
                     where id = $id;
                 """.trimIndent()
@@ -437,7 +437,7 @@ class GameRepositoryImpl @Inject constructor(
                     async {
                         semaphore.withPermit {
                             val queryText = """
-                                fields id, game, platform.id, platform.name, date, category;
+                                fields id, game, platform.id, platform.name, date, date_format;
                                 where game = (${chunk.joinToString(",")});
                                 sort date asc;
                                 limit 500;

@@ -1,5 +1,6 @@
 package com.example.gameswishlist.core.network.model
 
+import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 /**
@@ -11,8 +12,10 @@ import com.squareup.moshi.JsonClass
  * @property platform The platform this release date refers to. Requested as a nested object (not a bare
  * id) so a platform IGDB knows about but this app hasn't cached yet can still be backfilled.
  * @property date Unix timestamp (seconds) of the release date.
- * @property category IGDB's deprecated-but-functional precision scalar (0=YYYYMMDD, 1=YYYYMM, 2=YYYY,
- * 3-6=quarters, 7=TBD).
+ * @property dateFormat IGDB's precision scalar (0=YYYYMMDD, 1=YYYYMM, 2=YYYY, 3-6=quarters, 7=TBD). This
+ * replaced the `category` field, which IGDB has stopped returning altogether: asking for the old name
+ * yields no value at all, which read back as "exact date" and produced a made-up day for year-only
+ * releases. The scalar values themselves are unchanged.
  */
 @JsonClass(generateAdapter = true)
 data class IgdbReleaseDateEntry(
@@ -20,5 +23,5 @@ data class IgdbReleaseDateEntry(
     val game: Int,
     val platform: IgdbPlatform?,
     val date: Long?,
-    val category: Int?
+    @Json(name = "date_format") val dateFormat: Int?
 )

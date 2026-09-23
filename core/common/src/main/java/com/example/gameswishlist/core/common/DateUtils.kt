@@ -3,6 +3,7 @@ package com.example.gameswishlist.core.common
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
@@ -109,6 +110,18 @@ object DateUtils {
      */
     fun isYearOnlyPlaceholder(isoDate: String?): Boolean {
         val date = parseIsoDate(isoDate) ?: return false
+        return date.monthValue == 12 && date.dayOfMonth == 31
+    }
+
+    /**
+     * Epoch-seconds counterpart of the [isYearOnlyPlaceholder] overload taking an ISO string. The check is
+     * made in UTC, the zone IGDB fills the placeholder in: east of Greenwich the device's own calendar day
+     * agrees anyway, while west of it the same instant reads as 30 December locally and the placeholder
+     * would slip through unrecognised.
+     */
+    fun isYearOnlyPlaceholder(timestampSeconds: Long?): Boolean {
+        if (timestampSeconds == null) return false
+        val date = Instant.ofEpochSecond(timestampSeconds).atZone(ZoneOffset.UTC).toLocalDate()
         return date.monthValue == 12 && date.dayOfMonth == 31
     }
 }
