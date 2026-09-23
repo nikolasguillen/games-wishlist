@@ -60,9 +60,11 @@ Naming: `toX()` for a single object, `toXEntities()` / `toXCrossRefs()` for coll
 
 ## Caching
 
-Local-first, with no expiry policy. `refreshGameDetail(id)` checks Room first and **only hits the network
-when the row is absent** — a cached game is never re-fetched. It then stamps `lastViewedAt` and writes
-through `gameDao.saveGame(...)`.
+Local-first, with no expiry policy. `refreshGameDetail(id)` checks Room first and only hits the network
+when the row is absent **or is not yet a detail**: a game saved from search or Discover has a row (no
+per-platform dates, no description, no related games) but `GameEntity.detailsFetchedAt` is `null`, so it
+still triggers a fetch. A network fetch stamps `detailsFetchedAt`; a row that already carries one is never
+re-fetched. Either way `lastViewedAt` is stamped and the result is written through `gameDao.saveGame(...)`.
 
 Reads are reactive `Flow`s off Room. `isWishlisted` is **derived**, not stored: it comes from
 `combine(..., gameDao.getGameIdsInList(DEFAULT_WISHLIST_ID))`.

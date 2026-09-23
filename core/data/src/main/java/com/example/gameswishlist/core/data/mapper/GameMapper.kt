@@ -240,6 +240,7 @@ fun GameWithAllDetails.toGame(): Game {
         // @Relation cannot sort, so the gallery order is restored here from the stored position.
         artworks = artworks.sortedBy { it.position }.map { it.url },
         lastViewedAt = game.lastViewedAt,
+        detailsFetchedAt = game.detailsFetchedAt,
         dlcs = dlcs,
         expansions = expansions,
         remakes = remakes,
@@ -332,7 +333,8 @@ fun Game.toEntity(): GameEntity {
         priority = priority?.toInt(),
         status = status,
         url = url,
-        lastViewedAt = lastViewedAt
+        lastViewedAt = lastViewedAt,
+        detailsFetchedAt = detailsFetchedAt
     )
 }
 

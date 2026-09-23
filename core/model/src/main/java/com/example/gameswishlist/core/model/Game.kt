@@ -27,6 +27,9 @@ package com.example.gameswishlist.core.model
  * @property status Current status of the game in the user's collection (e.g., Want to Buy).
  * @property url The official web URL for the game (e.g. from IGDB).
  * @property lastViewedAt Timestamp of the last time the game was viewed.
+ * @property detailsFetchedAt Timestamp of the last time this game's full detail was fetched from the
+ * network, or `null` if it was only ever saved as a catalogue result (search, Discover). Tells apart a
+ * row that has a description, per-platform dates and related games from one that never fetched them.
  */
 data class Game(
     val id: Int,
@@ -51,6 +54,7 @@ data class Game(
     val status: GameStatus? = null,
     val url: String? = null,
     val lastViewedAt: Long? = null,
+    val detailsFetchedAt: Long? = null,
     val dlcs: List<Game> = emptyList(),
     val expansions: List<Game> = emptyList(),
     val remakes: List<Game> = emptyList(),

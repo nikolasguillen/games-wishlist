@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "ec2802a93c65104904ba0c276ed919ef",
+    "identityHash": "de7803dda1eaf1b79d9b041635f93387",
     "entities": [
       {
         "tableName": "search_history",
@@ -30,7 +30,7 @@
       },
       {
         "tableName": "games",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `released` TEXT, `backgroundImage` TEXT, `rating` REAL NOT NULL, `ratingCount` INTEGER NOT NULL, `hypes` INTEGER NOT NULL, `metacritic` INTEGER, `gameTypeId` INTEGER NOT NULL, `notes` TEXT NOT NULL, `priority` INTEGER, `status` TEXT, `url` TEXT, `lastViewedAt` INTEGER, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `released` TEXT, `backgroundImage` TEXT, `rating` REAL NOT NULL, `ratingCount` INTEGER NOT NULL, `hypes` INTEGER NOT NULL, `metacritic` INTEGER, `gameTypeId` INTEGER NOT NULL, `notes` TEXT NOT NULL, `priority` INTEGER, `status` TEXT, `url` TEXT, `lastViewedAt` INTEGER, `detailsFetchedAt` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -113,6 +113,11 @@
           {
             "fieldPath": "lastViewedAt",
             "columnName": "lastViewedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "detailsFetchedAt",
+            "columnName": "detailsFetchedAt",
             "affinity": "INTEGER"
           }
         ],
@@ -558,7 +563,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ec2802a93c65104904ba0c276ed919ef')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'de7803dda1eaf1b79d9b041635f93387')"
     ]
   }
 }

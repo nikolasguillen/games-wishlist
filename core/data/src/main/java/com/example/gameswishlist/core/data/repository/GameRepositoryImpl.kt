@@ -326,14 +326,14 @@ class GameRepositoryImpl @Inject constructor(
 
     override suspend fun refreshGameDetail(id: Int): AppResult<Unit> {
         return try {
-            // Try local first
             val localGame = gameDao.getGameById(id)
             val isWishlisted = gameDao.isGameInList(id, WishlistConstants.DEFAULT_WISHLIST_ID)
 
-            val game = if (localGame != null) {
+            // A row written by a catalogue save has no description, no per-platform dates and no related
+            // games: it satisfies "cached" without being a detail. Only a row this method itself filled counts.
+            val game = if (localGame != null && localGame.game.detailsFetchedAt != null) {
                 localGame.toGame().copy(isWishlisted = isWishlisted)
             } else {
-                // Fetch from network
                 val queryText = """
                     fields name, url, game_type, summary, first_release_date, cover.url, total_rating, aggregated_rating, hypes, total_rating_count, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, release_dates.date, release_dates.platform.name, release_dates.category, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, game_engines.name,
                     dlcs.name, dlcs.cover.url, expansions.name, expansions.cover.url, remakes.name, remakes.cover.url, remasters.name, remasters.cover.url, parent_game.name, parent_game.cover.url, artworks.url, screenshots.url;
@@ -341,7 +341,7 @@ class GameRepositoryImpl @Inject constructor(
                 """.trimIndent()
                 val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
                 val networkGame = apiService.getGameDetail(body).first()
-                networkGame.toGame().copy(isWishlisted = isWishlisted)
+                networkGame.toGame().copy(isWishlisted = isWishlisted, detailsFetchedAt = System.currentTimeMillis())
             }
 
             // Update last viewed timestamp and save local
