@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Games Wishlist</string>
+    <string name="app_name">Quest Log</string>
     <string name="search_nav_bar_item">Search</string>
     <string name="radar_nav_bar_item">Radar</string>
     <string name="lists_nav_bar_item">Lists</string>

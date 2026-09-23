@@ -3,14 +3,12 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+  <group android:scaleX="0.85"
+      android:scaleY="0.85"
+      android:translateX="8.1"
+      android:translateY="8.1">
     <path
-        android:fillColor="#FFFFFF"
-        android:fillType="evenOdd"
-        android:pathData="M32,36.5 L76,36.5 A9,9 0 0 1 85,45.5 L85,55.5 A14,14 0 0 1 71,69.5 L64,69.5 A9,9 0 0 1 54,60.5 A9,9 0 0 1 44,69.5 L37,69.5 A14,14 0 0 1 23,55.5 L23,45.5 A9,9 0 0 1 32,36.5 Z
-                  M54,56 C50.5,51.5 46,49.5 46,45 A3.5,3.5 0 0 1 53,45 L54,46 L55,45 A3.5,3.5 0 0 1 62,45 C62,49.5 57.5,51.5 54,56 Z
-                  M31,50.5 h2.5 v-2.5 h2 v2.5 h2.5 v2 h-2.5 v2.5 h-2 v-2.5 h-2.5 z
-                  M74,48 a 1.5,1.5 0 1 1 0,-3 a 1.5,1.5 0 1 1 0,3 z
-                  M74,57 a 1.5,1.5 0 1 1 0,-3 a 1.5,1.5 0 1 1 0,3 z
-                  M70,52.5 a 1.5,1.5 0 1 1 0,-3 a 1.5,1.5 0 1 1 0,3 z
-                  M78,52.5 a 1.5,1.5 0 1 1 0,-3 a 1.5,1.5 0 1 1 0,3 z" />
+        android:pathData="M34.5,39V45H33V46.5H31.5V48H25.5V46.5H24V39H25.5V37.5H33V39ZM31.5,39H27V46.5H30V45H28.5V43.5H31.5ZM33,48V46.5H34.5V48ZM37.5,48V46.5H36V37.5H39V46.5H43.5V37.5H46.5V46.5H45V48ZM48,48V37.5H58.5V39H51V42H57V43.5H51V46.5H58.5V48ZM61.5,48V46.5H60V45H63V46.5H67.5V43.5H61.5V42H60V39H61.5V37.5H69V39H70.5V40.5H67.5V39H63V42H69V43.5H70.5V46.5H69V48ZM76.5,48V39H73.5V37.5H82.5V39H79.5V48ZM37.5,72V61.5H40.5V70.5H46.5V72ZM49.5,72V70.5H48V63H49.5V61.5H57V63H58.5V70.5H57V72ZM51,70.5H55.5V63H51ZM63,72V70.5H61.5V69H60V64.5H61.5V63H63V61.5H70.5V63H64.5V64.5H63V69H64.5V70.5H67.5V67.5H66V66H70.5V72Z"
+        android:fillColor="#D9B25C"/>
+  </group>
 </vector>
