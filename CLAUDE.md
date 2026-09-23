@@ -108,7 +108,7 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
 | Spacing / color / typography tokens | `core/designsystem/theme/` |
 | Shared composables, reusable modifiers | `core/ui/component/`, `core/ui/util/modifiers/` |
 | Nav routes (`NavKey`) | `core/navigation/Routes.kt` |
-| Navigation entry point (`NavDisplay`) | `app/src/main/java/com/example/gameswishlist/MainActivity.kt` |
+| Navigation entry point (`NavDisplay`) | `app/src/main/java/com/nikolasguillen/questlog/MainActivity.kt` |
 | Shared UI constants | `core/ui/util/Constants.kt` (`object UiConstants`) |
 | Network↔domain↔entity mappers | `core/data/mapper/GameMapper.kt` |
 | `GameDescriptionTranslator` | `core/domain/translation/` (impl in `core/data/translation/`) |

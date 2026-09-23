@@ -6,7 +6,7 @@ Read the root `CLAUDE.md` first for the module dependency rules.
 ## Module layout
 
 ```
-feature/<name>/src/main/java/com/example/gameswishlist/feature/<name>/
+feature/<name>/src/main/java/com/nikolasguillen/questlog/feature/<name>/
   <Name>Screen.kt         public screen + internal stateless content + private @Preview
   <Name>ViewModel.kt
   components/             sub-composables, one logical unit per file
