@@ -35,27 +35,29 @@ fun GamesWishlistTheme(
         onBackground = OnBackgroundDark,
         surface = SurfaceDark,
         onSurface = OnSurfaceDark,
-        surfaceVariant = SpotifyMediumGrey,
-        onSurfaceVariant = SpotifyLightGrey,
-        surfaceContainer = SpotifyMediumGrey
+        surfaceVariant = NeutralMediumGrey,
+        onSurfaceVariant = NeutralLightGrey,
+        surfaceContainer = NeutralMediumGrey,
+        outline = OutlineDark,
+        outlineVariant = OutlineVariantDark
     )
 
     val appColors = AppColors(
-        appBackground = SpotifyBlack,
-        onAppBackground = SpotifyWhite,
-        searchBarScrolledContainerColor = SpotifyMediumGrey,
-        searchBarInputFieldColor = lerp(SpotifyMediumGrey, SpotifyWhite, 0.05f),
-        expandedSearchBarColor = SpotifyMediumGrey,
-        navBarContainerColor = SpotifyMediumGrey,
-        navBarItemIndicatorColor = SpotifyGreen,
-        navBarItemSelectedIconColor = SpotifyBlack,
+        appBackground = NeutralBlack,
+        onAppBackground = NeutralWhite,
+        searchBarScrolledContainerColor = NeutralMediumGrey,
+        searchBarInputFieldColor = lerp(NeutralMediumGrey, NeutralWhite, 0.05f),
+        expandedSearchBarColor = NeutralMediumGrey,
+        navBarContainerColor = NeutralMediumGrey,
+        navBarItemIndicatorColor = Gold,
+        navBarItemSelectedIconColor = NeutralBlack,
         filterChipSelectedContainerColor = PrimaryContainerDark,
         filterChipSelectedContentColor = OnPrimaryContainerDark,
         cardContainerColor = SecondaryContainerDark,
         segmentedButtonSelectedColor = PrimaryContainerDark,
         segmentedButtonSelectedContentColor = OnPrimaryContainerDark,
-        fabContainerColor = SpotifyGreen,
-        fabContentColor = SpotifyBlack,
+        fabContainerColor = Gold,
+        fabContentColor = NeutralBlack,
         hypeColor = Color(0xFFF44336),
         ratingCountColor = Color(0xFFFFB300)
     )
