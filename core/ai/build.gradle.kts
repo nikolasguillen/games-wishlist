@@ -11,6 +11,9 @@ android {
     defaultConfig {
         minSdk = 29
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Travels with the module that owns the ML Kit dependency, so :app's R8 run gets the rule
+        // without :app having to know what :core:ai wraps.
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     compileOptions {
