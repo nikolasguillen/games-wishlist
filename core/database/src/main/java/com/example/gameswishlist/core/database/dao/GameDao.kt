@@ -93,6 +93,9 @@ interface GameDao {
     @Query("SELECT EXISTS(SELECT 1 FROM game_list_cross_ref WHERE gameId = :gameId AND listId = :listId)")
     suspend fun isGameInList(gameId: Int, listId: Long): Boolean
 
+    @Query("SELECT EXISTS(SELECT 1 FROM games WHERE id = :id)")
+    suspend fun gameExists(id: Int): Boolean
+
     @Query("SELECT gameId FROM game_list_cross_ref WHERE listId = :listId")
     fun getGameIdsInList(listId: Long): Flow<List<Int>>
 

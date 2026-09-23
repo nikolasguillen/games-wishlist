@@ -64,6 +64,12 @@ interface GameRepository {
     fun getWishlistedGames(): Flow<List<Game>>
     /** The ids of the games in the default wishlist, for cheap membership checks against a game list. */
     fun getWishlistedGameIds(): Flow<Set<Int>>
+    /**
+     * Adds [game] to the default wishlist, or removes it if it is already there. On add, the game is
+     * only written to storage if it is not already stored: an existing row is never overwritten by a
+     * catalogue [Game] such as one from a search result or the Discover feed, which carries none of the
+     * user's own fields and none of the per-platform detail a prior fetch may have filled in.
+     */
     suspend fun toggleWishlist(game: Game)
     suspend fun updateGameDetails(game: Game)
 

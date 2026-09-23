@@ -390,8 +390,12 @@ class GameRepositoryImpl @Inject constructor(
                 )
             )
         } else {
-            // Ensure game is saved local before adding to list
-            saveGameLocal(game)
+            // The Game handed in by the search grid or the Discover feed is a catalogue result: no per-platform
+            // dates, no engines, no artworks, and none of the user's own fields. Writing it over a row that a
+            // detail fetch already filled would wipe all of that, so an existing row is left exactly as it is.
+            if (!gameDao.gameExists(game.id)) {
+                saveGameLocal(game)
+            }
             gameDao.insertGameListCrossRef(
                 GameListCrossRef(
                     game.id,
