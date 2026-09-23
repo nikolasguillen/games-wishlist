@@ -13,6 +13,7 @@ import com.example.gameswishlist.feature.radar.R
 import com.example.gameswishlist.feature.radar.model.RadarEntryUiModel
 import com.example.gameswishlist.feature.radar.model.RadarEntryUiModel.DateLabelStyle
 import com.example.gameswishlist.feature.radar.model.RadarSectionUiModel
+import java.util.Locale
 
 internal fun List<RadarTimelineSection>.toUiModel(): List<RadarSectionUiModel> {
     return map { it.toUiModel() }
@@ -71,24 +72,31 @@ private fun RadarEntry.resolveDateLabel(bucket: ReleaseBucket): DateLabel {
         }
 
         DatePrecision.YEAR_MONTH -> DateLabel(
-            primary = UiText.DynamicString(DateUtils.formatUnixTimestamp(date, "MMM yyyy")),
+            primary = UiText.DynamicString(DateUtils.formatUnixTimestamp(date, "MMM yyyy").capitalizedFirst()),
             style = DateLabelStyle.PLAIN
         )
 
         DatePrecision.EXACT_DATE -> if (bucket == ReleaseBucket.THIS_WEEK) {
             DateLabel(
-                primary = UiText.DynamicString(DateUtils.formatUnixTimestamp(date, "EEE")),
-                secondary = UiText.DynamicString(DateUtils.formatUnixTimestamp(date, "MMM d")),
+                primary = UiText.DynamicString(DateUtils.formatUnixTimestamp(date, "EEE").capitalizedFirst()),
+                secondary = UiText.DynamicString(DateUtils.formatUnixTimestamp(date, "MMM d").capitalizedFirst()),
                 style = DateLabelStyle.THIS_WEEK
             )
         } else {
             DateLabel(
-                primary = UiText.DynamicString(DateUtils.formatUnixTimestamp(date, "MMM d")),
+                primary = UiText.DynamicString(DateUtils.formatUnixTimestamp(date, "MMM d").capitalizedFirst()),
                 style = DateLabelStyle.PLAIN
             )
         }
     }
 }
+
+/**
+ * Some locales' short month/weekday patterns ("EEE", "MMM") come back lowercase from
+ * [java.time.format.DateTimeFormatter] (Italian's "set", "lun"). Capitalized to read consistently with the
+ * rest of the Radar UI regardless of device locale.
+ */
+private fun String.capitalizedFirst(): String = replaceFirstChar { it.titlecase(Locale.getDefault()) }
 
 private fun ReleaseBucket.toLabelUiText(): UiText = when (this) {
     ReleaseBucket.RECENTLY_RELEASED -> UiText.StringResource(R.string.radar_bucket_recently_released)
