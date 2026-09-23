@@ -7,14 +7,10 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.appColors
-import com.example.gameswishlist.core.ui.R as CoreUiR
 
 @Composable
 fun MiniGameCard(coverImage: String?, modifier: Modifier = Modifier) {
@@ -24,12 +20,7 @@ fun MiniGameCard(coverImage: String?, modifier: Modifier = Modifier) {
             .size(48.dp)
             .clip(MaterialTheme.shapes.small)
     ) {
-        AsyncImage(
-            model = coverImage,
-            contentDescription = null,
-            error = painterResource(CoreUiR.drawable.placeholder),
-            contentScale = ContentScale.Crop
-        )
+        GameCoverImage(coverImage = coverImage)
     }
 }
 

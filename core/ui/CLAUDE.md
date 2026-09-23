@@ -18,11 +18,16 @@ header height and the `ProfileIconButton` slot so top-level screens line up, see
 `MainScreenHeaderDefaults.Height`; the slot overload also exposes an optional `leadingContent` to the left
 of the main slot — always laid out, width-animated, empty by default — for a caller that needs a
 conditional icon there, such as Search's back-to-feed arrow), `ListSelectorSheet` (bottom sheet for adding
-a game to one or more lists, working against `ListSelectorItemUiModel`).
+a game to one or more lists, working against `ListSelectorItemUiModel`), `GameListRow` (cover + title +
+optional subtitle + a `trailingContent` slot for whatever the caller puts at the row's end — Radar's
+date/platform pair, Wishlist's rating; check here before hand-rolling another game list row).
 
 `component/gamecard/` groups the game-card family: `VerticalGameCard`, `RecentGameCard`, `GameCompactCard`,
-and the `internal` `GameCoverHeader` they all share. Card-specific private helpers (`SaveToWishlistButton`,
-`GameMetadataRow`) stay in the file of the single card that uses them.
+and the `internal` `GameCoverHeader` they all share; `MiniGameCard` (48x48 bordered cover, used in list
+rows) and the bare `GameCoverImage` it wraps (placeholder/crop/clip with no fixed size or chrome — reach
+for this directly when a row needs a different aspect ratio, such as the portrait suggestion cover in
+Search). Card-specific private helpers (`SaveToWishlistButton`, `GameMetadataRow`) stay in the file of the
+single card that uses them.
 
 Every component file ends with a `private fun XPreview()` annotated `@Preview(showBackground = true)` and
 wrapped in `GamesWishlistTheme { }`. Match that when adding a component.

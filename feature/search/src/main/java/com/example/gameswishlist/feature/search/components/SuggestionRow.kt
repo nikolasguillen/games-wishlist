@@ -23,21 +23,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.example.gameswishlist.core.designsystem.theme.GamesWishlistTheme
 import com.example.gameswishlist.core.designsystem.theme.spacing
+import com.example.gameswishlist.core.ui.component.gamecard.GameCoverImage
 import com.example.gameswishlist.core.ui.util.modifiers.shimmerEffect
 import com.example.gameswishlist.feature.search.R
 import com.example.gameswishlist.feature.search.model.GameSuggestionUiModel
-import com.example.gameswishlist.core.ui.R as CoreUiR
 
 /** Covers are portrait: a square crop would cut the art the user recognises the game by. */
 private val SUGGESTION_COVER_WIDTH = 36.dp
@@ -170,15 +167,11 @@ internal fun GameSuggestionRow(
                 horizontal = MaterialTheme.spacing.large, vertical = MaterialTheme.spacing.small
             )
     ) {
-        AsyncImage(
-            model = suggestion.coverUrl,
-            contentDescription = null,
-            error = painterResource(CoreUiR.drawable.placeholder),
+        GameCoverImage(
+            coverImage = suggestion.coverUrl,
             modifier = Modifier
                 .width(SUGGESTION_COVER_WIDTH)
                 .height(SUGGESTION_COVER_HEIGHT)
-                .clip(MaterialTheme.shapes.small),
-            contentScale = ContentScale.Crop
         )
         Spacer(modifier = Modifier.width(MaterialTheme.spacing.mediumLarge))
         Column {
