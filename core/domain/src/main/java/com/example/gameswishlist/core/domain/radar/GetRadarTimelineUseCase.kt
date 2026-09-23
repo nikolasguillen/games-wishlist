@@ -15,8 +15,9 @@ import javax.inject.Inject
 
 /**
  * Builds the Radar timeline: every saved game with a release date, grouped into non-empty
- * [RadarTimelineSection]s and sorted ascending by date within a bucket ([ReleaseBucket.TBA] sorted
- * alphabetically instead, since it has no date to sort by).
+ * [RadarTimelineSection]s and sorted ascending by date within a bucket, with two exceptions:
+ * [ReleaseBucket.TBA] sorts alphabetically instead, since it has no date to sort by, and
+ * [ReleaseBucket.RECENTLY_RELEASED] sorts descending, so the most recently released game leads.
  */
 class GetRadarTimelineUseCase @Inject constructor(
     private val gameRepository: GameRepository,
@@ -46,10 +47,10 @@ class GetRadarTimelineUseCase @Inject constructor(
         return ReleaseBucket.entries.mapNotNull { bucket ->
             val entries = bucketed.filter { it.first == bucket }.map { it.second }
             if (entries.isEmpty()) return@mapNotNull null
-            val sortedEntries = if (bucket == ReleaseBucket.TBA) {
-                entries.sortedBy { it.game.name }
-            } else {
-                entries.sortedBy { it.releaseDate.date }
+            val sortedEntries = when (bucket) {
+                ReleaseBucket.TBA -> entries.sortedBy { it.game.name }
+                ReleaseBucket.RECENTLY_RELEASED -> entries.sortedByDescending { it.releaseDate.date }
+                else -> entries.sortedBy { it.releaseDate.date }
             }
             RadarTimelineSection(bucket, sortedEntries)
         }

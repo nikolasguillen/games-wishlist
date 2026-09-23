@@ -91,6 +91,7 @@ private fun RadarEntry.resolveDateLabel(bucket: ReleaseBucket): DateLabel {
 }
 
 private fun ReleaseBucket.toLabelUiText(): UiText = when (this) {
+    ReleaseBucket.RECENTLY_RELEASED -> UiText.StringResource(R.string.radar_bucket_recently_released)
     ReleaseBucket.THIS_WEEK -> UiText.StringResource(R.string.radar_bucket_this_week)
     ReleaseBucket.THIS_MONTH -> UiText.StringResource(R.string.radar_bucket_this_month)
     ReleaseBucket.NEXT_3_MONTHS -> UiText.StringResource(R.string.radar_bucket_next_3_months)

@@ -192,4 +192,47 @@ class GetRadarTimelineUseCaseTest {
         assertEquals(ReleaseBucket.TBA, section.bucket)
         assertEquals(listOf("Alpha Quest", "Zelda-like"), section.entries.map { it.game.name })
     }
+
+    @Test
+    fun `an owned platform released a few days ago still produces a row, alongside one for a still-upcoming owned platform`() =
+        runTest {
+            val recentPast = Clock.System.now().epochSeconds - (2L * 24 * 3600)
+            given(
+                games = listOf(
+                    Game(
+                        id = 1,
+                        name = "Game",
+                        releaseDates = listOf(
+                            releaseDate(PS5, recentPast),
+                            releaseDate(PC, farFuture)
+                        )
+                    )
+                ),
+                ownedPlatformIds = setOf(PS5, PC)
+            )
+
+            val sections = useCase().first()
+
+            val recentSection = sections.single { it.bucket == ReleaseBucket.RECENTLY_RELEASED }
+            assertEquals(PS5, recentSection.entries.single().releaseDate.platformId)
+            val laterSection = sections.single { it.bucket == ReleaseBucket.LATER }
+            assertEquals(PC, laterSection.entries.single().releaseDate.platformId)
+        }
+
+    @Test
+    fun `recently released entries sort most-recent-first`() = runTest {
+        val now = Clock.System.now().epochSeconds
+        given(
+            games = listOf(
+                Game(id = 1, name = "Older", releaseDates = listOf(releaseDate(PC, now - (5L * 24 * 3600)))),
+                Game(id = 2, name = "Newer", releaseDates = listOf(releaseDate(PC, now - (1L * 24 * 3600))))
+            ),
+            ownedPlatformIds = setOf(PC)
+        )
+
+        val section = useCase().first().single()
+
+        assertEquals(ReleaseBucket.RECENTLY_RELEASED, section.bucket)
+        assertEquals(listOf("Newer", "Older"), section.entries.map { it.game.name })
+    }
 }

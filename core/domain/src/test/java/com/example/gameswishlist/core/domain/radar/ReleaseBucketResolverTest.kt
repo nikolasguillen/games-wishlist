@@ -11,12 +11,14 @@ import org.junit.Test
 
 /**
  * Covers [resolveBucket]'s calendar-relative boundaries (this ISO week, this calendar month, the 3
- * calendar months after it), the already-released cutoff, TBD/null-date handling, and that the same
- * instant can resolve to a different bucket depending on the time zone passed in.
+ * calendar months after it), the rolling recently-released window and the already-released cutoff past it,
+ * TBD/null-date handling, and that the same instant can resolve to a different bucket depending on the
+ * time zone passed in.
  *
  * [now] is fixed at 2026-09-22T00:00:00Z, a Tuesday, so the boundaries below are hand-computed rather than
  * derived from wall-clock time: this ISO week ends Sunday 2026-09-27, this month ends 2026-09-30, and the
- * 3 months after it end 2026-12-31.
+ * 3 months after it end 2026-12-31. The recently-released window is the 7 days before today, so it starts
+ * 2026-09-15.
  */
 class ReleaseBucketResolverTest {
 
@@ -29,8 +31,18 @@ class ReleaseBucketResolverTest {
         resolveBucket(epochSecondsOf(year, month, day), precision, now, TimeZone.UTC)
 
     @Test
-    fun `a date before today is already released and dropped`() {
-        assertNull(resolve(2026, 9, 21))
+    fun `yesterday is recently released`() {
+        assertEquals(ReleaseBucket.RECENTLY_RELEASED, resolve(2026, 9, 21))
+    }
+
+    @Test
+    fun `exactly 7 days ago is still recently released`() {
+        assertEquals(ReleaseBucket.RECENTLY_RELEASED, resolve(2026, 9, 15))
+    }
+
+    @Test
+    fun `8 days ago is dropped`() {
+        assertNull(resolve(2026, 9, 14))
     }
 
     @Test

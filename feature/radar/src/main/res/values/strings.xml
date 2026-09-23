@@ -2,6 +2,7 @@
 <resources>
     <string name="radar_title">Radar</string>
 
+    <string name="radar_bucket_recently_released">Recently released</string>
     <string name="radar_bucket_this_week">This week</string>
     <string name="radar_bucket_this_month">This month</string>
     <string name="radar_bucket_next_3_months">Next 3 months</string>
