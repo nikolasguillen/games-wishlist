@@ -92,4 +92,12 @@ object DateUtils {
             .atZone(ZoneId.systemDefault())
             .toLocalDate()
     }
+
+    /**
+     * Inverse of the `"yyyy-MM-dd"` formatting done by [formatUnixTimestamp]: midnight of that calendar day
+     * in the device time zone. The zone has to match the one the string was produced in, otherwise the value
+     * round-trips to the previous or next day.
+     */
+    fun isoDateToEpochSeconds(isoDate: String?): Long? =
+        parseIsoDate(isoDate)?.atStartOfDay(ZoneId.systemDefault())?.toEpochSecond()
 }

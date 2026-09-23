@@ -354,14 +354,24 @@ fun Game.toPlatformEntities(): List<PlatformEntity> {
     return platforms.map { it.toEntity() }
 }
 
+/**
+ * One cross-ref per platform. When IGDB gave no per-platform date - every game saved straight from search
+ * or Discover, whose queries don't request `release_dates` - the game's own first release date stands in
+ * for all of them, so the row lands in a real Radar bucket instead of TBA. The periodic refresh replaces
+ * it with the precise per-platform dates.
+ */
 fun Game.toGamePlatformCrossRefs(): List<GamePlatformCrossRef> {
+    val datesByPlatformId = releaseDates.associateBy { it.platformId }
+    val fallbackDate = DateUtils.isoDateToEpochSeconds(releaseDate)
+
     return platforms.map { platform ->
-        val releaseDate = releaseDates.find { it.platformName == platform.name }
+        val platformDate = datesByPlatformId[platform.id]
         GamePlatformCrossRef(
             gameId = id,
             platformId = platform.id,
-            releaseDate = releaseDate?.date,
-            releaseDatePrecision = releaseDate?.precision?.toIgdbCategory()
+            releaseDate = platformDate?.date ?: fallbackDate,
+            releaseDatePrecision = platformDate?.precision?.toIgdbCategory()
+                ?: fallbackDate?.let { EXACT_DATE.toIgdbCategory() }
         )
     }
 }
