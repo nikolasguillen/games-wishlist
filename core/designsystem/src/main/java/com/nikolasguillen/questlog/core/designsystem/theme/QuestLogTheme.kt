@@ -11,9 +11,7 @@ import androidx.compose.ui.graphics.lerp
 
 
 @Composable
-fun QuestLogTheme(
-    content: @Composable () -> Unit
-) {
+fun QuestLogTheme(content: @Composable () -> Unit) {
     val colorScheme = darkColorScheme(
         primary = PrimaryDark,
         onPrimary = OnPrimaryDark,

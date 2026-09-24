@@ -1,7 +1,9 @@
 package com.nikolasguillen.questlog.feature.radar
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.ReleaseBucket
 import com.nikolasguillen.questlog.core.ui.component.LoadingPage
@@ -78,11 +81,16 @@ internal fun RadarContent(
 
             is RadarContentState.Success -> LazyColumn(modifier = contentModifier) {
                 content.sections.forEach { section ->
-                    item(key = "header_${section.bucket}", contentType = "header") {
+                    stickyHeader(key = "header_${section.bucket}", contentType = "header") {
                         RadarSectionHeader(
                             label = section.label.asString(),
                             bucket = section.bucket,
-                            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
+                            modifier = Modifier
+                                .padding(horizontal = MaterialTheme.spacing.large)
+                                .fillMaxWidth()
+                                .background(
+                                    MaterialTheme.appColors.appBackground
+                                )
                         )
                     }
                     items(
