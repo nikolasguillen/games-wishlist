@@ -4,201 +4,45 @@ Planned features, in the order they are meant to be built, plus the decisions al
 not re-litigated in a later session. This file describes **what is not built yet**; the moment a phase
 ships, delete it from here — `git log` is the history.
 
-Written 2026-08-20.
+Written 2026-08-20. Phases 1 (Discover feed) and 2 (Radar timeline, saved games only) have shipped; what's
+left starts at Phase 3.
 
-## The shape that was decided
+## Settings holds only what has a backend
 
-Two ideas were on the table: a `discover` tab (hyped/upcoming games filtered by the user's taste) and a
-`calendar` tab (release dates of saved games). They overlap because they order the same catalogue on two
-different axes — relevance and time. The resolution:
+The screen groups its rows by theme, and the only groups that exist are the ones with data behind them.
+Notifications belong to Phase 3; a genre picker was considered and dropped, since the taste profile infers
+genres from saved games and the user does not edit them by hand; appearance has nothing to switch, because
+`:core:designsystem` is dark-only by design. Do not add a row before the thing it configures exists.
 
-- **Discover is not a tab.** It replaces the zero-query state of the Search screen, which today is a dead
-  `EmptyPage` placeholder. Search becomes "explore": no query → taste-based feed, query → results.
-- **Radar is a tab.** A single chronological timeline that merges the user's saved upcoming games with
-  taste-matched suggestions, distinguished visually rather than by living on separate screens.
-- **No month-grid calendar.** IGDB release dates carry a precision flag — a large share of interesting
-  upcoming titles are only `Q4 2026`, `2027` or `TBD` and cannot be placed on a calendar cell. The
-  timeline uses buckets (This week / This month / Next 3 months / Later / TBA), which accommodate partial
-  dates natively. Revisit only if the bucket list proves insufficient in practice.
-- **Notifications are the payoff of Radar**, not an optional extra. A timeline the user must open is worth
-  far less than a reminder that arrives on release day.
+## Open items in the shipped Discover feed
 
-Bottom bar goes from 2 tabs to 3: Search · Radar · Lists.
-
-- **Settings is not a tab.** A `SettingsRoute` (the "My platforms" picker lives here first) is reached via
-  a profile icon in the top-right corner, present on every top-level screen — Search and Lists today,
-  Radar when it exists — and absent from stacked screens (detail, wishlist, settings itself, and anything
-  else pushed on the backstack). A fourth bottom-bar tab was considered and
-  rejected: Search/Radar/Lists are peer content destinations, Settings is a utility action, not a peer of
-  the same kind. The icon itself is one shared composable in `:core:ui` so Search, Lists and (later) Radar
-  call the same implementation instead of duplicating it.
-
-## What the taste profile already gives you
-
-`core/domain/usecase/discover/` is built and tested: `GetTasteProfileUseCase` emits a `TasteProfile`
-(`:core:model`) of normalised genre and developer weights, and `GetSelectedPlatformIdsUseCase` /
-`GetSelectedPlatformsUseCase` / `SetOwnedPlatformsUseCase` / `GetKnownPlatformsUseCase` own the platform
-filter, which is the user's explicit selection and nothing else. `TasteProfile.isEmpty`
-is the cold-start signal. The "My platforms" picker is built end to end (`OwnedPlatformsRoute`, reached
-from the Settings hub) and `SyncPlatformCatalogUseCase` fills the local `platforms` table from IGDB's
-`/platforms` endpoint, so the picker offers the whole catalogue instead of only what the user's saved
-games happen to cover. `GetDiscoverFeedUseCase` reads the selection and narrows every Discover shelf with
-it, so the setting is live. It also reads `GetTasteProfileUseCase` to build the personalised shelves, so
-every use case in `usecase/discover/` now has a consumer.
-
-**The feed observes the selection**: `GetDiscoverFeedUseCase` returns a `Flow` keyed on the picked
-platforms and re-fetches when they change, so the shelves follow the setting without waiting for a new
-process. The taste profile is *not* refetched the same way — it is derived from the saved games, which
-change on every status, priority or list edit, and refetching several calls on each of those costs far
-more than the shelves are worth. But the feed does not simply go stale and say nothing: the use case also
-tracks the genres the personalised shelves are built from (up to two, strongest first — see below), which
-is the only part of the profile it actually reads, and re-derives that cheaply on every library change.
-Once it no longer matches the ordered genre list a loaded feed was built against, `DiscoverFeed.
-hasStaleRecommendations` flips, `SearchViewModel` surfaces it as `DiscoverContentState.Content.isStale`,
-and `DiscoverFeed` (the composable) renders a sticky "Refresh suggestions" prompt pinned to the top of the
-list. Tapping it is what actually re-fetches, via an explicit `refresh: Flow<Unit>` the use case also
-accepts — the network call stays opt-in, the staleness signal is free.
-
-`SearchViewModel` collects that flow for its whole life and gates the *display* instead of cancelling
-the collection. The race it guards against — a committed search and a slower feed fetch both landing in
-`contentState` — is a write conflict, not a fetch conflict, so a boolean is enough. Cancelling, the
-previous fix, also blinded the feed to platform changes made mid-search and forced a re-fetch on clear.
-
-**Settings holds only what has a backend.** The screen groups its rows by theme, and the only groups
-that exist are the ones with data behind them. Notifications belong to Phase 3; a genre picker was
-considered and dropped, since the taste profile infers genres from saved games and the user does not
-edit them by hand; appearance has nothing to switch, because `:core:designsystem` is dark-only by
-design. Do not add a row before the thing it configures exists.
-
-## Phase 1 — Discover feed in Search
-
-Replaces `SearchContentState.Initial` (today `InitialSearchPlaceholder` in
-`feature/search/components/SearchPlaceholders.kt`). The search bar overlay keeps owning recent searches and
-recently viewed games — the feed lives in the body, behind it.
-
-- Cold start (`TasteProfile.isEmpty`) degrades to generic popular/upcoming. Build that path first — it is
-  the first shippable milestone and it needs none of the ranking.
-- Coarse filtering server-side in apicalypse (`where genres = (...) & platforms = (...)`), fine ranking
-  locally. Personalisation is not expressible in apicalypse, and `limit` caps at 500 — fetch a candidate
-  pool, rank in a mapper/use case.
-- Every row states its reason ("Because you saved Baldur's Gate 3", "Your genre: RPG"). A recommendation
-  the user cannot explain reads as a bug.
-- New API surface on `IgdbApiService`: same `@POST("games")` endpoint, different apicalypse bodies.
-  Worth checking `popularity_primitives` for real hype signal instead of the raw `hypes` field.
-
-**Personalisation is its own shelves, not a reshuffle of the generic two.** The generic lanes are the
-global popularity top-N; reordering them by taste only reorders what was already globally popular, which
-is not what the user's profile says. So the taste profile buys its own query (`where genres = (...)`) per
-genre it leans towards, each its own shelf, titled with the reason. Reasons sit on the shelf rather than
-on each card: a 140dp cover has no room for a sentence, and every game in a shelf is there for the same
-reason anyway.
-
-Deliberate limits of the shelves as built, each one a place to extend rather than a bug:
-
-- **Up to two shelves — a recurring developer first when the library earns one, then the strongest
-  positive genres.** Every extra shelf is another network call on a screen the user opens constantly, so
-  the cap (`MAX_RECOMMENDED_SHELVES` in `GetDiscoverFeedUseCase`) is a cost decision, not a belief that a
-  third shelf would not also be worth showing. A developer only takes the lead slot at
-  `MIN_DEVELOPER_SAVED_GAMES` (2) saved games from it with a positive weight — one game is a coincidence,
-  not a pattern — which is what `TasteSignal.count` in `TasteProfile` exists to tell apart from a
-  normalised weight alone.
-- **A game that qualifies for two shelves is kept once**, in the stronger shelf only — pruning runs in
-  rank order, each shelf excluding what every stronger one already kept, on top of saved games and the
-  generic shelves. Recommending the same game twice for two different reasons in one feed reads as a bug,
-  not as extra confidence.
-- **Each shelf disappears rather than degrading, independently of the others**: below a minimum sample
-  size, with no positive signal left for it, on a failed fetch, or when pruning leaves too few entries. A
-  half-empty personalised row next to two full generic ones reads as a loading bug — losing one of two
-  personalised shelves to this does not take the other down with it.
-
-**No rating-count floor — rank by confidence instead.** IGDB can sort by raw score but not by a score
-weighted for how many people voted, so `sort total_rating desc` leads with whatever scores 100 across
-three votes. Excluding thinly-rated games is the wrong fix: it drops every niche and newly released
-title in the genre, which is what the shelf exists to surface, and does nothing about a mediocre game
-that clears the floor. So the query keeps only a token floor and the use case re-ranks the whole pool by
-a Bayesian average against a neutral prior. That is why the pool is far wider than the shelf: a narrow
-one would already be filled by the games the ranking is meant to demote. The developer shelf drops even
-that token floor — it exists to surface a followed studio's unreleased titles too, which have no ratings
-at all yet, and orders them ahead of the rest by hype instead.
-
-**The genre shelf only looks at a recent release window.** Rating order over a whole genre is that genre's
-all-time canon: unbounded, the shelf filled with 90s classics, which are the right answer to "best RPG ever"
-and the wrong one to "here is something to add to your wishlist" — and they outscore new releases partly by
-having had decades to collect votes. The window is a bound on the *pool*
-(`RECOMMENDED_RELEASE_WINDOW_YEARS` in `GameRepositoryImpl`, currently ten years), not on the ranking, since
-the local weighted ranking can only reorder whatever the query already returned. It is a lower bound only,
-so unreleased titles in the genre stay eligible; games with no release date at all fall out with it. The
-developer shelf needs no equivalent — it already sorts by release date and exists to surface a studio's
-newest work.
-
-`RATING_CONFIDENCE_THRESHOLD` and `NEUTRAL_RATING` in `GetDiscoverFeedUseCase` are the knob — raise the
-prior and thin gems climb, lower it and the shelf fills with established titles. **Both are reasoned
-guesses about IGDB's rating distribution that have never been checked against a real pool.** Validate
-them against live data before treating the shelf's quality as settled.
-
-**An empty platform selection means no platform filter** — the feed omits the `where platforms = (...)`
-clause entirely rather than substituting something. An earlier design filled the gap with the platforms
-carried by the user's saved games. That was removed: it filtered the feed on a rule the user could neither
-see nor explain, which is the opposite of the "every row states its reason" line above, and it did nothing
-for the brand-new user it was meant to help, whose library is empty too. Do not reintroduce a fallback
-here, and do not seed the selection behind the user's back either — the picker is one tap from every
-top-level screen and holds the whole IGDB catalogue.
-
-The filter lands on the `/games` hydrate call, never on `/popularity_primitives`, which returns a game id
-and a score and has no platform field. The pool is therefore ranked before it can be filtered, so a
-narrow selection thins an already-truncated list — that is what the widened pool limit in
-`GameRepositoryImpl` pays for. Any further filter added to a lane inherits the same problem.
-
-**Cache**: do not dump discovered games into the `games` table unqualified. That table already doubles as
-a cache with ownership flags (`isWishlisted`, `lastViewedAt`); mixing in feed results makes "the user's own
-games" ambiguous. Use a separate entity holding the ordered id list plus a `fetchedAt` stamp.
-
-**TBA release dates — open problem.** The two lanes split on the release window (`first_release_date > now`
-for "Most anticipated", `<= now` for "Popular this month"), which drops games with a null
-`first_release_date`. Plenty of genuinely anticipated upcoming titles are still TBA, so they silently miss
-the anticipated shelf. Not just relaxing the filter: a bare `| first_release_date = null` also lets in old
-games whose date was never recorded, so we cannot tell "unannounced upcoming" from "date lost to history"
-without the date-precision flag — the same flag the Radar timeline depends on (see the Phase 2 note on
-`release_dates`). Decide this together with that work rather than bolting a heuristic on here.
-
-### Debounced remote suggestions stay
-
-They were considered for removal as redundant with the results grid. They are not: the grid answers "show
-me everything matching X", the suggestions answer "I already know the game, take me to it" — a tap goes
-straight to the detail screen. In a wishlist app search is predominantly known-item, and the Discover feed
-makes it more so, since browsing moves to the feed. Removing them would also leave the expanded search bar
-overlay holding three strings of history while covering the feed the user was browsing.
-
-The overlay itself is built. The suggestion cap is 4, so `sort hypes desc` is aggressive — an obscure
-title can be squeezed out by hyped ones sharing a substring. If that becomes annoying, sort by name-match
-quality rather than raising the cap.
-
-Note the two paths do not use the same matching: suggestions use `where name ~ *"query"*` sorted by hypes,
-the full search uses IGDB's `search "query"` full-text relevance with a different `game_type` filter. A
-suggestion is therefore a shortcut, not a preview of the grid. That is defensible for an autocomplete —
-substring-on-title is less noisy than IGDB full-text — and it is why the "see all results" row commits the
-query to the grid.
-
-## Phase 2 — `:feature:radar`, saved games only
-
-- New module (copy `feature/search/build.gradle.kts`, register in `settings.gradle.kts`), `RadarRoute` in
-  `core/navigation/Routes.kt`, tab wired in `:app`.
-- Chronological bucket timeline over the user's saved games.
-- **The release dates are not there yet.** `GamePlatformCrossRef.releaseDate` is only populated by the
-  detail fetch (`GameRepositoryImpl.kt:125` requests `release_dates.date`; the search query at line 52 does
-  not). A refresh job for saved games' dates is a prerequisite, not a detail.
-- Query `@POST("release_dates")`, not `games`: it returns one row per game×platform×region, sortable and
-  filterable by date directly, and carries the date-precision field the buckets depend on.
-- Dates slip constantly. Without periodic refresh the timeline lies, which is worse than not having one.
+- `RATING_CONFIDENCE_THRESHOLD` and `NEUTRAL_RATING` in `GetDiscoverFeedUseCase` are the knob — raise the
+  prior and thin gems climb, lower it and the shelf fills with established titles. **Both are reasoned
+  guesses about IGDB's rating distribution that have never been checked against a real pool.** Validate
+  them against live data before treating the shelf's quality as settled.
+- **Cache**: do not dump discovered games into the `games` table unqualified. That table already doubles
+  as a cache with ownership flags (`isWishlisted`, `lastViewedAt`); mixing in feed results makes "the
+  user's own games" ambiguous. Use a separate entity holding the ordered id list plus a `fetchedAt` stamp.
+- **TBA release dates.** The two generic lanes split on the release window (`first_release_date > now` for
+  "Most anticipated", `<= now` for "Popular this month"), which drops games with a null
+  `first_release_date`. Plenty of genuinely anticipated upcoming titles are still TBA, so they silently
+  miss the anticipated shelf. Not just relaxing the filter: a bare `| first_release_date = null` also lets
+  in old games whose date was never recorded, so we cannot tell "unannounced upcoming" from "date lost to
+  history" without a date-precision signal. `DatePrecision` now exists (fed by `release_dates.date_format`,
+  consumed by `ReleaseBucketResolver` for Radar) — the fix is no longer blocked, just not done.
+- Suggestion cap in the search-bar overlay is 4, so `sort hypes desc` is aggressive — an obscure title can
+  be squeezed out by hyped ones sharing a substring. If that becomes annoying, sort by name-match quality
+  rather than raising the cap.
 
 ## Phase 3 — Release notifications
 
-Opt-in per game ("Notify me"), driven by the same refreshed dates.
+Opt-in per game ("Notify me"), driven by the same refreshed dates. This is the payoff Radar was built
+for — a timeline the user must open is worth far less than a reminder that arrives on release day.
 
 ## Phase 4 — Suggestions lane in Radar
 
 Fold the taste profile into the timeline: saved games get the visual accent, suggestions sit in a minor
-tone alongside them. Only after phases 2 and 3 are real.
+tone alongside them. Only after Phase 3 is real.
 
 ## Decisions that would be expensive to reverse
 
@@ -206,11 +50,10 @@ Per the KMP section in the root `CLAUDE.md`:
 
 - **Use `kotlinx-datetime`, not `java.time`.** A timeline feature spreads date math everywhere; rewriting
   it after a KMP move is exactly the work the project is trying to avoid.
-- **WorkManager is Android-only.** Put the scheduling contract in `:core:domain` (e.g.
-  `ReleaseRefreshScheduler`) with the implementation in `:core:data`, so a KMP move replaces only the impl.
 - Room's destructive migration is deliberate while the app is unpublished — new entities for these phases
   wipe the device, and that is fine. See `docs/tech-debt.md`.
 - **ML Kit's GenAI Prompt API (the on-device translation feature's Gemini Nano client) has no
   multiplatform counterpart.** What survives a KMP move is the `GameDescriptionTranslator` port in
-  `:core:domain`; `:core:ai` is replaced wholesale, the same shape as the `ReleaseRefreshScheduler`
-  decision above.
+  `:core:domain`; `:core:ai` is replaced wholesale, the same shape already used for scheduling —
+  `core/domain/radar/ReleaseRefreshScheduler.kt` (contract) with the WorkManager implementation isolated
+  in `core/data/scheduler/ReleaseRefreshSchedulerImpl.kt`.
