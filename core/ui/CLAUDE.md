@@ -20,17 +20,20 @@ of the main slot — always laid out, width-animated, empty by default — for a
 conditional icon there, such as Search's back-to-feed arrow), `ListSelectorSheet` (bottom sheet for adding
 a game to one or more lists, working against `ListSelectorItemUiModel`), `GameListRow` (cover + title +
 optional subtitle + a `trailingContent` slot for whatever the caller puts at the row's end — Radar's
-date/platform pair, Wishlist's rating; check here before hand-rolling another game list row).
+date/platform pair, Wishlist's rating; check here before hand-rolling another game list row),
+`PlatformTile` (32dp colored tile holding a platform's short code — game detail's platform strip, Radar's
+per-platform rows; its data comes from `PlatformTileUiModel`).
 
-`component/gamecard/` groups the game-card family: `VerticalGameCard`, `RecentGameCard`, `GameCompactCard`,
+`component/gamecard/` groups the game-card family: `VerticalGameCard`, `RecentGameCard`, `CompactGameCard`,
 and the `internal` `GameCoverHeader` they all share; `MiniGameCard` (48x48 bordered cover, used in list
 rows) and the bare `GameCoverImage` it wraps (placeholder/crop/clip with no fixed size or chrome — reach
 for this directly when a row needs a different aspect ratio, such as the portrait suggestion cover in
-Search). Card-specific private helpers (`SaveToWishlistButton`, `GameMetadataRow`) stay in the file of the
-single card that uses them.
+Search); `SaveToWishlistButton`, the save toggle both full-size cards draw, also used on its own by
+Search's `DiscoverHero`. A helper used by a single card stays private in that card's file —
+`GameMetadataRow` in `VerticalGameCard.kt`.
 
 Every component file ends with a `private fun XPreview()` annotated `@Preview(showBackground = true)` and
-wrapped in `GamesWishlistTheme { }`. Match that when adding a component.
+wrapped in `QuestLogTheme { }`. Match that when adding a component.
 
 ## Utilities (`util/`)
 

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-`GamesWishlist` is a modular Android app (Kotlin, Jetpack Compose, Hilt, Room, Retrofit/Moshi,
+`Quest Log` is a modular Android app (Kotlin, Jetpack Compose, Hilt, Room, Retrofit/Moshi,
 AndroidX Navigation 3) for tracking a videogame wishlist, backed by the IGDB API.
 
 ## Instructions live in CLAUDE.md

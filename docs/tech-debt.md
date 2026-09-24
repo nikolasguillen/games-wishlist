@@ -11,7 +11,7 @@ these patterns as the house style. Mention the relevant item if it blocks you, t
 `git log` is the history, this file is only the present. It is meant to shrink until it is empty, and then
 to be deleted.
 
-Last audited: 2026-08-16.
+Last audited: 2026-09-24.
 
 ## Cleanup pass in progress
 
@@ -31,8 +31,8 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
   with `.fallbackToDestructiveMigration(true)`, so every entity change wipes the device. That is the
   owner's decision while the app is unpublished — **it is not a bug to fix, and the version must not be
   bumped**. Before the first release: freeze the schema, decide where `Migration` objects live, and
-  replace the blanket fallback. `exportSchema` is already on and `schemas/1.json` is checked in, which is
-  the starting point.
+  replace the blanket fallback. `exportSchema` is already on and the schema under `core/database/schemas/`
+  is checked in, which is the starting point.
 - **Release is signed with the debug key**: `app/build.gradle.kts` still uses
   `signingConfigs.getByName("debug")`, so the APK cannot be distributed. Needs a real keystore read from a
   git-ignored `keystore.properties`.
@@ -51,12 +51,12 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
 ## Infrastructure
 
 - **No convention plugins**: no `build-logic`, no `buildSrc`. `compileSdk = 37`, `minSdk = 29` and Java 11
-  are repeated by hand in all 15 module build files.
+  are repeated by hand in all 17 module build files.
 - **No CI** (`.github/` does not exist) and **no static analysis** (no detekt, ktlint, spotless,
   `.editorconfig`, or `lint {}` block).
 - **Test coverage gaps**: no tests at all for `:feature:wishlist`, `:core:database` DAOs, or `:core:ui`
-  mappers. In `:core:domain` only the `usecase/discover/` use cases are covered; the search, list and
-  detail ones are not. In `:core:network` only `IgdbAuthManager` is covered —
+  mappers. In `:core:domain` only the `usecase/discover/` and `radar/` use cases are covered; the search,
+  list, detail and translation ones are not. In `:core:network` only `IgdbAuthManager` is covered —
   `IgdbHttpErrorInterceptor` and the API service are not. `:core:ai` has no test source set at all:
   `GeminiNanoClient` wraps `Generation.getClient()`, a static factory that would need static mocking to
   reach, and the logic actually worth testing (mapping ML Kit's types) is covered where it lands, in

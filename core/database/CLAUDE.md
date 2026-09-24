@@ -1,6 +1,6 @@
 # CLAUDE.md — core:database
 
-Room persistence layer. Room 2.8.4 (the latest release — there is no Room 3) with KSP, on the **legacy
+Room persistence layer. Room 2.8.5 (the latest release — there is no Room 3) with KSP, on the **legacy
 `SupportSQLiteOpenHelper` path**: `Room.databaseBuilder(...)` without `.setDriver(...)`.
 
 The driver-based API (`BundledSQLiteDriver`, `androidx.sqlite`) has been available since Room 2.7.0 and is
@@ -20,9 +20,11 @@ So when you change an entity:
 - **Do not bump `version`.** Bumping it is what makes a migration mandatory, and writing migrations
   against a schema that is still moving is wasted work. `docs/tech-debt.md` tracks this as the thing to
   settle before the first release.
-- **Do regenerate `schemas/1.json` and commit it in the same commit.** `exportSchema = true` and
-  `room.schemaLocation` in this module's build file keep it up to date; it is the diff a reviewer reads to
-  see that a column moved. Until release it is a moving snapshot, not a frozen version.
+- **Do regenerate the exported schema and commit it in the same commit.** It lands in
+  `schemas/<database class FQN>/1.json` — `exportSchema = true` and `room.schemaLocation` in this module's
+  build file keep it up to date; it is the diff a reviewer reads to see that a column moved. Until release
+  it is a moving snapshot, not a frozen version. There must be exactly one directory in `schemas/`: renaming
+  or moving the database class makes Room write a new one, and the old one has to be deleted by hand.
 
 ## Naming
 
@@ -30,13 +32,16 @@ So when you change an entity:
   `GameEntity`("games"), `ListEntity`("wishlists"), `SearchHistoryEntity`("search_history"),
   `PlatformEntity`, `GenreEntity`, `CompanyEntity`, `EngineEntity`, `GameArtworkEntity`("game_artworks"),
   `TranslatedDescriptionEntity`("translated_descriptions") — keyed by game id + language tag, plus a hash
-  of the source text so an IGDB summary that gets edited in place is re-translated instead of served stale.
+  of the source text so an IGDB summary that gets edited in place is re-translated instead of served stale,
+  `RelatedGameEntity`("related_games") — a child table, not a cross-ref, because it carries the related
+  game's own name and cover, `OwnedPlatformEntity`("owned_platforms") — one row per platform the user
+  picked in Settings, where an empty table means "no filter".
 - Junction tables: `<A><B>CrossRef` — **no `Entity` suffix** — with `primaryKeys = [...]`.
   `GameListCrossRef`, `GamePlatformCrossRef`, `GameGenreCrossRef`, `GameCompanyCrossRef`,
   `GameEngineCrossRef`.
 - Relation POJOs live in **`relation/`, not `entity/`** — `GameWithAllDetails`,
   `GamePlatformWithDetails`, `GameCompanyWithDetails`, `ListWithGameCount`. They are query results, not
-  tables: what `entity/` contains is exactly what `schemas/1.json` lists.
+  tables: what `entity/` contains is exactly what the exported schema lists.
 
 Platforms, Genres, Companies and Engines are modelled as **many-to-many via CrossRef**. Artworks belong to
 one game and are never shared, so they are a child table instead — with a `position` column, because

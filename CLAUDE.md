@@ -2,8 +2,9 @@
 
 Modular Android app for tracking a videogame wishlist, backed by the IGDB API.
 
-Kotlin 2.4.10 · AGP 9.3.1 · Gradle 9.5.1 (JVM toolchain 21) · compileSdk/targetSdk 37 · minSdk 29 · Java 11
-Jetpack Compose (BOM 2026.06.01) · Hilt 2.60.1 · Room 2.8.4 (KSP) · Retrofit 3 + Moshi · Navigation 3 · Coil 2
+Kotlin 2.4.10 · AGP 9.4.1 · Gradle 9.7.1 (JVM toolchain 21) · compileSdk/targetSdk 37 · minSdk 29 · Java 11
+Jetpack Compose (BOM 2026.09.00) · Hilt 2.60.1 · Room 2.8.5 (KSP) · Retrofit 3 + Moshi · Navigation 3
+Coil 2 · WorkManager + `androidx.hilt.work` (Radar's release-date refresh)
 
 ## Commands
 
@@ -28,11 +29,11 @@ suggesting a command.
 
 ## Module graph and dependency rules
 
-16 modules, all under the `com.nikolasguillen.questlog.*` namespace. Sources live in `src/main/java/`.
+17 modules, all under the `com.nikolasguillen.questlog.*` namespace. Sources live in `src/main/java/`.
 
 ```
 :app  →  everything
-:feature:{search, game-detail, lists, wishlist, settings}
+:feature:{search, radar, game-detail, lists, wishlist, settings}
 :core:{common, model, network, database, data, domain, ui, designsystem, navigation, ai}
 ```
 
@@ -108,7 +109,8 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
 | Spacing / color / typography tokens | `core/designsystem/theme/` |
 | Shared composables, reusable modifiers | `core/ui/component/`, `core/ui/util/modifiers/` |
 | Nav routes (`NavKey`) | `core/navigation/Routes.kt` |
-| Navigation entry point (`NavDisplay`) | `app/src/main/java/com/nikolasguillen/questlog/MainActivity.kt` |
+| Navigation entry point (`NavDisplay` + the single `entryProvider`) | `app/src/main/java/com/nikolasguillen/questlog/QuestLogNavDisplay.kt` |
+| Scaffold, bottom bar and back stack | `app/.../MainActivity.kt`, `app/.../QuestLogBottomBar.kt` |
 | Shared UI constants | `core/ui/util/Constants.kt` (`object UiConstants`) |
 | Network↔domain↔entity mappers | `core/data/mapper/GameMapper.kt` |
 | `GameDescriptionTranslator` | `core/domain/translation/` (impl in `core/data/translation/`) |

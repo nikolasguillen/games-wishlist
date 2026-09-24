@@ -1,6 +1,7 @@
 # CLAUDE.md — feature modules
 
-Applies to `feature/search`, `feature/game-detail`, `feature/lists`, `feature/wishlist`, `feature/settings`.
+Applies to `feature/search`, `feature/radar`, `feature/game-detail`, `feature/lists`, `feature/wishlist`,
+`feature/settings`.
 Read the root `CLAUDE.md` first for the module dependency rules.
 
 ## Module layout
@@ -33,11 +34,11 @@ internal fun WishlistContent(state: WishlistUiState, onEvent: (WishlistUiEvent) 
 ```
 
 `modifier: Modifier = Modifier` is always the trailing parameter. The VM-taking overload carries
-`@Suppress("ParamsComparedByRef")` — see `feature/wishlist/WishlistScreen.kt:42`.
+`@Suppress("ParamsComparedByRef")` — see `feature/wishlist/WishlistScreen.kt`.
 
 Extract sub-composables into `components/` as soon as they form a logical unit. Do not let a screen file
 grow into a "God UI" file. Give every new composable a `@Preview` (multiple ones — Loading, Success,
-Empty, Error — when the state is non-trivial), `private`, wrapped in `GamesWishlistTheme { }`.
+Empty, Error — when the state is non-trivial), `private`, wrapped in `QuestLogTheme { }`.
 
 ## State, events, effects
 
@@ -114,7 +115,7 @@ Adding a route means two edits, both outside the feature module:
 
 1. A `@Serializable` `data object`/`data class` implementing `GameNavKey : NavKey` in
    `core/navigation/Routes.kt`.
-2. A branch in the single `entryProvider` inside `app/.../MainActivity.kt`, obtaining the ViewModel with
+2. A branch in the single `entryProvider` inside `app/.../QuestLogNavDisplay.kt`, obtaining the ViewModel with
    `hiltViewModel<X>()` or, for assisted VMs,
    `hiltViewModel<X, X.Factory>(creationCallback = { it.create(key.someId) })`.
 

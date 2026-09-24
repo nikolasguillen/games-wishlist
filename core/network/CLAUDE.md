@@ -11,8 +11,16 @@ as a string in the repository, not expressed through Retrofit annotations:
 interface IgdbApiService {
     @POST("games") suspend fun searchGames(@Body body: RequestBody): List<IgdbGame>
     @POST("games") suspend fun getGameDetail(@Body body: RequestBody): List<IgdbGame>
+    @POST("popularity_primitives") suspend fun getPopularityPrimitives(...): List<IgdbPopularityPrimitive>
+    @POST("platforms") suspend fun getPlatforms(...): List<IgdbPlatform>
+    @POST("release_dates") suspend fun getReleaseDates(...): List<IgdbReleaseDateEntry>
 }
 ```
+
+Four IGDB paths, five methods: `searchGames` and `getGameDetail` are the same call under two names, kept
+apart only so the repository reads clearly. What distinguishes one `/games` call from another is the query
+string, so **a new kind of query needs no new method here** — Discover's shelves, the platform catalogue
+sync and the Radar refresh all reuse these.
 
 Return types are bare `List<IgdbGame>` — **no `Response<T>`, no `Call`, no network-level result wrapper**.
 Failures surface as thrown exceptions and are converted into `AppResult`/`RepositoryError` in `:core:data`.

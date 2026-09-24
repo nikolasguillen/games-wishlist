@@ -1,8 +1,8 @@
 # CLAUDE.md — core:designsystem
 
-Theme tokens only, six files under `theme/`. No composables beyond `GamesWishlistTheme`.
+Theme tokens only, six files under `theme/`. No composables beyond `QuestLogTheme`.
 
-- **Dark theme only.** `Theme.kt` exposes a single `darkColorScheme`. There is no light scheme and no
+- **Dark theme only.** `QuestLogTheme.kt` exposes a single `darkColorScheme`. There is no light scheme and no
   dynamic color. Do not assume light-mode support or add `isSystemInDarkTheme()` branches.
 - **`MaterialTheme.spacing`** (`Spacing.kt`) — `default 0`, `extraSmall 2`, `small 4`, `smallMedium 6`,
   `medium 8`, `mediumLarge 12`, `large 16`, `extraLarge 24`, `doubleLarge 32` dp.
@@ -12,4 +12,4 @@ Theme tokens only, six files under `theme/`. No composables beyond `GamesWishlis
 - Raw palette constants live in `Color.kt`, prebuilt Material 3 `*Colors` objects in
   `AppComponentsColors.kt`, and typography in `Type.kt` (`AppTypography`).
 - Every theme holder is an `@Immutable data class` provided via `staticCompositionLocalOf`. Keep that
-  pattern when adding a new token group, and provide it inside `GamesWishlistTheme`.
+  pattern when adding a new token group, and provide it inside `QuestLogTheme`.

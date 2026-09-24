@@ -1,13 +1,14 @@
 # CLAUDE.md — core:data
 
-The single repository implementation plus all mappers. This is the **error boundary** of the app:
-exceptions stop here and become typed results.
+The single repository implementation plus all mappers, the translation engine and Radar's background
+refresh. This is the **error boundary** of the app: exceptions stop here and become typed results.
 
 ## Repository
 
 `GameRepositoryImpl` implements `GameRepository` (the interface lives in `core/domain/repository/`) and is
 bound with `@Binds @Singleton` in `di/DataModule.kt`. There is one repository for search, history, detail,
-wishlist and lists — do not add a second one without discussing it.
+wishlist, lists, the Discover shelves, the platform catalogue and Radar's release dates — do not add a
+second one without discussing it.
 
 ## AppResult
 
@@ -79,3 +80,26 @@ was weighed and dropped: it downloads a per-language-pair NMT model, the per-app
 exists to avoid, and translates sentence by sentence with no notion of the domain. The seam for a fallback
 engine later is this class: a second client in `:core:ai` plus a branch here. Do not build that
 abstraction before a second engine actually exists.
+
+Two files sit beside it, `internal` top-level functions as everywhere else in this module and both free of
+the client: `TranslationPromptBuilder.kt` (`buildTranslationPromptPrefix()`, `buildTranslationPromptSuffix()`)
+owns the prompt text, and `TranslationArtifactSanitizer.kt` (`String.stripTranslationArtifacts()`) strips
+what a small on-device model leaves behind. Keep them out of the translator — they are the parts worth
+unit-testing without a device.
+
+`DataModule` also `@Provides` an application-scoped `CoroutineScope` for this feature only: the model
+download has to outlive the `SettingsViewModel` that started it, or leaving the screen would cancel it.
+
+## Background work
+
+Radar's release dates refresh through WorkManager, wired here: `worker/ReleaseDatesRefreshWorker` is a
+`@HiltWorker` that does nothing but call `RefreshReleaseDatesUseCase` and map a failure to `Result.retry()`,
+and `scheduler/ReleaseRefreshSchedulerImpl` implements `core/domain/radar/ReleaseRefreshScheduler` over it.
+
+Both enqueues are **unique with a `KEEP` policy**, for two different reasons, and both are load-bearing:
+the periodic one is re-requested from `Application.onCreate()` on every launch and must not restart its 24h
+window, and the immediate one collapses the burst of requests that several saves in a row produce. Read the
+`// KEEP:` comments before changing either policy.
+
+The `HiltWorkerFactory` half lives in `:app` (`QuestLogApp` implements `Configuration.Provider`), which is
+also where `schedulePeriodicRefresh()` is called from.
