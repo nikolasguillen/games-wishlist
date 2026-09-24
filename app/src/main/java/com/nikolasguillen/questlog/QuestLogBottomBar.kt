@@ -22,7 +22,7 @@ import com.nikolasguillen.questlog.core.navigation.SearchRoute
 import com.nikolasguillen.questlog.core.navigation.WishlistRoute
 
 @Composable
-fun GamesWishlistBottomBar(
+fun QuestLogBottomBar(
     backStack: NavBackStack<NavKey>,
     onNavigateToRoute: (NavKey) -> Unit,
     modifier: Modifier = Modifier

@@ -59,7 +59,7 @@ fun MainContent() {
                 enter = slideInVertically(initialOffsetY = { it }),
                 exit = slideOutVertically(targetOffsetY = { it })
             ) {
-                GamesWishlistBottomBar(
+                QuestLogBottomBar(
                     backStack = backStack,
                     onNavigateToRoute = { route ->
                         if (backStack.lastOrNull() != route) {
@@ -95,7 +95,7 @@ fun MainContent() {
             clip = true
         }
 
-        GamesWishlistNavDisplay(
+        QuestLogNavDisplay(
             backStack = backStack,
             innerPadding = innerPadding,
             cornerClipModifier = cornerClipModifier,

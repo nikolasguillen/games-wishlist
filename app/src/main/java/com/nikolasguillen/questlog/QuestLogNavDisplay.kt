@@ -42,7 +42,7 @@ import com.nikolasguillen.questlog.feature.wishlist.WishlistScreen
 import com.nikolasguillen.questlog.feature.wishlist.WishlistViewModel
 
 @Composable
-fun GamesWishlistNavDisplay(
+fun QuestLogNavDisplay(
     backStack: NavBackStack<NavKey>,
     innerPadding: PaddingValues,
     @SuppressLint("ModifierParameter") cornerClipModifier: Modifier,
