@@ -20,9 +20,6 @@ genres from saved games and the user does not edit them by hand; appearance has 
   prior and thin gems climb, lower it and the shelf fills with established titles. **Both are reasoned
   guesses about IGDB's rating distribution that have never been checked against a real pool.** Validate
   them against live data before treating the shelf's quality as settled.
-- **Cache**: do not dump discovered games into the `games` table unqualified. That table already doubles
-  as a cache with ownership flags (`isWishlisted`, `lastViewedAt`); mixing in feed results makes "the
-  user's own games" ambiguous. Use a separate entity holding the ordered id list plus a `fetchedAt` stamp.
 - Suggestion cap in the search-bar overlay is 4, so `sort hypes desc` is aggressive — an obscure title can
   be squeezed out by hyped ones sharing a substring. If that becomes annoying, sort by name-match quality
   rather than raising the cap.

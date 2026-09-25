@@ -248,14 +248,14 @@ platform filter, reopen Discover, and confirm both lanes refetch rather than ser
 
 **Purpose**: Documentation and whole-project verification once all three stories are done.
 
-- [ ] T026 [P] Delete the resolved "Cache" bullet (the one starting "do not dump discovered games into
+- [X] T026 [P] Delete the resolved "Cache" bullet (the one starting "do not dump discovered games into
   the `games` table unqualified") under "Open items in the shipped Discover feed" in `docs/roadmap.md`,
   per that file's own rule that a resolved entry is deleted, not annotated.
-- [ ] T027 [P] Update the KDoc on `getPopularGames`, `getUpcomingGames` and `setOwnedPlatforms` in
+- [X] T027 [P] Update the KDoc on `getPopularGames`, `getUpcomingGames` and `setOwnedPlatforms` in
   `core/domain/src/main/java/com/nikolasguillen/questlog/core/domain/repository/GameRepository.kt` to
   note the cache-first behavior and the cache-clearing side effect of a platform-selection change.
   Signatures are unchanged (contracts Contract 1).
-- [ ] T028 Run the full verification sequence from quickstart.md §1, §3 and §4: `:core:model`,
+- [X] T028 Run the full verification sequence from quickstart.md §1, §3 and §4: `:core:model`,
   `:core:database` and `:core:data` `compileDebugKotlin`; `./gradlew :core:data:testDebugUnitTest`;
   `./gradlew test` (all existing JVM suites, including the six updated in T018, must stay green); and
   `./gradlew :app:assembleDebug` to catch any DI graph break `DatabaseModule`/`GameRepositoryImpl`'s new

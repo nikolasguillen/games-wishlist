@@ -13,18 +13,24 @@ interface GameRepository {
 
     /**
      * Already-released games that are popular right now, ranked by IGDB's Popularity API. Feeds the
-     * Discover "Popular this month" shelf. The result is not persisted — these are catalogue browsing
-     * results, not the user's own games, and must not pollute the games cache.
+     * Discover "Popular this month" shelf. Cache-first: a fresh cached result is served with no network
+     * call, and a miss or a stale one is fetched and cached again. The cache lives in its own tables, not
+     * the `games` cache — these are catalogue browsing results, not the user's own games, and must not
+     * pollute it. A network failure with a cached copy present (stale or not) serves that copy rather
+     * than failing.
      *
      * [platformIds] restricts the shelf to games released on at least one of those platforms. An empty
-     * set means no restriction at all: nothing is substituted for it.
+     * set means no restriction at all: nothing is substituted for it. A platform-selection change
+     * invalidates every cached lane — see [setOwnedPlatforms].
      */
     suspend fun getPopularGames(platformIds: Set<Int>): AppResult<List<Game>>
 
     /**
      * Unreleased games ranked by anticipation (IGDB's Popularity API), feeding the Discover "Most
      * anticipated" shelf. Distinct from [getPopularGames] by release window, not by signal: one shelf
-     * is what people are playing, the other what they are waiting for. Not persisted either.
+     * is what people are playing, the other what they are waiting for. Cache-first, exactly as
+     * [getPopularGames] — including the editorial hero pick, which is just the first entry of this same
+     * cached, ordered result.
      *
      * [platformIds] behaves as in [getPopularGames].
      */
@@ -101,7 +107,11 @@ interface GameRepository {
     suspend fun syncPlatformCatalog(): AppResult<Unit>
     /** The platforms the user picked. Empty means no platform filter, not "unknown". */
     fun getOwnedPlatformIds(): Flow<Set<Int>>
-    /** Replaces the selection wholesale; an empty [platformIds] turns the filter off. */
+    /**
+     * Replaces the selection wholesale; an empty [platformIds] turns the filter off. Also clears every
+     * cached generic Discover lane ([getPopularGames], [getUpcomingGames]) before applying the new
+     * selection, so a cached lane can never be served for a platform selection it was not fetched under.
+     */
     suspend fun setOwnedPlatforms(platformIds: Set<Int>)
 
     fun getAllLists(): Flow<List<WishlistList>>
