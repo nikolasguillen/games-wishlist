@@ -1,6 +1,7 @@
 package com.nikolasguillen.questlog.core.data.repository
 
 import com.nikolasguillen.questlog.core.data.local.WishlistCoverImageStorage
+import com.nikolasguillen.questlog.core.database.dao.DiscoverCacheDao
 import com.nikolasguillen.questlog.core.database.dao.GameDao
 import com.nikolasguillen.questlog.core.database.dao.ListDao
 import com.nikolasguillen.questlog.core.database.dao.PlatformDao
@@ -25,6 +26,7 @@ class GameRepositoryImplDeleteListTest {
         listDao = listDao,
         platformDao = mockk<PlatformDao>(relaxed = true),
         searchHistoryDao = mockk<SearchHistoryDao>(relaxed = true),
+        discoverCacheDao = mockk<DiscoverCacheDao>(relaxed = true),
         coverImageStorage = coverImageStorage
     )
 

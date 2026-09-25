@@ -152,23 +152,23 @@ identically with no loading state and no `/popularity_primitives` or `/games` ca
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Add a `DISCOVER_LANE_CACHE_TTL` constant (6 hours, expressed in the same millis units as
+- [X] T017 [US1] Add a `DISCOVER_LANE_CACHE_TTL` constant (6 hours, expressed in the same millis units as
   `fetchedAt`) beside the existing `POPULARITY_TYPE_*`/`POPULARITY_POOL_LIMIT*` constants near the top of
   `core/data/src/main/java/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImpl.kt`
   (research.md D6).
-- [ ] T018 [US1] Add a `discoverCacheDao: DiscoverCacheDao` constructor parameter to `GameRepositoryImpl`
+- [X] T018 [US1] Add a `discoverCacheDao: DiscoverCacheDao` constructor parameter to `GameRepositoryImpl`
   in the same file, and update all six existing direct-instantiation call sites in
   `core/data/src/test/java/com/nikolasguillen/questlog/core/data/repository/` —
   `GameRepositoryImplDeleteListTest.kt`, `GameRepositoryImplDeveloperGamesTest.kt`,
   `GameRepositoryImplPopularGamesTest.kt`, `GameRepositoryImplRefreshGameDetailTest.kt`,
   `GameRepositoryImplRefreshReleaseDatesTest.kt`, `GameRepositoryImplToggleWishlistTest.kt` — to pass
   `mockk<DiscoverCacheDao>(relaxed = true)`. No behavioral change to any of those tests.
-- [ ] T019 [US1] Add a private `GameRepositoryImpl` helper that persists a lane after a successful fetch:
+- [X] T019 [US1] Add a private `GameRepositoryImpl` helper that persists a lane after a successful fetch:
   maps the ranked `List<Game>` to a `CachedGameEntity` + cross-ref lists via `CachedGameMapper` (T015),
   builds the matching `DiscoverLaneEntryEntity` list with each game's index as `position`, and calls
   `discoverCacheDao.replaceLane(...)` with `fetchedAt = System.currentTimeMillis()`. Reused by both lane
   methods in T020.
-- [ ] T020 [US1] Rewrite `GameRepositoryImpl.getPopularGames` and `getUpcomingGames` to be cache-first:
+- [X] T020 [US1] Rewrite `GameRepositoryImpl.getPopularGames` and `getUpcomingGames` to be cache-first:
   call `discoverCacheDao.getLaneFetchedAt(lane)`; if non-null and
   `System.currentTimeMillis() - fetchedAt < DISCOVER_LANE_CACHE_TTL`, return
   `AppResult.success(discoverCacheDao.getLaneGames(lane).map { it.toGame() })` (order preserved by the
@@ -176,7 +176,7 @@ identically with no loading state and no `/popularity_primitives` or `/games` ca
   to the existing `fetchPopularityRankedGames` call and, on success, persist via the T019 helper before
   returning. `POPULAR_THIS_MONTH` ↔ `getPopularGames`, `MOST_ANTICIPATED` ↔ `getUpcomingGames` (contracts
   Contract 1 table; FR-001, FR-003, FR-004).
-- [ ] T021 [P] [US1] Add `GameRepositoryImplDiscoverCacheTest` in
+- [X] T021 [P] [US1] Add `GameRepositoryImplDiscoverCacheTest` in
   `core/data/src/test/java/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImplDiscoverCacheTest.kt`
   covering: a fresh cached lane (`getLaneFetchedAt` returns a recent stamp) results in zero calls to
   `apiService.getPopularityPrimitives`/`apiService.searchGames` and games returned in the stored
@@ -201,13 +201,13 @@ the previous cached copy is still shown rather than an error.
 
 ### Implementation for User Story 2
 
-- [ ] T022 [US2] In the cache-first branch added in T020, wrap the fallback network fetch so that if it
+- [X] T022 [US2] In the cache-first branch added in T020, wrap the fallback network fetch so that if it
   throws (after `Throwable.toRepositoryError()` would normally produce a `Failure`) **and**
   `discoverCacheDao.getLaneFetchedAt(lane)` is non-null (a cached copy exists, stale or not), the method
   returns `AppResult.success(discoverCacheDao.getLaneGames(lane).map { it.toGame() })` instead of
   `AppResult.failure(...)`; `CancellationException` still rethrows before this check, unchanged
   (Constitution II; contracts Contract 1 row "Fetch fails, any cached copy present"; FR-008).
-- [ ] T023 [P] [US2] Extend `GameRepositoryImplDiscoverCacheTest` (T021) with: a cached lane whose
+- [X] T023 [P] [US2] Extend `GameRepositoryImplDiscoverCacheTest` (T021) with: a cached lane whose
   `fetchedAt` is older than `DISCOVER_LANE_CACHE_TTL` causes both API calls to fire and `replaceLane` to
   run, replacing the stored order (FR-009); one lane fresh and the other stale in the same test instance
   results in exactly one lane's API calls firing (FR-005); a thrown network exception with a stale cached
@@ -230,12 +230,12 @@ platform filter, reopen Discover, and confirm both lanes refetch rather than ser
 
 ### Implementation for User Story 3
 
-- [ ] T024 [US3] In `GameRepositoryImpl.setOwnedPlatforms` (`core/data/src/main/java/.../repository/GameRepositoryImpl.kt`),
+- [X] T024 [US3] In `GameRepositoryImpl.setOwnedPlatforms` (`core/data/src/main/java/.../repository/GameRepositoryImpl.kt`),
   call `discoverCacheDao.clearAll()` **before** delegating to `platformDao.setOwnedPlatforms(platformIds)`
   — order matters: a crash between the two calls must never leave a cache built for the previous
   selection reachable (research.md D5; contracts Contract 1 "Behavioural contract for
   `setOwnedPlatforms`"; FR-002).
-- [ ] T025 [P] [US3] Add `GameRepositoryImplSetOwnedPlatformsTest` in
+- [X] T025 [P] [US3] Add `GameRepositoryImplSetOwnedPlatformsTest` in
   `core/data/src/test/java/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImplSetOwnedPlatformsTest.kt`
   asserting `discoverCacheDao.clearAll()` and `platformDao.setOwnedPlatforms(...)` are both invoked, in
   that order, via MockK's `coVerifyOrder { ... }`.

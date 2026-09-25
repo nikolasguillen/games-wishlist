@@ -2,6 +2,10 @@ package com.nikolasguillen.questlog.core.data.repository
 
 import com.nikolasguillen.questlog.core.data.local.WishlistCoverImageStorage
 import com.nikolasguillen.questlog.core.data.mapper.toArtworkEntities
+import com.nikolasguillen.questlog.core.data.mapper.toCachedGameCompanyCrossRefs
+import com.nikolasguillen.questlog.core.data.mapper.toCachedGameEntity
+import com.nikolasguillen.questlog.core.data.mapper.toCachedGameGenreCrossRefs
+import com.nikolasguillen.questlog.core.data.mapper.toCachedGamePlatformCrossRefs
 import com.nikolasguillen.questlog.core.data.mapper.toCompanyEntities
 import com.nikolasguillen.questlog.core.data.mapper.toEngineEntities
 import com.nikolasguillen.questlog.core.data.mapper.toEntity
@@ -15,15 +19,18 @@ import com.nikolasguillen.questlog.core.data.mapper.toPlatform
 import com.nikolasguillen.questlog.core.data.mapper.toPlatformEntities
 import com.nikolasguillen.questlog.core.data.mapper.toRelatedGameEntities
 import com.nikolasguillen.questlog.core.data.mapper.toWishlistList
+import com.nikolasguillen.questlog.core.database.dao.DiscoverCacheDao
 import com.nikolasguillen.questlog.core.database.dao.GameDao
 import com.nikolasguillen.questlog.core.database.dao.ListDao
 import com.nikolasguillen.questlog.core.database.dao.PlatformDao
 import com.nikolasguillen.questlog.core.database.dao.SearchHistoryDao
+import com.nikolasguillen.questlog.core.database.entity.DiscoverLaneEntryEntity
 import com.nikolasguillen.questlog.core.database.entity.GameListCrossRef
 import com.nikolasguillen.questlog.core.database.entity.ListEntity
 import com.nikolasguillen.questlog.core.database.entity.SearchHistoryEntity
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.model.AppResult
+import com.nikolasguillen.questlog.core.model.DiscoverLane
 import com.nikolasguillen.questlog.core.model.Game
 import com.nikolasguillen.questlog.core.model.GameType
 import com.nikolasguillen.questlog.core.model.Platform
@@ -157,12 +164,20 @@ private const val RADAR_GAME_ID_CHUNK_SIZE = 20
  */
 private const val RADAR_REFRESH_CONCURRENCY = 3
 
+/**
+ * How long a cached generic Discover lane is served without a network call. Long enough that no
+ * realistic session re-fetches, short enough that "Popular this month" does not drift -- both lanes rank
+ * slow-moving signals, so one window covers both.
+ */
+private const val DISCOVER_LANE_CACHE_TTL = 6 * 60 * 60 * 1000L
+
 class GameRepositoryImpl @Inject constructor(
     private val apiService: IgdbApiService,
     private val gameDao: GameDao,
     private val listDao: ListDao,
     private val platformDao: PlatformDao,
     private val searchHistoryDao: SearchHistoryDao,
+    private val discoverCacheDao: DiscoverCacheDao,
     private val coverImageStorage: WishlistCoverImageStorage
 ) : GameRepository {
 
@@ -201,20 +216,80 @@ class GameRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getPopularGames(platformIds: Set<Int>): AppResult<List<Game>> =
-        fetchPopularityRankedGames(
-            POPULARITY_TYPE_PLAYING,
-            upcomingOnly = false,
-            poolLimit = if (platformIds.isEmpty()) POPULARITY_POOL_LIMIT else POPULARITY_POOL_LIMIT_FILTERED,
-            platformIds = platformIds
-        )
+        getLane(DiscoverLane.POPULAR_THIS_MONTH) {
+            fetchPopularityRankedGames(
+                POPULARITY_TYPE_PLAYING,
+                upcomingOnly = false,
+                poolLimit = if (platformIds.isEmpty()) POPULARITY_POOL_LIMIT else POPULARITY_POOL_LIMIT_FILTERED,
+                platformIds = platformIds
+            )
+        }
 
     override suspend fun getUpcomingGames(platformIds: Set<Int>): AppResult<List<Game>> =
-        fetchPopularityRankedGames(
-            POPULARITY_TYPE_WANT_TO_PLAY,
-            upcomingOnly = true,
-            poolLimit = POPULARITY_POOL_LIMIT_UPCOMING,
-            platformIds = platformIds
+        getLane(DiscoverLane.MOST_ANTICIPATED) {
+            fetchPopularityRankedGames(
+                POPULARITY_TYPE_WANT_TO_PLAY,
+                upcomingOnly = true,
+                poolLimit = POPULARITY_POOL_LIMIT_UPCOMING,
+                platformIds = platformIds
+            )
+        }
+
+    /**
+     * Cache-first for a generic Discover lane. A fresh cached entry is served with no [fetch] call at
+     * all; the stored `position` order is what the query in [DiscoverCacheDao.getLaneGames] restores, so
+     * `MOST_ANTICIPATED`'s `position = 0` is the editorial hero pick, exactly as it is today when the
+     * lane comes fresh off the network (see `DiscoverMapper.toDiscoverContentState`).
+     *
+     * A miss or a stale entry falls through to [fetch]. [fetch] never throws -- like every other method
+     * in this repository, it maps its own exceptions to [AppResult.Failure] -- so a failure here is a
+     * value, not a caught exception. When it fails and *any* cached copy exists (stale or not), that
+     * copy is served instead of the failure: a screen "opened constantly" should not blank out because
+     * one refresh attempt failed.
+     */
+    private suspend fun getLane(
+        lane: DiscoverLane,
+        fetch: suspend () -> AppResult<List<Game>>
+    ): AppResult<List<Game>> {
+        val fetchedAt = discoverCacheDao.getLaneFetchedAt(lane)
+        val isFresh = fetchedAt != null && System.currentTimeMillis() - fetchedAt < DISCOVER_LANE_CACHE_TTL
+        if (isFresh) {
+            return AppResult.success(discoverCacheDao.getLaneGames(lane).map { it.toGame() })
+        }
+
+        return when (val result = fetch()) {
+            is AppResult.Success -> {
+                persistLane(lane, result.data)
+                result
+            }
+
+            is AppResult.Failure -> {
+                if (fetchedAt != null) {
+                    AppResult.success(discoverCacheDao.getLaneGames(lane).map { it.toGame() })
+                } else {
+                    result
+                }
+            }
+        }
+    }
+
+    /** Persists a lane's ranked result as the new cache, one transaction, replacing whatever was there. */
+    private suspend fun persistLane(lane: DiscoverLane, games: List<Game>) {
+        discoverCacheDao.replaceLane(
+            lane = lane,
+            fetchedAt = System.currentTimeMillis(),
+            games = games.map { it.toCachedGameEntity() },
+            entries = games.mapIndexed { position, game ->
+                DiscoverLaneEntryEntity(lane = lane, gameId = game.id, position = position)
+            },
+            platforms = games.flatMap { it.toPlatformEntities() }.distinctBy { it.id },
+            genres = games.flatMap { it.toGenreEntities() }.distinctBy { it.id },
+            companies = games.flatMap { it.toCompanyEntities() }.distinctBy { it.id },
+            platformRefs = games.flatMap { it.toCachedGamePlatformCrossRefs() },
+            genreRefs = games.flatMap { it.toCachedGameGenreCrossRefs() },
+            companyRefs = games.flatMap { it.toCachedGameCompanyCrossRefs() }
         )
+    }
 
     override suspend fun getGamesByGenre(genreId: Int, platformIds: Set<Int>): AppResult<List<Game>> {
         return try {
@@ -533,7 +608,14 @@ class GameRepositoryImpl @Inject constructor(
         return platformDao.observeOwnedPlatformIds().map { it.toSet() }
     }
 
+    /**
+     * Clears the whole Discover lane cache before applying the new selection, so a cached lane can never
+     * be served for a platform selection it was not fetched under. Order matters: a crash between the two
+     * calls costs at most one unnecessary refetch, and can never leave a cache built for the previous
+     * selection reachable.
+     */
     override suspend fun setOwnedPlatforms(platformIds: Set<Int>) {
+        discoverCacheDao.clearAll()
         platformDao.setOwnedPlatforms(platformIds)
     }
 
