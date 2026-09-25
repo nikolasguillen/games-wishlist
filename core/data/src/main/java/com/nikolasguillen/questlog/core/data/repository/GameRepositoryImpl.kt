@@ -63,6 +63,14 @@ private const val POPULARITY_TYPE_WANT_TO_PLAY = 2
 private const val POPULARITY_TYPE_PLAYING = 3
 
 /**
+ * IGDB's `release_dates.date_format` scalar for "to be announced" -- a platform release that has been
+ * confirmed but has no date yet, as opposed to a game with no `release_dates` row at all. The same value
+ * [com.nikolasguillen.questlog.core.model.DatePrecision.TBD] maps from in `GameMapper.fromIgdbDateFormat`;
+ * keep the two in sync if IGDB's scale ever changes.
+ */
+private const val IGDB_DATE_FORMAT_TBD = 7
+
+/**
  * Size of a Discover lane's candidate pool. A few ids drop out at hydration (filtered game types, the
  * release-window filter), so this is an upper bound on what a lane shows, not an exact count.
  */
@@ -295,7 +303,16 @@ class GameRepositoryImpl @Inject constructor(
             val idList = rankedIds.joinToString(",")
             val nowSeconds = System.currentTimeMillis() / 1000
             val releaseFilter = if (upcomingOnly) {
-                "first_release_date > $nowSeconds"
+                // A game with no first_release_date is admitted only alongside an explicit TBD
+                // release_dates row -- gating on first_release_date = null is what keeps a stale TBD
+                // marker on an already-released game (a pending port, say) from resurrecting it: a past
+                // timestamp fails this branch's precondition and also fails the future-date branch, so
+                // there is no path back into the shelf for it. Without the gate, catalogue debris with a
+                // date that was simply never recorded -- indistinguishable from "unannounced" by absence
+                // alone -- would be let back in too; see the anticipated-lane research doc for the live
+                // IGDB counts behind this.
+                "(first_release_date > $nowSeconds | " +
+                    "(first_release_date = null & release_dates.date_format = $IGDB_DATE_FORMAT_TBD))"
             } else {
                 "first_release_date != null & first_release_date <= $nowSeconds"
             }

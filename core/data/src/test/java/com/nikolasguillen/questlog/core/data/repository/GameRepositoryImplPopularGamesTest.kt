@@ -122,6 +122,57 @@ class GameRepositoryImplPopularGamesTest {
     }
 
     @Test
+    fun `getPopularGames's release filter carries no TBD escape hatch`() = runTest {
+        val hydrateBody = slot<RequestBody>()
+        coEvery { apiService.getPopularityPrimitives(any()) } returns
+            listOf(primitive(gameId = 1, value = 50.0))
+        coEvery { apiService.searchGames(capture(hydrateBody)) } returns listOf(igdbGame(1))
+
+        repository.getPopularGames(emptySet())
+
+        val query = hydrateBody.captured.asText()
+        assertTrue(query.contains("first_release_date != null & first_release_date <="))
+        // The undated-but-pending admission rule is upcoming-lane only -- FR-007 forbids it here.
+        assertFalse(query.contains("release_dates.date_format"))
+    }
+
+    @Test
+    fun `getUpcomingGames admits an undated game with a pending release_dates entry`() = runTest {
+        val hydrateBody = slot<RequestBody>()
+        coEvery { apiService.getPopularityPrimitives(any()) } returns
+            listOf(primitive(gameId = 1, value = 50.0))
+        coEvery { apiService.searchGames(capture(hydrateBody)) } returns listOf(igdbGame(1))
+
+        repository.getUpcomingGames(setOf(48))
+
+        val query = hydrateBody.captured.asText()
+        // The future-date branch is untouched...
+        assertTrue(query.contains("(first_release_date > "))
+        // ...and the new TBD branch is OR'd into it...
+        assertTrue(query.contains("first_release_date = null & release_dates.date_format = 7"))
+        // ...both wrapped so the closing parens land before the platform clause reattaches, not
+        // splicing into the middle of the release expression.
+        assertTrue(query.contains(")) & platforms = (48)"))
+    }
+
+    @Test
+    fun `the TBD branch only applies to games with no first_release_date at all`() = runTest {
+        val hydrateBody = slot<RequestBody>()
+        coEvery { apiService.getPopularityPrimitives(any()) } returns
+            listOf(primitive(gameId = 1, value = 50.0))
+        coEvery { apiService.searchGames(capture(hydrateBody)) } returns listOf(igdbGame(1))
+
+        repository.getUpcomingGames(emptySet())
+
+        // The date_format check is AND'd onto first_release_date = null, never standalone -- a game
+        // with a past first_release_date satisfies neither this branch nor the future-date one, so a
+        // stale TBD marker on an already-released game can't resurrect it into the shelf.
+        assertTrue(
+            hydrateBody.captured.asText().contains("first_release_date = null & release_dates.date_format")
+        )
+    }
+
+    @Test
     fun `getGamesByGenre filters on the genre and floors the rating count`() = runTest {
         val body = slot<RequestBody>()
         coEvery { apiService.searchGames(capture(body)) } returns listOf(igdbGame(1))

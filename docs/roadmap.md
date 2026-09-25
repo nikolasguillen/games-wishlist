@@ -23,13 +23,6 @@ genres from saved games and the user does not edit them by hand; appearance has 
 - **Cache**: do not dump discovered games into the `games` table unqualified. That table already doubles
   as a cache with ownership flags (`isWishlisted`, `lastViewedAt`); mixing in feed results makes "the
   user's own games" ambiguous. Use a separate entity holding the ordered id list plus a `fetchedAt` stamp.
-- **TBA release dates.** The two generic lanes split on the release window (`first_release_date > now` for
-  "Most anticipated", `<= now` for "Popular this month"), which drops games with a null
-  `first_release_date`. Plenty of genuinely anticipated upcoming titles are still TBA, so they silently
-  miss the anticipated shelf. Not just relaxing the filter: a bare `| first_release_date = null` also lets
-  in old games whose date was never recorded, so we cannot tell "unannounced upcoming" from "date lost to
-  history" without a date-precision signal. `DatePrecision` now exists (fed by `release_dates.date_format`,
-  consumed by `ReleaseBucketResolver` for Radar) — the fix is no longer blocked, just not done.
 - Suggestion cap in the search-bar overlay is 4, so `sort hypes desc` is aggressive — an obscure title can
   be squeezed out by hyped ones sharing a substring. If that becomes annoying, sort by name-match quality
   rather than raising the cap.
