@@ -6,6 +6,13 @@ Kotlin 2.4.10 · AGP 9.4.1 · Gradle 9.7.1 (JVM toolchain 21) · compileSdk/targ
 Jetpack Compose (BOM 2026.09.00) · Hilt 2.60.1 · Room 2.8.5 (KSP) · Retrofit 3 + Moshi · Navigation 3
 Coil 2 · WorkManager + `androidx.hilt.work` (Radar's release-date refresh)
 
+## Git
+
+**Project-specific override of the owner's global CLAUDE.md.** The global rule forbidding a
+`Co-Authored-By: Claude` trailer does not apply here: commit messages in this repository **do** end with
+that trailer. This applies only to the commit trailer — PR bodies still omit the "Generated with Claude
+Code" footer, per the global rule.
+
 ## Commands
 
 ```bash
