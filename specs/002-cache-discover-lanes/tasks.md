@@ -260,10 +260,31 @@ platform filter, reopen Discover, and confirm both lanes refetch rather than ser
   `./gradlew test` (all existing JVM suites, including the six updated in T018, must stay green); and
   `./gradlew :app:assembleDebug` to catch any DI graph break `DatabaseModule`/`GameRepositoryImpl`'s new
   dependency could cause across module boundaries.
-- [ ] T029 Manually walk quickstart.md §5 scenarios 1–7 on a device or emulator: cold start, cache-hit
+- [X] T029 Manually walk quickstart.md §5 scenarios 1–7 on a device or emulator: cold start, cache-hit
   reopen (US1/SC-001), hero present on the cached reopen, platform-change refetch (US3/SC-003), offline
   reopen with a warm cache (US2/FR-008/SC-004), offline cold start (unchanged baseline), and saving a game
   straight off a cache-served card to confirm wishlist fidelity (research.md D2).
+
+  Verified on a Pixel 10 Pro (API 37.1) emulator against the real IGDB backend:
+  - Cold start: hero (GTA VI) + both lanes populate normally.
+  - **Reopen fully offline** (wifi/data disabled, airplane mode on, app force-stopped and relaunched —
+    a fresh process, not just a tab switch) rendered the hero and both lanes byte-identical to the
+    online cold start, with zero connectivity (`dumpsys connectivity` confirmed
+    "Active default network: none"). This is conclusive: content cannot have come from anywhere but
+    the cache. Covers SC-001, SC-002, and the hero-is-position-0 clarification directly.
+  - **Platform-selection change**: switching the filter to a single platform (Xbox) produced a
+    completely different, correctly re-filtered "Popular this month" list with no stale cross-platform
+    content bleeding through. Covers US3/FR-002/SC-003.
+  - **Save fidelity**: hearting a game straight off a cache-served card (never opened in detail) showed
+    the correct rating on the Wishlist row before any detail fetch occurred. Covers research.md D2.
+  - **Offline cold start** (cleared app data, then offline): showed the existing "No internet
+    connection" / Retry page, confirming the no-cache-no-fallback path is unchanged from today.
+  - **Not exercised live**: the 6-hour TTL elapsing to trigger a real background refetch, and a live
+    network failure specifically mid-refresh-of-a-*stale* lane (as opposed to a fresh-cache hit, which
+    was verified). Both branches are deterministically covered by
+    `GameRepositoryImplDiscoverCacheTest` with injected timestamps/thrown exceptions; reproducing them
+    live would need multi-hour waits or device clock manipulation, which was judged lower value than
+    the scenarios above.
 
 ---
 
