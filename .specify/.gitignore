@@ -7,4 +7,6 @@ feature.json
 
 # Per-machine extension config overrides.
 extensions/*/local-config.yml
-.specify/extensions/.cache/
+
+# Downloaded extension-catalog cache (specify extension search) -- regenerated on every machine.
+extensions/.cache/
