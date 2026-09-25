@@ -31,7 +31,7 @@ Project Structure section.
 
 **Purpose**: The one type every later phase (converters, entities, mapper) needs to exist first.
 
-- [ ] T001 [P] Create `DiscoverLane` enum with constants `MOST_ANTICIPATED` and `POPULAR_THIS_MONTH` in
+- [X] T001 [P] Create `DiscoverLane` enum with constants `MOST_ANTICIPATED` and `POPULAR_THIS_MONTH` in
   `core/model/src/main/java/com/nikolasguillen/questlog/core/model/DiscoverLane.kt` (data-model.md
   "Enum — `:core:model`"). No Android or Compose dependency, matching every other type in this module.
 
@@ -46,54 +46,54 @@ phase is done, because all three read/write the same cache tables through the sa
 
 **⚠️ CRITICAL**: Do not start Phase 3+ before this phase's checkpoint passes.
 
-- [ ] T002 [P] Add a `DiscoverLane` `@TypeConverter` pair (`fromDiscoverLane`/`toDiscoverLane`, storing
+- [X] T002 [P] Add a `DiscoverLane` `@TypeConverter` pair (`fromDiscoverLane`/`toDiscoverLane`, storing
   the enum name as `String`) to `core/database/src/main/java/com/nikolasguillen/questlog/core/database/util/Converters.kt`,
   matching the existing `GameStatus`/`WishlistIcon` pairs in that file. Depends on T001.
-- [ ] T003 [P] Create `DiscoverLaneCacheEntity` in
+- [X] T003 [P] Create `DiscoverLaneCacheEntity` in
   `core/database/src/main/java/com/nikolasguillen/questlog/core/database/entity/DiscoverLaneCacheEntity.kt`:
   `@Entity(tableName = "discover_lane_cache")`, `@PrimaryKey val lane: DiscoverLane`, `val fetchedAt: Long`
   (data-model.md entity 1). A row exists only after a successful fetch; an empty-but-successful fetch
   still writes it. Depends on T001.
-- [ ] T004 [P] Create `DiscoverLaneEntryEntity` in
+- [X] T004 [P] Create `DiscoverLaneEntryEntity` in
   `core/database/src/main/java/com/nikolasguillen/questlog/core/database/entity/DiscoverLaneEntryEntity.kt`:
   `@Entity(tableName = "discover_lane_entries", primaryKeys = ["lane", "gameId"])` with `val lane: DiscoverLane`,
   `val gameId: Int`, `val position: Int` (data-model.md entity 2). `position = 0` on `MOST_ANTICIPATED`
   is the hero, per the spec.md Session 2026-09-25 clarification — no separate hero storage. Depends on T001.
-- [ ] T005 [P] Create `CachedGameEntity` in
+- [X] T005 [P] Create `CachedGameEntity` in
   `core/database/src/main/java/com/nikolasguillen/questlog/core/database/entity/CachedGameEntity.kt`:
   `@Entity(tableName = "cached_games")` with `@PrimaryKey val id: Int` plus `name: String`,
   `description: String`, `released: String?`, `backgroundImage: String?`, `rating: Double`,
   `ratingCount: Int`, `hypes: Int`, `metacritic: Int?`, `gameTypeId: Int`, `url: String?`
   (data-model.md entity 3). Deliberately has no `notes`, `priority`, `status`, `lastViewedAt` or
   `detailsFetchedAt` columns — that omission is what makes FR-006 structural.
-- [ ] T006 [P] Create `CachedGamePlatformCrossRef` in
+- [X] T006 [P] Create `CachedGamePlatformCrossRef` in
   `core/database/src/main/java/com/nikolasguillen/questlog/core/database/entity/CachedGamePlatformCrossRef.kt`:
   `@Entity(tableName = "cached_game_platform_cross_ref", primaryKeys = ["gameId", "platformId"])` with
   `val gameId: Int`, `val platformId: Int` (data-model.md entity 4; no release-date columns — the lane
   hydrate query never requests `release_dates`).
-- [ ] T007 [P] Create `CachedGameGenreCrossRef` in
+- [X] T007 [P] Create `CachedGameGenreCrossRef` in
   `core/database/src/main/java/com/nikolasguillen/questlog/core/database/entity/CachedGameGenreCrossRef.kt`:
   `@Entity(tableName = "cached_game_genre_cross_ref", primaryKeys = ["gameId", "genreId"])` with
   `val gameId: Int`, `val genreId: Int` (data-model.md entity 5).
-- [ ] T008 [P] Create `CachedGameCompanyCrossRef` in
+- [X] T008 [P] Create `CachedGameCompanyCrossRef` in
   `core/database/src/main/java/com/nikolasguillen/questlog/core/database/entity/CachedGameCompanyCrossRef.kt`:
   `@Entity(tableName = "cached_game_company_cross_ref", primaryKeys = ["gameId", "companyId"])` with
   `val gameId: Int`, `val companyId: Int`, `val isDeveloper: Boolean`, `val isPublisher: Boolean`
   (data-model.md entity 6 — full snapshot fidelity is required, not cosmetic: research.md D2).
-- [ ] T009 Create `CachedGameCompanyWithDetails` relation POJO in
+- [X] T009 Create `CachedGameCompanyWithDetails` relation POJO in
   `core/database/src/main/java/com/nikolasguillen/questlog/core/database/relation/CachedGameCompanyWithDetails.kt`,
   mirroring `GameCompanyWithDetails` exactly: `@Embedded val crossRef: CachedGameCompanyCrossRef` plus
   `@Relation(parentColumn = "companyId", entityColumn = "id") val company: CompanyEntity` (data-model.md
   "Relation POJOs"). A plain `Junction` would drop the `isDeveloper`/`isPublisher` split, which is why
   this POJO exists. Depends on T008.
-- [ ] T010 Create `CachedGameWithDetails` relation POJO in
+- [X] T010 Create `CachedGameWithDetails` relation POJO in
   `core/database/src/main/java/com/nikolasguillen/questlog/core/database/relation/CachedGameWithDetails.kt`:
   `@Embedded val game: CachedGameEntity`, `platforms: List<PlatformEntity>` via
   `Junction(CachedGamePlatformCrossRef::class)`, `genres: List<GenreEntity>` via
   `Junction(CachedGameGenreCrossRef::class)`, `companyRefs: List<CachedGameCompanyWithDetails>` via
   `@Relation(entity = CachedGameCompanyCrossRef::class, parentColumn = "id", entityColumn = "gameId")`
   (data-model.md "Relation POJOs"). Depends on T005, T006, T007, T009.
-- [ ] T011 Create `DiscoverCacheDao` in
+- [X] T011 Create `DiscoverCacheDao` in
   `core/database/src/main/java/com/nikolasguillen/questlog/core/database/dao/DiscoverCacheDao.kt` per
   contracts/discover-cache.md Contract 2: `suspend fun getLaneGames(lane: DiscoverLane): List<CachedGameWithDetails>`
   (the `@Transaction @Query` joining `cached_games`/`discover_lane_entries` ordered by `position`),
@@ -106,21 +106,21 @@ phase is done, because all three read/write the same cache tables through the sa
   cached-game cross-ref tables) without touching `games`, `game_list_cross_ref`, `owned_platforms` or the
   shared lookups. Follow the `GameDao.saveGame` delete-before-insert discipline
   (`core/database/CLAUDE.md`). Depends on T002, T003, T004, T010.
-- [ ] T012 Register the six new entities (`DiscoverLaneCacheEntity`, `DiscoverLaneEntryEntity`,
+- [X] T012 Register the six new entities (`DiscoverLaneCacheEntity`, `DiscoverLaneEntryEntity`,
   `CachedGameEntity`, `CachedGamePlatformCrossRef`, `CachedGameGenreCrossRef`, `CachedGameCompanyCrossRef`)
   in `QuestLogDatabase.kt`'s `@Database(entities = [...])` list and add
   `abstract fun discoverCacheDao(): DiscoverCacheDao` in
   `core/database/src/main/java/com/nikolasguillen/questlog/core/database/QuestLogDatabase.kt`. Leave
   `version = 1` unchanged (constitution: Persistence). Depends on T011.
-- [ ] T013 [P] Add a `@Provides` method for `DiscoverCacheDao` off the existing `QuestLogDatabase`
+- [X] T013 [P] Add a `@Provides` method for `DiscoverCacheDao` off the existing `QuestLogDatabase`
   instance in `core/database/src/main/java/com/nikolasguillen/questlog/core/database/di/DatabaseModule.kt`,
   matching how the other DAOs are provided. Depends on T012.
-- [ ] T014 [P] Build `:core:database` to regenerate the exported schema at
+- [X] T014 [P] Build `:core:database` to regenerate the exported schema at
   `core/database/schemas/com.nikolasguillen.questlog.core.database.QuestLogDatabase/1.json` (per
   `core/database/CLAUDE.md`: commit the regenerated file in the same commit as the entity change).
   Confirm it lists the six new table names and still reads `"version": 1`; confirm there is still exactly
   one directory under `schemas/`. Depends on T012.
-- [ ] T015 [P] Create `CachedGameMapper.kt` in
+- [X] T015 [P] Create `CachedGameMapper.kt` in
   `core/data/src/main/java/com/nikolasguillen/questlog/core/data/mapper/CachedGameMapper.kt` with
   `CachedGameWithDetails.toGame(): Game` (fills `platforms`, `genres`, `developers` and `publishers` so
   the result is field-identical to `IgdbGame.toGame()`'s output, leaving every user-owned `Game` field at
@@ -128,7 +128,7 @@ phase is done, because all three read/write the same cache tables through the sa
   `Game.toCachedGameGenreCrossRefs()`, `Game.toCachedGameCompanyCrossRefs()`. Reuse
   `GameMapper.kt`'s existing `toPlatformEntities`/`toGenreEntities`/`toCompanyEntities` for the shared
   lookup rows rather than duplicating them (data-model.md "Mapping"). Depends on T010.
-- [ ] T016 [P] Add `CachedGameMapperTest` in
+- [X] T016 [P] Add `CachedGameMapperTest` in
   `core/data/src/test/java/com/nikolasguillen/questlog/core/data/mapper/CachedGameMapperTest.kt`
   asserting a `Game` with non-empty `platforms`, `genres`, `developers` and `publishers` round-trips
   through `toCachedGameEntity()`/`toCached*CrossRefs()` → `CachedGameWithDetails.toGame()` with all four

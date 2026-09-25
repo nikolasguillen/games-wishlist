@@ -6,6 +6,7 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.nikolasguillen.questlog.core.database.QuestLogDatabase
 import com.nikolasguillen.questlog.core.database.R
+import com.nikolasguillen.questlog.core.database.dao.DiscoverCacheDao
 import com.nikolasguillen.questlog.core.database.dao.GameDao
 import com.nikolasguillen.questlog.core.database.dao.ListDao
 import com.nikolasguillen.questlog.core.database.dao.PlatformDao
@@ -76,5 +77,10 @@ object DatabaseModule {
     @Provides
     fun provideTranslationDao(database: QuestLogDatabase): TranslationDao {
         return database.translationDao()
+    }
+
+    @Provides
+    fun provideDiscoverCacheDao(database: QuestLogDatabase): DiscoverCacheDao {
+        return database.discoverCacheDao()
     }
 }

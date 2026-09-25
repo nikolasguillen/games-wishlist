@@ -1,6 +1,7 @@
 package com.nikolasguillen.questlog.core.database.util
 
 import androidx.room.TypeConverter
+import com.nikolasguillen.questlog.core.model.DiscoverLane
 import com.nikolasguillen.questlog.core.model.GameStatus
 import com.nikolasguillen.questlog.core.model.WishlistIcon
 
@@ -13,6 +14,16 @@ class Converters {
     @TypeConverter
     fun toGameStatus(status: String?): GameStatus? {
         return status?.let { GameStatus.valueOf(it) }
+    }
+
+    @TypeConverter
+    fun fromDiscoverLane(lane: DiscoverLane): String {
+        return lane.name
+    }
+
+    @TypeConverter
+    fun toDiscoverLane(lane: String): DiscoverLane {
+        return DiscoverLane.valueOf(lane)
     }
 
     @TypeConverter

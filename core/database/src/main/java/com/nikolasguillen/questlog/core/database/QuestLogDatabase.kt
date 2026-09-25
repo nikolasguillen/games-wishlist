@@ -3,12 +3,19 @@ package com.nikolasguillen.questlog.core.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.nikolasguillen.questlog.core.database.dao.DiscoverCacheDao
 import com.nikolasguillen.questlog.core.database.dao.GameDao
 import com.nikolasguillen.questlog.core.database.dao.ListDao
 import com.nikolasguillen.questlog.core.database.dao.PlatformDao
 import com.nikolasguillen.questlog.core.database.dao.SearchHistoryDao
 import com.nikolasguillen.questlog.core.database.dao.TranslationDao
+import com.nikolasguillen.questlog.core.database.entity.CachedGameCompanyCrossRef
+import com.nikolasguillen.questlog.core.database.entity.CachedGameEntity
+import com.nikolasguillen.questlog.core.database.entity.CachedGameGenreCrossRef
+import com.nikolasguillen.questlog.core.database.entity.CachedGamePlatformCrossRef
 import com.nikolasguillen.questlog.core.database.entity.CompanyEntity
+import com.nikolasguillen.questlog.core.database.entity.DiscoverLaneCacheEntity
+import com.nikolasguillen.questlog.core.database.entity.DiscoverLaneEntryEntity
 import com.nikolasguillen.questlog.core.database.entity.EngineEntity
 import com.nikolasguillen.questlog.core.database.entity.GameArtworkEntity
 import com.nikolasguillen.questlog.core.database.entity.GameCompanyCrossRef
@@ -43,7 +50,13 @@ import com.nikolasguillen.questlog.core.database.util.Converters
         GameEngineCrossRef::class,
         GameArtworkEntity::class,
         RelatedGameEntity::class,
-        TranslatedDescriptionEntity::class
+        TranslatedDescriptionEntity::class,
+        DiscoverLaneCacheEntity::class,
+        DiscoverLaneEntryEntity::class,
+        CachedGameEntity::class,
+        CachedGamePlatformCrossRef::class,
+        CachedGameGenreCrossRef::class,
+        CachedGameCompanyCrossRef::class
     ],
     version = 1,
     exportSchema = true
@@ -55,6 +68,7 @@ abstract class QuestLogDatabase : RoomDatabase() {
     abstract fun platformDao(): PlatformDao
     abstract fun searchHistoryDao(): SearchHistoryDao
     abstract fun translationDao(): TranslationDao
+    abstract fun discoverCacheDao(): DiscoverCacheDao
 
     companion object {
         const val DATABASE_NAME = "quest_log_database"
