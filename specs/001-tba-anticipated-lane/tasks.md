@@ -122,12 +122,13 @@ asked for." It isn't. So this stays verified by eye.
 - [X] T008 [US3] Build and run the app (`./gradlew :app:assembleDebug`, or from Android Studio), open the Search tab, and follow `specs/001-tba-anticipated-lane/quickstart.md` section 3: confirm an undated title appears in "Most anticipated", that its card shows the unknown-date wording rather than a blank or fabricated date, and that the hero renders completely if an undated game lands there. On Windows use `.\gradlew.bat`. **Found a real gap**: on a physical device, The Elder Scrolls VI's shelf card rendered with no date line at all -- not the "Unknown release date" wording. `DiscoverHero` (the editorial hero, `releaseDateText`-bound) was correct; `CompactGameCard` (every other shelf slot, `releaseYear`-bound) silently omits the row when `releaseYear` is null instead of falling back. `research.md`/`data-model.md` had only checked the mapper's fallback exists, not which UI field each card actually reads.
 - [X] T009 [US3] Fix `CompactGameCard` in `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/component/gamecard/CompactGameCard.kt`: when `game.releaseYear` is null, render `game.releaseDateText.asString()` instead of omitting the `Text`. `releaseYear` is null exactly when `releaseDateText` resolves to the fallback string -- both derive from the same null `Game.releaseDate` (`DateUtils.getYearFromIsoDate` and the mapper's own date-parsing both return null only then) -- so this cannot change what any dated game's card shows. Re-verified on-device after rebuilding: both undated titles in the sample ("The Elder Scrolls VI", "PUBG: Black Budget") now show "Unknown release date"; dated cards ("Fable", "Roblox", "Grand Theft Auto V", "Fortnite") are pixel-identical to before.
 
-**Known follow-up, left out of this feature's scope**: `RecentGameCard` and `VerticalGameCard` have the
-identical `releaseYear?.let { }` blank-when-null pattern. Saving an undated anticipated game from the
-now-widened shelf (`SaveToWishlistButton` is on every `CompactGameCard`) is a new way to get an undated
-game into the Wishlist or "recently viewed" screens, where the same blank line would show. Neither screen
-is mentioned in `spec.md`, and FR-010 scopes this feature to "the anticipated slot" specifically -- so this
-is flagged for the owner to decide, not silently fixed alongside T009.
+**Follow-up, resolved after this feature shipped**: `RecentGameCard` and `VerticalGameCard` had the
+identical `releaseYear?.let { }` blank-when-null pattern, left flagged rather than fixed alongside T009
+since neither screen is named in `spec.md` (an undated game reaches them via a direct search, or via
+"recently viewed" after its detail screen is opened -- not "the anticipated slot" FR-010 scopes this
+feature to). The owner asked for the fix directly rather than a separate spec; same one-line change, same
+reasoning, applied in both files. Verified on-device: search-results grid and the recently-viewed strip
+both now show the fallback; dated siblings in both views are unchanged.
 
 **Checkpoint**: All three stories verified, including the one gap the research phase missed.
 
