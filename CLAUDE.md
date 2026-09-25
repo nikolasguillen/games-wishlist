@@ -88,7 +88,7 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
   the only module whose resources are read from outside it.
 - **Text that can come from `strings.xml` is `UiText`** (`core/ui/model/UiText.kt`) in UiState and
   UiModels — anything formatted through a resource (`platforms_format`), given a resource fallback
-  (`unknown_release_date`), or derived from an enum (`GameStatus.toLabelUiText()`). A value that can only
+  (`release_date_tba`), or derived from an enum (`GameStatus.toLabelUiText()`). A value that can only
   ever come from the data source — a game's name, a studio, a year, the user's own search queries — stays
   `String`: `UiText.DynamicString` around it buys nothing and only adds an unwrap at the call site.
   The test is *could this string ever be a resource?*, not *is it shown on screen?* When that test is a

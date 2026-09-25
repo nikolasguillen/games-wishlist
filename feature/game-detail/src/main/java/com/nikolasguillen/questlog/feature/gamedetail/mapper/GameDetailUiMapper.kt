@@ -151,9 +151,9 @@ internal fun Game.toUiModel(): GameDetailUiModel {
  * begin with, so showing more would be a made-up day.
  */
 private fun formatPlatformReleaseDate(date: Long?, precision: DatePrecision): UiText {
-    if (date == null) return UiText.StringResource(R.string.tba)
+    if (date == null) return UiText.StringResource(CoreUiR.string.release_date_tba)
     return when (precision) {
-        DatePrecision.TBD -> UiText.StringResource(R.string.tba)
+        DatePrecision.TBD -> UiText.StringResource(CoreUiR.string.release_date_tba)
         DatePrecision.YEAR_ONLY -> UiText.DynamicString(DateUtils.formatUnixTimestamp(date, "yyyy"))
         DatePrecision.QUARTER -> {
             val localDate = DateUtils.timestampToLocalDate(date)
@@ -171,12 +171,12 @@ private fun formatPlatformReleaseDate(date: Long?, precision: DatePrecision): Ui
  * [DateUtils.isYearOnlyPlaceholder] is the only signal available that IGDB only ever knew the year.
  */
 private fun formatMainReleaseDate(isoDate: String?): UiText {
-    if (isoDate == null) return UiText.StringResource(R.string.tba)
+    if (isoDate == null) return UiText.StringResource(CoreUiR.string.release_date_tba)
     if (DateUtils.isYearOnlyPlaceholder(isoDate)) {
         return DateUtils.getYearFromIsoDate(isoDate)?.let { UiText.DynamicString(it) }
-            ?: UiText.StringResource(R.string.tba)
+            ?: UiText.StringResource(CoreUiR.string.release_date_tba)
     }
-    return DateUtils.formatIsoDate(isoDate)?.let { UiText.DynamicString(it) } ?: UiText.StringResource(R.string.tba)
+    return DateUtils.formatIsoDate(isoDate)?.let { UiText.DynamicString(it) } ?: UiText.StringResource(CoreUiR.string.release_date_tba)
 }
 
 private fun formatLargeNumber(number: Int): String {

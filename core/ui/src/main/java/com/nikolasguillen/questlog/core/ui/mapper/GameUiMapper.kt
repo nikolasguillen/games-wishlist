@@ -124,7 +124,7 @@ fun Game.toGameItem(isSaved: Boolean = false): GameItemUiModel {
         rating = getDisplayRating(),
         releaseDateText = formattedReleaseDate?.let {
             UiText.StringResource(R.string.release_date_format, it)
-        } ?: UiText.StringResource(R.string.unknown_release_date),
+        } ?: UiText.StringResource(R.string.release_date_tba),
         releaseYear = year,
         developer = if (developers.isNotEmpty()) developers.joinToString { it.name } else null,
         platforms = platformsText,

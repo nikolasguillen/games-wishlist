@@ -14,6 +14,7 @@ import com.nikolasguillen.questlog.feature.radar.model.RadarEntryUiModel
 import com.nikolasguillen.questlog.feature.radar.model.RadarEntryUiModel.DateLabelStyle
 import com.nikolasguillen.questlog.feature.radar.model.RadarSectionUiModel
 import java.util.Locale
+import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
 internal fun List<RadarTimelineSection>.toUiModel(): List<RadarSectionUiModel> {
     return map { it.toUiModel() }
@@ -46,7 +47,7 @@ private fun RadarEntry.toUiModel(bucket: ReleaseBucket): RadarEntryUiModel {
 
 private data class DateLabel(val primary: UiText, val secondary: UiText? = null, val style: DateLabelStyle)
 
-private val TbaLabel = DateLabel(UiText.StringResource(R.string.radar_date_tba), style = DateLabelStyle.PILL_MUTED)
+private val TbaLabel = DateLabel(UiText.StringResource(CoreUiR.string.release_date_tba), style = DateLabelStyle.PILL_MUTED)
 
 /**
  * Formats a [RadarEntry]'s date for display. [ReleaseBucket.THIS_WEEK] only affects [DatePrecision.EXACT_DATE]
@@ -104,5 +105,5 @@ private fun ReleaseBucket.toLabelUiText(): UiText = when (this) {
     ReleaseBucket.THIS_MONTH -> UiText.StringResource(R.string.radar_bucket_this_month)
     ReleaseBucket.NEXT_3_MONTHS -> UiText.StringResource(R.string.radar_bucket_next_3_months)
     ReleaseBucket.LATER -> UiText.StringResource(R.string.radar_bucket_later)
-    ReleaseBucket.TBA -> UiText.StringResource(R.string.radar_bucket_tba)
+    ReleaseBucket.TBA -> UiText.StringResource(CoreUiR.string.release_date_tba)
 }

@@ -241,7 +241,7 @@ private fun GameReleaseInfoCardNoDatePreview() {
     QuestLogTheme {
         GameReleaseInfoCard(
             availability = AvailabilityUiModel(
-                mainDate = UiText.DynamicString("TBA"),
+                mainDate = UiText.StringResource(CoreUiR.string.release_date_tba),
                 platforms = listOf(
                     PlatformTileUiModel(
                         id = 1,
