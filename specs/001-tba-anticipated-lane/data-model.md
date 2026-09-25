@@ -43,8 +43,15 @@ This single fact is what makes three separate requirements true simultaneously w
   `first_release_date` fails the `first_release_date = null` precondition, so it can only be admitted
   through the unchanged `first_release_date > now` branch — which it also fails, being in the past. It is
   excluded by construction, not by a special case checking for contradictory data.
-- **FR-005 / SC-005 (unknown-date wording)** needs no new UI code: `GameUiMapper.toGameItem()` already
-  maps a `null` `releaseDate` to `R.string.unknown_release_date`.
+- **FR-005 / SC-005 (unknown-date wording)**: `GameUiMapper.toGameItem()` maps a `null` `releaseDate` to
+  `R.string.unknown_release_date` on `GameItemUiModel.releaseDateText`. **Correction (found in T008, the
+  on-device check — this section originally claimed no UI code change was needed at all):** that mapper
+  guarantee is necessary but not sufficient. `DiscoverHero` reads `releaseDateText` and was correct as-is;
+  `CompactGameCard` — every other shelf slot — read the sibling field `releaseYear` instead and silently
+  omitted the row when it was null. Fixed in `tasks.md` T009: `CompactGameCard` now falls back to
+  `releaseDateText.asString()` exactly when `releaseYear` is null (the two are null under the identical
+  condition, so no dated game's card changes). The lesson for future features: confirm which UI field a
+  component actually binds to, not only that the mapper produces a correct one somewhere.
 - **FR-013 (hero)** needs no new selection logic: `DiscoverMapper.kt`'s `hero = upcoming.firstOrNull()`
   already picks whatever the repository ranks first, dated or not.
 

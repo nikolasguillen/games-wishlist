@@ -82,14 +82,17 @@ fun CompactGameCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                game.releaseYear?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                        maxLines = 1
-                    )
-                }
+                // releaseYear is null exactly when releaseDateText resolves to the unknown-release-date
+                // fallback (both derive from the same null Game.releaseDate) -- so this never changes
+                // what a dated game shows, and it is what lets an undated anticipated game (reachable
+                // here since the anticipated-lane widening) render something instead of a blank line.
+                Text(
+                    text = game.releaseYear ?: game.releaseDateText.asString(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }

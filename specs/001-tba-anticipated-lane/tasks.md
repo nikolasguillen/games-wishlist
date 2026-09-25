@@ -42,7 +42,7 @@ This feature is two files. Be suspicious of any plan that makes it look bigger:
 
 **Purpose**: Confirm the external dependency the whole design rests on before writing code against it.
 
-- [ ] T001 Run the IGDB signal check in `specs/001-tba-anticipated-lane/quickstart.md` (section 1) and confirm it returns exactly one result, id `81249` (The Elder Scrolls VI). If id `28029` (Half-Life 3) also returns, or neither returns, STOP: IGDB has changed how it represents pending dates, and `specs/001-tba-anticipated-lane/contracts/upcoming-lane-release-filter.md` must be re-derived before any code is written.
+- [X] T001 Run the IGDB signal check in `specs/001-tba-anticipated-lane/quickstart.md` (section 1) and confirm it returns exactly one result, id `81249` (The Elder Scrolls VI). If id `28029` (Half-Life 3) also returns, or neither returns, STOP: IGDB has changed how it represents pending dates, and `specs/001-tba-anticipated-lane/contracts/upcoming-lane-release-filter.md` must be re-derived before any code is written.
 
 ---
 
@@ -53,7 +53,7 @@ This feature is two files. Be suspicious of any plan that makes it look bigger:
 **⚠️ CRITICAL**: T002 must be written and passing before T004 touches `fetchPopularityRankedGames`. It is
 the only thing that will catch an accidental change to the popular lane, which FR-007 and SC-004 forbid.
 
-- [ ] T002 Add a characterization test in `core/data/src/test/java/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImplPopularGamesTest.kt` that captures the hydrate `RequestBody` from `repository.getPopularGames(emptySet())` and asserts the query contains `first_release_date != null & first_release_date <=` and does NOT contain `release_dates.date_format`. Follow the existing `slot<RequestBody>()` + `asText().contains(...)` idiom already used in that file.
+- [X] T002 Add a characterization test in `core/data/src/test/java/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImplPopularGamesTest.kt` that captures the hydrate `RequestBody` from `repository.getPopularGames(emptySet())` and asserts the query contains `first_release_date != null & first_release_date <=` and does NOT contain `release_dates.date_format`. Follow the existing `slot<RequestBody>()` + `asText().contains(...)` idiom already used in that file.
 
 **Checkpoint**: The popular lane is pinned. The shared method can now be edited safely.
 
@@ -72,13 +72,13 @@ does not. End-to-end, an undated high-hype title (The Elder Scrolls VI) appears 
 
 > Write T003 first and watch it fail — it asserts a query fragment that does not exist yet.
 
-- [ ] T003 [US1] Add a test in `core/data/src/test/java/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImplPopularGamesTest.kt` asserting that the hydrate query from `repository.getUpcomingGames(emptySet())` contains `first_release_date = null & release_dates.date_format = 7`, and that the fragment is wrapped so the `|` cannot bind across the surrounding `&` clauses (assert the query contains `(first_release_date > ` and that a `)` closes the release filter before ` & ` rejoins the platform/id clauses). Expect this to FAIL until T005.
+- [X] T003 [US1] Add a test in `core/data/src/test/java/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImplPopularGamesTest.kt` asserting that the hydrate query from `repository.getUpcomingGames(emptySet())` contains `first_release_date = null & release_dates.date_format = 7`, and that the fragment is wrapped so the `|` cannot bind across the surrounding `&` clauses (assert the query contains `(first_release_date > ` and that a `)` closes the release filter before ` & ` rejoins the platform/id clauses). Expect this to FAIL until T005.
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Add `private const val IGDB_DATE_FORMAT_TBD = 7` to `core/data/src/main/java/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImpl.kt`, alongside the existing `POPULARITY_TYPE_WANT_TO_PLAY` / `POPULARITY_TYPE_PLAYING` constants (around lines 54-63) and matching their KDoc style. The KDoc must state that this is IGDB's `release_dates.date_format` scalar for "to be announced" and that it is the same value `DatePrecision.TBD` maps from in `GameMapper.fromIgdbDateFormat`, so the two never drift.
-- [ ] T005 [US1] In `fetchPopularityRankedGames` in `core/data/src/main/java/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImpl.kt` (the `releaseFilter` assignment, currently around line 297), replace the `upcomingOnly == true` branch with `"(first_release_date > $nowSeconds | (first_release_date = null & release_dates.date_format = $IGDB_DATE_FORMAT_TBD))"`. Copy the shape from `specs/001-tba-anticipated-lane/contracts/upcoming-lane-release-filter.md` exactly. **The outer parentheses are required** — without them the `|` binds across the id list, type exclusion and platform filter that the fragment is `&`-joined with. Leave the `else` branch (the popular lane) byte-for-byte unchanged.
-- [ ] T006 [US1] Add a comment above the `releaseFilter` assignment in `core/data/src/main/java/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImpl.kt` explaining *why* the TBD branch is gated on `first_release_date = null` — matching the "explains why, not what" comment style the module's `CLAUDE.md` points at `WishlistCoverImageStorage.kt` for. The reason to capture: the gate is what makes an already-released game with a pending port structurally unable to reach the shelf.
+- [X] T004 [US1] Add `private const val IGDB_DATE_FORMAT_TBD = 7` to `core/data/src/main/java/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImpl.kt`, alongside the existing `POPULARITY_TYPE_WANT_TO_PLAY` / `POPULARITY_TYPE_PLAYING` constants (around lines 54-63) and matching their KDoc style. The KDoc must state that this is IGDB's `release_dates.date_format` scalar for "to be announced" and that it is the same value `DatePrecision.TBD` maps from in `GameMapper.fromIgdbDateFormat`, so the two never drift.
+- [X] T005 [US1] In `fetchPopularityRankedGames` in `core/data/src/main/java/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImpl.kt` (the `releaseFilter` assignment, currently around line 297), replace the `upcomingOnly == true` branch with `"(first_release_date > $nowSeconds | (first_release_date = null & release_dates.date_format = $IGDB_DATE_FORMAT_TBD))"`. Copy the shape from `specs/001-tba-anticipated-lane/contracts/upcoming-lane-release-filter.md` exactly. **The outer parentheses are required** — without them the `|` binds across the id list, type exclusion and platform filter that the fragment is `&`-joined with. Leave the `else` branch (the popular lane) byte-for-byte unchanged.
+- [X] T006 [US1] Add a comment above the `releaseFilter` assignment in `core/data/src/main/java/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImpl.kt` explaining *why* the TBD branch is gated on `first_release_date = null` — matching the "explains why, not what" comment style the module's `CLAUDE.md` points at `WishlistCoverImageStorage.kt` for. The reason to capture: the gate is what makes an already-released game with a pending port structurally unable to reach the shelf.
 
 **Checkpoint**: T003 now passes, T002 still passes. US1 is complete and independently verifiable.
 
@@ -95,7 +95,7 @@ does not. End-to-end, an undated high-hype title (The Elder Scrolls VI) appears 
 **No production code.** This story is delivered by T005's `where` clause. The task below asserts the
 property; if it fails, the fix is in T005, not in new code.
 
-- [ ] T007 [US2] Add a test in `core/data/src/test/java/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImplPopularGamesTest.kt` asserting the TBD branch is *gated*: the upcoming query must contain the exact substring `first_release_date = null & release_dates.date_format`, proving the `date_format` clause can never be satisfied on its own by a game that has a (past) `first_release_date`. Give the test a name that states the rule, e.g. `the TBD branch only applies to games with no first_release_date at all`.
+- [X] T007 [US2] Add a test in `core/data/src/test/java/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImplPopularGamesTest.kt` asserting the TBD branch is *gated*: the upcoming query must contain the exact substring `first_release_date = null & release_dates.date_format`, proving the `date_format` clause can never be satisfied on its own by a game that has a (past) `first_release_date`. Give the test a name that states the rule, e.g. `the TBD branch only applies to games with no first_release_date at all`.
 
 **Checkpoint**: The guard that bounds US1 is pinned by a test.
 
@@ -108,28 +108,36 @@ rather than a blank slot or a fabricated date.
 
 **Independent Test**: quickstart.md section 3, visually.
 
-**No production code, and deliberately no automated test.** `research.md` confirmed
-`GameUiMapper.toGameItem()` already falls back to `R.string.unknown_release_date` when `Game.releaseDate`
-is null (`core/ui/mapper/GameUiMapper.kt:125-127`), and `DiscoverMapper.kt:19` already picks the hero with
-`upcoming.firstOrNull()` with no date filtering. Per `data-model.md`, every game this feature admits has
-`Game.releaseDate == null` by construction, so both paths are already exercised.
+**Planned as no production code** — `research.md` reasoned that `GameUiMapper.toGameItem()` already falls
+back to `R.string.unknown_release_date` when `Game.releaseDate` is null
+(`core/ui/mapper/GameUiMapper.kt:125-127`), and `DiscoverMapper.kt:19` already picks the hero with
+`upcoming.firstOrNull()` with no date filtering — so both paths looked already exercised. **T008 found this
+was only half true**, and T009 below was added to fix it.
 
-An automated test would mean creating a `src/test` source set for `:core:ui`, which has none.
-`docs/tech-debt.md` lists `:core:ui` mappers as a known coverage gap, and Constitution Principle V says a
-known gap is "not a blocker: do not plan a coverage campaign unless coverage is the feature being asked
-for." It isn't. So this is verified by eye, once.
+No automated test either way: it would mean creating a `src/test` source set for `:core:ui`, which has
+none. `docs/tech-debt.md` lists `:core:ui` mappers as a known coverage gap, and Constitution Principle V
+says a known gap is "not a blocker: do not plan a coverage campaign unless coverage is the feature being
+asked for." It isn't. So this stays verified by eye.
 
-- [ ] T008 [US3] Build and run the app (`./gradlew :app:assembleDebug`, or from Android Studio), open the Search tab, and follow `specs/001-tba-anticipated-lane/quickstart.md` section 3: confirm an undated title appears in "Most anticipated", that its card shows the unknown-date wording rather than a blank or fabricated date, and that the hero renders completely if an undated game lands there. On Windows use `.\gradlew.bat`.
+- [X] T008 [US3] Build and run the app (`./gradlew :app:assembleDebug`, or from Android Studio), open the Search tab, and follow `specs/001-tba-anticipated-lane/quickstart.md` section 3: confirm an undated title appears in "Most anticipated", that its card shows the unknown-date wording rather than a blank or fabricated date, and that the hero renders completely if an undated game lands there. On Windows use `.\gradlew.bat`. **Found a real gap**: on a physical device, The Elder Scrolls VI's shelf card rendered with no date line at all -- not the "Unknown release date" wording. `DiscoverHero` (the editorial hero, `releaseDateText`-bound) was correct; `CompactGameCard` (every other shelf slot, `releaseYear`-bound) silently omits the row when `releaseYear` is null instead of falling back. `research.md`/`data-model.md` had only checked the mapper's fallback exists, not which UI field each card actually reads.
+- [X] T009 [US3] Fix `CompactGameCard` in `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/component/gamecard/CompactGameCard.kt`: when `game.releaseYear` is null, render `game.releaseDateText.asString()` instead of omitting the `Text`. `releaseYear` is null exactly when `releaseDateText` resolves to the fallback string -- both derive from the same null `Game.releaseDate` (`DateUtils.getYearFromIsoDate` and the mapper's own date-parsing both return null only then) -- so this cannot change what any dated game's card shows. Re-verified on-device after rebuilding: both undated titles in the sample ("The Elder Scrolls VI", "PUBG: Black Budget") now show "Unknown release date"; dated cards ("Fable", "Roblox", "Grand Theft Auto V", "Fortnite") are pixel-identical to before.
 
-**Checkpoint**: All three stories verified.
+**Known follow-up, left out of this feature's scope**: `RecentGameCard` and `VerticalGameCard` have the
+identical `releaseYear?.let { }` blank-when-null pattern. Saving an undated anticipated game from the
+now-widened shelf (`SaveToWishlistButton` is on every `CompactGameCard`) is a new way to get an undated
+game into the Wishlist or "recently viewed" screens, where the same blank line would show. Neither screen
+is mentioned in `spec.md`, and FR-010 scopes this feature to "the anticipated slot" specifically -- so this
+is flagged for the owner to decide, not silently fixed alongside T009.
+
+**Checkpoint**: All three stories verified, including the one gap the research phase missed.
 
 ---
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T009 Delete the resolved `**TBA release dates.**` bullet from `docs/roadmap.md` (lines 26-32, under "Open items in the shipped Discover feed"). That file's own header states it "describes what is **not** built yet; the moment a phase ships, delete it from here", and root `CLAUDE.md` repeats the rule: do not rewrite the entry into a note saying it was fixed. Delete the bullet outright in the same commit as the code.
-- [ ] T010 Run `./gradlew :core:data:testDebugUnitTest --console=plain -q` and confirm the whole `:core:data` suite is green, including the pre-existing `GameRepositoryImplPopularGamesTest` cases and `GameRepositoryImplDeveloperGamesTest` (which also asserts on query strings and must be unaffected).
-- [ ] T011 Run `./gradlew test` and confirm every other module's JVM suite is still green. Per Constitution Principle V, `:app:assembleDebug` is not required here — this change touches one module and no DI wiring — but T008 will have built the app anyway.
+- [X] T010 Delete the resolved `**TBA release dates.**` bullet from `docs/roadmap.md` (lines 26-32, under "Open items in the shipped Discover feed"). That file's own header states it "describes what is **not** built yet; the moment a phase ships, delete it from here", and root `CLAUDE.md` repeats the rule: do not rewrite the entry into a note saying it was fixed. Delete the bullet outright in the same commit as the code.
+- [X] T011 Run `./gradlew :core:data:testDebugUnitTest --console=plain -q` and confirm the whole `:core:data` suite is green, including the pre-existing `GameRepositoryImplPopularGamesTest` cases and `GameRepositoryImplDeveloperGamesTest` (which also asserts on query strings and must be unaffected).
+- [X] T012 Run `./gradlew test` and confirm every other module's JVM suite is still green. Per Constitution Principle V, `:app:assembleDebug` is not required here for `:core:data` alone — but T008/T009 touched `:core:ui` and were verified with a full `:app:assembleDebug`, which already ran.
 
 ---
 
