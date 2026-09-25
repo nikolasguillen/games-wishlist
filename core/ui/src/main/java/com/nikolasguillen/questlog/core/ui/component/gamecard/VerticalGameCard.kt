@@ -97,7 +97,9 @@ fun VerticalGameCard(
                 GameMetadataRow(
                     rating = game.rating,
                     developer = game.developer,
-                    releaseYear = game.releaseYear
+                    // releaseYear is null exactly when releaseDateText resolves to the
+                    // unknown-release-date fallback -- see CompactGameCard for the full reasoning.
+                    releaseYear = game.releaseYear ?: game.releaseDateText.asString()
                 )
             }
         }

@@ -79,14 +79,15 @@ fun RecentGameCard(
                         overflow = TextOverflow.Ellipsis
                     )
 
-                    game.releaseYear?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                            maxLines = 1
-                        )
-                    }
+                    // releaseYear is null exactly when releaseDateText resolves to the unknown-release-
+                    // date fallback -- see CompactGameCard for the full reasoning.
+                    Text(
+                        text = game.releaseYear ?: game.releaseDateText.asString(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
