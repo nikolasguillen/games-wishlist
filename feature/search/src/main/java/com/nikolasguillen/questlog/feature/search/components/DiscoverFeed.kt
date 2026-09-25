@@ -1,7 +1,13 @@
 package com.nikolasguillen.questlog.feature.search.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -75,72 +81,77 @@ internal fun DiscoverFeed(
         return
     }
 
-    LazyColumn(
-        state = state,
-        contentPadding = PaddingValues(vertical = MaterialTheme.spacing.large),
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraLarge),
-        modifier = modifier
-    ) {
-        // A sticky header, not an overlay: it takes up real space above the hero like any other item,
-        // then pins to the top edge once scrolled past, instead of floating over whatever is
-        // underneath it for the whole time it is visible.
-        if (isStale) {
-            stickyHeader {
-                DiscoverRefreshPrompt(
-                    isRefreshing = isRefreshing,
-                    onClick = onRefreshClick,
-                    onDismissClick = onDismissRefreshClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = MaterialTheme.spacing.large)
-                )
+    Box {
+        LazyColumn(
+            state = state,
+            contentPadding = PaddingValues(vertical = MaterialTheme.spacing.large),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraLarge),
+            modifier = modifier
+        ) {
+            if (hero != null) {
+                item {
+                    DiscoverHero(
+                        game = hero,
+                        onGameClick = onGameClick,
+                        onSaveClick = { onSaveClick(hero.id) },
+                        onLongClick = { onLongClick(hero.id) },
+                        modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
+                    )
+                }
+            }
+            recommended.forEachIndexed { index, shelf ->
+                item(key = "recommended_$index") {
+                    DiscoverShelf(
+                        title = shelf.title.asString(),
+                        games = shelf.games,
+                        onGameClick = onGameClick,
+                        onSaveClick = onSaveClick,
+                        onLongClick = onLongClick
+                    )
+                }
+            }
+            if (upcoming.isNotEmpty()) {
+                item {
+                    DiscoverShelf(
+                        title = stringResource(R.string.discover_most_anticipated),
+                        games = upcoming,
+                        onGameClick = onGameClick,
+                        onSaveClick = onSaveClick,
+                        onLongClick = onLongClick
+                    )
+                }
+            }
+            if (popular.isNotEmpty()) {
+                item {
+                    DiscoverShelf(
+                        title = stringResource(R.string.discover_popular_this_month),
+                        games = popular,
+                        onGameClick = onGameClick,
+                        onSaveClick = onSaveClick,
+                        onLongClick = onLongClick
+                    )
+                }
             }
         }
-        if (hero != null) {
-            item {
-                DiscoverHero(
-                    game = hero,
-                    onGameClick = onGameClick,
-                    onSaveClick = { onSaveClick(hero.id) },
-                    onLongClick = { onLongClick(hero.id) },
-                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
-                )
-            }
-        }
-        recommended.forEachIndexed { index, shelf ->
-            item(key = "recommended_$index") {
-                DiscoverShelf(
-                    title = shelf.title.asString(),
-                    games = shelf.games,
-                    onGameClick = onGameClick,
-                    onSaveClick = onSaveClick,
-                    onLongClick = onLongClick
-                )
-            }
-        }
-        if (upcoming.isNotEmpty()) {
-            item {
-                DiscoverShelf(
-                    title = stringResource(R.string.discover_most_anticipated),
-                    games = upcoming,
-                    onGameClick = onGameClick,
-                    onSaveClick = onSaveClick,
-                    onLongClick = onLongClick
-                )
-            }
-        }
-        if (popular.isNotEmpty()) {
-            item {
-                DiscoverShelf(
-                    title = stringResource(R.string.discover_popular_this_month),
-                    games = popular,
-                    onGameClick = onGameClick,
-                    onSaveClick = onSaveClick,
-                    onLongClick = onLongClick
-                )
-            }
+
+        AnimatedVisibility(
+            visible = isStale,
+            enter = fadeIn() + slideInVertically { -it },
+            exit = slideOutVertically { -it } + fadeOut()
+        ) {
+            DiscoverRefreshPrompt(
+                isRefreshing = isRefreshing,
+                onClick = onRefreshClick,
+                onDismissClick = onDismissRefreshClick,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .padding(horizontal = MaterialTheme.spacing.large)
+                    .padding(top = MaterialTheme.spacing.extraLarge)
+            )
         }
     }
+
 }
 
 /**
