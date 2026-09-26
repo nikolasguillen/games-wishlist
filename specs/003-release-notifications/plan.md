@@ -64,11 +64,10 @@ permission; `POST_NOTIFICATIONS` requested at runtime on API 33+ only
 - `GetRadarTimelineUseCase.kt` (Phase 2 code) is edited to extract its private date resolution. Behaviour
   is unchanged and `GetRadarTimelineUseCaseTest` guards it.
 
-**One decision the owner should weigh** (detail in [research.md](./research.md) §5): FR-005's literal
-wording is "unsaving a game MUST cancel any pending notification and clear its opt-in state". This plan
-makes the *observable* half absolute — fire-time verification means nothing is ever delivered for an
-unsaved game, and it leaves the management list immediately — but the WorkManager request and the opt-in
-row may survive until the next reconcile. The stricter reading costs an application-lifetime collector.
+**Resolved during /speckit-analyze**: FR-005 was reworded in spec.md to match this design exactly —
+delivery and the management list are guaranteed correct immediately; the WorkManager request and the
+opt-in row are cleared on the next reconcile, not synchronously. See [research.md](./research.md) §5 for
+why the stricter (immediate) reading was rejected.
 
 ## Project Structure
 

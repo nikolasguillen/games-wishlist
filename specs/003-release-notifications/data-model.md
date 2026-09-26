@@ -9,7 +9,7 @@
 | Column | Type | Notes |
 |---|---|---|
 | `gameId` | `Int` | `@PrimaryKey`. Matches `games.id`. One row per opted-in game — the opt-in is per game, not per platform (FR-015). |
-| `enabledAt` | `Long` | Epoch seconds when the user turned the reminder on. Not shown in the UI today; it is what makes the row's existence auditable and gives the management list a stable secondary sort. |
+| `enabledAt` | `Long` | Epoch seconds when the user turned the reminder on. Not shown as text in the UI, but drives the management list's order — `ReleaseNotificationDao.observeGameIds()` sorts by it descending, so the most recently opted-in game is listed first. |
 | `notifiedForDate` | `Long?` | The resolved release date a reminder was actually delivered for, `null` until one is. Not a boolean — see below. |
 
 **Presence of a row means "opted in".** Turning the reminder off deletes the row rather than flipping a

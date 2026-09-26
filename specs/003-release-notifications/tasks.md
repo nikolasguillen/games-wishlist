@@ -80,7 +80,7 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
       @Query("DELETE FROM release_notifications WHERE gameId = :gameId")
       suspend fun delete(gameId: Int)
 
-      @Query("SELECT gameId FROM release_notifications")
+      @Query("SELECT gameId FROM release_notifications ORDER BY enabledAt DESC")
       fun observeGameIds(): Flow<List<Int>>
 
       @Query("SELECT * FROM release_notifications WHERE gameId = :gameId")
@@ -136,7 +136,8 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
   `core/data/src/main/java/.../core/data/repository/GameRepositoryImpl.kt`, injecting
   `ReleaseNotificationDao`:
   - `getReleaseNotificationGameIds()` → `releaseNotificationDao.observeGameIds().map { it.toSet() }`
-  - `getGamesWithReleaseNotifications()` → `combine(gameDao.getSavedGames(), releaseNotificationDao.observeGameIds()) { saved, optedIn -> val ids = optedIn.toSet(); saved.filter { it.game.id in ids }.map { it.toGame() } }`
+  - `getGamesWithReleaseNotifications()` → `combine(gameDao.getSavedGames(), releaseNotificationDao.observeGameIds()) { saved, orderedIds -> val byId = saved.associateBy { it.game.id }; orderedIds.mapNotNull { byId[it]?.toGame() } }`
+    — iterates the DAO's ordered id list (most recently opted-in first), not `saved`'s own order.
   - `setReleaseNotificationEnabled(gameId, enabled)` → upsert with `enabledAt = <now>` when `true`,
     `delete(gameId)` when `false`
   - `markReleaseNotificationDelivered(gameId, releaseDate)` → `releaseNotificationDao.markNotified(...)`

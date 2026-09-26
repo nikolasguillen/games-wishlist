@@ -88,8 +88,9 @@ Settings surfaces that state with a way to resolve it.
 
 ### Edge Cases
 
-- A game the user has opted into is unsaved (removed from the wishlist/collection): its notification is
-  cancelled and the opt-in is cleared, since only saved games are eligible.
+- A game the user has opted into is unsaved (removed from the wishlist/collection): no notification will
+  ever be delivered for it, and it disappears from the Settings management list immediately — but the
+  underlying schedule and opt-in record are cleared on the next periodic reconcile, not instantly.
 - The system notification permission is denied when the user tries to opt in: the opt-in is not silently
   dropped — the user is prompted to grant permission, and Settings reflects the pending/denied state.
 - A game's release date passes without ever resolving to a concrete day (stays TBA): no notification is
@@ -112,8 +113,10 @@ Settings surfaces that state with a way to resolve it.
   toggling it in one place is immediately reflected everywhere else it's presented.
 - **FR-004**: Only saved games are eligible for the opt-in; the system MUST NOT offer or honor it for games
   that are not saved.
-- **FR-005**: When a saved game is unsaved, the system MUST cancel any pending notification for it and
-  clear its opt-in state.
+- **FR-005**: When a saved game is unsaved, the system MUST guarantee no notification is ever delivered
+  for it afterward, and MUST remove it from the Settings management list immediately. The underlying
+  WorkManager schedule and opt-in record MAY persist until the next periodic reconcile (at most one
+  Radar refresh cycle) rather than being cancelled at the instant of unsaving.
 - **FR-006**: The system MUST deliver a notification identifying the game on the release date of each
   opted-in game, using the same release-date data Radar's periodic refresh already maintains — no
   independent source of release dates is introduced for this feature.
@@ -184,3 +187,6 @@ Settings surfaces that state with a way to resolve it.
 - No notification is scheduled for a game that has no saved game state (e.g., an item only appearing in a
   non-saved list elsewhere in the app) — this mirrors Radar's existing "saved games only" scope and is not
   a new restriction introduced by this feature.
+- Unsaving a game does not synchronously cancel its scheduled work or delete its opt-in row — that
+  happens on the next periodic reconcile — but no notification is ever delivered for it in the meantime,
+  since delivery re-verifies the saved state at fire time.
