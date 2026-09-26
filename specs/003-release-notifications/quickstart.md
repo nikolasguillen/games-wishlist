@@ -41,7 +41,7 @@ The suites that must go green, and what they are expected to cover, are tabulate
 1. Save a game with a known future release date (add it to the wishlist, or give it a status).
 2. Open Radar. The game appears in a dated bucket with an outlined bell on its row.
 3. Tap the bell. On API 33+ the system permission dialog appears on this first opt-in; grant it.
-4. The bell fills. Open that game's detail screen — the bell in the release card is filled too.
+4. The bell fills. Open that game's detail screen — the bell in the top app bar, opposite the back button, is filled too.
 5. Toggle it off from the detail screen, return to Radar: the row's bell is outlined again.
 
 **Expected**: the flag is identical on both surfaces at every step (FR-003), and one opt-in produces exactly

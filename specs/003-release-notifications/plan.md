@@ -11,7 +11,7 @@ game in a new Room table; the schedule is one WorkManager one-time request per g
 re-enqueued with `REPLACE` whenever Radar's existing 24h refresh moves a date. Radar's multi-platform date
 resolution is extracted into a shared function so the reminder and the timeline cannot drift apart, and the
 notification worker re-verifies eligibility at fire time so a stale schedule can never deliver. The toggle
-appears on the Radar row and in the game-detail release card; Settings gains a Notifications group with a
+appears on the Radar row and in the game-detail screen's top app bar, opposite the back button; Settings gains a Notifications group with a
 permission row and a management sub-screen.
 
 ## Technical Context
@@ -136,9 +136,9 @@ feature/radar/src/main/java/.../feature/radar/
 
 feature/game-detail/src/main/java/.../feature/gamedetail/
 ├── GameDetailViewModel.kt                        # EDIT handle the new event
-├── components/GameReleaseInfoCard.kt             # EDIT bell next to the date
-├── mapper/GameDetailUiMapper.kt                  # EDIT carry the opt-in flag
-└── model/{AvailabilityUiModel,GameDetailUiEvent,GameDetailUiEffect}.kt  # EDIT
+├── components/GameDetailSuccessContent.kt        # EDIT populate ImmersiveDetailLayout's actions slot
+├── mapper/GameDetailUiMapper.kt                  # EDIT carry the opt-in + availability flags
+└── model/{GameDetailUiModel,GameDetailUiEvent,GameDetailUiEffect}.kt  # EDIT
 
 feature/settings/src/main/java/.../feature/settings/
 ├── SettingsScreen.kt                             # EDIT Notifications group

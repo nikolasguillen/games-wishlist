@@ -74,15 +74,44 @@ left to remind about, so the bell is omitted there rather than shown disabled.
 data object ToggleReleaseNotification : GameDetailUiEvent
 ```
 
-- `AvailabilityUiModel` gains `isNotificationEnabled: Boolean` and `isNotificationAvailable: Boolean` — the
-  second is false for a game that is not saved or is already released, which is what hides the bell.
-- The bell sits in `GameReleaseInfoCard`'s trailing `Row`, before the expand chevron. The card is itself
-  clickable when expandable; an `IconButton` consumes its own taps, so the two do not fight.
-- Same permission effect and dialog as Radar. `GameDetailUiEffect` gains
-  `RequestNotificationPermission`.
+- `GameDetailUiModel` gains `isNotificationEnabled: Boolean` and `isNotificationAvailable: Boolean` — the
+  second is false for a game that is not saved or is already released, which is what hides the bell
+  entirely rather than showing it disabled. Top-level on the model (not nested in `AvailabilityUiModel`):
+  the control is a screen-level identity now, not part of the release-date card.
+- **Placement: the screen's top app bar, opposite the back button** — not a card. `ImmersiveDetailLayout`
+  already declares an `actions: @Composable RowScope.(alpha: Float) -> Unit` parameter on its `TopAppBar`,
+  laid out on the trailing side exactly opposite `navigationIcon`, and no caller populates it today.
+  `GameDetailSuccessContent` passes a lambda rendering the bell there:
 
-**Not the action pill**: `GameDetailActionPill` is a fixed 220dp, three-slot, glow-treated component; a
-fourth action means redesigning it. The release card is also where the date the toggle acts on already is.
+  ```kotlin
+  ImmersiveDetailLayout(
+      title = game.name.asString(),
+      onBackClick = onBackClick,
+      // ...
+      actions = { alpha ->
+          if (game.isNotificationAvailable) {
+              IconButton(onClick = { onEvent(GameDetailUiEvent.ToggleReleaseNotification) }) {
+                  Icon(
+                      imageVector = if (game.isNotificationEnabled) Icons.Filled.Notifications
+                          else Icons.Outlined.NotificationsNone,
+                      contentDescription = stringResource(/* CoreUiR string */),
+                      tint = /* same alpha-driven white→onSurface transition the back button already does */
+                  )
+              }
+          }
+      }
+  ) { innerPadding -> /* unchanged */ }
+  ```
+
+  The `alpha` parameter is already threaded through for exactly this: the bell fades from white (over the
+  hero image) to `onSurface` (once the bar is opaque) in lockstep with the back button, with no new
+  animation logic.
+- Same permission effect and dialog as Radar. `GameDetailUiEffect` gains `RequestNotificationPermission`.
+
+**Not the action pill, not the release card**: `GameDetailActionPill` is a fixed 220dp, three-slot,
+glow-treated component with no room for a fourth action. `GameReleaseInfoCard` was the original candidate
+(closer semantically to the date) but the top app bar is the placement asked for, and it comes for free
+via the existing `actions` slot.
 
 ## Settings
 

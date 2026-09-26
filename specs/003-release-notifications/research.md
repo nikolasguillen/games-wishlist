@@ -164,7 +164,7 @@ the same shape `TranslationModelRowState` already uses in Settings.
 **Decision**:
 
 - **Radar**: a bell `IconButton` appended to `RadarGameRow`'s trailing slot, after the platform tile.
-- **Game detail**: a bell `IconButton` inside `GameReleaseInfoCard`, next to the release date.
+- **Game detail**: a bell `IconButton` in the screen's top app bar, opposite the back button.
 
 **Rationale**:
 
@@ -172,12 +172,18 @@ the same shape `TranslationModelRowState` already uses in Settings.
   tight on a narrow screen — but the title column carries `weight(1f)` and ellipsizes, and a 48dp touch
   target fits. The alternative (long-press or swipe) hides the feature's only entry point behind an
   undiscoverable gesture.
-- On detail, `GameDetailActionPill` looks like the obvious home but is a fixed-width 220dp pill with
-  exactly three slots and a glow treatment; a fourth action means redesigning it. The release card is also
-  the better semantic fit: the toggle is about the date, and that is where the date is.
+- `ImmersiveDetailLayout` (`core/ui/component/ImmersiveDetailLayout.kt`) already exposes an unused
+  `actions: @Composable RowScope.(alpha: Float) -> Unit` parameter on its internal `TopAppBar`, laid out on
+  the trailing side exactly opposite `onBackClick`'s `navigationIcon` — built for this and never populated.
+  `GameDetailSuccessContent` is the only caller and currently passes nothing. This avoids touching
+  `GameDetailActionPill` (a fixed-width 220dp, three-slot, glow-treated component that has no room for a
+  fourth action) and keeps the toggle a screen-level identity rather than tying it to any one card's layout.
+  The `alpha` parameter the slot already threads through lets the icon fade in with the rest of the bar
+  exactly as the back button does, for free.
 - A multi-platform game shows one Radar row per owned platform, and every one of those rows renders the
   same per-game opt-in (FR-003, FR-015). Toggling either flips both.
 
-**Alternative considered for detail**: `GameDetailPersonalCard`, which holds the user's own fields (notes,
-status, priority). Defensible — the opt-in *is* user data — but it separates the control from the date it
-acts on. Flagged for the owner in case they prefer it.
+**Alternatives considered for detail**: `GameReleaseInfoCard` (closer semantically to the date, but the
+owner asked for top-app-bar placement); `GameDetailPersonalCard`, which holds the user's own fields (notes,
+status, priority) — defensible since the opt-in is user data, but further from where the date lives and not
+what was asked for.
