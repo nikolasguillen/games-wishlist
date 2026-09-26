@@ -65,6 +65,13 @@ suspend fun setReleaseNotificationEnabled(gameId: Int, enabled: Boolean)
 
 /** Records that a reminder was delivered for [releaseDate], so the same date is never notified twice. */
 suspend fun markReleaseNotificationDelivered(gameId: Int, releaseDate: Long)
+
+/**
+ * The release date a reminder was already delivered for [gameId] ([ReleaseNotificationEntity.notifiedForDate]),
+ * or `null` when none has been (or [gameId] is not opted in). Read by [SyncReleaseNotificationsUseCase] and
+ * [DeliverReleaseNotificationUseCase] to apply eligibility rule 5 in data-model.md.
+ */
+suspend fun getReleaseNotificationDeliveredDate(gameId: Int): Long?
 ```
 
 ## Use cases
