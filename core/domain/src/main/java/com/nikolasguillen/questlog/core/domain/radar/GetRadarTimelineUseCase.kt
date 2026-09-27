@@ -6,7 +6,6 @@ import com.nikolasguillen.questlog.core.model.Game
 import com.nikolasguillen.questlog.core.model.RadarEntry
 import com.nikolasguillen.questlog.core.model.RadarTimelineSection
 import com.nikolasguillen.questlog.core.model.ReleaseBucket
-import com.nikolasguillen.questlog.core.model.ReleaseDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
@@ -55,21 +54,4 @@ class GetRadarTimelineUseCase @Inject constructor(
             RadarTimelineSection(bucket, sortedEntries)
         }
     }
-}
-
-/**
- * Per the multi-platform date resolution decision: one release date per platform the user owns that the
- * game has a date for (earliest region date within each owned platform); if there's no selection or no
- * match, falls back to a single entry for the earliest date across all the game's platforms. An empty list
- * means the game has no release date data at all.
- */
-private fun Game.resolveReleaseDates(ownedPlatformIds: Set<Int>): List<ReleaseDate> {
-    val ownedDates = releaseDates.filter { it.platformId in ownedPlatformIds }
-    if (ownedDates.isNotEmpty()) {
-        return ownedDates
-            .groupBy { it.platformId }
-            .mapNotNull { (_, datesForPlatform) -> datesForPlatform.minByOrNull { it.date ?: Long.MAX_VALUE } }
-    }
-    val fallback = releaseDates.minByOrNull { it.date ?: Long.MAX_VALUE } ?: return emptyList()
-    return listOf(fallback)
 }

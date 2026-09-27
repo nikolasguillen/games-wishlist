@@ -7,6 +7,7 @@ import com.nikolasguillen.questlog.core.database.dao.DiscoverCacheDao
 import com.nikolasguillen.questlog.core.database.dao.GameDao
 import com.nikolasguillen.questlog.core.database.dao.ListDao
 import com.nikolasguillen.questlog.core.database.dao.PlatformDao
+import com.nikolasguillen.questlog.core.database.dao.ReleaseNotificationDao
 import com.nikolasguillen.questlog.core.database.dao.SearchHistoryDao
 import com.nikolasguillen.questlog.core.database.dao.TranslationDao
 import com.nikolasguillen.questlog.core.database.entity.CachedGameCompanyCrossRef
@@ -29,6 +30,7 @@ import com.nikolasguillen.questlog.core.database.entity.ListEntity
 import com.nikolasguillen.questlog.core.database.entity.OwnedPlatformEntity
 import com.nikolasguillen.questlog.core.database.entity.PlatformEntity
 import com.nikolasguillen.questlog.core.database.entity.RelatedGameEntity
+import com.nikolasguillen.questlog.core.database.entity.ReleaseNotificationEntity
 import com.nikolasguillen.questlog.core.database.entity.SearchHistoryEntity
 import com.nikolasguillen.questlog.core.database.entity.TranslatedDescriptionEntity
 import com.nikolasguillen.questlog.core.database.util.Converters
@@ -50,6 +52,7 @@ import com.nikolasguillen.questlog.core.database.util.Converters
         GameEngineCrossRef::class,
         GameArtworkEntity::class,
         RelatedGameEntity::class,
+        ReleaseNotificationEntity::class,
         TranslatedDescriptionEntity::class,
         DiscoverLaneCacheEntity::class,
         DiscoverLaneEntryEntity::class,
@@ -69,6 +72,7 @@ abstract class QuestLogDatabase : RoomDatabase() {
     abstract fun searchHistoryDao(): SearchHistoryDao
     abstract fun translationDao(): TranslationDao
     abstract fun discoverCacheDao(): DiscoverCacheDao
+    abstract fun releaseNotificationDao(): ReleaseNotificationDao
 
     companion object {
         const val DATABASE_NAME = "quest_log_database"

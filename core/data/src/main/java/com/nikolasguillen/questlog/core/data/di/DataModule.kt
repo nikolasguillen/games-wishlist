@@ -1,8 +1,12 @@
 package com.nikolasguillen.questlog.core.data.di
 
+import com.nikolasguillen.questlog.core.data.notification.ReleaseNotifierImpl
 import com.nikolasguillen.questlog.core.data.repository.GameRepositoryImpl
+import com.nikolasguillen.questlog.core.data.scheduler.ReleaseNotificationSchedulerImpl
 import com.nikolasguillen.questlog.core.data.scheduler.ReleaseRefreshSchedulerImpl
 import com.nikolasguillen.questlog.core.data.translation.GameDescriptionTranslatorImpl
+import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotificationScheduler
+import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotifier
 import com.nikolasguillen.questlog.core.domain.radar.ReleaseRefreshScheduler
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.domain.translation.GameDescriptionTranslator
@@ -37,6 +41,18 @@ abstract class DataModule {
     abstract fun bindReleaseRefreshScheduler(
         releaseRefreshSchedulerImpl: ReleaseRefreshSchedulerImpl
     ): ReleaseRefreshScheduler
+
+    @Binds
+    @Singleton
+    abstract fun bindReleaseNotificationScheduler(
+        releaseNotificationSchedulerImpl: ReleaseNotificationSchedulerImpl
+    ): ReleaseNotificationScheduler
+
+    @Binds
+    @Singleton
+    abstract fun bindReleaseNotifier(
+        releaseNotifierImpl: ReleaseNotifierImpl
+    ): ReleaseNotifier
 
     companion object {
         // Backs GameDescriptionTranslatorImpl's model download: it must outlive any single

@@ -28,7 +28,7 @@ import com.nikolasguillen.questlog.feature.gamedetail.model.RelatedGamesUiModel
 import java.util.Locale
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
-internal fun Game.toUiModel(): GameDetailUiModel {
+internal fun Game.toUiModel(isNotificationEnabled: Boolean): GameDetailUiModel {
     val related = mutableListOf<RelatedGamesUiModel>()
 
     parentGame?.let {
@@ -141,8 +141,28 @@ internal fun Game.toUiModel(): GameDetailUiModel {
             availableStatuses = GameStatus.entries.map { it.toUiModel(selected = this.status?.id == it.id) },
             availablePriorities = Priority.entries.map { it.toUiModel(selected = this.priority?.id == it.id) }
         ),
-        relatedGames = related
+        relatedGames = related,
+        isNotificationEnabled = isNotificationEnabled,
+        isNotificationAvailable = isSaved && !isReleaseAlreadyPast()
     )
+}
+
+/**
+ * Mirrors [com.nikolasguillen.questlog.core.database.dao.GameDao.getSavedGames]'s predicate as closely as
+ * a single [Game] allows: in the default wishlist, or carrying a status or a priority. A game that is only
+ * in a non-default list has no signal of that on this model -- [isNotificationAvailable] is a display gate
+ * only, and [com.nikolasguillen.questlog.core.domain.usecase.notification.SyncReleaseNotificationsUseCase]
+ * (working off the full saved-games query) is the actual eligibility enforcement.
+ */
+private val Game.isSaved: Boolean
+    get() = isWishlisted || status != null || priority != null
+
+/** True only when the earliest known release date is a precise day that has already elapsed. */
+private fun Game.isReleaseAlreadyPast(): Boolean {
+    val earliestDate = releaseDates.minByOrNull { it.date ?: Long.MAX_VALUE } ?: return false
+    if (earliestDate.precision != DatePrecision.EXACT_DATE) return false
+    val date = earliestDate.date ?: return false
+    return DateUtils.timestampToLocalDate(date).isBefore(java.time.LocalDate.now())
 }
 
 /**

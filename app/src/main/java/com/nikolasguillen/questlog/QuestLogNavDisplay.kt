@@ -23,6 +23,7 @@ import com.nikolasguillen.questlog.core.navigation.GameDetailRoute
 import com.nikolasguillen.questlog.core.navigation.ListsRoute
 import com.nikolasguillen.questlog.core.navigation.OwnedPlatformsRoute
 import com.nikolasguillen.questlog.core.navigation.RadarRoute
+import com.nikolasguillen.questlog.core.navigation.ReleaseNotificationsRoute
 import com.nikolasguillen.questlog.core.navigation.SearchRoute
 import com.nikolasguillen.questlog.core.navigation.SettingsRoute
 import com.nikolasguillen.questlog.core.navigation.WishlistRoute
@@ -36,6 +37,8 @@ import com.nikolasguillen.questlog.feature.search.SearchScreen
 import com.nikolasguillen.questlog.feature.search.SearchViewModel
 import com.nikolasguillen.questlog.feature.settings.OwnedPlatformsScreen
 import com.nikolasguillen.questlog.feature.settings.OwnedPlatformsViewModel
+import com.nikolasguillen.questlog.feature.settings.ReleaseNotificationsScreen
+import com.nikolasguillen.questlog.feature.settings.ReleaseNotificationsViewModel
 import com.nikolasguillen.questlog.feature.settings.SettingsScreen
 import com.nikolasguillen.questlog.feature.settings.SettingsViewModel
 import com.nikolasguillen.questlog.feature.wishlist.WishlistScreen
@@ -140,6 +143,11 @@ fun QuestLogNavDisplay(
                                 backStack.add(OwnedPlatformsRoute)
                             }
                         },
+                        onReleaseNotificationsClick = {
+                            if (backStack.lastOrNull() != ReleaseNotificationsRoute) {
+                                backStack.add(ReleaseNotificationsRoute)
+                            }
+                        },
                         modifier = Modifier
                             .padding(innerPadding)
                             .consumeWindowInsets(innerPadding)
@@ -149,6 +157,17 @@ fun QuestLogNavDisplay(
                 is OwnedPlatformsRoute -> NavEntry(key) {
                     val vm = hiltViewModel<OwnedPlatformsViewModel>()
                     OwnedPlatformsScreen(
+                        viewModel = vm,
+                        onBackClick = { backStack.removeLastOrNull() },
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .consumeWindowInsets(innerPadding)
+                    )
+                }
+
+                is ReleaseNotificationsRoute -> NavEntry(key) {
+                    val vm = hiltViewModel<ReleaseNotificationsViewModel>()
+                    ReleaseNotificationsScreen(
                         viewModel = vm,
                         onBackClick = { backStack.removeLastOrNull() },
                         modifier = Modifier

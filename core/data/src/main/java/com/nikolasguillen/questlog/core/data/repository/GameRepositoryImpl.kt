@@ -23,10 +23,12 @@ import com.nikolasguillen.questlog.core.database.dao.DiscoverCacheDao
 import com.nikolasguillen.questlog.core.database.dao.GameDao
 import com.nikolasguillen.questlog.core.database.dao.ListDao
 import com.nikolasguillen.questlog.core.database.dao.PlatformDao
+import com.nikolasguillen.questlog.core.database.dao.ReleaseNotificationDao
 import com.nikolasguillen.questlog.core.database.dao.SearchHistoryDao
 import com.nikolasguillen.questlog.core.database.entity.DiscoverLaneEntryEntity
 import com.nikolasguillen.questlog.core.database.entity.GameListCrossRef
 import com.nikolasguillen.questlog.core.database.entity.ListEntity
+import com.nikolasguillen.questlog.core.database.entity.ReleaseNotificationEntity
 import com.nikolasguillen.questlog.core.database.entity.SearchHistoryEntity
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.model.AppResult
@@ -178,6 +180,7 @@ class GameRepositoryImpl @Inject constructor(
     private val platformDao: PlatformDao,
     private val searchHistoryDao: SearchHistoryDao,
     private val discoverCacheDao: DiscoverCacheDao,
+    private val releaseNotificationDao: ReleaseNotificationDao,
     private val coverImageStorage: WishlistCoverImageStorage
 ) : GameRepository {
 
@@ -539,6 +542,35 @@ class GameRepositoryImpl @Inject constructor(
         ) { entities, wishlistIds ->
             entities.map { it.toGame().copy(isWishlisted = it.game.id in wishlistIds) }
         }
+    }
+
+    override fun getReleaseNotificationGameIds(): Flow<Set<Int>> {
+        return releaseNotificationDao.observeGameIds().map { it.toSet() }
+    }
+
+    override fun getGamesWithReleaseNotifications(): Flow<List<Game>> {
+        return combine(getSavedGames(), releaseNotificationDao.observeGameIds()) { saved, orderedIds ->
+            val byId = saved.associateBy { it.id }
+            orderedIds.mapNotNull { byId[it] }
+        }
+    }
+
+    override suspend fun setReleaseNotificationEnabled(gameId: Int, enabled: Boolean) {
+        if (enabled) {
+            releaseNotificationDao.upsert(
+                ReleaseNotificationEntity(gameId = gameId, enabledAt = System.currentTimeMillis() / 1000)
+            )
+        } else {
+            releaseNotificationDao.delete(gameId)
+        }
+    }
+
+    override suspend fun markReleaseNotificationDelivered(gameId: Int, releaseDate: Long) {
+        releaseNotificationDao.markNotified(gameId, releaseDate)
+    }
+
+    override suspend fun getReleaseNotificationDeliveredDate(gameId: Int): Long? {
+        return releaseNotificationDao.get(gameId)?.notifiedForDate
     }
 
     override fun getKnownPlatforms(): Flow<List<Platform>> {

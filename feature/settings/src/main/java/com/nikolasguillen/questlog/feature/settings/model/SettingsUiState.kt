@@ -16,10 +16,17 @@ import com.nikolasguillen.questlog.core.ui.model.UiText
  * @property translationModel The on-device translation model row's state. Starts
  * [TranslationModelRowState.Hidden] and flips once the async status check resolves — the row is absent
  * for that first beat rather than shown and then withdrawn on an unsupported device.
+ * @property releaseNotificationCount How many saved games currently have a release reminder enabled,
+ * shown as the management row's subtitle.
+ * @property notificationPermission The system notification permission's state, as reflected in the
+ * "Notifications" group. Starts [NotificationPermissionRowState.Granted] so the row is absent until the
+ * composition-only permission read reports otherwise, rather than flashing "blocked" on every launch.
  */
 @Immutable
 internal data class SettingsUiState(
     val ownedPlatformsSummary: UiText? = null,
     val appVersion: String = "",
-    val translationModel: TranslationModelRowState = TranslationModelRowState.Hidden
+    val translationModel: TranslationModelRowState = TranslationModelRowState.Hidden,
+    val releaseNotificationCount: Int = 0,
+    val notificationPermission: NotificationPermissionRowState = NotificationPermissionRowState.Granted
 )

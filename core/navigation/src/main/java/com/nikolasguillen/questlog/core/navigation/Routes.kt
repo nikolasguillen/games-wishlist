@@ -22,6 +22,9 @@ data object SettingsRoute : GameNavKey
 data object OwnedPlatformsRoute : GameNavKey
 
 @Serializable
+data object ReleaseNotificationsRoute : GameNavKey
+
+@Serializable
 data class WishlistRoute(val listId: Long) : GameNavKey
 
 @Serializable

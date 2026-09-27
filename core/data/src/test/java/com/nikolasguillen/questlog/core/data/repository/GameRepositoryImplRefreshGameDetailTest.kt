@@ -5,6 +5,7 @@ import com.nikolasguillen.questlog.core.database.dao.DiscoverCacheDao
 import com.nikolasguillen.questlog.core.database.dao.GameDao
 import com.nikolasguillen.questlog.core.database.dao.ListDao
 import com.nikolasguillen.questlog.core.database.dao.PlatformDao
+import com.nikolasguillen.questlog.core.database.dao.ReleaseNotificationDao
 import com.nikolasguillen.questlog.core.database.dao.SearchHistoryDao
 import com.nikolasguillen.questlog.core.database.entity.GameEntity
 import com.nikolasguillen.questlog.core.database.relation.GameWithAllDetails
@@ -35,6 +36,7 @@ class GameRepositoryImplRefreshGameDetailTest {
         platformDao = mockk<PlatformDao>(relaxed = true),
         searchHistoryDao = mockk<SearchHistoryDao>(relaxed = true),
         discoverCacheDao = mockk<DiscoverCacheDao>(relaxed = true),
+        releaseNotificationDao = mockk<ReleaseNotificationDao>(relaxed = true),
         coverImageStorage = mockk<WishlistCoverImageStorage>(relaxed = true)
     )
 

@@ -132,4 +132,11 @@
     <string name="save_label">Save</string>
     <string name="got_it">Got it</string>
     <string name="select_list_subtitle">Choose a list to add %1s to</string>
+
+    <!-- Release notifications -->
+    <string name="enable_notification_content_description">Turn on release reminder</string>
+    <string name="disable_notification_content_description">Turn off release reminder</string>
+    <string name="notification_permission_denied_title">Notifications are off</string>
+    <string name="notification_permission_denied_message">This reminder won\'t arrive until notifications are enabled for QuestLog in system settings.</string>
+    <string name="notification_permission_denied_action">Open settings</string>
 </resources>

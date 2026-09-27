@@ -1,13 +1,21 @@
 package com.nikolasguillen.questlog.feature.radar
 
 import com.nikolasguillen.questlog.core.domain.radar.GetRadarTimelineUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.notification.SetReleaseNotificationEnabledUseCase
 import com.nikolasguillen.questlog.core.model.Game
 import com.nikolasguillen.questlog.core.model.RadarEntry
 import com.nikolasguillen.questlog.core.model.RadarTimelineSection
 import com.nikolasguillen.questlog.core.model.ReleaseBucket
 import com.nikolasguillen.questlog.core.model.ReleaseDate
 import com.nikolasguillen.questlog.feature.radar.model.RadarContentState
+import com.nikolasguillen.questlog.feature.radar.model.RadarUiEffect
+import com.nikolasguillen.questlog.feature.radar.model.RadarUiEvent
+import io.mockk.Runs
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,6 +29,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -35,10 +44,14 @@ class RadarViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
     private val getRadarTimelineUseCase = mockk<GetRadarTimelineUseCase>()
+    private val getReleaseNotificationGameIdsUseCase = mockk<GetReleaseNotificationGameIdsUseCase>()
+    private val setReleaseNotificationEnabledUseCase = mockk<SetReleaseNotificationEnabledUseCase>()
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+        every { getReleaseNotificationGameIdsUseCase() } returns flowOf(emptySet())
+        coEvery { setReleaseNotificationEnabledUseCase(any(), any()) } just Runs
     }
 
     @After
@@ -46,34 +59,41 @@ class RadarViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun TestScope.createViewModel(sections: List<RadarTimelineSection>): RadarViewModel {
+    private fun buildViewModel() = RadarViewModel(
+        getRadarTimelineUseCase,
+        getReleaseNotificationGameIdsUseCase,
+        setReleaseNotificationEnabledUseCase
+    )
+
+    private fun TestScope.createViewModel(
+        sections: List<RadarTimelineSection>,
+        notificationEnabledGameIds: Set<Int> = emptySet()
+    ): RadarViewModel {
         every { getRadarTimelineUseCase() } returns flowOf(sections)
-        return RadarViewModel(getRadarTimelineUseCase).also { viewModel ->
+        every { getReleaseNotificationGameIdsUseCase() } returns flowOf(notificationEnabledGameIds)
+        return buildViewModel().also { viewModel ->
             backgroundScope.launch { viewModel.uiState.collect {} }
             advanceUntilIdle()
         }
     }
 
+    private fun radarEntry(gameId: Int = 1, platformId: Int = 6) = RadarEntry(
+        game = Game(id = gameId, name = "Hollow Knight: Silksong"),
+        releaseDate = ReleaseDate(date = 1_000L, platformId = platformId, platformName = "Platform $platformId")
+    )
+
     @Test
     fun `uiState starts in Loading before the first emission`() {
         every { getRadarTimelineUseCase() } returns flowOf(emptyList())
 
-        val viewModel = RadarViewModel(getRadarTimelineUseCase)
+        val viewModel = buildViewModel()
 
         assertEquals(RadarContentState.Loading, viewModel.uiState.value.contentState)
     }
 
     @Test
     fun `uiState maps a populated timeline into a Success section list`() = runTest(testDispatcher) {
-        val section = RadarTimelineSection(
-            bucket = ReleaseBucket.THIS_WEEK,
-            entries = listOf(
-                RadarEntry(
-                    game = Game(id = 1, name = "Hollow Knight: Silksong"),
-                    releaseDate = ReleaseDate(date = 1_000L, platformId = 6, platformName = "PC")
-                )
-            )
-        )
+        val section = RadarTimelineSection(bucket = ReleaseBucket.THIS_WEEK, entries = listOf(radarEntry()))
 
         val viewModel = createViewModel(listOf(section))
 
@@ -87,5 +107,63 @@ class RadarViewModelTest {
         val viewModel = createViewModel(emptyList())
 
         assertEquals(RadarContentState.Empty, viewModel.uiState.value.contentState)
+    }
+
+    @Test
+    fun `isNotificationEnabled reaches both rows of a multi-platform game`() = runTest(testDispatcher) {
+        val section = RadarTimelineSection(
+            bucket = ReleaseBucket.THIS_WEEK,
+            entries = listOf(radarEntry(gameId = 1, platformId = 6), radarEntry(gameId = 1, platformId = 167))
+        )
+
+        val viewModel = createViewModel(listOf(section), notificationEnabledGameIds = setOf(1))
+
+        val entries = (viewModel.uiState.value.contentState as RadarContentState.Success).sections.single().entries
+        assertEquals(2, entries.size)
+        assertTrue(entries.all { it.isNotificationEnabled })
+    }
+
+    @Test
+    fun `ToggleReleaseNotification calls the use case with the toggled value`() = runTest(testDispatcher) {
+        val section = RadarTimelineSection(bucket = ReleaseBucket.THIS_WEEK, entries = listOf(radarEntry(gameId = 1)))
+        val viewModel = createViewModel(listOf(section), notificationEnabledGameIds = emptySet())
+
+        viewModel.onEvent(RadarUiEvent.ToggleReleaseNotification(1))
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { setReleaseNotificationEnabledUseCase(1, true) }
+    }
+
+    @Test
+    fun `enabling a toggle requests notification permission`() = runTest(testDispatcher) {
+        val section = RadarTimelineSection(bucket = ReleaseBucket.THIS_WEEK, entries = listOf(radarEntry(gameId = 1)))
+        val viewModel = createViewModel(listOf(section), notificationEnabledGameIds = emptySet())
+
+        val effects = mutableListOf<RadarUiEffect>()
+        val effectJob = launch { viewModel.uiEffect.collect { effects.add(it) } }
+        advanceUntilIdle()
+
+        viewModel.onEvent(RadarUiEvent.ToggleReleaseNotification(1))
+        advanceUntilIdle()
+
+        assertEquals(listOf(RadarUiEffect.RequestNotificationPermission), effects)
+        effectJob.cancel()
+    }
+
+    @Test
+    fun `disabling a toggle does not request notification permission`() = runTest(testDispatcher) {
+        val section = RadarTimelineSection(bucket = ReleaseBucket.THIS_WEEK, entries = listOf(radarEntry(gameId = 1)))
+        val viewModel = createViewModel(listOf(section), notificationEnabledGameIds = setOf(1))
+
+        val effects = mutableListOf<RadarUiEffect>()
+        val effectJob = launch { viewModel.uiEffect.collect { effects.add(it) } }
+        advanceUntilIdle()
+
+        viewModel.onEvent(RadarUiEvent.ToggleReleaseNotification(1))
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { setReleaseNotificationEnabledUseCase(1, false) }
+        assertTrue(effects.isEmpty())
+        effectJob.cancel()
     }
 }

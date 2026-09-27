@@ -3,6 +3,7 @@
 
     <string name="settings_group_game_profile">My game profile</string>
     <string name="settings_group_app">App</string>
+    <string name="settings_group_notifications">Notifications</string>
 
     <string name="settings_owned_platforms">Owned platforms</string>
     <string name="settings_owned_platforms_all">All platforms</string>
@@ -31,4 +32,16 @@
     <string name="owned_platforms_clear_search_action">Clear search</string>
     <string name="owned_platforms_no_results">No platform matches your search.</string>
     <string name="owned_platforms_empty">No platforms cached yet. Check your connection and try again.</string>
+
+    <string name="settings_release_notifications">Release reminders</string>
+    <plurals name="settings_release_notifications_count">
+        <item quantity="one">%1$d game</item>
+        <item quantity="other">%1$d games</item>
+    </plurals>
+    <string name="settings_release_notifications_none">None yet</string>
+    <string name="settings_notification_permission_blocked">Notifications are off — reminders won\'t arrive</string>
+
+    <string name="release_notifications_title">Release reminders</string>
+    <string name="release_notifications_empty">No release reminders yet. Turn on \"Notify me\" for a saved game in Radar or its detail screen.</string>
+    <string name="release_notifications_no_date_yet">No date yet</string>
 </resources>

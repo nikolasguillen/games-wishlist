@@ -4,12 +4,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.outlined.NotificationsNone
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
@@ -20,12 +26,15 @@ import com.nikolasguillen.questlog.core.ui.component.PlatformTile
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.radar.model.RadarEntryUiModel
 import com.nikolasguillen.questlog.feature.radar.model.RadarEntryUiModel.DateLabelStyle
+import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
 @Composable
 internal fun RadarGameRow(
     entry: RadarEntryUiModel,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onToggleNotification: () -> Unit,
+    modifier: Modifier = Modifier,
+    showNotificationToggle: Boolean = true
 ) {
     GameListRow(
         coverImage = entry.coverImage,
@@ -40,6 +49,29 @@ internal fun RadarGameRow(
         RadarDateLabel(entry)
         Spacer(modifier = Modifier.width(MaterialTheme.spacing.smallMedium))
         PlatformTile(code = entry.platform.code, color = entry.platform.color)
+        if (showNotificationToggle) {
+            RadarNotificationToggle(
+                isEnabled = entry.isNotificationEnabled,
+                onClick = onToggleNotification
+            )
+        }
+    }
+}
+
+@Composable
+private fun RadarNotificationToggle(isEnabled: Boolean, onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(
+            imageVector = if (isEnabled) Icons.Filled.Notifications else Icons.Outlined.NotificationsNone,
+            contentDescription = stringResource(
+                if (isEnabled) {
+                    CoreUiR.string.disable_notification_content_description
+                } else {
+                    CoreUiR.string.enable_notification_content_description
+                }
+            ),
+            tint = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -90,7 +122,7 @@ private fun RadarDateLabel(entry: RadarEntryUiModel) {
 private fun RadarGameRowThisWeekPreview() {
     QuestLogTheme {
         Surface {
-            RadarGameRow(entry = RadarEntryUiModel.getDummy(), onClick = {})
+            RadarGameRow(entry = RadarEntryUiModel.getDummy(), onClick = {}, onToggleNotification = {})
         }
     }
 }
@@ -104,9 +136,11 @@ private fun RadarGameRowPlainPreview() {
                 entry = RadarEntryUiModel.getDummy().copy(
                     dateLabel = UiText.DynamicString("Oct 19"),
                     dateSubLabel = null,
-                    dateStyle = DateLabelStyle.PLAIN
+                    dateStyle = DateLabelStyle.PLAIN,
+                    isNotificationEnabled = true
                 ),
-                onClick = {}
+                onClick = {},
+                onToggleNotification = {}
             )
         }
     }
@@ -123,7 +157,8 @@ private fun RadarGameRowPillPreview() {
                     dateSubLabel = null,
                     dateStyle = DateLabelStyle.PILL_ACCENT
                 ),
-                onClick = {}
+                onClick = {},
+                onToggleNotification = {}
             )
         }
     }

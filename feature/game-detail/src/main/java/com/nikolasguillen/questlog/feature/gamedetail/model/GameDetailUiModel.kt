@@ -22,7 +22,9 @@ internal data class GameDetailUiModel(
     val companyInfo: UiText,
     val isWishlisted: Boolean,
     val personalDetails: GameDetailPersonalUiModel,
-    val relatedGames: List<RelatedGamesUiModel>
+    val relatedGames: List<RelatedGamesUiModel>,
+    val isNotificationEnabled: Boolean = false,
+    val isNotificationAvailable: Boolean = false
 ) {
     companion object {
         /** Sample data for `@Preview`s of the detail screen and of its components. */

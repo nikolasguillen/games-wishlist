@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.RoundedCorner
@@ -16,7 +17,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
@@ -25,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.navigation.GameDetailRoute
 import com.nikolasguillen.questlog.core.navigation.ListsRoute
 import com.nikolasguillen.questlog.core.navigation.RadarRoute
 import com.nikolasguillen.questlog.core.navigation.SearchRoute
@@ -32,23 +38,55 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    // A release notification's PendingIntent carries a questlog://game/<id> deep link; read here (outside
+    // Compose) and handed to MainContent as state, since onNewIntent -- the warm-start case -- never runs
+    // inside composition.
+    private var pendingDeepLinkGameId by mutableStateOf<Int?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
         )
+        pendingDeepLinkGameId = intent.toGameDeepLinkId()
         setContent {
             QuestLogTheme {
-                MainContent()
+                MainContent(
+                    pendingDeepLinkGameId = pendingDeepLinkGameId,
+                    onDeepLinkConsumed = { pendingDeepLinkGameId = null }
+                )
             }
         }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pendingDeepLinkGameId = intent.toGameDeepLinkId()
+    }
+}
+
+private fun Intent.toGameDeepLinkId(): Int? {
+    val uri = data ?: return null
+    if (uri.scheme != "questlog" || uri.host != "game") return null
+    return uri.lastPathSegment?.toIntOrNull()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainContent() {
+fun MainContent(pendingDeepLinkGameId: Int? = null, onDeepLinkConsumed: () -> Unit = {}) {
     val backStack = rememberNavBackStack(SearchRoute as NavKey)
+
+    LaunchedEffect(pendingDeepLinkGameId) {
+        val gameId = pendingDeepLinkGameId ?: return@LaunchedEffect
+        val nextRoute = GameDetailRoute(gameId)
+        if (backStack.lastOrNull() != nextRoute) {
+            backStack.add(nextRoute)
+        }
+        onDeepLinkConsumed()
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {

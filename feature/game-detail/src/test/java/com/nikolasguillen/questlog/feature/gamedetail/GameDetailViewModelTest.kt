@@ -8,6 +8,8 @@ import com.nikolasguillen.questlog.core.domain.usecase.UpdateGameUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.AddGameToListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.GetWishlistAssignmentsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.RemoveGameFromListUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.notification.SetReleaseNotificationEnabledUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.GetTranslationModelStatusUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.TranslateGameDescriptionUseCase
 import com.nikolasguillen.questlog.core.model.AppResult
@@ -22,9 +24,11 @@ import com.nikolasguillen.questlog.feature.gamedetail.model.DescriptionTranslati
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailContentState
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiEffect
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiEvent
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -67,11 +71,15 @@ class GameDetailViewModelTest {
     private val removeGameFromListUseCase = mockk<RemoveGameFromListUseCase>(relaxed = true)
     private val translateGameDescriptionUseCase = mockk<TranslateGameDescriptionUseCase>()
     private val getTranslationModelStatusUseCase = mockk<GetTranslationModelStatusUseCase>()
+    private val getReleaseNotificationGameIdsUseCase = mockk<GetReleaseNotificationGameIdsUseCase>()
+    private val setReleaseNotificationEnabledUseCase = mockk<SetReleaseNotificationEnabledUseCase>()
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         coEvery { refreshGameDetailUseCase(any()) } returns AppResult.success(Unit)
+        every { getReleaseNotificationGameIdsUseCase() } returns flowOf(emptySet())
+        coEvery { setReleaseNotificationEnabledUseCase(any(), any()) } just Runs
     }
 
     @After
@@ -106,7 +114,9 @@ class GameDetailViewModelTest {
         addGameToListUseCase = addGameToListUseCase,
         removeGameFromListUseCase = removeGameFromListUseCase,
         translateGameDescriptionUseCase = translateGameDescriptionUseCase,
-        getTranslationModelStatusUseCase = getTranslationModelStatusUseCase
+        getTranslationModelStatusUseCase = getTranslationModelStatusUseCase,
+        getReleaseNotificationGameIdsUseCase = getReleaseNotificationGameIdsUseCase,
+        setReleaseNotificationEnabledUseCase = setReleaseNotificationEnabledUseCase
     )
 
     // uiState is a plain MutableStateFlow, updated by coroutines launched unconditionally from init --
@@ -363,6 +373,60 @@ class GameDetailViewModelTest {
         val viewModel = createViewModel(game)
 
         assertEquals(DescriptionTranslationState.Unavailable, viewModel.uiState.value.descriptionTranslation)
+    }
+
+    @Test
+    fun `ToggleReleaseNotification calls the use case with the flipped value`() = runTest(testDispatcher) {
+        every { getReleaseNotificationGameIdsUseCase() } returns flowOf(emptySet())
+        val viewModel = createViewModel(testGame())
+
+        viewModel.onEvent(GameDetailUiEvent.ToggleReleaseNotification)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { setReleaseNotificationEnabledUseCase(GAME_ID, true) }
+    }
+
+    @Test
+    fun `enabling the release notification requests permission`() = runTest(testDispatcher) {
+        every { getReleaseNotificationGameIdsUseCase() } returns flowOf(emptySet())
+        val viewModel = createViewModel(testGame())
+
+        val effects = mutableListOf<GameDetailUiEffect>()
+        val effectJob = launch { viewModel.uiEffect.collect { effects.add(it) } }
+        advanceUntilIdle()
+
+        viewModel.onEvent(GameDetailUiEvent.ToggleReleaseNotification)
+        advanceUntilIdle()
+
+        assertEquals(listOf(GameDetailUiEffect.RequestNotificationPermission), effects)
+        effectJob.cancel()
+    }
+
+    @Test
+    fun `disabling the release notification does not request permission`() = runTest(testDispatcher) {
+        every { getReleaseNotificationGameIdsUseCase() } returns flowOf(setOf(GAME_ID))
+        val viewModel = createViewModel(testGame())
+
+        val effects = mutableListOf<GameDetailUiEffect>()
+        val effectJob = launch { viewModel.uiEffect.collect { effects.add(it) } }
+        advanceUntilIdle()
+
+        viewModel.onEvent(GameDetailUiEvent.ToggleReleaseNotification)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { setReleaseNotificationEnabledUseCase(GAME_ID, false) }
+        assertTrue(effects.isEmpty())
+        effectJob.cancel()
+    }
+
+    @Test
+    fun `isNotificationEnabled and isNotificationAvailable surface in uiState`() = runTest(testDispatcher) {
+        every { getReleaseNotificationGameIdsUseCase() } returns flowOf(setOf(GAME_ID))
+        val viewModel = createViewModel(testGame(status = GameStatus.PLAYING))
+
+        val content = viewModel.successState()
+        assertTrue(content.game.isNotificationEnabled)
+        assertTrue(content.game.isNotificationAvailable)
     }
 
     private companion object {

@@ -9,6 +9,8 @@ import com.nikolasguillen.questlog.core.domain.usecase.UpdateGameUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.AddGameToListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.GetWishlistAssignmentsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.RemoveGameFromListUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.notification.SetReleaseNotificationEnabledUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.GetTranslationModelStatusUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.TranslateGameDescriptionUseCase
 import com.nikolasguillen.questlog.core.model.GameStatus
@@ -51,13 +53,17 @@ class GameDetailViewModel @AssistedInject constructor(
     private val addGameToListUseCase: AddGameToListUseCase,
     private val removeGameFromListUseCase: RemoveGameFromListUseCase,
     private val translateGameDescriptionUseCase: TranslateGameDescriptionUseCase,
-    private val getTranslationModelStatusUseCase: GetTranslationModelStatusUseCase
+    private val getTranslationModelStatusUseCase: GetTranslationModelStatusUseCase,
+    getReleaseNotificationGameIdsUseCase: GetReleaseNotificationGameIdsUseCase,
+    private val setReleaseNotificationEnabledUseCase: SetReleaseNotificationEnabledUseCase
 ) : ViewModel() {
 
     // Single source of truth: reactively observes local storage. Mutations write through the
     // use cases below and this flow picks the change back up -- no manually mirrored copy.
     private val currentGameFlow = getGameDetailUseCase(gameId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    private val notificationEnabledGameIdsFlow = getReleaseNotificationGameIdsUseCase()
 
     // Local only: refreshGame is the sole writer, and observeContentState is the sole reader.
     private val _refreshError = MutableStateFlow<UiText?>(null)
@@ -84,9 +90,11 @@ class GameDetailViewModel @AssistedInject constructor(
      */
     private fun observeContentState() {
         viewModelScope.launch {
-            combine(currentGameFlow, _refreshError) { game, error ->
+            combine(currentGameFlow, _refreshError, notificationEnabledGameIdsFlow) { game, error, notificationIds ->
                 when {
-                    game != null -> GameDetailContentState.Success(game.toUiModel())
+                    game != null -> GameDetailContentState.Success(
+                        game.toUiModel(isNotificationEnabled = gameId in notificationIds)
+                    )
                     error != null -> GameDetailContentState.Error(error)
                     else -> GameDetailContentState.Loading
                 }
@@ -153,6 +161,18 @@ class GameDetailViewModel @AssistedInject constructor(
                 _uiEffect.trySend(GameDetailUiEffect.NavigateToGame(event.id))
             GameDetailUiEvent.TranslateDescription -> translateDescription()
             GameDetailUiEvent.ShowOriginalDescription -> showOriginalDescription()
+            GameDetailUiEvent.ToggleReleaseNotification -> toggleReleaseNotification()
+        }
+    }
+
+    private fun toggleReleaseNotification() {
+        val successState = _uiState.value.contentState as? GameDetailContentState.Success ?: return
+        val wasEnabled = successState.game.isNotificationEnabled
+        viewModelScope.launch {
+            setReleaseNotificationEnabledUseCase(gameId, !wasEnabled)
+            if (!wasEnabled) {
+                _uiEffect.send(GameDetailUiEffect.RequestNotificationPermission)
+            }
         }
     }
 

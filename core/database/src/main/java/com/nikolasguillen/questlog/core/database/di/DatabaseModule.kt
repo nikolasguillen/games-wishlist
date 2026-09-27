@@ -10,6 +10,7 @@ import com.nikolasguillen.questlog.core.database.dao.DiscoverCacheDao
 import com.nikolasguillen.questlog.core.database.dao.GameDao
 import com.nikolasguillen.questlog.core.database.dao.ListDao
 import com.nikolasguillen.questlog.core.database.dao.PlatformDao
+import com.nikolasguillen.questlog.core.database.dao.ReleaseNotificationDao
 import com.nikolasguillen.questlog.core.database.dao.SearchHistoryDao
 import com.nikolasguillen.questlog.core.database.dao.TranslationDao
 import com.nikolasguillen.questlog.core.database.util.Converters
@@ -82,5 +83,10 @@ object DatabaseModule {
     @Provides
     fun provideDiscoverCacheDao(database: QuestLogDatabase): DiscoverCacheDao {
         return database.discoverCacheDao()
+    }
+
+    @Provides
+    fun provideReleaseNotificationDao(database: QuestLogDatabase): ReleaseNotificationDao {
+        return database.releaseNotificationDao()
     }
 }

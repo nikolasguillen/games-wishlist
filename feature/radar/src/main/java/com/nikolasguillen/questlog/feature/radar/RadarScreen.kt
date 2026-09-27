@@ -12,25 +12,36 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.ReleaseBucket
 import com.nikolasguillen.questlog.core.ui.component.LoadingPage
 import com.nikolasguillen.questlog.core.ui.component.MainScreenHeader
+import com.nikolasguillen.questlog.core.ui.component.NotificationPermissionDeniedDialog
 import com.nikolasguillen.questlog.core.ui.model.UiText
+import com.nikolasguillen.questlog.core.ui.util.rememberNotificationPermissionState
 import com.nikolasguillen.questlog.feature.radar.components.RadarEmptyState
 import com.nikolasguillen.questlog.feature.radar.components.RadarGameRow
 import com.nikolasguillen.questlog.feature.radar.components.RadarSectionHeader
 import com.nikolasguillen.questlog.feature.radar.model.RadarContentState
 import com.nikolasguillen.questlog.feature.radar.model.RadarEntryUiModel
 import com.nikolasguillen.questlog.feature.radar.model.RadarSectionUiModel
+import com.nikolasguillen.questlog.feature.radar.model.RadarUiEffect
+import com.nikolasguillen.questlog.feature.radar.model.RadarUiEvent
 import com.nikolasguillen.questlog.feature.radar.model.RadarUiState
 
 // viewModel is the same instance for the route's whole lifetime, so ref-comparison skips correctly.
@@ -43,13 +54,48 @@ fun RadarScreen(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val permissionState = rememberNotificationPermissionState()
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    var showPermissionDeniedDialog by remember { mutableStateOf(false) }
+    // Set only while an opt-in-triggered request is in flight, so the dialog reacts to that specific
+    // request's outcome instead of nagging on every screen visit while notifications happen to be off.
+    var awaitingPermissionResult by remember { mutableStateOf(false) }
+
+    LaunchedEffect(viewModel, lifecycle) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.uiEffect.collect { effect ->
+                when (effect) {
+                    RadarUiEffect.RequestNotificationPermission -> {
+                        if (!permissionState.canDeliver) {
+                            awaitingPermissionResult = true
+                            permissionState.request()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(permissionState.canDeliver, permissionState.isPermanentlyDenied) {
+        if (awaitingPermissionResult && !permissionState.canDeliver) {
+            showPermissionDeniedDialog = true
+        }
+        awaitingPermissionResult = false
+    }
 
     RadarContent(
         state = state,
         onGameClick = onGameClick,
         onProfileClick = onProfileClick,
+        onToggleNotification = { gameId ->
+            viewModel.onEvent(RadarUiEvent.ToggleReleaseNotification(gameId))
+        },
         modifier = modifier
     )
+
+    if (showPermissionDeniedDialog) {
+        NotificationPermissionDeniedDialog(onDismiss = { showPermissionDeniedDialog = false })
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,6 +104,7 @@ internal fun RadarContent(
     state: RadarUiState,
     onGameClick: (Int) -> Unit,
     onProfileClick: () -> Unit,
+    onToggleNotification: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -100,7 +147,9 @@ internal fun RadarContent(
                     ) { entry ->
                         RadarGameRow(
                             entry = entry,
-                            onClick = { onGameClick(entry.id) }
+                            onClick = { onGameClick(entry.id) },
+                            onToggleNotification = { onToggleNotification(entry.id) },
+                            showNotificationToggle = section.bucket != ReleaseBucket.RECENTLY_RELEASED
                         )
                     }
                 }
@@ -115,7 +164,8 @@ private fun RadarContentPreview(contentState: RadarContentState) {
         RadarContent(
             state = RadarUiState(contentState = contentState),
             onGameClick = {},
-            onProfileClick = {}
+            onProfileClick = {},
+            onToggleNotification = {}
         )
     }
 }

@@ -38,11 +38,11 @@ Modular Android app (see root `CLAUDE.md`). `.../` stands for `com/nikolasguille
 
 **Purpose**: Dependency and manifest groundwork the rest of the feature builds on. No behavior yet.
 
-- [ ] T001 [P] Add `libs.androidx.activity.compose` and `libs.androidx.core.ktx` to
+- [X] T001 [P] Add `libs.androidx.activity.compose` and `libs.androidx.core.ktx` to
   `core/ui/build.gradle.kts` (`implementation(...)`, matching the versions already pinned in
   `gradle/libs.versions.toml` — `activityCompose = "1.13.0"`, `coreKtx = "1.19.0"`). Needed for the
   permission-request launcher and `NotificationManagerCompat`.
-- [ ] T002 [P] In `app/src/main/AndroidManifest.xml`: add
+- [X] T002 [P] In `app/src/main/AndroidManifest.xml`: add
   `<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />` alongside the existing
   `INTERNET` and `ACCESS_NETWORK_STATE` permissions; add `android:launchMode="singleTop"` to the
   `MainActivity` `<activity>` element; add a second `<intent-filter>` on that same element with
@@ -65,11 +65,11 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
 
 ### Data layer
 
-- [ ] T003 [P] Create `core/database/src/main/java/.../core/database/entity/ReleaseNotificationEntity.kt`:
+- [X] T003 [P] Create `core/database/src/main/java/.../core/database/entity/ReleaseNotificationEntity.kt`:
   `@Entity(tableName = "release_notifications") data class ReleaseNotificationEntity(@PrimaryKey val gameId: Int, val enabledAt: Long, val notifiedForDate: Long? = null)`
   — presence of a row means opted in, per [data-model.md](./data-model.md). No foreign key, matching
   every other entity in this module.
-- [ ] T004 Using the entity from T003, create
+- [X] T004 Using the entity from T003, create
   `core/database/src/main/java/.../core/database/dao/ReleaseNotificationDao.kt`:
   ```kotlin
   @Dao
@@ -90,18 +90,18 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
       suspend fun markNotified(gameId: Int, date: Long)
   }
   ```
-- [ ] T005 Register `ReleaseNotificationEntity::class` in the `entities = [...]` list and
+- [X] T005 Register `ReleaseNotificationEntity::class` in the `entities = [...]` list and
   `abstract fun releaseNotificationDao(): ReleaseNotificationDao` in
   `core/database/src/main/java/.../core/database/QuestLogDatabase.kt`. Leave `version = 1` unchanged
   (per `core/database/CLAUDE.md` — the app is unpublished, no `Migration`, no version bump).
-- [ ] T006 Regenerate the exported schema by building `:core:database`
+- [X] T006 Regenerate the exported schema by building `:core:database`
   (`./gradlew :core:database:assembleDebug` — KSP writes the schema as a build side effect) and commit
   the updated `core/database/schemas/com.nikolasguillen.questlog.core.database.QuestLogDatabase/1.json`
   in the same commit as T003–T005. Confirm there is still exactly one directory under `schemas/`.
 
 ### Domain ports and repository contract
 
-- [ ] T007 [P] Create
+- [X] T007 [P] Create
   `core/domain/src/main/java/.../core/domain/notification/ReleaseNotificationScheduler.kt`:
   ```kotlin
   interface ReleaseNotificationScheduler {
@@ -111,7 +111,7 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
   ```
   (`kotlin.time.Instant`, matching `GetRadarTimelineUseCase`). Contract only — no `androidx.work` import
   here, per [contracts/domain-ports.md](./contracts/domain-ports.md).
-- [ ] T008 [P] Create `core/domain/src/main/java/.../core/domain/notification/ReleaseNotifier.kt`:
+- [X] T008 [P] Create `core/domain/src/main/java/.../core/domain/notification/ReleaseNotifier.kt`:
   ```kotlin
   interface ReleaseNotifier {
       fun notifyReleased(gameId: Int, gameName: String)
@@ -119,7 +119,7 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
   }
   ```
   Contract only — no Android notification API import here.
-- [ ] T009 [P] Add to `core/domain/src/main/java/.../core/domain/repository/GameRepository.kt` (all five
+- [X] T009 [P] Add to `core/domain/src/main/java/.../core/domain/repository/GameRepository.kt` (all five
   are DB-only, so all return a bare `Flow`/`Unit`, never `AppResult`, per the constitution's Principle
   II):
   ```kotlin
@@ -131,7 +131,7 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
   ```
   with KDoc matching [contracts/domain-ports.md](./contracts/domain-ports.md). This is an interface edit
   only — it compiles standalone and does not require T004 to exist yet.
-- [ ] T010 With the DAO from T004 and the interface from T009 both in place, implement the five new
+- [X] T010 With the DAO from T004 and the interface from T009 both in place, implement the five new
   `GameRepository` methods in
   `core/data/src/main/java/.../core/data/repository/GameRepositoryImpl.kt`, injecting
   `ReleaseNotificationDao`:
@@ -145,7 +145,7 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
 
 ### Shared date resolution (Radar/notification parity — FR-006)
 
-- [ ] T011 Create `core/domain/src/main/java/.../core/domain/radar/ReleaseDateResolver.kt` and move the
+- [X] T011 Create `core/domain/src/main/java/.../core/domain/radar/ReleaseDateResolver.kt` and move the
   private `Game.resolveReleaseDates(ownedPlatformIds: Set<Int>): List<ReleaseDate>` function out of
   `core/domain/src/main/java/.../core/domain/radar/GetRadarTimelineUseCase.kt` into it, unchanged, as a
   top-level function visible to both files. Update `GetRadarTimelineUseCase.kt` to import and call it.
@@ -161,10 +161,10 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
   returning 09:00 local on the release calendar day; `now` when that has passed but the day is still
   today; `null` when the day is past or `precision != DatePrecision.EXACT_DATE` (see
   [research.md](./research.md) §2 and §3 for the exact rule).
-- [ ] T012 [P] After T011, run `./gradlew :core:domain:testDebugUnitTest --console=plain -q` and confirm
+- [X] T012 [P] After T011, run `./gradlew :core:domain:testDebugUnitTest --console=plain -q` and confirm
   `core/domain/src/test/java/.../core/domain/radar/GetRadarTimelineUseCaseTest.kt` still passes
   unmodified — it is the regression guard for the extraction in T011.
-- [ ] T013 [P] After T011, add
+- [X] T013 [P] After T011, add
   `core/domain/src/test/java/.../core/domain/radar/ReleaseDateResolverTest.kt` covering
   `resolveNotificationInstant` for: `DatePrecision.EXACT_DATE` today before 09:00 local, `EXACT_DATE`
   today after 09:00 local (must return `now`), `EXACT_DATE` yesterday (must return `null`), `EXACT_DATE`
@@ -173,7 +173,7 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
 
 ### Reconciler and delivery use cases
 
-- [ ] T014 Using the repository interface from T009, create
+- [X] T014 Using the repository interface from T009, create
   `core/domain/src/main/java/.../core/domain/usecase/notification/SyncReleaseNotificationsUseCase.kt`:
   ```kotlin
   class SyncReleaseNotificationsUseCase @Inject constructor(
@@ -196,7 +196,7 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
   This is the eligibility predicate from [data-model.md](./data-model.md) applied per game; every enqueue
   is idempotent (`REPLACE`), so this function is safe to call repeatedly. Uses `ReleaseDateResolver` from
   T011.
-- [ ] T015 [P] Alongside T014, create
+- [X] T015 [P] Alongside T014, create
   `core/domain/src/test/java/.../core/domain/usecase/notification/SyncReleaseNotificationsUseCaseTest.kt`
   (MockK on `GameRepository` and `ReleaseNotificationScheduler`) covering: schedules an eligible
   future-exact-date game; cancels + does not error on a `YEAR_MONTH`/`QUARTER`/`YEAR_ONLY`/`TBD` game;
@@ -204,7 +204,7 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
   `notifiedForDate`; does *not* reschedule when the resolved date equals `notifiedForDate`; prunes
   (disables + cancels) an opted-in game absent from `getSavedGames()`; picks the earliest of several
   owned-platform dates for one game; narrows to one game when `gameId` is passed.
-- [ ] T016 Using the repository interface from T009, create
+- [X] T016 Using the repository interface from T009, create
   `core/domain/src/main/java/.../core/domain/usecase/notification/DeliverReleaseNotificationUseCase.kt`:
   ```kotlin
   class DeliverReleaseNotificationUseCase @Inject constructor(
@@ -232,12 +232,12 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
   ```
   Re-applies the full eligibility check at fire time (this is what makes lazy reconciliation safe — see
   [research.md](./research.md) §5). Uses `ReleaseDateResolver` from T011.
-- [ ] T017 [P] Alongside T016, create
+- [X] T017 [P] Alongside T016, create
   `core/domain/src/test/java/.../core/domain/usecase/notification/DeliverReleaseNotificationUseCaseTest.kt`
   covering: posts and marks delivered for an eligible game; returns `false` and does not post when the
   game is not saved, not opted in, the date is imprecise, the release day is in the future, or
   `notifiedForDate` already equals the resolved date.
-- [ ] T018 [P] Using the repository interface from T009 and `SyncReleaseNotificationsUseCase` from T014,
+- [X] T018 [P] Using the repository interface from T009 and `SyncReleaseNotificationsUseCase` from T014,
   create
   `core/domain/src/main/java/.../core/domain/usecase/notification/SetReleaseNotificationEnabledUseCase.kt`:
   ```kotlin
@@ -251,20 +251,20 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
       }
   }
   ```
-- [ ] T019 [P] Alongside T018, create
+- [X] T019 [P] Alongside T018, create
   `core/domain/src/test/java/.../core/domain/usecase/notification/SetReleaseNotificationEnabledUseCaseTest.kt`
   covering: `enabled = true` writes the opt-in then reconciles that game id; `enabled = false` clears the
   opt-in then reconciles (cancelling) that game id.
-- [ ] T020 [P] Using the repository interface from T009, create
+- [X] T020 [P] Using the repository interface from T009, create
   `core/domain/src/main/java/.../core/domain/usecase/notification/GetReleaseNotificationGameIdsUseCase.kt`:
   `operator fun invoke(): Flow<Set<Int>> = repository.getReleaseNotificationGameIds()`.
-- [ ] T021 [P] Using the repository interface from T009, create
+- [X] T021 [P] Using the repository interface from T009, create
   `core/domain/src/main/java/.../core/domain/usecase/notification/GetGamesWithReleaseNotificationsUseCase.kt`:
   `operator fun invoke(): Flow<List<Game>> = repository.getGamesWithReleaseNotifications()`.
 
 ### Android implementations of the two ports
 
-- [ ] T022 [P] Implementing the port from T007, create
+- [X] T022 [P] Implementing the port from T007, create
   `core/data/src/main/java/.../core/data/scheduler/ReleaseNotificationSchedulerImpl.kt`:
   `schedule(gameId, at)` computes
   `initialDelay = (at - Clock.System.now()).coerceAtLeast(Duration.ZERO)` and enqueues a
@@ -274,12 +274,12 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
   calls `WorkManager.getInstance(context).cancelUniqueWork("release_notification_$gameId")`. Follow the
   `// KEEP:`-comment style of `ReleaseRefreshSchedulerImpl.kt` to document *why* the policy is `REPLACE`
   here (idempotent rescheduling) versus `KEEP` there (collapsing redundant enqueues).
-- [ ] T023 [P] Create `core/data/src/main/res/values/strings.xml` with the notification channel
+- [X] T023 [P] Create `core/data/src/main/res/values/strings.xml` with the notification channel
   name/description and the reminder title/body (e.g. `release_notification_channel_name`,
   `release_notification_channel_description`, `release_notification_title_format` taking the game name,
   `release_notification_body`). New file — this module has no `res/` yet; `:core:database` owning one for
   the default wishlist's strings is the precedent (see [research.md](./research.md) §8).
-- [ ] T024 Implementing the port from T008, using the strings from T023, create
+- [X] T024 Implementing the port from T008, using the strings from T023, create
   `core/data/src/main/java/.../core/data/notification/ReleaseNotifierImpl.kt`:
   - `canDeliver()` → `NotificationManagerCompat.from(context).areNotificationsEnabled()`.
   - `notifyReleased(gameId, gameName)` → lazily calls
@@ -288,11 +288,11 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
     `Intent(Intent.ACTION_VIEW, Uri.parse("questlog://game/$gameId"))` with
     `FLAG_IMMUTABLE`, and posts a `NotificationCompat.Builder` using the T023 title/body strings and
     `gameId` as the notification id (so a second reminder for the same game replaces rather than stacks).
-- [ ] T025 [P] Bind both new ports in
+- [X] T025 [P] Bind both new ports in
   `core/data/src/main/java/.../core/data/di/DataModule.kt`:
   `@Binds ReleaseNotificationScheduler`, `@Binds ReleaseNotifier` (following the existing
   `@Binds @Singleton` pattern used for `GameRepository`/`ReleaseRefreshScheduler`).
-- [ ] T026 With `DeliverReleaseNotificationUseCase` (T016) and `ReleaseNotifierImpl` (T024) in place,
+- [X] T026 With `DeliverReleaseNotificationUseCase` (T016) and `ReleaseNotifierImpl` (T024) in place,
   create `core/data/src/main/java/.../core/data/worker/ReleaseNotificationWorker.kt`:
   ```kotlin
   @HiltWorker
@@ -312,21 +312,21 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
   Always `Result.success()` after a valid call — per
   [contracts/domain-ports.md](./contracts/domain-ports.md), a stale schedule declining to post is correct
   behavior, not a failure to retry.
-- [ ] T027 Using `SyncReleaseNotificationsUseCase` from T014, edit
+- [X] T027 Using `SyncReleaseNotificationsUseCase` from T014, edit
   `core/data/src/main/java/.../core/data/worker/ReleaseDatesRefreshWorker.kt`: after
   `refreshReleaseDatesUseCase()` returns `AppResult.Success`, call `syncReleaseNotificationsUseCase()`
   (no `gameId` — reconcile every opt-in) before returning `Result.success()`. Inject
   `SyncReleaseNotificationsUseCase` alongside the existing `RefreshReleaseDatesUseCase`. This is the call
   site that satisfies FR-007 (rescheduling on a refreshed date) — it must run here because the periodic
   refresh normally executes with the app's process dead.
-- [ ] T028 [P] After T027, update
+- [X] T028 [P] After T027, update
   `core/data/src/test/java/.../core/data/worker/ReleaseDatesRefreshWorkerTest.kt` (create it if it does
   not already exist — check first) to verify `SyncReleaseNotificationsUseCase` is invoked exactly once
   after a successful refresh and not invoked after a failed one.
 
 ### Shared UI plumbing (needed by all three feature-module stories)
 
-- [ ] T029 [P] After T001, create
+- [X] T029 [P] After T001, create
   `core/ui/src/main/java/.../core/ui/util/NotificationPermission.kt`:
   ```kotlin
   @Immutable
@@ -346,13 +346,13 @@ behavior on its own — the opt-in has nowhere to be triggered from until Phase 
   `shouldShowRequestPermissionRationale` returns `false` after a prior denial. Below API 33, `request()`
   launches `Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)` directly (per
   [contracts/ui-contracts.md](./contracts/ui-contracts.md)).
-- [ ] T030 [P] After T001, create
+- [X] T030 [P] After T001, create
   `core/ui/src/main/java/.../core/ui/component/NotificationPermissionDeniedDialog.kt`: a
   `CustomAlertDialog` (never Material's `AlertDialog`, per `core/ui/CLAUDE.md`) explaining reminders will
   not arrive until notifications are enabled, with a confirm action that launches
   `Settings.ACTION_APP_NOTIFICATION_SETTINGS`. Give it a `@Preview` wrapped in `QuestLogTheme { }`, per
   this module's convention.
-- [ ] T031 [P] Add to `core/ui`'s `strings.xml`: the denied-dialog title/body/action text and the shared
+- [X] T031 [P] Add to `core/ui`'s `strings.xml`: the denied-dialog title/body/action text and the shared
   bell content descriptions ("Turn on release reminder" / "Turn off release reminder").
 
 **Checkpoint**: `./gradlew :core:domain:testDebugUnitTest :core:data:testDebugUnitTest --console=plain -q`
@@ -373,19 +373,19 @@ notification arrives naming the game and opens its detail screen on tap.
 
 ### Radar surface
 
-- [ ] T032 [P] [US1] Create `feature/radar/src/main/java/.../feature/radar/model/RadarUiEvent.kt`:
+- [X] T032 [P] [US1] Create `feature/radar/src/main/java/.../feature/radar/model/RadarUiEvent.kt`:
   `internal sealed interface RadarUiEvent { data class ToggleReleaseNotification(val gameId: Int) : RadarUiEvent }`.
-- [ ] T033 [P] [US1] Create `feature/radar/src/main/java/.../feature/radar/model/RadarUiEffect.kt`:
+- [X] T033 [P] [US1] Create `feature/radar/src/main/java/.../feature/radar/model/RadarUiEffect.kt`:
   `internal sealed interface RadarUiEffect { data object RequestNotificationPermission : RadarUiEffect }`.
-- [ ] T034 [US1] Add `val isNotificationEnabled: Boolean = false` to
+- [X] T034 [US1] Add `val isNotificationEnabled: Boolean = false` to
   `feature/radar/src/main/java/.../feature/radar/model/RadarEntryUiModel.kt` (and to its `getDummy()`
   companion factory).
-- [ ] T035 [US1] Building on T034's new field, edit
+- [X] T035 [US1] Building on T034's new field, edit
   `feature/radar/src/main/java/.../feature/radar/mapper/RadarUiMapper.kt`: thread a
   `notificationEnabledGameIds: Set<Int>` parameter through `List<RadarTimelineSection>.toUiModel(...)`,
   `RadarTimelineSection.toUiModel(...)` and `RadarEntry.toUiModel(...)`, setting
   `isNotificationEnabled = game.id in notificationEnabledGameIds` on each entry.
-- [ ] T036 [US1] Using the event/effect types from T032/T033 and the mapper change from T035, edit
+- [X] T036 [US1] Using the event/effect types from T032/T033 and the mapper change from T035, edit
   `feature/radar/src/main/java/.../feature/radar/RadarViewModel.kt`: inject
   `GetReleaseNotificationGameIdsUseCase` and `SetReleaseNotificationEnabledUseCase`; fold the ids `Flow`
   into the existing `combine` alongside `getRadarTimelineUseCase()`'s sections, passing the set into the
@@ -393,7 +393,7 @@ notification arrives naming the game and opens its detail screen on tap.
   `internal val uiEffect = _uiEffect.receiveAsFlow()`; add
   `internal fun onEvent(event: RadarUiEvent)` handling `ToggleReleaseNotification` by launching
   `viewModelScope.launch { val wasEnabled = <current known state for gameId>; setReleaseNotificationEnabledUseCase(gameId, !wasEnabled); if (!wasEnabled) _uiEffect.send(RadarUiEffect.RequestNotificationPermission) }`.
-- [ ] T037 [US1] Using the field from T034, edit
+- [X] T037 [US1] Using the field from T034, edit
   `feature/radar/src/main/java/.../feature/radar/components/RadarGameRow.kt`: add an
   `onToggleNotification: () -> Unit` parameter and, in the trailing content after the existing
   `PlatformTile`, a bell `IconButton` (filled `Icons.Filled.Notifications` when
@@ -403,14 +403,14 @@ notification arrives naming the game and opens its detail screen on tap.
   [contracts/ui-contracts.md](./contracts/ui-contracts.md) — pass a `showNotificationToggle: Boolean`
   computed by the caller from the section's `bucket`). Update this file's three existing `@Preview`s to
   pass a no-op lambda.
-- [ ] T038 [US1] With T036 and T037 done, edit
+- [X] T038 [US1] With T036 and T037 done, edit
   `feature/radar/src/main/java/.../feature/radar/RadarScreen.kt`: call
   `rememberNotificationPermissionState()` (T029); pass `onToggleNotification` from `RadarGameRow` through
   to `viewModel.onEvent(RadarUiEvent.ToggleReleaseNotification(entry.id))`; collect `uiEffect` in the
   existing `LaunchedEffect { lifecycle.repeatOnLifecycle(STARTED) { ... } }` shape, calling
   `permissionState.request()` on `RequestNotificationPermission` when `!permissionState.canDeliver`; show
   `NotificationPermissionDeniedDialog` (T030) when the request comes back still unable to deliver.
-- [ ] T039 [P] [US1] Alongside T036, add to
+- [X] T039 [P] [US1] Alongside T036, add to
   `feature/radar/src/test/java/.../feature/radar/RadarViewModelTest.kt`: `isNotificationEnabled` reaches
   the right `RadarEntryUiModel`s (including *both* rows of a multi-platform game sharing one game id);
   `ToggleReleaseNotification` calls `SetReleaseNotificationEnabledUseCase` with the toggled value; an
@@ -419,28 +419,28 @@ notification arrives naming the game and opens its detail screen on tap.
 
 ### Game-detail surface
 
-- [ ] T040 [P] [US1] Add `data object ToggleReleaseNotification : GameDetailUiEvent` to
+- [X] T040 [P] [US1] Add `data object ToggleReleaseNotification : GameDetailUiEvent` to
   `feature/game-detail/src/main/java/.../feature/gamedetail/model/GameDetailUiEvent.kt`.
-- [ ] T041 [P] [US1] Add `data object RequestNotificationPermission : GameDetailUiEffect` to
+- [X] T041 [P] [US1] Add `data object RequestNotificationPermission : GameDetailUiEffect` to
   `feature/game-detail/src/main/java/.../feature/gamedetail/model/GameDetailUiEffect.kt`.
-- [ ] T042 [US1] Add `val isNotificationEnabled: Boolean = false` and
+- [X] T042 [US1] Add `val isNotificationEnabled: Boolean = false` and
   `val isNotificationAvailable: Boolean = false` to top level (not nested in `AvailabilityUiModel`) of
   `feature/game-detail/src/main/java/.../feature/gamedetail/model/GameDetailUiModel.kt` (and its
   `getDummy()`).
-- [ ] T043 [US1] Using the fields from T042, edit
+- [X] T043 [US1] Using the fields from T042, edit
   `feature/game-detail/src/main/java/.../feature/gamedetail/mapper/GameDetailUiMapper.kt`: thread an
   `isNotificationEnabled: Boolean` parameter into the `Game.toUiModel(...)` call chain, and compute
   `isNotificationAvailable` from the same "is this game saved" signal the mapper already has available
   (mirroring `GameDao.getSavedGames`'s predicate: in a list, or has a non-null `status`/`priority`) AND
   the game's earliest resolved release date not already being in the past.
-- [ ] T044 [US1] Using T040, T041 and T043, edit
+- [X] T044 [US1] Using T040, T041 and T043, edit
   `feature/game-detail/src/main/java/.../feature/gamedetail/GameDetailViewModel.kt`: inject
   `GetReleaseNotificationGameIdsUseCase` and `SetReleaseNotificationEnabledUseCase`; fold the opted-in-id
   membership check for this screen's single `gameId` into the existing state pipeline; handle
   `ToggleReleaseNotification` in `onEvent` by calling `SetReleaseNotificationEnabledUseCase` and sending
   `GameDetailUiEffect.RequestNotificationPermission` through the existing `_uiEffect` channel when turning
   on, following the same shape as `RadarViewModel` (T036).
-- [ ] T045 [US1] Using the fields from T042, edit
+- [X] T045 [US1] Using the fields from T042, edit
   `feature/game-detail/src/main/java/.../feature/gamedetail/components/GameDetailSuccessContent.kt`: pass
   an `actions = { alpha -> ... }` lambda to the existing `ImmersiveDetailLayout(...)` call, rendering the
   bell `IconButton` only `if (game.isNotificationAvailable)`, calling
@@ -449,19 +449,19 @@ notification arrives naming the game and opens its detail screen on tap.
   `topBarAlpha`-driven white→onSurface transition does (per
   [contracts/ui-contracts.md](./contracts/ui-contracts.md)'s Game detail section for the precise
   snippet).
-- [ ] T046 [US1] With T044 done, edit
+- [X] T046 [US1] With T044 done, edit
   `feature/game-detail/src/main/java/.../feature/gamedetail/GameDetailScreen.kt`: call
   `rememberNotificationPermissionState()`; handle `GameDetailUiEffect.RequestNotificationPermission` in
   the existing effect-collecting `LaunchedEffect`, requesting permission and showing
   `NotificationPermissionDeniedDialog` on denial — mirroring T038.
-- [ ] T047 [P] [US1] Alongside T044, add to
+- [X] T047 [P] [US1] Alongside T044, add to
   `feature/game-detail/src/test/java/.../feature/gamedetail/GameDetailViewModelTest.kt`: toggling calls
   `SetReleaseNotificationEnabledUseCase` with the flipped value; the effect is emitted only when turning
   on; `isNotificationEnabled`/`isNotificationAvailable` surface correctly in `uiState`.
 
 ### Deep link and delivery wiring
 
-- [ ] T048 [US1] After T002's manifest change, edit `app/src/main/java/.../MainActivity.kt`: read
+- [X] T048 [US1] After T002's manifest change, edit `app/src/main/java/.../MainActivity.kt`: read
   `intent?.data` in `onCreate` (and add an `override fun onNewIntent(intent: Intent)` calling
   `setIntent(intent)` then the same handling) — when the URI's scheme is `questlog` and host is `game`,
   parse the last path segment (or the appropriate URI part per the `questlog://game/<gameId>` shape) as
@@ -493,11 +493,11 @@ infrastructure — T014, T015, T022, T027 and T028 already deliver and test this
 phase is therefore verification plus the one piece of user-facing surface the story specifically needs:
 proof, not new production code.
 
-- [ ] T050 [US2] In `core/data/src/test/java/.../core/data/worker/ReleaseDatesRefreshWorkerTest.kt` (from
+- [X] T050 [US2] In `core/data/src/test/java/.../core/data/worker/ReleaseDatesRefreshWorkerTest.kt` (from
   T028), add a case if not already covered: given `RefreshReleaseDatesUseCase` succeeds,
   `SyncReleaseNotificationsUseCase` is invoked with no `gameId` argument (i.e. reconciles every opt-in,
   not just one).
-- [ ] T051 [US2] In `SyncReleaseNotificationsUseCaseTest` (T015), add a case if not already covered that
+- [X] T051 [US2] In `SyncReleaseNotificationsUseCaseTest` (T015), add a case if not already covered that
   explicitly asserts the **re-arm** behavior end to end: an opt-in already `notifiedForDate`-stamped for
   D1, whose game now resolves to a different future date D2, is rescheduled for D2 — not left cancelled.
 - [ ] T052 [US2] With the full Phase 2 data/domain layer and T027 in place, manually run Scenario 3 from
@@ -522,9 +522,9 @@ it disappears once permission is restored.
 
 ### Route and navigation
 
-- [ ] T053 [US3] Add `@Serializable data object ReleaseNotificationsRoute : GameNavKey` to
+- [X] T053 [US3] Add `@Serializable data object ReleaseNotificationsRoute : GameNavKey` to
   `core/navigation/src/main/java/.../core/navigation/Routes.kt`.
-- [ ] T054 [US3] Using the route from T053, add a branch for `ReleaseNotificationsRoute` in the
+- [X] T054 [US3] Using the route from T053, add a branch for `ReleaseNotificationsRoute` in the
   `entryProvider` in `app/src/main/java/.../QuestLogNavDisplay.kt`, using
   `hiltViewModel<ReleaseNotificationsViewModel>()` (no arguments — standard Hilt, not assisted) and
   rendering `ReleaseNotificationsScreen` with `onBackClick = { backStack.removeLastOrNull() }`, following
@@ -532,41 +532,41 @@ it disappears once permission is restored.
 
 ### Management sub-screen
 
-- [ ] T055 [P] [US3] Create
+- [X] T055 [P] [US3] Create
   `feature/settings/src/main/java/.../feature/settings/model/ReleaseNotificationUiModel.kt`:
   `@Immutable internal data class ReleaseNotificationUiModel(val gameId: Int, val coverImage: String?, val title: String, val dateLabel: UiText)`
   — `dateLabel` is the formatted exact date, or a "no date yet" `UiText` for an opt-in whose game still
   resolves to a coarser precision (making FR-013 visible, per
   [contracts/ui-contracts.md](./contracts/ui-contracts.md)).
-- [ ] T056 [P] [US3] Create
+- [X] T056 [P] [US3] Create
   `feature/settings/src/main/java/.../feature/settings/model/ReleaseNotificationsContentState.kt`:
   `@Immutable internal sealed interface ReleaseNotificationsContentState { data object Loading; data object Empty; data class Success(val games: List<ReleaseNotificationUiModel>) }`.
-- [ ] T057 [P] [US3] Create
+- [X] T057 [P] [US3] Create
   `feature/settings/src/main/java/.../feature/settings/model/ReleaseNotificationsUiState.kt`:
   `@Immutable internal data class ReleaseNotificationsUiState(val contentState: ReleaseNotificationsContentState = ReleaseNotificationsContentState.Loading)`.
-- [ ] T058 [US3] Using the model from T055, create
+- [X] T058 [US3] Using the model from T055, create
   `feature/settings/src/main/java/.../feature/settings/mapper/ReleaseNotificationsUiMapper.kt`: an
   `internal fun List<Game>.toReleaseNotificationUiModels(ownedPlatformIds: Set<Int>): List<ReleaseNotificationUiModel>`
   reusing `resolveReleaseDates`/date-formatting the same way `RadarUiMapper` does, but with only two
   outcomes for `dateLabel`: the formatted exact date, or the "no date yet" string.
-- [ ] T059 [US3] Using T056, T057 and T058, create
+- [X] T059 [US3] Using T056, T057 and T058, create
   `feature/settings/src/main/java/.../feature/settings/ReleaseNotificationsViewModel.kt`
   (`@HiltViewModel`, no assisted factory): injects `GetGamesWithReleaseNotificationsUseCase`,
   `GetSelectedPlatformIdsUseCase`, `SetReleaseNotificationEnabledUseCase`; `.stateIn(viewModelScope,
   WhileSubscribed(5000), ...)` over the `combine` of the two use-case flows mapped through T058, empty
   list → `ReleaseNotificationsContentState.Empty`; exposes `internal fun onEvent` handling a
   `ToggleOff(gameId: Int)` event that calls `SetReleaseNotificationEnabledUseCase(gameId, false)`.
-- [ ] T060 [P] [US3] Create
+- [X] T060 [P] [US3] Create
   `feature/settings/src/main/java/.../feature/settings/model/ReleaseNotificationsUiEvent.kt`:
   `internal sealed interface ReleaseNotificationsUiEvent { data class ToggleOff(val gameId: Int) : ReleaseNotificationsUiEvent }`.
-- [ ] T061 [US3] Using T059 and T060, create
+- [X] T061 [US3] Using T059 and T060, create
   `feature/settings/src/main/java/.../feature/settings/ReleaseNotificationsScreen.kt`: public
   `ReleaseNotificationsScreen(viewModel, onBackClick, modifier)` + `internal` stateless
   `ReleaseNotificationsContent`, following `OwnedPlatformsScreen.kt`'s split. Renders `Loading` via
   `LoadingPage`, `Empty` via `EmptyPage`, `Success` as a scrollable list of `GameListRow`s (cover, title,
   `dateLabel` as `trailingContent`) each with a trailing toggle wired to
   `onEvent(ReleaseNotificationsUiEvent.ToggleOff(gameId))`. Include `@Preview`s for all three states.
-- [ ] T062 [P] [US3] Alongside T059, create
+- [X] T062 [P] [US3] Alongside T059, create
   `feature/settings/src/test/java/.../feature/settings/ReleaseNotificationsViewModelTest.kt`: list renders
   from the combined use-case flows; a game with an imprecise date shows the "no date yet" label; toggling
   a row off calls `SetReleaseNotificationEnabledUseCase(gameId, false)`; an empty opt-in set produces
@@ -574,24 +574,24 @@ it disappears once permission is restored.
 
 ### Settings hub group
 
-- [ ] T063 [P] [US3] Create
+- [X] T063 [P] [US3] Create
   `feature/settings/src/main/java/.../feature/settings/model/NotificationPermissionRowState.kt`:
   `internal sealed interface NotificationPermissionRowState { data object Granted; data object Blocked }`
   — mirrors the existing `TranslationModelRowState` shape in this module.
-- [ ] T064 [US3] Using T063, add to
+- [X] T064 [US3] Using T063, add to
   `feature/settings/src/main/java/.../feature/settings/model/SettingsUiState.kt`:
   `val releaseNotificationCount: Int = 0` and
   `val notificationPermission: NotificationPermissionRowState = NotificationPermissionRowState.Granted`.
-- [ ] T065 [P] [US3] Add to
+- [X] T065 [P] [US3] Add to
   `feature/settings/src/main/java/.../feature/settings/model/SettingsUiEvent.kt`:
   `data class NotificationPermissionChanged(val canDeliver: Boolean, val isPermanentlyDenied: Boolean) : SettingsUiEvent`.
-- [ ] T066 [US3] Using T064 and T065, edit
+- [X] T066 [US3] Using T064 and T065, edit
   `feature/settings/src/main/java/.../feature/settings/SettingsViewModel.kt`: inject
   `GetReleaseNotificationGameIdsUseCase`; fold its `.map { it.size }` into `_uiState.update { ... }`
   (locally-driven pipeline shape, per `feature/CLAUDE.md`, since this screen already uses
   `MutableStateFlow` + `update`); handle `NotificationPermissionChanged` in `onEvent` by updating
   `notificationPermission` to `Blocked` when `!canDeliver`, `Granted` otherwise.
-- [ ] T067 [US3] With T066 done, edit
+- [X] T067 [US3] With T066 done, edit
   `feature/settings/src/main/java/.../feature/settings/SettingsScreen.kt`: call
   `rememberNotificationPermissionState()` (T029); dispatch `SettingsUiEvent.NotificationPermissionChanged`
   from it (e.g. in a `LaunchedEffect(permissionState.canDeliver, permissionState.isPermanentlyDenied)`);
@@ -603,11 +603,11 @@ it disappears once permission is restored.
   `Settings.ACTION_APP_NOTIFICATION_SETTINGS`. Add `onReleaseNotificationsClick: () -> Unit` as a new
   parameter on `SettingsScreen`/`SettingsContent`, wired from `QuestLogNavDisplay.kt` (T054's call site)
   the same way `onOwnedPlatformsClick` already is.
-- [ ] T068 [P] [US3] Alongside T066, add to
+- [X] T068 [P] [US3] Alongside T066, add to
   `feature/settings/src/test/java/.../feature/settings/SettingsViewModelTest.kt`: the opted-in count
   reaches `uiState.releaseNotificationCount`; `NotificationPermissionChanged(canDeliver = false, ...)`
   sets `Blocked`; `canDeliver = true` sets `Granted`.
-- [ ] T069 [P] [US3] Add to `feature/settings`'s `strings.xml`: the new group title, the management row's
+- [X] T069 [P] [US3] Add to `feature/settings`'s `strings.xml`: the new group title, the management row's
   title/subtitle-count/"none yet" strings, the permission-blocked row's text, and the sub-screen's title
   and empty-state string.
 
@@ -627,15 +627,15 @@ single story task above fully exercises end to end.
   leaves the Settings list at once and nothing is ever delivered for it), deny permission at first opt-in
   (denial dialog + blocked row), and confirm no permission dialog appears on an API 29–32 device while
   reminders still deliver there.
-- [ ] T071 Run `./gradlew :app:assembleDebug` (full build — this feature spans modules and touches DI
+- [X] T071 Run `./gradlew :app:assembleDebug` (full build — this feature spans modules and touches DI
   wiring, per root `CLAUDE.md`'s guidance on when a single-module `compileDebugKotlin` is not enough).
-- [ ] T072 Run `./gradlew test` and confirm every existing suite plus every test added in this feature
+- [X] T072 Run `./gradlew test` and confirm every existing suite plus every test added in this feature
   (T012, T013, T015, T017, T019, T028, T039, T047, T050, T051, T062, T068) is green.
-- [ ] T073 Re-read `core/domain/src/main/java/.../core/domain/radar/GetRadarTimelineUseCase.kt` and
+- [X] T073 Re-read `core/domain/src/main/java/.../core/domain/radar/GetRadarTimelineUseCase.kt` and
   `core/domain/src/main/java/.../core/domain/radar/ReleaseDateResolver.kt` side by side to confirm the
   timeline and the reminder still resolve dates through the one shared function — the structural guarantee
   behind FR-006 — and that nothing reintroduced a second copy while implementing US1–US3.
-- [ ] T074 Update `docs/roadmap.md`: delete the "Phase 3 — Release notifications" section now that it has
+- [X] T074 Update `docs/roadmap.md`: delete the "Phase 3 — Release notifications" section now that it has
   shipped (per the root `CLAUDE.md`'s rule that the roadmap describes only what is *not* built yet), and
   remove the "Notifications belong to Phase 3" clause from the "Settings holds only what has a backend"
   section since it is no longer a deferred item.

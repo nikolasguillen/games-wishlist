@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Release notifications -->
+    <string name="release_notification_channel_name">Release reminders</string>
+    <string name="release_notification_channel_description">Notifies you on the release day of saved games you opted in to</string>
+    <string name="release_notification_title_format">%1$s is out today!</string>
+    <string name="release_notification_body">Tap to see it in your collection.</string>
+</resources>

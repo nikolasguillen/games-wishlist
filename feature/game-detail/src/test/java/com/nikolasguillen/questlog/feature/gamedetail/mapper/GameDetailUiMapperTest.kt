@@ -32,7 +32,7 @@ class GameDetailUiMapperTest {
             )
         )
 
-        val label = game.toUiModel().availability.detailedDates.single().date
+        val label = game.toUiModel(isNotificationEnabled = false).availability.detailedDates.single().date
 
         assertEquals(UiText.DynamicString("2027"), label)
     }
@@ -49,7 +49,7 @@ class GameDetailUiMapperTest {
             )
         )
 
-        val label = game.toUiModel().availability.detailedDates.single().date
+        val label = game.toUiModel(isNotificationEnabled = false).availability.detailedDates.single().date
 
         assertEquals(UiText.StringResource(R.string.quarter_format, 3, 2027), label)
     }
@@ -66,7 +66,7 @@ class GameDetailUiMapperTest {
             )
         )
 
-        val label = game.toUiModel().availability.detailedDates.single().date
+        val label = game.toUiModel(isNotificationEnabled = false).availability.detailedDates.single().date
 
         assertEquals(UiText.DynamicString(DateUtils.formatUnixTimestamp(date)), label)
     }
@@ -75,7 +75,7 @@ class GameDetailUiMapperTest {
     fun `a main release date landing on 31 December shows only the year`() {
         val game = Game(id = 1, name = "Cindergate", platforms = listOf(pc), releaseDate = "2027-12-31")
 
-        val mainDate = game.toUiModel().availability.mainDate
+        val mainDate = game.toUiModel(isNotificationEnabled = false).availability.mainDate
 
         assertEquals(UiText.DynamicString("2027"), mainDate)
     }
@@ -84,7 +84,7 @@ class GameDetailUiMapperTest {
     fun `a main release date not landing on 31 December shows the full date`() {
         val game = Game(id = 1, name = "Cindergate", platforms = listOf(pc), releaseDate = "2027-06-15")
 
-        val mainDate = game.toUiModel().availability.mainDate
+        val mainDate = game.toUiModel(isNotificationEnabled = false).availability.mainDate
 
         assertEquals(UiText.DynamicString(DateUtils.formatIsoDate("2027-06-15")!!), mainDate)
     }

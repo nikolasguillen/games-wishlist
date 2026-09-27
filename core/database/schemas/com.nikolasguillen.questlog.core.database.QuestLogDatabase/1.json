@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "e227ebb4ba02c87eb0f29c686a43e989",
+    "identityHash": "d31cd38ca05157b7270a18a107444811",
     "entities": [
       {
         "tableName": "search_history",
@@ -524,6 +524,35 @@
         }
       },
       {
+        "tableName": "release_notifications",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`gameId` INTEGER NOT NULL, `enabledAt` INTEGER NOT NULL, `notifiedForDate` INTEGER, PRIMARY KEY(`gameId`))",
+        "fields": [
+          {
+            "fieldPath": "gameId",
+            "columnName": "gameId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "enabledAt",
+            "columnName": "enabledAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notifiedForDate",
+            "columnName": "notifiedForDate",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "gameId"
+          ]
+        }
+      },
+      {
         "tableName": "translated_descriptions",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`gameId` INTEGER NOT NULL, `languageTag` TEXT NOT NULL, `sourceHash` INTEGER NOT NULL, `translatedText` TEXT NOT NULL, PRIMARY KEY(`gameId`, `languageTag`))",
         "fields": [
@@ -779,7 +808,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e227ebb4ba02c87eb0f29c686a43e989')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd31cd38ca05157b7270a18a107444811')"
     ]
   }
 }

@@ -16,19 +16,19 @@ import com.nikolasguillen.questlog.feature.radar.model.RadarSectionUiModel
 import java.util.Locale
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
-internal fun List<RadarTimelineSection>.toUiModel(): List<RadarSectionUiModel> {
-    return map { it.toUiModel() }
+internal fun List<RadarTimelineSection>.toUiModel(notificationEnabledGameIds: Set<Int>): List<RadarSectionUiModel> {
+    return map { it.toUiModel(notificationEnabledGameIds) }
 }
 
-private fun RadarTimelineSection.toUiModel(): RadarSectionUiModel {
+private fun RadarTimelineSection.toUiModel(notificationEnabledGameIds: Set<Int>): RadarSectionUiModel {
     return RadarSectionUiModel(
         bucket = bucket,
         label = bucket.toLabelUiText(),
-        entries = entries.map { it.toUiModel(bucket) }
+        entries = entries.map { it.toUiModel(bucket, notificationEnabledGameIds) }
     )
 }
 
-private fun RadarEntry.toUiModel(bucket: ReleaseBucket): RadarEntryUiModel {
+private fun RadarEntry.toUiModel(bucket: ReleaseBucket, notificationEnabledGameIds: Set<Int>): RadarEntryUiModel {
     val label = resolveDateLabel(bucket)
     val style = PlatformVisuals.styleFor(
         Platform(id = releaseDate.platformId, name = releaseDate.platformName)
@@ -41,7 +41,8 @@ private fun RadarEntry.toUiModel(bucket: ReleaseBucket): RadarEntryUiModel {
         platform = PlatformTileUiModel(id = releaseDate.platformId, code = style.code, color = style.color),
         dateLabel = label.primary,
         dateSubLabel = label.secondary,
-        dateStyle = label.style
+        dateStyle = label.style,
+        isNotificationEnabled = game.id in notificationEnabledGameIds
     )
 }
 

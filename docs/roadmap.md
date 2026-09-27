@@ -4,15 +4,15 @@ Planned features, in the order they are meant to be built, plus the decisions al
 not re-litigated in a later session. This file describes **what is not built yet**; the moment a phase
 ships, delete it from here — `git log` is the history.
 
-Written 2026-08-20. Phases 1 (Discover feed) and 2 (Radar timeline, saved games only) have shipped; what's
-left starts at Phase 3.
+Written 2026-08-20. Phases 1 (Discover feed), 2 (Radar timeline, saved games only) and 3 (release
+notifications) have shipped; what's left starts at Phase 4.
 
 ## Settings holds only what has a backend
 
 The screen groups its rows by theme, and the only groups that exist are the ones with data behind them.
-Notifications belong to Phase 3; a genre picker was considered and dropped, since the taste profile infers
-genres from saved games and the user does not edit them by hand; appearance has nothing to switch, because
-`:core:designsystem` is dark-only by design. Do not add a row before the thing it configures exists.
+A genre picker was considered and dropped, since the taste profile infers genres from saved games and the
+user does not edit them by hand; appearance has nothing to switch, because `:core:designsystem` is
+dark-only by design. Do not add a row before the thing it configures exists.
 
 ## Open items in the shipped Discover feed
 
@@ -24,15 +24,10 @@ genres from saved games and the user does not edit them by hand; appearance has 
   be squeezed out by hyped ones sharing a substring. If that becomes annoying, sort by name-match quality
   rather than raising the cap.
 
-## Phase 3 — Release notifications
-
-Opt-in per game ("Notify me"), driven by the same refreshed dates. This is the payoff Radar was built
-for — a timeline the user must open is worth far less than a reminder that arrives on release day.
-
 ## Phase 4 — Suggestions lane in Radar
 
 Fold the taste profile into the timeline: saved games get the visual accent, suggestions sit in a minor
-tone alongside them. Only after Phase 3 is real.
+tone alongside them.
 
 ## Decisions that would be expensive to reverse
 

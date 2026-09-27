@@ -23,7 +23,8 @@ internal data class RadarEntryUiModel(
     val platform: PlatformTileUiModel,
     val dateLabel: UiText,
     val dateSubLabel: UiText? = null,
-    val dateStyle: DateLabelStyle = DateLabelStyle.PLAIN
+    val dateStyle: DateLabelStyle = DateLabelStyle.PLAIN,
+    val isNotificationEnabled: Boolean = false
 ) {
     internal enum class DateLabelStyle { PLAIN, THIS_WEEK, PILL_ACCENT, PILL_MUTED }
 

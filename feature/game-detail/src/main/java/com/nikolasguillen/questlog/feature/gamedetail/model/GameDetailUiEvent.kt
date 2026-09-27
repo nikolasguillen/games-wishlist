@@ -16,4 +16,5 @@ internal sealed interface GameDetailUiEvent {
     data class NavigateToGame(val id: Int) : GameDetailUiEvent
     data object TranslateDescription : GameDetailUiEvent
     data object ShowOriginalDescription : GameDetailUiEvent
+    data object ToggleReleaseNotification : GameDetailUiEvent
 }

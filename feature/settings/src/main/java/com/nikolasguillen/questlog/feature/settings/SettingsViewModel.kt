@@ -5,11 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.nikolasguillen.questlog.core.common.AppVersionProvider
 import com.nikolasguillen.questlog.core.common.NetworkStatusProvider
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatformsUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.DownloadTranslationModelUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.GetTranslationModelStatusUseCase
 import com.nikolasguillen.questlog.core.model.TranslationModelDownload
 import com.nikolasguillen.questlog.core.model.TranslationModelStatus
 import com.nikolasguillen.questlog.feature.settings.mapper.toSummaryUiText
+import com.nikolasguillen.questlog.feature.settings.model.NotificationPermissionRowState
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEffect
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiState
@@ -30,6 +32,7 @@ class SettingsViewModel @Inject constructor(
     private val getSelectedPlatformsUseCase: GetSelectedPlatformsUseCase,
     private val downloadTranslationModelUseCase: DownloadTranslationModelUseCase,
     private val getTranslationModelStatusUseCase: GetTranslationModelStatusUseCase,
+    private val getReleaseNotificationGameIdsUseCase: GetReleaseNotificationGameIdsUseCase,
     private val networkStatusProvider: NetworkStatusProvider
 ) : ViewModel() {
 
@@ -42,6 +45,7 @@ class SettingsViewModel @Inject constructor(
     init {
         observeOwnedPlatforms()
         loadTranslationModelStatus()
+        observeReleaseNotificationCount()
     }
 
     internal fun onEvent(event: SettingsUiEvent) {
@@ -49,6 +53,25 @@ class SettingsViewModel @Inject constructor(
             SettingsUiEvent.DownloadTranslationModel -> requestTranslationModelDownload()
             SettingsUiEvent.ConfirmDownloadTranslationModel ->
                 viewModelScope.launch { observeTranslationModelDownload() }
+
+            is SettingsUiEvent.NotificationPermissionChanged -> {
+                val rowState = if (event.canDeliver) {
+                    NotificationPermissionRowState.Granted
+                } else {
+                    NotificationPermissionRowState.Blocked
+                }
+                _uiState.update { it.copy(notificationPermission = rowState) }
+            }
+        }
+    }
+
+    // Collected for the ViewModel's whole life, the same way observeOwnedPlatforms is: this screen has
+    // no confirm step for the count, it just tracks whatever is currently opted in.
+    private fun observeReleaseNotificationCount() {
+        viewModelScope.launch {
+            getReleaseNotificationGameIdsUseCase().collect { ids ->
+                _uiState.update { it.copy(releaseNotificationCount = ids.size) }
+            }
         }
     }
 

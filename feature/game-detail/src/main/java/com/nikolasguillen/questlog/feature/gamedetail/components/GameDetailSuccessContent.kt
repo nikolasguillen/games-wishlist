@@ -13,6 +13,11 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.outlined.NotificationsNone
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,7 +27,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -36,6 +43,7 @@ import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiEvent
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiModel
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
+import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
 /**
  * The full success content of the Game Detail screen, including the immersive layout and floating action pill.
@@ -69,6 +77,27 @@ internal fun GameDetailSuccessContent(
                     pagerState = pagerState,
                     onImageClick = { fullScreenImageIndex = it }
                 )
+            },
+            actions = { alpha ->
+                if (game.isNotificationAvailable) {
+                    IconButton(onClick = { onEvent(GameDetailUiEvent.ToggleReleaseNotification) }) {
+                        Icon(
+                            imageVector = if (game.isNotificationEnabled) {
+                                Icons.Filled.Notifications
+                            } else {
+                                Icons.Outlined.NotificationsNone
+                            },
+                            contentDescription = stringResource(
+                                if (game.isNotificationEnabled) {
+                                    CoreUiR.string.disable_notification_content_description
+                                } else {
+                                    CoreUiR.string.enable_notification_content_description
+                                }
+                            ),
+                            tint = if (alpha > 0.5f) MaterialTheme.colorScheme.onSurface else Color.White
+                        )
+                    }
+                }
             }
         ) { innerPadding ->
             GameDetailSheetContent(

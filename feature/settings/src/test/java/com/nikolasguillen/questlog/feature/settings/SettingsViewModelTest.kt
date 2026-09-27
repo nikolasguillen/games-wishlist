@@ -3,10 +3,12 @@ package com.nikolasguillen.questlog.feature.settings
 import com.nikolasguillen.questlog.core.common.AppVersionProvider
 import com.nikolasguillen.questlog.core.common.NetworkStatusProvider
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatformsUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.DownloadTranslationModelUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.GetTranslationModelStatusUseCase
 import com.nikolasguillen.questlog.core.model.TranslationModelDownload
 import com.nikolasguillen.questlog.core.model.TranslationModelStatus
+import com.nikolasguillen.questlog.feature.settings.model.NotificationPermissionRowState
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEffect
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiState
@@ -53,6 +55,7 @@ class SettingsViewModelTest {
     private val getSelectedPlatformsUseCase = mockk<GetSelectedPlatformsUseCase>()
     private val downloadTranslationModelUseCase = mockk<DownloadTranslationModelUseCase>()
     private val getTranslationModelStatusUseCase = mockk<GetTranslationModelStatusUseCase>()
+    private val getReleaseNotificationGameIdsUseCase = mockk<GetReleaseNotificationGameIdsUseCase>()
     private val networkStatusProvider =
         mockk<NetworkStatusProvider> { every { isUnmeteredNetworkAvailable } returns true }
 
@@ -60,6 +63,7 @@ class SettingsViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         every { getSelectedPlatformsUseCase() } returns flowOf(emptyList())
+        every { getReleaseNotificationGameIdsUseCase() } returns flowOf(emptySet())
     }
 
     @After
@@ -72,6 +76,7 @@ class SettingsViewModelTest {
         getSelectedPlatformsUseCase = getSelectedPlatformsUseCase,
         downloadTranslationModelUseCase = downloadTranslationModelUseCase,
         getTranslationModelStatusUseCase = getTranslationModelStatusUseCase,
+        getReleaseNotificationGameIdsUseCase = getReleaseNotificationGameIdsUseCase,
         networkStatusProvider = networkStatusProvider
     )
 
@@ -283,6 +288,53 @@ class SettingsViewModelTest {
 
         assertEquals(TranslationModelRowState.Ready, states.last().translationModel)
         coVerify(exactly = 1) { downloadTranslationModelUseCase() }
+        job.cancel()
+    }
+
+    @Test
+    fun `the opted-in count reaches releaseNotificationCount`() = runTest {
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.UNSUPPORTED
+        every { getReleaseNotificationGameIdsUseCase() } returns flowOf(setOf(1, 2, 3))
+
+        val viewModel = viewModel()
+        val states = mutableListOf<SettingsUiState>()
+        val job = collectStates(viewModel, states)
+        advanceUntilIdle()
+
+        assertEquals(3, states.last().releaseNotificationCount)
+        job.cancel()
+    }
+
+    @Test
+    fun `NotificationPermissionChanged with canDeliver false sets Blocked`() = runTest {
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.UNSUPPORTED
+
+        val viewModel = viewModel()
+        val states = mutableListOf<SettingsUiState>()
+        val job = collectStates(viewModel, states)
+        advanceUntilIdle()
+
+        viewModel.onEvent(SettingsUiEvent.NotificationPermissionChanged(canDeliver = false, isPermanentlyDenied = false))
+        advanceUntilIdle()
+
+        assertEquals(NotificationPermissionRowState.Blocked, states.last().notificationPermission)
+        job.cancel()
+    }
+
+    @Test
+    fun `NotificationPermissionChanged with canDeliver true sets Granted`() = runTest {
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.UNSUPPORTED
+
+        val viewModel = viewModel()
+        val states = mutableListOf<SettingsUiState>()
+        val job = collectStates(viewModel, states)
+        advanceUntilIdle()
+
+        viewModel.onEvent(SettingsUiEvent.NotificationPermissionChanged(canDeliver = false, isPermanentlyDenied = false))
+        viewModel.onEvent(SettingsUiEvent.NotificationPermissionChanged(canDeliver = true, isPermanentlyDenied = false))
+        advanceUntilIdle()
+
+        assertEquals(NotificationPermissionRowState.Granted, states.last().notificationPermission)
         job.cancel()
     }
 }

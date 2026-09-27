@@ -1,5 +1,7 @@
 package com.nikolasguillen.questlog.feature.settings
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.outlined.Info
@@ -32,6 +36,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,10 +49,12 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.model.UiText
+import com.nikolasguillen.questlog.core.ui.util.rememberNotificationPermissionState
 import com.nikolasguillen.questlog.feature.settings.components.DownloadTranslationModelDialog
 import com.nikolasguillen.questlog.feature.settings.components.SettingsGroup
 import com.nikolasguillen.questlog.feature.settings.components.SettingsRow
 import com.nikolasguillen.questlog.feature.settings.components.WifiRequiredDialog
+import com.nikolasguillen.questlog.feature.settings.model.NotificationPermissionRowState
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEffect
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiState
@@ -61,10 +69,12 @@ fun SettingsScreen(
     viewModel: SettingsViewModel,
     onBackClick: () -> Unit,
     onOwnedPlatformsClick: () -> Unit,
+    onReleaseNotificationsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val permissionState = rememberNotificationPermissionState()
     var showWifiRequiredDialog by remember { mutableStateOf(false) }
     var showDownloadConfirmDialog by remember { mutableStateOf(false) }
 
@@ -79,11 +89,21 @@ fun SettingsScreen(
         }
     }
 
+    LaunchedEffect(permissionState.canDeliver, permissionState.isPermanentlyDenied) {
+        viewModel.onEvent(
+            SettingsUiEvent.NotificationPermissionChanged(
+                canDeliver = permissionState.canDeliver,
+                isPermanentlyDenied = permissionState.isPermanentlyDenied
+            )
+        )
+    }
+
     SettingsContent(
         state = state,
         onEvent = viewModel::onEvent,
         onBackClick = onBackClick,
         onOwnedPlatformsClick = onOwnedPlatformsClick,
+        onReleaseNotificationsClick = onReleaseNotificationsClick,
         modifier = modifier
     )
 
@@ -116,8 +136,10 @@ internal fun SettingsContent(
     onEvent: (SettingsUiEvent) -> Unit,
     onBackClick: () -> Unit,
     onOwnedPlatformsClick: () -> Unit,
+    onReleaseNotificationsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     Scaffold(
         topBar = {
             TopAppBar(
@@ -160,6 +182,35 @@ internal fun SettingsContent(
                     subtitle = state.ownedPlatformsSummary?.asString(),
                     onClick = onOwnedPlatformsClick
                 )
+            }
+
+            SettingsGroup(title = stringResource(R.string.settings_group_notifications)) {
+                SettingsRow(
+                    icon = Icons.Default.Notifications,
+                    title = stringResource(R.string.settings_release_notifications),
+                    subtitle = if (state.releaseNotificationCount > 0) {
+                        pluralStringResource(
+                            R.plurals.settings_release_notifications_count,
+                            state.releaseNotificationCount,
+                            state.releaseNotificationCount
+                        )
+                    } else {
+                        stringResource(R.string.settings_release_notifications_none)
+                    },
+                    onClick = onReleaseNotificationsClick
+                )
+                if (state.notificationPermission is NotificationPermissionRowState.Blocked) {
+                    SettingsRow(
+                        icon = Icons.Default.NotificationsOff,
+                        title = stringResource(R.string.settings_notification_permission_blocked),
+                        onClick = {
+                            context.startActivity(
+                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                    .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                            )
+                        }
+                    )
+                }
             }
 
             SettingsGroup(title = stringResource(R.string.settings_group_app)) {
@@ -261,7 +312,8 @@ private fun SettingsContentPreview() {
             ),
             onEvent = {},
             onBackClick = {},
-            onOwnedPlatformsClick = {}
+            onOwnedPlatformsClick = {},
+            onReleaseNotificationsClick = {}
         )
     }
 }
@@ -277,7 +329,8 @@ private fun SettingsContentNoFilterPreview() {
             ),
             onEvent = {},
             onBackClick = {},
-            onOwnedPlatformsClick = {}
+            onOwnedPlatformsClick = {},
+            onReleaseNotificationsClick = {}
         )
     }
 }
@@ -294,7 +347,8 @@ private fun SettingsContentTranslationDownloadablePreview() {
             ),
             onEvent = {},
             onBackClick = {},
-            onOwnedPlatformsClick = {}
+            onOwnedPlatformsClick = {},
+            onReleaseNotificationsClick = {}
         )
     }
 }
@@ -311,7 +365,8 @@ private fun SettingsContentTranslationDownloadingPreview() {
             ),
             onEvent = {},
             onBackClick = {},
-            onOwnedPlatformsClick = {}
+            onOwnedPlatformsClick = {},
+            onReleaseNotificationsClick = {}
         )
     }
 }
@@ -328,7 +383,8 @@ private fun SettingsContentTranslationReadyPreview() {
             ),
             onEvent = {},
             onBackClick = {},
-            onOwnedPlatformsClick = {}
+            onOwnedPlatformsClick = {},
+            onReleaseNotificationsClick = {}
         )
     }
 }
@@ -345,7 +401,8 @@ private fun SettingsContentTranslationFailedPreview() {
             ),
             onEvent = {},
             onBackClick = {},
-            onOwnedPlatformsClick = {}
+            onOwnedPlatformsClick = {},
+            onReleaseNotificationsClick = {}
         )
     }
 }

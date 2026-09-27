@@ -114,6 +114,28 @@ interface GameRepository {
      */
     suspend fun setOwnedPlatforms(platformIds: Set<Int>)
 
+    /** The ids of games with a release reminder enabled, for cheap membership checks against a game list. */
+    fun getReleaseNotificationGameIds(): Flow<Set<Int>>
+
+    /**
+     * The saved games with a release reminder enabled, most recently opted-in first. Filtered to the
+     * saved set, so a game that stops qualifying as saved leaves this list even while its opt-in row
+     * still exists.
+     */
+    fun getGamesWithReleaseNotifications(): Flow<List<Game>>
+
+    /** Turns the reminder for [gameId] on (inserting the opt-in) or off (deleting it). */
+    suspend fun setReleaseNotificationEnabled(gameId: Int, enabled: Boolean)
+
+    /** Records that a reminder was delivered for [releaseDate], so the same date is never notified twice. */
+    suspend fun markReleaseNotificationDelivered(gameId: Int, releaseDate: Long)
+
+    /**
+     * The release date a reminder was already delivered for [gameId], or `null` when none has been (or
+     * [gameId] is not opted in).
+     */
+    suspend fun getReleaseNotificationDeliveredDate(gameId: Int): Long?
+
     fun getAllLists(): Flow<List<WishlistList>>
     /** Emits `null` when no list with [listId] exists (e.g. it was deleted). */
     fun observeListById(listId: Long): Flow<WishlistList?>

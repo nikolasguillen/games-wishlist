@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -15,6 +18,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.ui.component.ListSelectorSheet
+import com.nikolasguillen.questlog.core.ui.component.NotificationPermissionDeniedDialog
+import com.nikolasguillen.questlog.core.ui.util.rememberNotificationPermissionState
 import com.nikolasguillen.questlog.feature.gamedetail.components.GameDetailMainContent
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailContentState
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiEffect
@@ -34,6 +39,11 @@ fun GameDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val permissionState = rememberNotificationPermissionState()
+    var showPermissionDeniedDialog by remember { mutableStateOf(false) }
+    // Set only while an opt-in-triggered request is in flight, so the dialog reacts to that specific
+    // request's outcome instead of nagging on every screen visit while notifications happen to be off.
+    var awaitingPermissionResult by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel, lifecycle) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -50,9 +60,23 @@ fun GameDetailScreen(
                     is GameDetailUiEffect.NavigateToGame -> {
                         onGameClick(effect.id)
                     }
+
+                    GameDetailUiEffect.RequestNotificationPermission -> {
+                        if (!permissionState.canDeliver) {
+                            awaitingPermissionResult = true
+                            permissionState.request()
+                        }
+                    }
                 }
             }
         }
+    }
+
+    LaunchedEffect(permissionState.canDeliver, permissionState.isPermanentlyDenied) {
+        if (awaitingPermissionResult && !permissionState.canDeliver) {
+            showPermissionDeniedDialog = true
+        }
+        awaitingPermissionResult = false
     }
 
     GameDetailContent(
@@ -61,6 +85,10 @@ fun GameDetailScreen(
         onBackClick = onBackClick,
         modifier = modifier
     )
+
+    if (showPermissionDeniedDialog) {
+        NotificationPermissionDeniedDialog(onDismiss = { showPermissionDeniedDialog = false })
+    }
 }
 
 @Composable
