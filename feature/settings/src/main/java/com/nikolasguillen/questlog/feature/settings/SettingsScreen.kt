@@ -1,7 +1,5 @@
 package com.nikolasguillen.questlog.feature.settings
 
-import android.content.Intent
-import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -104,6 +101,7 @@ fun SettingsScreen(
         onBackClick = onBackClick,
         onOwnedPlatformsClick = onOwnedPlatformsClick,
         onReleaseNotificationsClick = onReleaseNotificationsClick,
+        onFixNotificationPermissionClick = permissionState.request,
         modifier = modifier
     )
 
@@ -137,9 +135,9 @@ internal fun SettingsContent(
     onBackClick: () -> Unit,
     onOwnedPlatformsClick: () -> Unit,
     onReleaseNotificationsClick: () -> Unit,
+    onFixNotificationPermissionClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     Scaffold(
         topBar = {
             TopAppBar(
@@ -203,12 +201,7 @@ internal fun SettingsContent(
                     SettingsRow(
                         icon = Icons.Default.NotificationsOff,
                         title = stringResource(R.string.settings_notification_permission_blocked),
-                        onClick = {
-                            context.startActivity(
-                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                                    .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                            )
-                        }
+                        onClick = onFixNotificationPermissionClick
                     )
                 }
             }
@@ -313,7 +306,8 @@ private fun SettingsContentPreview() {
             onEvent = {},
             onBackClick = {},
             onOwnedPlatformsClick = {},
-            onReleaseNotificationsClick = {}
+            onReleaseNotificationsClick = {},
+            onFixNotificationPermissionClick = {}
         )
     }
 }
@@ -330,7 +324,8 @@ private fun SettingsContentNoFilterPreview() {
             onEvent = {},
             onBackClick = {},
             onOwnedPlatformsClick = {},
-            onReleaseNotificationsClick = {}
+            onReleaseNotificationsClick = {},
+            onFixNotificationPermissionClick = {}
         )
     }
 }
@@ -348,7 +343,8 @@ private fun SettingsContentTranslationDownloadablePreview() {
             onEvent = {},
             onBackClick = {},
             onOwnedPlatformsClick = {},
-            onReleaseNotificationsClick = {}
+            onReleaseNotificationsClick = {},
+            onFixNotificationPermissionClick = {}
         )
     }
 }
@@ -366,7 +362,8 @@ private fun SettingsContentTranslationDownloadingPreview() {
             onEvent = {},
             onBackClick = {},
             onOwnedPlatformsClick = {},
-            onReleaseNotificationsClick = {}
+            onReleaseNotificationsClick = {},
+            onFixNotificationPermissionClick = {}
         )
     }
 }
@@ -384,7 +381,8 @@ private fun SettingsContentTranslationReadyPreview() {
             onEvent = {},
             onBackClick = {},
             onOwnedPlatformsClick = {},
-            onReleaseNotificationsClick = {}
+            onReleaseNotificationsClick = {},
+            onFixNotificationPermissionClick = {}
         )
     }
 }
@@ -402,7 +400,8 @@ private fun SettingsContentTranslationFailedPreview() {
             onEvent = {},
             onBackClick = {},
             onOwnedPlatformsClick = {},
-            onReleaseNotificationsClick = {}
+            onReleaseNotificationsClick = {},
+            onFixNotificationPermissionClick = {}
         )
     }
 }

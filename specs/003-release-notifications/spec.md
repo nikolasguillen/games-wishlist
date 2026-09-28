@@ -194,3 +194,7 @@ Settings surfaces that state with a way to resolve it.
 - Unsaving a game does not synchronously cancel its scheduled work or delete its opt-in row — that
   happens on the next periodic reconcile — but no notification is ever delivered for it in the meantime,
   since delivery re-verifies the saved state at fire time.
+- Turning "Notify me" on or off from Radar or the detail screen shows a brief confirmation naming the game
+  (e.g. a snackbar). This is an implementation-level UX affordance, not a testable requirement on its own
+  — FR-001/FR-002/FR-003 already require the opt-in state itself to be recorded and consistent; the
+  confirmation is not a separate FR/SC and its absence would not fail any acceptance scenario above.

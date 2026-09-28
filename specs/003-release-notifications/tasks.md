@@ -724,3 +724,36 @@ changed and closes the one gap the redesign introduced.
   `RadarScreen.kt` does — `permissionState.request()` when not already granted, then
   `NotificationPermissionDeniedDialog` if still denied afterward. Add a test to
   `ReleaseNotificationsViewModelTest.kt` covering: enabling emits the effect, disabling does not.
+
+---
+
+## Phase 8: Convergence
+
+**Purpose**: A second convergence pass over the now-redesigned Settings screen (Phase 7) plus the
+Radar/Game-Detail confirmation snackbar added directly in this session (not part of any prior phase).
+
+- [X] T076 Give the Settings "Notifications" permission-blocked row an in-app grant path before falling
+  back to system settings, per US3/AC2 and FR-011 (partial): in
+  `feature/settings/src/main/java/.../feature/settings/SettingsScreen.kt`, the permission-blocked
+  `SettingsRow` inside `SettingsContent`'s `settings_group_notifications` group always launches
+  `Settings.ACTION_APP_NOTIFICATION_SETTINGS` on click, regardless of whether the permission has been
+  permanently denied. FR-011 and US3/AC2 both describe two distinct paths — "a way to grant it, **or** to
+  reach the system settings if it has been permanently denied" — but the current row only ever does the
+  latter. Thread the existing `NotificationPermissionState` (`rememberNotificationPermissionState()`,
+  already created in `SettingsScreen`) into `SettingsContent` (or keep the `onClick` lambda built in
+  `SettingsScreen` and passed down, whichever keeps `SettingsContent` stateless per `feature/CLAUDE.md`);
+  call `permissionState.request()` on click, falling through to the direct
+  `Settings.ACTION_APP_NOTIFICATION_SETTINGS` intent only when `permissionState.isPermanentlyDenied` is
+  true — mirroring how `RadarScreen.kt`, `GameDetailScreen.kt` and `ReleaseNotificationsScreen.kt` already
+  gate their own permission-request effects on this same flag. No `SettingsViewModel` change should be
+  needed since `permissionState` is already read at the screen level; add/adjust a test only if the
+  behavior moves into the ViewModel.
+- [X] T077 Record the Radar/Game-Detail toggle confirmation snackbar in spec.md, or note it as
+  intentionally out of scope, per spec.md (unrequested): `RadarUiEffect.ShowSnackbar` and
+  `GameDetailUiEffect.ShowSnackbar` (added to `RadarViewModel.kt`/`GameDetailViewModel.kt` directly in this
+  session, outside the spec-kit flow) show a "You'll be notified when %1$s releases" /
+  "Reminder turned off for %1$s" snackbar on every notification toggle on those two surfaces. No FR, SC or
+  acceptance scenario in spec.md currently describes this confirmation feedback. Either fold a line for it
+  into FR-001/FR-002's acceptance scenarios (or a new Assumption), or add an Assumption stating it is a
+  deliberate implementation-level UX affordance not required by the spec — so a future reader of spec.md
+  does not wonder where the behavior came from when reading the code.

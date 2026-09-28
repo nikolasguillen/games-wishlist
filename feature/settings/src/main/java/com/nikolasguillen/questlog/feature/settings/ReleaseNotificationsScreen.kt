@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -56,6 +57,13 @@ fun ReleaseNotificationsScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val permissionState = rememberNotificationPermissionState()
+    // LaunchedEffect(viewModel, lifecycle) below never restarts once launched (viewModel/lifecycle are
+    // stable for the screen's whole life), so a plain `permissionState` capture would freeze it at
+    // whatever canDeliver/isPermanentlyDenied were on first composition -- e.g. staying "permanently
+    // denied" forever even after the user grants the permission from system Settings and comes back.
+    // rememberUpdatedState keeps the reference the effect closes over live: reading `.value` inside the
+    // coroutine always sees the latest permission state instead of the one captured at launch.
+    val latestPermissionState = rememberUpdatedState(permissionState)
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     var showPermissionDeniedDialog by remember { mutableStateOf(false) }
     // Set only while an opt-in-triggered request is in flight, so the dialog reacts to that specific
@@ -67,9 +75,9 @@ fun ReleaseNotificationsScreen(
             viewModel.uiEffect.collect { effect ->
                 when (effect) {
                     ReleaseNotificationsUiEffect.RequestNotificationPermission -> {
-                        if (!permissionState.canDeliver) {
+                        if (!latestPermissionState.value.canDeliver) {
                             awaitingPermissionResult = true
-                            permissionState.request()
+                            latestPermissionState.value.request()
                         }
                     }
                 }
