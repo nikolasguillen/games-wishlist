@@ -54,12 +54,6 @@ post.
 /** The ids of games with a release reminder enabled, for cheap membership checks against a game list. */
 fun getReleaseNotificationGameIds(): Flow<Set<Int>>
 
-/**
- * The saved games with a release reminder enabled. Filtered to the saved set, so a game that stops
- * qualifying as saved leaves this list even while its opt-in row still exists.
- */
-fun getGamesWithReleaseNotifications(): Flow<List<Game>>
-
 /** Turns the reminder for [gameId] on (inserting the opt-in) or off (deleting it). */
 suspend fun setReleaseNotificationEnabled(gameId: Int, enabled: Boolean)
 
@@ -97,13 +91,16 @@ operator fun invoke(): Flow<Set<Int>>
 
 Straight pass-through, for Radar and game-detail to fold into their existing state pipelines.
 
-### `GetGamesWithReleaseNotificationsUseCase`
+### `GetSavedGamesUseCase`
 
 ```kotlin
 operator fun invoke(): Flow<List<Game>>
 ```
 
-For the Settings management sub-screen.
+`core/domain/usecase/` (not the `notification/` subpackage — this is a plain pass-through over
+`GameRepository.getSavedGames()`, not specific to this feature). Used by the Settings management screen,
+combined there with [GetReleaseNotificationGameIdsUseCase] to know which of *every* saved game currently
+has its reminder on — the list is every saved game, not just the opted-in ones (FR-010).
 
 ### `SyncReleaseNotificationsUseCase`
 

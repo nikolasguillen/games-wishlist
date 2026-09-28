@@ -16,8 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.NotificationsNone
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,7 +25,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,6 +34,7 @@ import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.FullScreenImageViewer
 import com.nikolasguillen.questlog.core.ui.component.ImmersiveDetailLayout
+import com.nikolasguillen.questlog.core.ui.component.ImmersiveDetailLayoutDefaults
 import com.nikolasguillen.questlog.core.ui.component.StatusBarProtection
 import com.nikolasguillen.questlog.feature.gamedetail.model.DescriptionTranslationState
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiEvent
@@ -80,23 +78,22 @@ internal fun GameDetailSuccessContent(
             },
             actions = { alpha ->
                 if (game.isNotificationAvailable) {
-                    IconButton(onClick = { onEvent(GameDetailUiEvent.ToggleReleaseNotification) }) {
-                        Icon(
-                            imageVector = if (game.isNotificationEnabled) {
-                                Icons.Filled.Notifications
+                    ImmersiveDetailLayoutDefaults.ActionIconButton(
+                        onClick = { onEvent(GameDetailUiEvent.ToggleReleaseNotification) },
+                        icon = if (game.isNotificationEnabled) {
+                            Icons.Filled.Notifications
+                        } else {
+                            Icons.Outlined.NotificationsNone
+                        },
+                        contentDescription = stringResource(
+                            if (game.isNotificationEnabled) {
+                                CoreUiR.string.disable_notification_content_description
                             } else {
-                                Icons.Outlined.NotificationsNone
-                            },
-                            contentDescription = stringResource(
-                                if (game.isNotificationEnabled) {
-                                    CoreUiR.string.disable_notification_content_description
-                                } else {
-                                    CoreUiR.string.enable_notification_content_description
-                                }
-                            ),
-                            tint = if (alpha > 0.5f) MaterialTheme.colorScheme.onSurface else Color.White
-                        )
-                    }
+                                CoreUiR.string.enable_notification_content_description
+                            }
+                        ),
+                        alpha = alpha
+                    )
                 }
             }
         ) { innerPadding ->

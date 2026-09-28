@@ -86,12 +86,6 @@ fun SearchScreen(
             viewModel.uiEffect.collect { effect ->
                 when (effect) {
                     is SearchUiEffect.ShowSnackbar -> {
-                        // showSnackbar suspends until its snackbar is dismissed, so it must not run on
-                        // this collecting coroutine -- otherwise a fast second toggle sits buffered in
-                        // the channel and its dismiss() never gets a chance to run until the first
-                        // snackbar times out on its own. Launched on its own, each new effect can
-                        // dismiss whatever is still showing (including a previous launch still waiting
-                        // its turn) the instant it arrives.
                         launch {
                             snackbarHostState.currentSnackbarData?.dismiss()
                             snackbarHostState.showSnackbar(effect.message.asString(context))

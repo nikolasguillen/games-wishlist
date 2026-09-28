@@ -8,4 +8,6 @@ internal sealed interface GameDetailUiEffect {
 
     /** A release-notification opt-in was just turned on; ask for permission if it is not already granted. */
     data object RequestNotificationPermission : GameDetailUiEffect
+
+    data class ShowSnackbar(val message: UiText) : GameDetailUiEffect
 }

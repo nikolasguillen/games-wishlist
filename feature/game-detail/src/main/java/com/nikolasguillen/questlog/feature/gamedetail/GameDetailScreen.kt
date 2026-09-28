@@ -3,12 +3,17 @@ package com.nikolasguillen.questlog.feature.gamedetail
 import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -17,6 +22,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.ListSelectorSheet
 import com.nikolasguillen.questlog.core.ui.component.NotificationPermissionDeniedDialog
 import com.nikolasguillen.questlog.core.ui.util.rememberNotificationPermissionState
@@ -26,6 +32,7 @@ import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiEffect
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiEvent
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiModel
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiState
+import kotlinx.coroutines.launch
 
 // viewModel is the same instance for the route's whole lifetime, so ref-comparison skips correctly.
 @Suppress("ParamsComparedByRef")
@@ -40,6 +47,7 @@ fun GameDetailScreen(
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val permissionState = rememberNotificationPermissionState()
+    val snackbarHostState = remember { SnackbarHostState() }
     var showPermissionDeniedDialog by remember { mutableStateOf(false) }
     // Set only while an opt-in-triggered request is in flight, so the dialog reacts to that specific
     // request's outcome instead of nagging on every screen visit while notifications happen to be off.
@@ -67,6 +75,13 @@ fun GameDetailScreen(
                             permissionState.request()
                         }
                     }
+
+                    is GameDetailUiEffect.ShowSnackbar -> {
+                        launch {
+                            snackbarHostState.currentSnackbarData?.dismiss()
+                            snackbarHostState.showSnackbar(effect.message.asString(context))
+                        }
+                    }
                 }
             }
         }
@@ -83,6 +98,7 @@ fun GameDetailScreen(
         uiState = uiState,
         onEvent = viewModel::onEvent,
         onBackClick = onBackClick,
+        snackbarHostState = snackbarHostState,
         modifier = modifier
     )
 
@@ -96,7 +112,8 @@ internal fun GameDetailContent(
     uiState: GameDetailUiState,
     onEvent: (GameDetailUiEvent) -> Unit,
     onBackClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         GameDetailMainContent(
@@ -116,6 +133,13 @@ internal fun GameDetailContent(
                 }
             )
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = MaterialTheme.spacing.extraLarge)
+        )
     }
 }
 

@@ -142,9 +142,15 @@ SettingsGroup(title = stringResource(R.string.settings_group_notifications)) {
   plus one `entryProvider` branch in `QuestLogNavDisplay.kt` using `hiltViewModel<ReleaseNotificationsViewModel>()`
   (no arguments, so standard Hilt injection, not assisted).
 - Content: `ReleaseNotificationsContentState` with `Loading` / `Empty` / `Success(List<ReleaseNotificationUiModel>)`.
-  Each row shows the game's cover, name, and the date the reminder is set for — or a "no date yet" label for
-  an opt-in whose date is still imprecise, which is how FR-013 becomes visible to the user.
-- Turning a row off removes it from the list, since the list *is* the set of opt-ins.
+  `Success` lists **every saved game**, not only the opted-in ones — `GetSavedGamesUseCase` combined with
+  `GetReleaseNotificationGameIdsUseCase` in the ViewModel. `Empty` means no saved games at all, which is
+  rare and distinct from "no reminders enabled yet". Each row shows the game's cover, name, its own
+  `Switch` reflecting `isEnabled`, and the date the reminder is set for — or a "no date yet" label for a
+  game whose date is still imprecise, which is how FR-013 becomes visible to the user.
+- Flipping a row's `Switch` dispatches `ReleaseNotificationsUiEvent.SetEnabled(gameId, enabled)` directly —
+  no confirmation dialog, because the row never leaves the list either way (FR-010). This is also why the
+  list is *every* saved game rather than a filtered "currently enabled" one: a filtered list would make a
+  toggle-off indistinguishable from a removal, which is what would have needed a confirmation.
 - Reuses `GameListRow` for the rows and `EmptyPage` for the empty state.
 
 ## Deep link

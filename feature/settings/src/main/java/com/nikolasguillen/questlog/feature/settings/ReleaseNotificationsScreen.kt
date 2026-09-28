@@ -18,21 +18,30 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.EmptyPage
 import com.nikolasguillen.questlog.core.ui.component.GameListRow
 import com.nikolasguillen.questlog.core.ui.component.LoadingPage
+import com.nikolasguillen.questlog.core.ui.component.NotificationPermissionDeniedDialog
 import com.nikolasguillen.questlog.core.ui.model.UiText
+import com.nikolasguillen.questlog.core.ui.util.rememberNotificationPermissionState
 import com.nikolasguillen.questlog.feature.settings.model.ReleaseNotificationUiModel
 import com.nikolasguillen.questlog.feature.settings.model.ReleaseNotificationsContentState
+import com.nikolasguillen.questlog.feature.settings.model.ReleaseNotificationsUiEffect
 import com.nikolasguillen.questlog.feature.settings.model.ReleaseNotificationsUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.ReleaseNotificationsUiState
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
@@ -46,6 +55,34 @@ fun ReleaseNotificationsScreen(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val permissionState = rememberNotificationPermissionState()
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    var showPermissionDeniedDialog by remember { mutableStateOf(false) }
+    // Set only while an opt-in-triggered request is in flight, so the dialog reacts to that specific
+    // request's outcome instead of nagging on every screen visit while notifications happen to be off.
+    var awaitingPermissionResult by remember { mutableStateOf(false) }
+
+    LaunchedEffect(viewModel, lifecycle) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.uiEffect.collect { effect ->
+                when (effect) {
+                    ReleaseNotificationsUiEffect.RequestNotificationPermission -> {
+                        if (!permissionState.canDeliver) {
+                            awaitingPermissionResult = true
+                            permissionState.request()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(permissionState.canDeliver, permissionState.isPermanentlyDenied) {
+        if (awaitingPermissionResult && !permissionState.canDeliver) {
+            showPermissionDeniedDialog = true
+        }
+        awaitingPermissionResult = false
+    }
 
     ReleaseNotificationsContent(
         state = state,
@@ -53,9 +90,17 @@ fun ReleaseNotificationsScreen(
         onBackClick = onBackClick,
         modifier = modifier
     )
+
+    if (showPermissionDeniedDialog) {
+        NotificationPermissionDeniedDialog(onDismiss = { showPermissionDeniedDialog = false })
+    }
 }
 
-/** Lists every saved game with "Notify me" on, most recently enabled first, each with a way to turn it off. */
+/**
+ * Lists every saved game, each with its own release-reminder [Switch] -- a third opt-in surface
+ * alongside Radar and the detail screen. Flipping a row never removes it from this list, so there is
+ * nothing to confirm before doing it.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ReleaseNotificationsContent(
@@ -103,7 +148,10 @@ internal fun ReleaseNotificationsContent(
 
             is ReleaseNotificationsContentState.Success -> LazyColumn(modifier = contentModifier.fillMaxWidth()) {
                 items(contentState.games, key = { it.gameId }) { game ->
-                    ReleaseNotificationRow(game = game, onToggleOff = { onEvent(ReleaseNotificationsUiEvent.ToggleOff(game.gameId)) })
+                    ReleaseNotificationRow(
+                        game = game,
+                        onSetEnabled = { enabled -> onEvent(ReleaseNotificationsUiEvent.SetEnabled(game.gameId, enabled)) }
+                    )
                 }
             }
         }
@@ -111,7 +159,7 @@ internal fun ReleaseNotificationsContent(
 }
 
 @Composable
-private fun ReleaseNotificationRow(game: ReleaseNotificationUiModel, onToggleOff: () -> Unit) {
+private fun ReleaseNotificationRow(game: ReleaseNotificationUiModel, onSetEnabled: (Boolean) -> Unit) {
     GameListRow(
         coverImage = game.coverImage,
         title = game.title,
@@ -119,8 +167,8 @@ private fun ReleaseNotificationRow(game: ReleaseNotificationUiModel, onToggleOff
         onClick = {}
     ) {
         Switch(
-            checked = true,
-            onCheckedChange = { onToggleOff() }
+            checked = game.isEnabled,
+            onCheckedChange = onSetEnabled
         )
     }
 }
@@ -137,13 +185,15 @@ private fun ReleaseNotificationsContentSuccessPreview() {
                             gameId = 1,
                             coverImage = null,
                             title = "Hollow Knight: Silksong",
-                            dateLabel = UiText.DynamicString("Sep 25, 2026")
+                            dateLabel = UiText.DynamicString("Sep 25, 2026"),
+                            isEnabled = true
                         ),
                         ReleaseNotificationUiModel(
                             gameId = 2,
                             coverImage = null,
                             title = "Grand Theft Auto VI",
-                            dateLabel = UiText.StringResource(R.string.release_notifications_no_date_yet)
+                            dateLabel = UiText.StringResource(R.string.release_notifications_no_date_yet),
+                            isEnabled = false
                         )
                     )
                 )

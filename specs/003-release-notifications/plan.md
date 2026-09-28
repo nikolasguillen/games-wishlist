@@ -105,9 +105,9 @@ core/domain/src/main/java/.../core/domain/
 ├── notification/ReleaseNotifier.kt              # NEW  port: post/ensure channel
 ├── usecase/notification/SetReleaseNotificationEnabledUseCase.kt      # NEW
 ├── usecase/notification/GetReleaseNotificationGameIdsUseCase.kt      # NEW
-├── usecase/notification/GetGamesWithReleaseNotificationsUseCase.kt   # NEW
 ├── usecase/notification/SyncReleaseNotificationsUseCase.kt           # NEW  the reconciler
 ├── usecase/notification/DeliverReleaseNotificationUseCase.kt         # NEW  fire-time verify + post
+├── usecase/GetSavedGamesUseCase.kt              # NEW  plain pass-through, feeds the Settings management screen
 └── repository/GameRepository.kt                 # EDIT four DB-only methods
 
 core/data/src/main/java/.../core/data/

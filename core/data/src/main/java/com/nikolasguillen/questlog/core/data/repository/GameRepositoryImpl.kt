@@ -548,18 +548,9 @@ class GameRepositoryImpl @Inject constructor(
         return releaseNotificationDao.observeGameIds().map { it.toSet() }
     }
 
-    override fun getGamesWithReleaseNotifications(): Flow<List<Game>> {
-        return combine(getSavedGames(), releaseNotificationDao.observeGameIds()) { saved, orderedIds ->
-            val byId = saved.associateBy { it.id }
-            orderedIds.mapNotNull { byId[it] }
-        }
-    }
-
     override suspend fun setReleaseNotificationEnabled(gameId: Int, enabled: Boolean) {
         if (enabled) {
-            releaseNotificationDao.upsert(
-                ReleaseNotificationEntity(gameId = gameId, enabledAt = System.currentTimeMillis() / 1000)
-            )
+            releaseNotificationDao.upsert(ReleaseNotificationEntity(gameId = gameId))
         } else {
             releaseNotificationDao.delete(gameId)
         }

@@ -703,3 +703,24 @@ infrastructure shared by all three user stories, not story-specific logic. Front
 means US1, US2 and US3 in Phases 3–5 are almost entirely UI wiring around already-tested domain logic,
 which is also why US2 (Phase 4) is so thin: its behavior was the point of `SyncReleaseNotificationsUseCase`
 from the start.
+
+---
+
+## Phase 7: Convergence
+
+**Purpose**: FR-010 was redesigned mid-implementation — the Settings management screen now lists *every*
+saved game (via the new `GetSavedGamesUseCase`) with a per-row toggle, rather than a filtered list of only
+the currently-enabled games with a removal confirmation. `GetGamesWithReleaseNotificationsUseCase` and the
+`ReleaseNotificationsUiEvent.ToggleOff` + confirmation-dialog design in Phase 5's T055–T069 above are
+superseded by this — those tasks are left as-is per the append-only contract; this phase records what
+changed and closes the one gap the redesign introduced.
+
+- [X] T075 Add notification-permission request handling to the Settings management screen's enable path
+  per FR-012 (missing): `ReleaseNotificationsScreen.kt` calls `rememberNotificationPermissionState()`
+  (`core/ui/util/NotificationPermission.kt`, already used by `RadarScreen.kt` and `GameDetailScreen.kt`);
+  `ReleaseNotificationsViewModel` gains a `ReleaseNotificationsUiEffect` sealed interface with a single
+  `RequestNotificationPermission` case, sent from `onEvent` when `SetEnabled(gameId, enabled = true)` is
+  handled (mirroring `RadarViewModel.toggleReleaseNotification`); the screen collects it the same way
+  `RadarScreen.kt` does — `permissionState.request()` when not already granted, then
+  `NotificationPermissionDeniedDialog` if still denied afterward. Add a test to
+  `ReleaseNotificationsViewModelTest.kt` covering: enabling emits the effect, disabling does not.

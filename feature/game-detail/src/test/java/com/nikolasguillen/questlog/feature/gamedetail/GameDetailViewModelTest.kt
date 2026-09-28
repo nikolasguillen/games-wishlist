@@ -387,7 +387,7 @@ class GameDetailViewModelTest {
     }
 
     @Test
-    fun `enabling the release notification requests permission`() = runTest(testDispatcher) {
+    fun `enabling the release notification requests permission and shows a snackbar`() = runTest(testDispatcher) {
         every { getReleaseNotificationGameIdsUseCase() } returns flowOf(emptySet())
         val viewModel = createViewModel(testGame())
 
@@ -398,12 +398,23 @@ class GameDetailViewModelTest {
         viewModel.onEvent(GameDetailUiEvent.ToggleReleaseNotification)
         advanceUntilIdle()
 
-        assertEquals(listOf(GameDetailUiEffect.RequestNotificationPermission), effects)
+        assertEquals(
+            listOf(
+                GameDetailUiEffect.RequestNotificationPermission,
+                GameDetailUiEffect.ShowSnackbar(
+                    UiText.StringResource(
+                        R.string.release_notification_enabled_message,
+                        UiText.DynamicString("Test Game")
+                    )
+                )
+            ),
+            effects
+        )
         effectJob.cancel()
     }
 
     @Test
-    fun `disabling the release notification does not request permission`() = runTest(testDispatcher) {
+    fun `disabling the release notification does not request permission but shows a snackbar`() = runTest(testDispatcher) {
         every { getReleaseNotificationGameIdsUseCase() } returns flowOf(setOf(GAME_ID))
         val viewModel = createViewModel(testGame())
 
@@ -415,7 +426,17 @@ class GameDetailViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) { setReleaseNotificationEnabledUseCase(GAME_ID, false) }
-        assertTrue(effects.isEmpty())
+        assertEquals(
+            listOf(
+                GameDetailUiEffect.ShowSnackbar(
+                    UiText.StringResource(
+                        R.string.release_notification_disabled_message,
+                        UiText.DynamicString("Test Game")
+                    )
+                )
+            ),
+            effects
+        )
         effectJob.cancel()
     }
 

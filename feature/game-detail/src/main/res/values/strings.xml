@@ -12,4 +12,7 @@
     <string name="description_show_original">Show original</string>
     <string name="description_retry_translation_action">Retry translation</string>
     <string name="description_translating">Translating</string>
+
+    <string name="release_notification_enabled_message">You\'ll be notified when %1$s releases</string>
+    <string name="release_notification_disabled_message">Reminder turned off for %1$s</string>
 </resources>

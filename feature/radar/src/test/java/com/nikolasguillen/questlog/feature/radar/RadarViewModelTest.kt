@@ -8,6 +8,7 @@ import com.nikolasguillen.questlog.core.model.RadarEntry
 import com.nikolasguillen.questlog.core.model.RadarTimelineSection
 import com.nikolasguillen.questlog.core.model.ReleaseBucket
 import com.nikolasguillen.questlog.core.model.ReleaseDate
+import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.radar.model.RadarContentState
 import com.nikolasguillen.questlog.feature.radar.model.RadarUiEffect
 import com.nikolasguillen.questlog.feature.radar.model.RadarUiEvent
@@ -135,7 +136,7 @@ class RadarViewModelTest {
     }
 
     @Test
-    fun `enabling a toggle requests notification permission`() = runTest(testDispatcher) {
+    fun `enabling a toggle requests notification permission and shows a snackbar`() = runTest(testDispatcher) {
         val section = RadarTimelineSection(bucket = ReleaseBucket.THIS_WEEK, entries = listOf(radarEntry(gameId = 1)))
         val viewModel = createViewModel(listOf(section), notificationEnabledGameIds = emptySet())
 
@@ -146,12 +147,20 @@ class RadarViewModelTest {
         viewModel.onEvent(RadarUiEvent.ToggleReleaseNotification(1))
         advanceUntilIdle()
 
-        assertEquals(listOf(RadarUiEffect.RequestNotificationPermission), effects)
+        assertEquals(
+            listOf(
+                RadarUiEffect.RequestNotificationPermission,
+                RadarUiEffect.ShowSnackbar(
+                    UiText.StringResource(R.string.release_notification_enabled_message, "Hollow Knight: Silksong")
+                )
+            ),
+            effects
+        )
         effectJob.cancel()
     }
 
     @Test
-    fun `disabling a toggle does not request notification permission`() = runTest(testDispatcher) {
+    fun `disabling a toggle does not request notification permission but shows a snackbar`() = runTest(testDispatcher) {
         val section = RadarTimelineSection(bucket = ReleaseBucket.THIS_WEEK, entries = listOf(radarEntry(gameId = 1)))
         val viewModel = createViewModel(listOf(section), notificationEnabledGameIds = setOf(1))
 
@@ -163,7 +172,14 @@ class RadarViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) { setReleaseNotificationEnabledUseCase(1, false) }
-        assertTrue(effects.isEmpty())
+        assertEquals(
+            listOf(
+                RadarUiEffect.ShowSnackbar(
+                    UiText.StringResource(R.string.release_notification_disabled_message, "Hollow Knight: Silksong")
+                )
+            ),
+            effects
+        )
         effectJob.cancel()
     }
 }

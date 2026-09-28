@@ -42,6 +42,6 @@
     <string name="settings_notification_permission_blocked">Notifications are off — reminders won\'t arrive</string>
 
     <string name="release_notifications_title">Release reminders</string>
-    <string name="release_notifications_empty">No release reminders yet. Turn on \"Notify me\" for a saved game in Radar or its detail screen.</string>
+    <string name="release_notifications_empty">No saved games yet. Save a game to set up a release reminder.</string>
     <string name="release_notifications_no_date_yet">No date yet</string>
 </resources>

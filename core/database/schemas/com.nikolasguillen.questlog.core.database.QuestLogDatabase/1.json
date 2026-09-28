@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "d31cd38ca05157b7270a18a107444811",
+    "identityHash": "78ebfd5c3111ebeb669699ea648525ac",
     "entities": [
       {
         "tableName": "search_history",
@@ -525,17 +525,11 @@
       },
       {
         "tableName": "release_notifications",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`gameId` INTEGER NOT NULL, `enabledAt` INTEGER NOT NULL, `notifiedForDate` INTEGER, PRIMARY KEY(`gameId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`gameId` INTEGER NOT NULL, `notifiedForDate` INTEGER, PRIMARY KEY(`gameId`))",
         "fields": [
           {
             "fieldPath": "gameId",
             "columnName": "gameId",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "enabledAt",
-            "columnName": "enabledAt",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -808,7 +802,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd31cd38ca05157b7270a18a107444811')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '78ebfd5c3111ebeb669699ea648525ac')"
     ]
   }
 }

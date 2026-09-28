@@ -12,4 +12,7 @@
 
     <string name="radar_empty_title">Nothing on the radar yet</string>
     <string name="radar_empty_subtitle">Save games with a release date and they\'ll show up here, sorted by when they launch.</string>
+
+    <string name="release_notification_enabled_message">You\'ll be notified when %1$s releases</string>
+    <string name="release_notification_disabled_message">Reminder turned off for %1$s</string>
 </resources>

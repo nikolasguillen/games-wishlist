@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -94,18 +95,12 @@ fun ImmersiveDetailLayout(
                     )
                 },
                 navigationIcon = {
-                    IconButton(
+                    ImmersiveDetailLayoutDefaults.ActionIconButton(
                         onClick = onBackClick,
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = topBarContainerColor.copy(alpha = (1f - topBarAlpha))
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back_content_description),
-                            tint = if (topBarAlpha > 0.5f) MaterialTheme.colorScheme.onSurface else Color.White
-                        )
-                    }
+                        icon = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back_content_description),
+                        alpha = topBarAlpha
+                    )
                 },
                 actions = { actions(topBarAlpha) },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -154,6 +149,37 @@ fun ImmersiveDetailLayout(
             Column(modifier = Modifier.fillMaxWidth()) {
                 content(innerPadding)
             }
+        }
+    }
+}
+
+/**
+ * The chip treatment every [ImmersiveDetailLayout] top-bar icon shares -- the back button and any
+ * [ImmersiveDetailLayout]'s `actions` icon alike -- so the fade-in-over-the-hero-image formula exists in
+ * exactly one place. Defined here rather than duplicated at each `actions` call site, the same way
+ * `IconButtonDefaults`/`TopAppBarDefaults` centralize Material's own component defaults.
+ */
+object ImmersiveDetailLayoutDefaults {
+    @Composable
+    fun ActionIconButton(
+        onClick: () -> Unit,
+        icon: ImageVector,
+        contentDescription: String?,
+        alpha: Float,
+        modifier: Modifier = Modifier
+    ) {
+        IconButton(
+            onClick = onClick,
+            modifier = modifier,
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = (1f - alpha))
+            )
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                tint = if (alpha > 0.5f) MaterialTheme.colorScheme.onSurface else Color.White
+            )
         }
     }
 }

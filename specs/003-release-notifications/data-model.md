@@ -9,7 +9,6 @@
 | Column | Type | Notes |
 |---|---|---|
 | `gameId` | `Int` | `@PrimaryKey`. Matches `games.id`. One row per opted-in game — the opt-in is per game, not per platform (FR-015). |
-| `enabledAt` | `Long` | Epoch seconds when the user turned the reminder on. Not shown as text in the UI, but drives the management list's order — `ReleaseNotificationDao.observeGameIds()` sorts by it descending, so the most recently opted-in game is listed first. |
 | `notifiedForDate` | `Long?` | The resolved release date a reminder was actually delivered for, `null` until one is. Not a boolean — see below. |
 
 **Presence of a row means "opted in".** Turning the reminder off deletes the row rather than flipping a
@@ -100,9 +99,11 @@ truth that could disagree.
 
 | Read | Shape | Consumer |
 |---|---|---|
-| Opted-in game ids | `Flow<Set<Int>>` | Radar (one flag per row) and game-detail (one flag), folded into their existing state pipelines — the same cheap-membership shape as `getWishlistedGameIds()` |
-| Opted-in saved games | `Flow<List<Game>>` | The Settings management sub-screen. Filtered to the saved set, so a game that left it disappears from the list at once |
+| Opted-in game ids | `Flow<Set<Int>>` | Radar (one flag per row), game-detail (one flag) and the Settings management screen (per-row toggle state), folded into their existing state pipelines — the same cheap-membership shape as `getWishlistedGameIds()` |
+| Every saved game | `Flow<List<Game>>` | The Settings management screen. Not filtered to opted-in games: the list is every saved game, each carrying its own toggle, so flipping one never removes it from the list |
 | Opted-in count | derived from the set | The Settings group row's subtitle |
 
 No new `:core:model` type is introduced: the toggles need a `Set<Int>` and the management list needs
-`List<Game>`, both of which already exist.
+`List<Game>`, both of which already exist. The management screen combines the two reads above itself — it
+is not a single joined repository method, since "every saved game" and "which ones are opted in" are two
+independent, already-existing reads.

@@ -117,13 +117,6 @@ interface GameRepository {
     /** The ids of games with a release reminder enabled, for cheap membership checks against a game list. */
     fun getReleaseNotificationGameIds(): Flow<Set<Int>>
 
-    /**
-     * The saved games with a release reminder enabled, most recently opted-in first. Filtered to the
-     * saved set, so a game that stops qualifying as saved leaves this list even while its opt-in row
-     * still exists.
-     */
-    fun getGamesWithReleaseNotifications(): Flow<List<Game>>
-
     /** Turns the reminder for [gameId] on (inserting the opt-in) or off (deleting it). */
     suspend fun setReleaseNotificationEnabled(gameId: Int, enabled: Boolean)
 

@@ -168,11 +168,18 @@ class GameDetailViewModel @AssistedInject constructor(
     private fun toggleReleaseNotification() {
         val successState = _uiState.value.contentState as? GameDetailContentState.Success ?: return
         val wasEnabled = successState.game.isNotificationEnabled
+        val gameName = successState.game.name
         viewModelScope.launch {
             setReleaseNotificationEnabledUseCase(gameId, !wasEnabled)
             if (!wasEnabled) {
                 _uiEffect.send(GameDetailUiEffect.RequestNotificationPermission)
             }
+            val messageRes = if (wasEnabled) {
+                R.string.release_notification_disabled_message
+            } else {
+                R.string.release_notification_enabled_message
+            }
+            _uiEffect.send(GameDetailUiEffect.ShowSnackbar(UiText.StringResource(messageRes, gameName)))
         }
     }
 

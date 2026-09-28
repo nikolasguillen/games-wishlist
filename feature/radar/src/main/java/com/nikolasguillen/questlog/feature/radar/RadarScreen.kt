@@ -11,6 +11,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
@@ -43,6 +46,7 @@ import com.nikolasguillen.questlog.feature.radar.model.RadarSectionUiModel
 import com.nikolasguillen.questlog.feature.radar.model.RadarUiEffect
 import com.nikolasguillen.questlog.feature.radar.model.RadarUiEvent
 import com.nikolasguillen.questlog.feature.radar.model.RadarUiState
+import kotlinx.coroutines.launch
 
 // viewModel is the same instance for the route's whole lifetime, so ref-comparison skips correctly.
 @Suppress("ParamsComparedByRef")
@@ -56,6 +60,8 @@ fun RadarScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val permissionState = rememberNotificationPermissionState()
     val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
     var showPermissionDeniedDialog by remember { mutableStateOf(false) }
     // Set only while an opt-in-triggered request is in flight, so the dialog reacts to that specific
     // request's outcome instead of nagging on every screen visit while notifications happen to be off.
@@ -69,6 +75,13 @@ fun RadarScreen(
                         if (!permissionState.canDeliver) {
                             awaitingPermissionResult = true
                             permissionState.request()
+                        }
+                    }
+
+                    is RadarUiEffect.ShowSnackbar -> {
+                        launch {
+                            snackbarHostState.currentSnackbarData?.dismiss()
+                            snackbarHostState.showSnackbar(effect.message.asString(context))
                         }
                     }
                 }
@@ -90,6 +103,7 @@ fun RadarScreen(
         onToggleNotification = { gameId ->
             viewModel.onEvent(RadarUiEvent.ToggleReleaseNotification(gameId))
         },
+        snackbarHostState = snackbarHostState,
         modifier = modifier
     )
 
@@ -105,6 +119,7 @@ internal fun RadarContent(
     onGameClick: (Int) -> Unit,
     onProfileClick: () -> Unit,
     onToggleNotification: (Int) -> Unit,
+    snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -114,6 +129,7 @@ internal fun RadarContent(
                 onProfileClick = onProfileClick
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets.systemBars,
         modifier = modifier
     ) { innerPadding ->
@@ -165,7 +181,8 @@ private fun RadarContentPreview(contentState: RadarContentState) {
             state = RadarUiState(contentState = contentState),
             onGameClick = {},
             onProfileClick = {},
-            onToggleNotification = {}
+            onToggleNotification = {},
+            snackbarHostState = remember { SnackbarHostState() }
         )
     }
 }

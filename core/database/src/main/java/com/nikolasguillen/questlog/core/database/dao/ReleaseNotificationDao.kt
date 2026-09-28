@@ -15,8 +15,7 @@ interface ReleaseNotificationDao {
     @Query("DELETE FROM release_notifications WHERE gameId = :gameId")
     suspend fun delete(gameId: Int)
 
-    /** Most recently opted-in first, so the Settings management list has a stable order. */
-    @Query("SELECT gameId FROM release_notifications ORDER BY enabledAt DESC")
+    @Query("SELECT gameId FROM release_notifications")
     fun observeGameIds(): Flow<List<Int>>
 
     @Query("SELECT * FROM release_notifications WHERE gameId = :gameId")

@@ -125,8 +125,11 @@ Settings surfaces that state with a way to resolve it.
 - **FR-008**: The system MUST NOT deliver a notification for a date that has already elapsed by the time
   it is scheduled or rescheduled.
 - **FR-009**: Tapping a delivered release notification MUST take the user to that game's detail screen.
-- **FR-010**: The Settings screen MUST include a "Notifications" group that lists every saved game with
-  "Notify me" currently on and lets the user turn each one off from that list.
+- **FR-010**: The Settings screen MUST include a "Notifications" group with a management screen listing
+  every saved game, each with its own "Notify me" toggle the user can turn on or off directly from that
+  list — a third opt-in surface alongside Radar and the detail screen, not merely a place to turn existing
+  opt-ins off. Toggling a game here MUST NOT remove it from the list: the list is every saved game, not
+  just the currently opted-in ones.
 - **FR-011**: The Settings "Notifications" group MUST show the current state of the system notification
   permission and give the user a way to grant it, or to reach the system settings to fix it if it has been
   permanently denied.
@@ -165,8 +168,8 @@ Settings surfaces that state with a way to resolve it.
   notification on its release day, with no duplicate and no missed notification, across normal app usage.
 - **SC-003**: When a game's release date shifts after opt-in, the user is reminded on the new date, not
   the original one, without having to revisit the opt-in themselves.
-- **SC-004**: A user can see every game they currently have notifications enabled for, and turn any of
-  them off, within a single Settings screen.
+- **SC-004**: A user can see every saved game and turn its release reminder on or off, within a single
+  Settings screen, without the game disappearing from that screen when they do.
 - **SC-005**: A user who has denied the system notification permission can still tell, from within the
   app, that their opt-ins won't fire and how to fix that — they are never left silently believing a
   reminder is scheduled when it cannot be delivered.
@@ -179,8 +182,9 @@ Settings surfaces that state with a way to resolve it.
 - A release notification is a one-time event per game, delivered once on (or, if the device could not
   fire it exactly on time, as soon as possible after) the resolved release date — not a repeating or
   escalating reminder.
-- The Settings "Notifications" group is a management surface (view + turn off), not the primary place
-  users opt in; opting in happens where the game itself is shown (Radar, detail screen), per the request.
+- The Settings "Notifications" management screen lists every saved game, not only the currently opted-in
+  ones — this is what lets a toggle stay in place after being flipped, rather than needing a removal
+  confirmation the way a filtered "currently enabled" list would.
 - Denying or later revoking the system notification permission does not delete a user's existing opt-ins;
   it only prevents delivery until permission is restored, at which point previously opted-in games resume
   being eligible for their next scheduled notification.

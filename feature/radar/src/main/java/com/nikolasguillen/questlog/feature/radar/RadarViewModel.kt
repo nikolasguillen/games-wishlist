@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.nikolasguillen.questlog.core.domain.radar.GetRadarTimelineUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.SetReleaseNotificationEnabledUseCase
+import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.radar.mapper.toUiModel
 import com.nikolasguillen.questlog.feature.radar.model.RadarContentState
 import com.nikolasguillen.questlog.feature.radar.model.RadarUiEffect
@@ -64,11 +65,26 @@ class RadarViewModel @Inject constructor(
 
     private fun toggleReleaseNotification(gameId: Int) {
         val wasEnabled = gameId in notificationEnabledGameIds
+        val gameTitle = findGameTitle(gameId)
         viewModelScope.launch {
             setReleaseNotificationEnabledUseCase(gameId, !wasEnabled)
             if (!wasEnabled) {
                 _uiEffect.send(RadarUiEffect.RequestNotificationPermission)
             }
+            val messageRes = if (wasEnabled) {
+                R.string.release_notification_disabled_message
+            } else {
+                R.string.release_notification_enabled_message
+            }
+            _uiEffect.send(RadarUiEffect.ShowSnackbar(UiText.StringResource(messageRes, gameTitle)))
         }
+    }
+
+    private fun findGameTitle(gameId: Int): String {
+        val content = uiState.value.contentState as? RadarContentState.Success ?: return ""
+        return content.sections
+            .firstNotNullOfOrNull { section -> section.entries.firstOrNull { it.id == gameId } }
+            ?.title
+            .orEmpty()
     }
 }
