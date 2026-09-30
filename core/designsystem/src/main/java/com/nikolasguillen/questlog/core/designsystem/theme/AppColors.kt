@@ -24,7 +24,11 @@ data class AppColors(
     val fabContainerColor: Color,
     val fabContentColor: Color,
     val hypeColor: Color,
-    val ratingCountColor: Color
+    val ratingCountColor: Color,
+    // Use in place of colorScheme.primary only for bare text/icon content drawn directly on a
+    // surface (not inside a primary/primaryContainer fill): Gold itself is ~1.7:1 on light
+    // theme's surfaces, well under WCAG AA.
+    val textOnSurface: Color
 )
 
 internal val LocalAppColors = staticCompositionLocalOf {
@@ -44,7 +48,8 @@ internal val LocalAppColors = staticCompositionLocalOf {
         fabContainerColor = Color.Unspecified,
         fabContentColor = Color.Unspecified,
         hypeColor = Color.Unspecified,
-        ratingCountColor = Color.Unspecified
+        ratingCountColor = Color.Unspecified,
+        textOnSurface = Color.Unspecified
     )
 }
 

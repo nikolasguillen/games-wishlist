@@ -32,7 +32,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.designsystem.theme.isDarkTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
+import com.nikolasguillen.questlog.core.ui.component.CustomOutlinedIcon
 import com.nikolasguillen.questlog.feature.gamedetail.R
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.HazeState
@@ -48,6 +50,7 @@ private val PILL_HEIGHT = 76.dp
 private val MAIN_ACTION_SIZE = 60.dp
 private val GLOW_BLUR_RADIUS = 12.dp
 private val GLOW_BLUR_SPREAD = 4.dp
+private val ICON_OUTLINE_WIDTH = 2.dp
 
 /**
  * A floating action pill for the Game Detail screen.
@@ -82,11 +85,16 @@ internal fun GameDetailActionPill(
                 .align(Alignment.Center)
                 .padding(horizontal = MaterialTheme.spacing.extraLarge)
         ) {
+            // The gold favorite fill needs a defining edge only in light theme, where it can blend
+            // into a bright blurred backdrop — dark theme's near-black surfaces already give it
+            // enough separation.
+            val isLightTheme = !MaterialTheme.isDarkTheme
             PillIconAction(
                 icon = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                 contentDescription = stringResource(R.string.favorite_content_description),
                 tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                onClick = onFavoriteClick
+                onClick = onFavoriteClick,
+                outlineColor = if (isFavorite && isLightTheme) MaterialTheme.colorScheme.onSurface else null
             )
             PillMainAction(onClick = onManageListClick)
             PillIconAction(
@@ -125,20 +133,28 @@ private fun PillBackground(
 }
 
 /**
- * A secondary, borderless action sitting on the pill surface.
+ * A secondary action sitting on the pill surface. When [outlineColor] is non-null, a stroke
+ * tracing the icon's own silhouette is drawn behind it — see [CustomOutlinedIcon].
  */
 @Composable
 private fun PillIconAction(
     icon: ImageVector,
     contentDescription: String,
     tint: Color,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    outlineColor: Color? = null
 ) {
     IconButton(
         onClick = onClick,
         colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent)
     ) {
-        Icon(imageVector = icon, contentDescription = contentDescription, tint = tint)
+        CustomOutlinedIcon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = tint,
+            outlineColor = outlineColor,
+            outlineWidth = ICON_OUTLINE_WIDTH
+        )
     }
 }
 

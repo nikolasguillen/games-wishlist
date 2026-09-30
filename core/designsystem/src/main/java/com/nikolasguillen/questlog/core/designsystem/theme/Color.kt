@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 // Gold accent ramp. One hue (~44°) at four intensities: every accent in the app is one of these,
 // so a highlight and the surface behind it always read as the same colour at different strengths.
-val GoldDeep = Color(0xFF4A3A14) // Darkest: container fills behind gold content
+val GoldDeep = Color(0xFFA68024) // Darkest: container fills behind gold content
 val GoldMuted = Color(0xFF7C6E46) // Dimmed: borders and low-emphasis accents
 val Gold = Color(0xFFE0BE62) // The accent itself: FAB, indicators, accent text and icons
 val GoldBright = Color(0xFFF5E6BC) // Brightest: content sitting on a GoldDeep container

@@ -7,7 +7,10 @@ Shared Compose components, UI models, mappers and utilities. Everything here is 
 
 Shared wrappers are prefixed `Custom*`:
 `CustomAlertDialog` (3 overloads — always use it instead of Material's `AlertDialog`), `CustomContentCard`,
-`CustomFab`, `CustomFilterChip`, `CustomInfoChip`, `CustomModalBottomSheet`, `CustomSegmentedButton`.
+`CustomFab`, `CustomFilterChip`, `CustomInfoChip`, `CustomModalBottomSheet`, `CustomSegmentedButton`,
+`CustomOutlinedIcon` (an `Icon` with an optional border traced from the icon's own path data via
+`PathParser`, so it hugs the exact silhouette rather than a bounding shape — pass `outlineColor` to
+enable it).
 
 Screen-level and domain components:
 `EmptyPage`, `ErrorPage`, `LoadingPage`, `ControllerLoadingAnimation`, `RatingBadge`, `ImageGalleryPager` (+

@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.History
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -40,6 +41,7 @@ import androidx.compose.material3.SearchBarScrollBehavior
 import androidx.compose.material3.SearchBarState
 import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
@@ -502,7 +504,8 @@ private fun RecentSearchesSection(
             )
 
             TextButton(
-                onClick = onClearRecentSearches
+                onClick = onClearRecentSearches,
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.appColors.textOnSurface)
             ) {
                 Text(stringResource(R.string.clear_all))
             }
@@ -529,7 +532,10 @@ private fun RecentSearchesSection(
                             )
                         },
                         contentPadding = PaddingValues(all = MaterialTheme.spacing.small),
-                        interactionSource = inputChipInteractionSource
+                        interactionSource = inputChipInteractionSource,
+                        colors = SuggestionChipDefaults.suggestionChipColors(
+                            iconContentColor = MaterialTheme.appColors.textOnSurface
+                        )
                     )
                     Box(
                         modifier = Modifier

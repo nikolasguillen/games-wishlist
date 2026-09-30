@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -20,6 +21,14 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
     is ContextWrapper -> baseContext.findActivity()
     else -> null
 }
+
+/**
+ * The resolved light/dark flag [QuestLogTheme] was actually composed with — not the raw
+ * [com.nikolasguillen.questlog.core.model.AppearanceMode] preference, which alone can't say
+ * which theme is showing when the user follows the system. Read via [isDarkTheme] instead of
+ * re-deriving this (e.g. from a color's luminance) further down the tree.
+ */
+private val LocalDarkTheme = staticCompositionLocalOf { true }
 
 @Composable
 fun QuestLogTheme(darkTheme: Boolean = true, content: @Composable () -> Unit) {
@@ -98,7 +107,9 @@ fun QuestLogTheme(darkTheme: Boolean = true, content: @Composable () -> Unit) {
             fabContainerColor = Gold,
             fabContentColor = NeutralBlack,
             hypeColor = HypeRed,
-            ratingCountColor = RatingAmber
+            ratingCountColor = RatingAmber,
+            // Gold reads fine directly on this theme's near-black surfaces.
+            textOnSurface = Gold
         )
     } else {
         AppColors(
@@ -117,7 +128,10 @@ fun QuestLogTheme(darkTheme: Boolean = true, content: @Composable () -> Unit) {
             fabContainerColor = Gold,
             fabContentColor = NeutralBlack,
             hypeColor = HypeRed,
-            ratingCountColor = RatingAmber
+            ratingCountColor = RatingAmber,
+            // GoldDeep is the ramp's step that actually clears WCAG AA on this theme's light
+            // surfaces (~8.7-10.6:1) — Gold itself does not (~1.7:1).
+            textOnSurface = GoldDeep
         )
     }
 
@@ -133,7 +147,8 @@ fun QuestLogTheme(darkTheme: Boolean = true, content: @Composable () -> Unit) {
 
     CompositionLocalProvider(
         LocalSpacing provides Spacing(),
-        LocalAppColors provides appColors
+        LocalAppColors provides appColors,
+        LocalDarkTheme provides darkTheme
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
@@ -150,3 +165,8 @@ val MaterialTheme.spacing: Spacing
     @Composable
     @ReadOnlyComposable
     get() = LocalSpacing.current
+
+val MaterialTheme.isDarkTheme: Boolean
+    @Composable
+    @ReadOnlyComposable
+    get() = LocalDarkTheme.current

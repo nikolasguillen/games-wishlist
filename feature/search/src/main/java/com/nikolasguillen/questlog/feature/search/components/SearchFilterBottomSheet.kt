@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.CustomFilterChip
 import com.nikolasguillen.questlog.core.ui.component.CustomModalBottomSheet
@@ -56,7 +58,10 @@ internal fun SearchFilterBottomSheet(
             modifier = modifier,
             title = stringResource(R.string.filters_title),
             titleTrailingContent = {
-                TextButton(onClick = { onEvent(SearchUiEvent.OnClearFilters) }) {
+                TextButton(
+                    onClick = { onEvent(SearchUiEvent.OnClearFilters) },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.appColors.textOnSurface)
+                ) {
                     Text(text = stringResource(R.string.clear_all))
                 }
             }
@@ -153,6 +158,7 @@ private fun FilterSection(
         if (filters.size > 10) {
             TextButton(
                 onClick = { isExpanded = !isExpanded },
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.appColors.textOnSurface),
                 modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium)
             ) {
                 Row(
