@@ -8,6 +8,14 @@
 
 **Input**: User description: "we should create a light variant theme for this app. We should keep the primary color and its accents, but we should turn the various surfaces to a light theme. The user should be able to choose between dark/light/follow system settings in app's settings section."
 
+## Clarifications
+
+### Session 2026-09-30
+
+- Q: When an existing user (already on the dark-only version) updates to this feature, should the app default them to "Follow System", or should it default them to "Dark" to preserve the look they're already used to? → A: Default everyone (new and existing users) to "Follow System" — the app has not been released yet, so there are no existing users whose experience could be disrupted by this default.
+- Q: Should the Light appearance also change the color of the phone's system status bar and navigation bar icons, or is this feature only about surfaces drawn inside the app itself? → A: Include system bar icons — they switch along with the app's appearance so they stay legible against the new surface color.
+- Q: Should text/icon readability in Light appearance be held to a formal, measurable contrast standard, or is subjective parity with Dark appearance enough? → A: WCAG 2.1 AA numeric target — every text/icon-on-surface color pair must meet 4.5:1 (normal text) or 3:1 (large text/icons).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Manually choose Light or Dark appearance (Priority: P1)
@@ -37,6 +45,8 @@ confirming the app returns to its current look.
    text and icons with no leftover dark-only elements.
 4. **Given** the user has selected an appearance, **When** the user closes and reopens the app, **Then** the
    app launches directly in the previously selected appearance.
+5. **Given** the user selects "Light", **When** the app is on screen, **Then** the device's status bar and
+   navigation bar icons switch to a color that stays legible against the new light surfaces.
 
 ---
 
@@ -120,11 +130,14 @@ and confirming the same appearance and the same Settings selection are shown.
   requiring an app restart.
 - **FR-009**: The user's Appearance selection MUST persist across app restarts and device reboots until the
   user changes it again.
-- **FR-010**: Every screen and feature in the app MUST remain fully readable (sufficient contrast between
-  text/icons and their background) in Light appearance, matching the readability already provided in Dark
-  appearance.
+- **FR-010**: Every text/icon-on-surface color pair in Light appearance MUST meet a WCAG 2.1 AA contrast
+  ratio — at least 4.5:1 for normal text and 3:1 for large text and icons — matching the readability bar
+  Dark appearance is expected to meet.
 - **FR-011**: The Settings screen MUST visually indicate which of the three Appearance options is currently
   selected.
+- **FR-012**: The device's system status bar and navigation bar icons MUST switch color along with the
+  selected app appearance, so they stay legible against the app's current surface color (e.g., dark icons
+  over Light appearance, light icons over Dark appearance).
 
 ### Key Entities
 
@@ -138,8 +151,8 @@ and confirming the same appearance and the same Settings selection are shown.
 
 - **SC-001**: A user can change the app's appearance from Settings in under 3 taps, with the new appearance
   visible on screen within 1 second.
-- **SC-002**: 100% of app screens display fully readable text and icons when Light appearance is active,
-  matching the readability standard of the existing Dark appearance.
+- **SC-002**: 100% of text/icon-on-surface color pairs in Light appearance meet a WCAG 2.1 AA contrast
+  ratio (4.5:1 for normal text, 3:1 for large text/icons).
 - **SC-003**: The chosen Appearance preference is correctly restored in 100% of app relaunches, including
   after a full device restart.
 - **SC-004**: When "Follow System" is selected, the app's displayed appearance matches the device's
@@ -160,5 +173,6 @@ and confirming the same appearance and the same Settings selection are shown.
   app targets today.
 - No additional appearance variants (e.g., high-contrast, custom accent picker) are in scope — only Light,
   Dark, and Follow System.
-- Existing users who upgrade into this feature will see "Follow System" as their starting selection, same
-  as a first-time install, since no appearance choice has been made yet.
+- The app has not shipped to users yet, so there is no existing-user population whose default appearance
+  needs special handling; every installation (present and future) starts on "Follow System" per the
+  Clarifications above.
