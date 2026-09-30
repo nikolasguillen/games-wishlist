@@ -85,5 +85,6 @@ Per [contracts/domain-ports.md](./contracts/domain-ports.md) and
 - `AppearanceMode.fromId` falls back to `SYSTEM` for an unrecognized id.
 - `SettingsViewModel` reflects a `GetAppearanceModeUseCase` emission in `uiState.appearanceMode`, and
   dispatching `AppearanceModeChanged` calls `SetAppearanceModeUseCase` with the right value.
+
 `:app` gets no new unit test — `MainActivity`'s `darkTheme` resolution is a three-line inline `when`
 directly in `setContent`, with no ViewModel or other unit-testable seam introduced for it (research.md §3).

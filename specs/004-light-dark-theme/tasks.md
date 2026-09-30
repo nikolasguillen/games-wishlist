@@ -23,8 +23,7 @@ lands and their phases are the corresponding quickstart verification.
 
 - **[P]**: Can run in parallel (different files, no dependencies)
 - **[Story]**: Which user story this task belongs to (US1, US2, US3) — omitted for Setup/Foundational/Polish
-- File paths below omit the shared prefix `.../src/main/java/com/nikolasguillen/questlog/` for readability;
-  every path is relative to the module root shown.
+- File paths below are full, real repo-relative paths — copy them directly, nothing is abbreviated.
 
 ---
 
@@ -57,7 +56,7 @@ about hardening (US1) and verification (US2, US3), not new mechanism.
 
 ### Domain layer
 
-- [ ] T004 [P] Create `core/model/com/nikolasguillen/questlog/core/model/AppearanceMode.kt` exactly per
+- [ ] T004 [P] Create `core/model/src/main/java/com/nikolasguillen/questlog/core/model/AppearanceMode.kt` exactly per
   [data-model.md](./data-model.md):
   ```kotlin
   package com.nikolasguillen.questlog.core.model
@@ -76,7 +75,7 @@ about hardening (US1) and verification (US2, US3), not new mechanism.
   identifier written to DataStore. Never renumber existing entries", `fromId` note: "Falls back to
   [SYSTEM] for an unknown [id] rather than throwing").
 
-- [ ] T005 Create `core/domain/com/nikolasguillen/questlog/core/domain/settings/AppearancePreferenceStore.kt`
+- [ ] T005 Create `core/domain/src/main/java/com/nikolasguillen/questlog/core/domain/settings/AppearancePreferenceStore.kt`
   per [contracts/domain-ports.md](./contracts/domain-ports.md):
   ```kotlin
   package com.nikolasguillen.questlog.core.domain.settings
@@ -92,7 +91,7 @@ about hardening (US1) and verification (US2, US3), not new mechanism.
   Contract only — `:core:domain` never imports `androidx.datastore`. Depends on T004.
 
 - [ ] T006 [P] Create
-  `core/domain/com/nikolasguillen/questlog/core/domain/usecase/settings/GetAppearanceModeUseCase.kt`:
+  `core/domain/src/main/java/com/nikolasguillen/questlog/core/domain/usecase/settings/GetAppearanceModeUseCase.kt`:
   ```kotlin
   class GetAppearanceModeUseCase @Inject constructor(
       private val appearancePreferenceStore: AppearancePreferenceStore
@@ -103,7 +102,7 @@ about hardening (US1) and verification (US2, US3), not new mechanism.
   Depends on T005.
 
 - [ ] T007 [P] Create
-  `core/domain/com/nikolasguillen/questlog/core/domain/usecase/settings/SetAppearanceModeUseCase.kt`:
+  `core/domain/src/main/java/com/nikolasguillen/questlog/core/domain/usecase/settings/SetAppearanceModeUseCase.kt`:
   ```kotlin
   class SetAppearanceModeUseCase @Inject constructor(
       private val appearancePreferenceStore: AppearancePreferenceStore
@@ -115,9 +114,22 @@ about hardening (US1) and verification (US2, US3), not new mechanism.
 
 ### Data layer
 
-- [ ] T008 Create `core/data/com/nikolasguillen/questlog/core/data/settings/AppearancePreferenceStoreImpl.kt`:
+- [ ] T008 Create `core/data/src/main/java/com/nikolasguillen/questlog/core/data/settings/AppearancePreferenceStoreImpl.kt`:
   ```kotlin
   package com.nikolasguillen.questlog.core.data.settings
+
+  import android.content.Context
+  import androidx.datastore.core.DataStore
+  import androidx.datastore.preferences.core.Preferences
+  import androidx.datastore.preferences.core.edit
+  import androidx.datastore.preferences.core.intPreferencesKey
+  import androidx.datastore.preferences.preferencesDataStore
+  import com.nikolasguillen.questlog.core.domain.settings.AppearancePreferenceStore
+  import com.nikolasguillen.questlog.core.model.AppearanceMode
+  import dagger.hilt.android.qualifiers.ApplicationContext
+  import kotlinx.coroutines.flow.Flow
+  import kotlinx.coroutines.flow.map
+  import javax.inject.Inject
 
   private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
   private val APPEARANCE_MODE_KEY = intPreferencesKey("appearance_mode")
@@ -151,7 +163,7 @@ about hardening (US1) and verification (US2, US3), not new mechanism.
   Give the class the same KDoc-header discipline as other test classes in this module
   (`RepositoryErrorMapperTest.kt`). Depends on T008.
 
-- [ ] T010 In `core/data/com/nikolasguillen/questlog/core/data/di/DataModule.kt`, add the binding
+- [ ] T010 In `core/data/src/main/java/com/nikolasguillen/questlog/core/data/di/DataModule.kt`, add the binding
   (alongside the existing `bindGameRepository`, `bindReleaseNotificationScheduler`, etc.):
   ```kotlin
   @Binds
@@ -164,14 +176,14 @@ about hardening (US1) and verification (US2, US3), not new mechanism.
 
 ### Light color tokens
 
-- [ ] T011 [P] In `core/designsystem/com/nikolasguillen/questlog/core/designsystem/theme/Color.kt`, add:
+- [ ] T011 [P] In `core/designsystem/src/main/java/com/nikolasguillen/questlog/core/designsystem/theme/Color.kt`, add:
   - A `*Light` counterpart for every `*Dark` constant currently feeding `darkColorScheme(...)` in
     `QuestLogTheme.kt`: `PrimaryLight`, `OnPrimaryLight`, `PrimaryContainerLight`, `OnPrimaryContainerLight`,
     `SecondaryLight`, `OnSecondaryLight`, `SecondaryContainerLight`, `OnSecondaryContainerLight`,
     `TertiaryLight`, `OnTertiaryLight`, `TertiaryContainerLight`, `OnTertiaryContainerLight`, `ErrorLight`,
     `OnErrorLight`, `ErrorContainerLight`, `OnErrorContainerLight`, `BackgroundLight`, `OnBackgroundLight`,
     `SurfaceLight`, `OnSurfaceLight`, `OutlineLight`, `OutlineVariantLight`.
-  - 2-3 new light neutral tokens for `AppColors`' light instance (T017 in `QuestLogTheme.kt`) — e.g. an
+  - 2-3 new light neutral tokens for `AppColors`' light instance (T012 in `QuestLogTheme.kt`) — e.g. an
     off-white for the app background and one or two pale greys for elevated surfaces/search-bar/nav-bar
     containers. Reuse the *existing* `NeutralBlack`/`NeutralDarkGrey`/`NeutralMediumGrey` as the "on-light"
     text/icon colors wherever they sit on one of these new light backgrounds — they're already dark enough
@@ -186,7 +198,7 @@ about hardening (US1) and verification (US2, US3), not new mechanism.
   container/accent fill with a dark "on" color instead (mirroring `OnPrimaryDark = Color.Black` in the
   existing dark scheme), per research.md §11 — do not weaken the ratio to keep gold-on-white body text.
 
-- [ ] T012 In `core/designsystem/com/nikolasguillen/questlog/core/designsystem/theme/QuestLogTheme.kt`:
+- [ ] T012 In `core/designsystem/src/main/java/com/nikolasguillen/questlog/core/designsystem/theme/QuestLogTheme.kt`:
   - Change the signature to `fun QuestLogTheme(darkTheme: Boolean = true, content: @Composable () -> Unit)`.
   - Wrap the existing `darkColorScheme(...)` call in `if (darkTheme) { darkColorScheme(...) } else {
     lightColorScheme(...) }`, building the `else` branch from the T011 `*Light` tokens, field-for-field
@@ -216,7 +228,7 @@ about hardening (US1) and verification (US2, US3), not new mechanism.
   `appearance_system` ("Follow System").
 
 - [ ] T015 Create
-  `core/ui/com/nikolasguillen/questlog/core/ui/mapper/AppearanceModeMapper.kt`:
+  `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/mapper/AppearanceModeMapper.kt`:
   ```kotlin
   package com.nikolasguillen.questlog.core.ui.mapper
 
@@ -237,20 +249,20 @@ about hardening (US1) and verification (US2, US3), not new mechanism.
 
 ### `feature/settings` wiring
 
-- [ ] T016 [P] In `feature/settings/model/SettingsUiState.kt`, add the field
+- [ ] T016 [P] In `feature/settings/src/main/java/com/nikolasguillen/questlog/feature/settings/model/SettingsUiState.kt`, add the field
   `val appearanceMode: AppearanceMode = AppearanceMode.SYSTEM` to the `data class SettingsUiState`, with a
   `@property appearanceMode` KDoc line next to the existing ones: "The user's current Appearance selection,
   reflected by the segmented control in the App group. Starts `SYSTEM`, matching the persisted default."
   Import `com.nikolasguillen.questlog.core.model.AppearanceMode`. Depends on T004.
 
-- [ ] T017 [P] In `feature/settings/model/SettingsUiEvent.kt`, add to the `sealed interface SettingsUiEvent`:
+- [ ] T017 [P] In `feature/settings/src/main/java/com/nikolasguillen/questlog/feature/settings/model/SettingsUiEvent.kt`, add to the `sealed interface SettingsUiEvent`:
   ```kotlin
   /** The user picked a different Appearance option from the segmented control. */
   data class AppearanceModeChanged(val mode: AppearanceMode) : SettingsUiEvent
   ```
   Depends on T004.
 
-- [ ] T018 In `feature/settings/SettingsViewModel.kt`:
+- [ ] T018 In `feature/settings/src/main/java/com/nikolasguillen/questlog/feature/settings/SettingsViewModel.kt`:
   - Inject `private val getAppearanceModeUseCase: GetAppearanceModeUseCase` and
     `private val setAppearanceModeUseCase: SetAppearanceModeUseCase` in the constructor.
   - Add `observeAppearanceMode()` to `init { }` (alongside `observeOwnedPlatforms()`,
@@ -275,7 +287,7 @@ about hardening (US1) and verification (US2, US3), not new mechanism.
 - [ ] T019 [P] Add the string `settings_group_appearance` ("Appearance") to
   `feature/settings/src/main/res/values/strings.xml`, next to the existing `settings_group_*` entries.
 
-- [ ] T020 In `feature/settings/SettingsScreen.kt`'s `SettingsContent`, add a new `SettingsGroup` as the
+- [ ] T020 In `feature/settings/src/main/java/com/nikolasguillen/questlog/feature/settings/SettingsScreen.kt`'s `SettingsContent`, add a new `SettingsGroup` as the
   **first** child of the outer `Column` (before `settings_group_game_profile`), so the appearance control
   reads as the top-level personalization setting rather than being buried under app-data rows:
   ```kotlin
@@ -297,7 +309,7 @@ about hardening (US1) and verification (US2, US3), not new mechanism.
   = ...)` value to at least one of the existing `@Preview` functions so the new group renders in previews.
   Depends on T015, T018, T019.
 
-- [ ] T021 [P] In `feature/settings/src/test/java/.../feature/settings/SettingsViewModelTest.kt`, add test
+- [ ] T021 [P] In `feature/settings/src/test/java/com/nikolasguillen/questlog/feature/settings/SettingsViewModelTest.kt`, add test
   cases (mock `GetAppearanceModeUseCase`/`SetAppearanceModeUseCase` the same way the existing MockK setup
   mocks the other use cases — never the repository):
   - `uiState.appearanceMode` reflects whatever `GetAppearanceModeUseCase` emits.
@@ -367,34 +379,39 @@ in it, and for each one decide — and record the reasoning in the diff/commit, 
   `Color.White` used as body text color, or a dark literal used as a card background) — replace it with
   the matching `MaterialTheme.colorScheme.*` or `MaterialTheme.appColors.*` token so it adapts.
 
-- [ ] T024 [P] [US1] Audit `core/ui/com/nikolasguillen/questlog/core/ui/util/MetallicEffects.kt`
-- [ ] T025 [P] [US1] Audit `core/ui/com/nikolasguillen/questlog/core/ui/util/ColorUtils.kt`
-- [ ] T026 [P] [US1] Audit `core/ui/com/nikolasguillen/questlog/core/ui/util/PlatformVisuals.kt`
-- [ ] T027 [P] [US1] Audit `core/ui/com/nikolasguillen/questlog/core/ui/util/modifiers/MetallicModifiers.kt`
-- [ ] T028 [P] [US1] Audit `core/ui/com/nikolasguillen/questlog/core/ui/util/modifiers/VisualModifiers.kt`
-- [ ] T029 [P] [US1] Audit `core/ui/com/nikolasguillen/questlog/core/ui/component/PlatformTile.kt`
-- [ ] T030 [P] [US1] Audit `core/ui/com/nikolasguillen/questlog/core/ui/component/FullScreenImageViewer.kt`
-- [ ] T031 [P] [US1] Audit `core/ui/com/nikolasguillen/questlog/core/ui/component/CustomFilterChip.kt`
-- [ ] T032 [P] [US1] Audit `core/ui/com/nikolasguillen/questlog/core/ui/component/RatingBadge.kt`
-- [ ] T033 [P] [US1] Audit `core/ui/com/nikolasguillen/questlog/core/ui/component/ImageGalleryPager.kt`
-- [ ] T034 [P] [US1] Audit `core/ui/com/nikolasguillen/questlog/core/ui/component/ImmersiveDetailLayout.kt`
-- [ ] T035 [P] [US1] Audit `core/ui/com/nikolasguillen/questlog/core/ui/component/gamecard/VerticalGameCard.kt`
-- [ ] T036 [P] [US1] Audit `core/ui/com/nikolasguillen/questlog/core/ui/component/gamecard/CompactGameCard.kt`
-- [ ] T037 [P] [US1] Audit `core/ui/com/nikolasguillen/questlog/core/ui/component/gamecard/SaveToWishlistButton.kt`
-- [ ] T038 [P] [US1] Audit `core/ui/com/nikolasguillen/questlog/core/ui/component/gamecard/RecentGameCard.kt`
-- [ ] T039 [P] [US1] Audit `feature/game-detail/com/nikolasguillen/questlog/feature/gamedetail/components/GameDetailInfoSection.kt`
-- [ ] T040 [P] [US1] Audit `feature/game-detail/com/nikolasguillen/questlog/feature/gamedetail/components/GameReleaseInfoCard.kt`
-- [ ] T041 [P] [US1] Audit `feature/game-detail/com/nikolasguillen/questlog/feature/gamedetail/model/GameDetailUiModel.kt`
-- [ ] T042 [P] [US1] Audit `feature/game-detail/com/nikolasguillen/questlog/feature/gamedetail/components/GameDetailActionPill.kt`
-- [ ] T043 [P] [US1] Audit `feature/radar/com/nikolasguillen/questlog/feature/radar/RadarScreen.kt`
-- [ ] T044 [P] [US1] Audit `feature/radar/com/nikolasguillen/questlog/feature/radar/model/RadarEntryUiModel.kt`
-- [ ] T045 [P] [US1] Audit `feature/search/com/nikolasguillen/questlog/feature/search/components/DiscoverHero.kt`
+- [ ] T024 [P] [US1] Audit `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/util/MetallicEffects.kt`
+- [ ] T025 [P] [US1] Audit `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/util/ColorUtils.kt`
+- [ ] T026 [P] [US1] Audit `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/util/PlatformVisuals.kt`
+- [ ] T027 [P] [US1] Audit `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/util/modifiers/MetallicModifiers.kt`
+- [ ] T028 [P] [US1] Audit `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/util/modifiers/VisualModifiers.kt`
+- [ ] T029 [P] [US1] Audit `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/component/PlatformTile.kt`
+- [ ] T030 [P] [US1] Audit `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/component/FullScreenImageViewer.kt`
+- [ ] T031 [P] [US1] Audit `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/component/CustomFilterChip.kt`
+- [ ] T032 [P] [US1] Audit `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/component/RatingBadge.kt`
+- [ ] T033 [P] [US1] Audit `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/component/ImageGalleryPager.kt`
+- [ ] T034 [P] [US1] Audit `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/component/ImmersiveDetailLayout.kt`
+- [ ] T035 [P] [US1] Audit `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/component/gamecard/VerticalGameCard.kt`
+- [ ] T036 [P] [US1] Audit `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/component/gamecard/CompactGameCard.kt`
+- [ ] T037 [P] [US1] Audit `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/component/gamecard/SaveToWishlistButton.kt`
+- [ ] T038 [P] [US1] Audit `core/ui/src/main/java/com/nikolasguillen/questlog/core/ui/component/gamecard/RecentGameCard.kt`
+- [ ] T039 [P] [US1] Audit `feature/game-detail/src/main/java/com/nikolasguillen/questlog/feature/gamedetail/components/GameDetailInfoSection.kt`
+- [ ] T040 [P] [US1] Audit `feature/game-detail/src/main/java/com/nikolasguillen/questlog/feature/gamedetail/components/GameReleaseInfoCard.kt`
+- [ ] T041 [P] [US1] Audit `feature/game-detail/src/main/java/com/nikolasguillen/questlog/feature/gamedetail/model/GameDetailUiModel.kt`
+- [ ] T042 [P] [US1] Audit `feature/game-detail/src/main/java/com/nikolasguillen/questlog/feature/gamedetail/components/GameDetailActionPill.kt`
+- [ ] T043 [P] [US1] Audit `feature/radar/src/main/java/com/nikolasguillen/questlog/feature/radar/RadarScreen.kt`
+- [ ] T044 [P] [US1] Audit `feature/radar/src/main/java/com/nikolasguillen/questlog/feature/radar/model/RadarEntryUiModel.kt`
+- [ ] T045 [P] [US1] Audit `feature/search/src/main/java/com/nikolasguillen/questlog/feature/search/components/DiscoverHero.kt`
 
 ### Verification
 
 - [ ] T046 [US1] Manually run [quickstart.md](./quickstart.md) Scenario 1 end to end on a device/emulator:
   Light selection, brand-hue check, system-bar legibility, Dark selection with no regression, and the
-  force-close/reopen check. Depends on T024-T045 and Phase 2.
+  force-close/reopen check. Also cover two of spec.md's Edge Cases not otherwise exercised: tap Light, Dark,
+  Light in quick succession and confirm no glitches or stale appearance (rapid-switching edge case); and
+  open a dialog or expand the search bar, then switch appearance, confirming it stays open/expanded and
+  otherwise unaffected (in-progress-content edge case). Time the Settings → tap-option → visible-change
+  round trip once and confirm it's well under SC-001's 1-second/3-tap budget. Depends on T024-T045 and
+  Phase 2.
 
 **Checkpoint**: User Story 1 is fully functional and independently testable — this is the MVP.
 
@@ -417,7 +434,11 @@ This phase is verification, not new implementation.
 
 - [ ] T047 [US2] Manually run [quickstart.md](./quickstart.md) Scenario 2 end to end on a device/emulator:
   confirm the app matches the device's system setting on open in both directions, and updates live within
-  roughly a second when the system setting changes while the app is in the foreground. Depends on Phase 2.
+  roughly a second when the system setting changes while the app is in the foreground. Also cover spec.md's
+  backgrounded-change edge case directly: with the app backgrounded (not closed) and "Follow System"
+  selected, flip the device's system-wide setting, then bring the app back to the foreground and confirm it
+  now matches — distinct from the foreground-live case above, since this path goes through the activity's
+  next resume rather than a live recomposition while visible. Depends on Phase 2.
 
 **Checkpoint**: User Story 2 confirmed working — combined with User Story 1, both manual and automatic
 appearance selection are independently functional.
