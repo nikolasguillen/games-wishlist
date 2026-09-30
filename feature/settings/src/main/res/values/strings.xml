@@ -1,6 +1,7 @@
 <resources>
     <string name="settings_title">Settings</string>
 
+    <string name="settings_group_appearance">Appearance</string>
     <string name="settings_group_game_profile">My game profile</string>
     <string name="settings_group_app">App</string>
     <string name="settings_group_notifications">Notifications</string>

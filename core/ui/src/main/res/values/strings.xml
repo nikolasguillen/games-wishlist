@@ -89,6 +89,10 @@
     <string name="status_completed">Completed</string>
     <string name="status_dropped">Dropped</string>
 
+    <string name="appearance_light">Light</string>
+    <string name="appearance_dark">Dark</string>
+    <string name="appearance_system">Follow System</string>
+
     <!-- Related Games -->
     <string name="related_parent_game">Main Game</string>
     <string name="related_dlcs">DLCs</string>

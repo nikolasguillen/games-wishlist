@@ -1,8 +1,6 @@
 package com.nikolasguillen.questlog.core.ui.component.gamecard
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,12 +13,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -28,7 +24,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.R
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
@@ -46,17 +41,13 @@ fun VerticalGameCard(
 ) {
     val cardHeight = 250.dp
     val chooseListLabel = stringResource(R.string.choose_list_content_description)
-    OutlinedCard(
-        border = BorderStroke(1.dp, MaterialTheme.appColors.cardContainerColor),
+    GenericGameCardLayout(
+        onClick = onClick,
+        onLongClick = onLongClick,
+        onLongClickLabel = chooseListLabel,
         modifier = modifier
             .width(180.dp)
             .height(cardHeight)
-            .clip(MaterialTheme.shapes.medium)
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick,
-                onLongClickLabel = chooseListLabel
-            )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             GameCoverHeader(
@@ -85,10 +76,13 @@ fun VerticalGameCard(
                     .padding(bottom = MaterialTheme.spacing.medium)
                     .padding(top = 50.dp)
             ) {
+                // Fixed white, not the ambient onSurface: this sits on the permanently-dark scrim above,
+                // over an arbitrary cover image, so it must stay legible regardless of app appearance.
                 Text(
                     text = game.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
+                    color = Color.White,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = MaterialTheme.typography.titleSmall.lineHeight,
@@ -131,11 +125,13 @@ private fun GameMetadataRow(
             )
         }
 
+        // Fixed white-based alphas, not the ambient onSurfaceVariant: this row sits on the same
+        // permanently-dark scrim as the title above, over an arbitrary cover image.
         if (rating > 0 && (developer != null || releaseYear != null)) {
             Text(
                 text = UiConstants.METADATA_SEPARATOR,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                color = Color.White.copy(alpha = 0.6f)
             )
         }
 
@@ -143,7 +139,7 @@ private fun GameMetadataRow(
             Text(
                 text = it,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.7f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f, fill = false)
@@ -154,7 +150,7 @@ private fun GameMetadataRow(
             Text(
                 text = UiConstants.METADATA_SEPARATOR,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                color = Color.White.copy(alpha = 0.6f)
             )
         }
 
@@ -162,7 +158,7 @@ private fun GameMetadataRow(
             Text(
                 text = it,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                color = Color.White.copy(alpha = 0.85f),
                 maxLines = 1
             )
         }

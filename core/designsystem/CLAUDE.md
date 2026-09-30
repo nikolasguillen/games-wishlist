@@ -2,8 +2,11 @@
 
 Theme tokens only, six files under `theme/`. No composables beyond `QuestLogTheme`.
 
-- **Dark theme only.** `QuestLogTheme.kt` exposes a single `darkColorScheme`. There is no light scheme and no
-  dynamic color. Do not assume light-mode support or add `isSystemInDarkTheme()` branches.
+- **`QuestLogTheme(darkTheme: Boolean = true, content)`** branches between `darkColorScheme` and
+  `lightColorScheme`, plus a matching light/dark `AppColors` instance. There is no dynamic color. The
+  caller resolves `darkTheme` (manual selection vs. `isSystemInDarkTheme()`) — this module never reads
+  system state itself, so it stays a pure function of the flag; see `AppearanceMode` in `:core:model` and
+  `MainActivity`'s `setContent` for where that resolution happens.
 - **`MaterialTheme.spacing`** (`Spacing.kt`) — `default 0`, `extraSmall 2`, `small 4`, `smallMedium 6`,
   `medium 8`, `mediumLarge 12`, `large 16`, `extraLarge 24`, `doubleLarge 32` dp.
   Need a value that is not there? Add a token here rather than hardcoding a new `dp` in a composable.

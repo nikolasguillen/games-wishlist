@@ -70,7 +70,8 @@ identity would break state comparison. If you add a case, preserve that discipli
 Extension functions only, no classes. `ErrorMapper.kt` (`RepositoryError.toUiText()`) is the **single**
 error-to-text boundary in the app — route all error rendering through it. Also `GameUiMapper.kt`
 (`List<Game>.toGameItemList()`, `Game.toGameItem()`, `Platform.getShortLabel()`,
-`GameStatus.toLabelUiText()`), `GameTypeMapper.kt`, `WishlistIconMapper.kt`.
+`GameStatus.toLabelUiText()`), `GameTypeMapper.kt`, `WishlistIconMapper.kt`,
+`AppearanceModeMapper.kt` (`AppearanceMode.toLabelUiText()`).
 
 ## Build notes
 

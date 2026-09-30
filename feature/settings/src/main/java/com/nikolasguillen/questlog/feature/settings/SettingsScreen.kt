@@ -3,6 +3,7 @@ package com.nikolasguillen.questlog.feature.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -45,6 +46,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
+import com.nikolasguillen.questlog.core.model.AppearanceMode
+import com.nikolasguillen.questlog.core.ui.component.CustomSegmentedButton
+import com.nikolasguillen.questlog.core.ui.mapper.toLabelUiText
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.core.ui.util.rememberNotificationPermissionState
 import com.nikolasguillen.questlog.feature.settings.components.DownloadTranslationModelDialog
@@ -173,6 +177,18 @@ internal fun SettingsContent(
                     vertical = MaterialTheme.spacing.medium
                 )
         ) {
+            SettingsGroup(title = stringResource(R.string.settings_group_appearance)) {
+                CustomSegmentedButton(
+                    options = AppearanceMode.entries,
+                    selectedIndex = AppearanceMode.entries.indexOf(state.appearanceMode),
+                    onOptionSelected = { index ->
+                        onEvent(SettingsUiEvent.AppearanceModeChanged(AppearanceMode.entries[index]))
+                    },
+                    label = { Text(it.toLabelUiText().asString()) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             SettingsGroup(title = stringResource(R.string.settings_group_game_profile)) {
                 SettingsRow(
                     icon = Icons.Default.SportsEsports,
@@ -301,7 +317,8 @@ private fun SettingsContentPreview() {
         SettingsContent(
             state = SettingsUiState(
                 ownedPlatformsSummary = UiText.DynamicString("PS5, PC, Switch"),
-                appVersion = "1.0"
+                appVersion = "1.0",
+                appearanceMode = AppearanceMode.LIGHT
             ),
             onEvent = {},
             onBackClick = {},

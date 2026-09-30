@@ -68,7 +68,9 @@ fun FullScreenImageViewer(
                 modifier = Modifier.fillMaxSize()
             )
 
-            // Close Button
+            // Close Button. Fixed light-on-black regardless of app appearance: the backdrop above is
+            // unconditionally Color.Black, so following the ambient colorScheme here would turn this
+            // invisible (dark-on-black) whenever Light appearance is active.
             IconButton(
                 onClick = onDismiss,
                 modifier = Modifier
@@ -76,14 +78,14 @@ fun FullScreenImageViewer(
                     .statusBarsPadding()
                     .padding(end = MaterialTheme.spacing.medium)
                     .background(
-                        MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.5f),
+                        Color.White.copy(alpha = 0.2f),
                         CircleShape
                     )
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = Color.White
                 )
             }
         }

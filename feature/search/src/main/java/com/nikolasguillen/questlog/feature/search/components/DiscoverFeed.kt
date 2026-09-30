@@ -246,7 +246,7 @@ private fun DiscoverShelf(
                     game = game,
                     onClick = { onGameClick(game.id) },
                     onSaveClick = { onSaveClick(game.id) },
-                    onLongClick = { onLongClick(game.id) },
+                    onSaveLongClick = { onLongClick(game.id) },
                     modifier = Modifier.width(140.dp)
                 )
             }

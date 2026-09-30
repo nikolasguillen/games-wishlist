@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.core.ui.component.gamecard
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -16,13 +15,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -30,7 +27,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.R
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
@@ -49,12 +45,10 @@ fun RecentGameCard(
             .width(120.dp)
             .height(cardHeight)
     ) {
-        OutlinedCard(
-            border = BorderStroke(1.dp, MaterialTheme.appColors.cardContainerColor),
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(MaterialTheme.shapes.medium)
-                .clickable(onClick = onClick)
+        GenericGameCardLayout(
+            shape = MaterialTheme.shapes.small,
+            onClick = onClick,
+            modifier = Modifier.fillMaxWidth()
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 GameCoverHeader(
@@ -71,10 +65,14 @@ fun RecentGameCard(
                         .padding(MaterialTheme.spacing.smallMedium)
                         .padding(top = 30.dp)
                 ) {
+                    // Fixed white, not the ambient onSurface/onSurfaceVariant: this sits on the
+                    // permanently-dark scrim above, over an arbitrary cover image, so it must stay
+                    // legible regardless of app appearance.
                     Text(
                         text = game.name,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
+                        color = Color.White,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -84,7 +82,7 @@ fun RecentGameCard(
                     Text(
                         text = game.releaseYear ?: game.releaseDateText.asString(),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        color = Color.White.copy(alpha = 0.8f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )

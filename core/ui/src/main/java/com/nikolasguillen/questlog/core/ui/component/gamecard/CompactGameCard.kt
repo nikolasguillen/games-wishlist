@@ -1,8 +1,6 @@
 package com.nikolasguillen.questlog.core.ui.component.gamecard
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -10,14 +8,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -25,7 +20,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.R
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
@@ -36,18 +30,16 @@ fun CompactGameCard(
     game: GameItemUiModel,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    onLongClick: (() -> Unit)? = null,
+    onSaveLongClick: (() -> Unit)? = null,
     onSaveClick: (() -> Unit)? = null
 ) {
     val cardHeight = 150.dp
     val chooseListLabel = stringResource(R.string.choose_list_content_description)
-    OutlinedCard(
-        border = BorderStroke(1.dp, MaterialTheme.appColors.cardContainerColor),
+    GenericGameCardLayout(
+        onClick = onClick,
         modifier = modifier
             .height(cardHeight)
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
-            .clickable(onClick = onClick)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             GameCoverHeader(
@@ -59,7 +51,7 @@ fun CompactGameCard(
                 SaveToWishlistButton(
                     isSaved = game.isSaved,
                     onSaveClick = onSaveClick,
-                    onLongClick = onLongClick,
+                    onLongClick = onSaveLongClick,
                     longClickLabel = chooseListLabel,
                     modifier = Modifier.align(Alignment.TopEnd)
                 )
@@ -74,10 +66,14 @@ fun CompactGameCard(
                     .padding(MaterialTheme.spacing.smallMedium)
                     .padding(top = 30.dp)
             ) {
+                // Fixed white, not the ambient onSurface/onSurfaceVariant: this sits on the
+                // permanently-dark scrim above, over an arbitrary cover image, so it must stay legible
+                // regardless of app appearance.
                 Text(
                     text = game.name,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
+                    color = Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -89,7 +85,7 @@ fun CompactGameCard(
                 Text(
                     text = game.releaseYear ?: game.releaseDateText.asString(),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                    color = Color.White.copy(alpha = 0.8f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -106,7 +102,7 @@ private fun CompactGameCardPreview() {
             game = GameItemUiModel.getDummy(),
             onClick = {},
             onSaveClick = {},
-            onLongClick = {}
+            onSaveLongClick = {}
         )
     }
 }

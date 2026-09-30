@@ -11,8 +11,7 @@ notifications) have shipped; what's left starts at Phase 4.
 
 The screen groups its rows by theme, and the only groups that exist are the ones with data behind them.
 A genre picker was considered and dropped, since the taste profile infers genres from saved games and the
-user does not edit them by hand; appearance has nothing to switch, because `:core:designsystem` is
-dark-only by design. Do not add a row before the thing it configures exists.
+user does not edit them by hand. Do not add a row before the thing it configures exists.
 
 ## Open items in the shipped Discover feed
 

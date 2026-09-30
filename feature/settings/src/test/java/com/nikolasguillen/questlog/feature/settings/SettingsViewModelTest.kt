@@ -4,8 +4,11 @@ import com.nikolasguillen.questlog.core.common.AppVersionProvider
 import com.nikolasguillen.questlog.core.common.NetworkStatusProvider
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatformsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.settings.GetAppearanceModeUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.settings.SetAppearanceModeUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.DownloadTranslationModelUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.GetTranslationModelStatusUseCase
+import com.nikolasguillen.questlog.core.model.AppearanceMode
 import com.nikolasguillen.questlog.core.model.TranslationModelDownload
 import com.nikolasguillen.questlog.core.model.TranslationModelStatus
 import com.nikolasguillen.questlog.feature.settings.model.NotificationPermissionRowState
@@ -44,7 +47,9 @@ import org.junit.Test
  * an unmetered network asking for confirmation via [SettingsUiEffect.ShowDownloadConfirmDialog] rather
  * than starting immediately, and a tap off an unmetered network being refused with
  * [SettingsUiEffect.ShowWifiRequiredDialog] instead of starting a download AICore would silently never
- * progress.
+ * progress. Also covers the Appearance selector: [GetAppearanceModeUseCase] seeding
+ * [SettingsUiState.appearanceMode], and [SettingsUiEvent.AppearanceModeChanged] writing through
+ * [SetAppearanceModeUseCase].
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
@@ -56,6 +61,8 @@ class SettingsViewModelTest {
     private val downloadTranslationModelUseCase = mockk<DownloadTranslationModelUseCase>()
     private val getTranslationModelStatusUseCase = mockk<GetTranslationModelStatusUseCase>()
     private val getReleaseNotificationGameIdsUseCase = mockk<GetReleaseNotificationGameIdsUseCase>()
+    private val getAppearanceModeUseCase = mockk<GetAppearanceModeUseCase>()
+    private val setAppearanceModeUseCase = mockk<SetAppearanceModeUseCase>(relaxed = true)
     private val networkStatusProvider =
         mockk<NetworkStatusProvider> { every { isUnmeteredNetworkAvailable } returns true }
 
@@ -64,6 +71,7 @@ class SettingsViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { getSelectedPlatformsUseCase() } returns flowOf(emptyList())
         every { getReleaseNotificationGameIdsUseCase() } returns flowOf(emptySet())
+        every { getAppearanceModeUseCase() } returns flowOf(AppearanceMode.SYSTEM)
     }
 
     @After
@@ -77,6 +85,8 @@ class SettingsViewModelTest {
         downloadTranslationModelUseCase = downloadTranslationModelUseCase,
         getTranslationModelStatusUseCase = getTranslationModelStatusUseCase,
         getReleaseNotificationGameIdsUseCase = getReleaseNotificationGameIdsUseCase,
+        getAppearanceModeUseCase = getAppearanceModeUseCase,
+        setAppearanceModeUseCase = setAppearanceModeUseCase,
         networkStatusProvider = networkStatusProvider
     )
 
@@ -335,6 +345,35 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(NotificationPermissionRowState.Granted, states.last().notificationPermission)
+        job.cancel()
+    }
+
+    @Test
+    fun `uiState appearanceMode reflects what GetAppearanceModeUseCase emits`() = runTest {
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.UNSUPPORTED
+        every { getAppearanceModeUseCase() } returns flowOf(AppearanceMode.LIGHT)
+
+        val viewModel = viewModel()
+        val states = mutableListOf<SettingsUiState>()
+        val job = collectStates(viewModel, states)
+        advanceUntilIdle()
+
+        assertEquals(AppearanceMode.LIGHT, states.last().appearanceMode)
+        job.cancel()
+    }
+
+    @Test
+    fun `AppearanceModeChanged calls SetAppearanceModeUseCase with the selected mode`() = runTest {
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.UNSUPPORTED
+
+        val viewModel = viewModel()
+        val job = collectStates(viewModel, mutableListOf())
+        advanceUntilIdle()
+
+        viewModel.onEvent(SettingsUiEvent.AppearanceModeChanged(AppearanceMode.LIGHT))
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { setAppearanceModeUseCase(AppearanceMode.LIGHT) }
         job.cancel()
     }
 }

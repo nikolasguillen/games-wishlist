@@ -1,6 +1,7 @@
 package com.nikolasguillen.questlog.feature.settings.model
 
 import androidx.compose.runtime.Immutable
+import com.nikolasguillen.questlog.core.model.AppearanceMode
 import com.nikolasguillen.questlog.core.ui.model.UiText
 
 /**
@@ -21,6 +22,8 @@ import com.nikolasguillen.questlog.core.ui.model.UiText
  * @property notificationPermission The system notification permission's state, as reflected in the
  * "Notifications" group. Starts [NotificationPermissionRowState.Granted] so the row is absent until the
  * composition-only permission read reports otherwise, rather than flashing "blocked" on every launch.
+ * @property appearanceMode The user's current Appearance selection, reflected by the segmented control in
+ * the App group. Starts `SYSTEM`, matching the persisted default.
  */
 @Immutable
 internal data class SettingsUiState(
@@ -28,5 +31,6 @@ internal data class SettingsUiState(
     val appVersion: String = "",
     val translationModel: TranslationModelRowState = TranslationModelRowState.Hidden,
     val releaseNotificationCount: Int = 0,
-    val notificationPermission: NotificationPermissionRowState = NotificationPermissionRowState.Granted
+    val notificationPermission: NotificationPermissionRowState = NotificationPermissionRowState.Granted,
+    val appearanceMode: AppearanceMode = AppearanceMode.SYSTEM
 )

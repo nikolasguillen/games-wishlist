@@ -11,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,17 +28,24 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.domain.usecase.settings.GetAppearanceModeUseCase
+import com.nikolasguillen.questlog.core.model.AppearanceMode
 import com.nikolasguillen.questlog.core.navigation.GameDetailRoute
 import com.nikolasguillen.questlog.core.navigation.ListsRoute
 import com.nikolasguillen.questlog.core.navigation.RadarRoute
 import com.nikolasguillen.questlog.core.navigation.SearchRoute
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var getAppearanceModeUseCase: GetAppearanceModeUseCase
 
     // A release notification's PendingIntent carries a questlog://game/<id> deep link; read here (outside
     // Compose) and handed to MainContent as state, since onNewIntent -- the warm-start case -- never runs
@@ -51,7 +59,14 @@ class MainActivity : ComponentActivity() {
         )
         pendingDeepLinkGameId = intent.toGameDeepLinkId()
         setContent {
-            QuestLogTheme {
+            val appearanceMode by getAppearanceModeUseCase()
+                .collectAsStateWithLifecycle(initialValue = AppearanceMode.SYSTEM)
+            val darkTheme = when (appearanceMode) {
+                AppearanceMode.LIGHT -> false
+                AppearanceMode.DARK -> true
+                AppearanceMode.SYSTEM -> isSystemInDarkTheme()
+            }
+            QuestLogTheme(darkTheme = darkTheme) {
                 MainContent(
                     pendingDeepLinkGameId = pendingDeepLinkGameId,
                     onDeepLinkConsumed = { pendingDeepLinkGameId = null }

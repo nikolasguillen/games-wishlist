@@ -6,6 +6,8 @@ import com.nikolasguillen.questlog.core.common.AppVersionProvider
 import com.nikolasguillen.questlog.core.common.NetworkStatusProvider
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatformsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.settings.GetAppearanceModeUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.settings.SetAppearanceModeUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.DownloadTranslationModelUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.GetTranslationModelStatusUseCase
 import com.nikolasguillen.questlog.core.model.TranslationModelDownload
@@ -33,6 +35,8 @@ class SettingsViewModel @Inject constructor(
     private val downloadTranslationModelUseCase: DownloadTranslationModelUseCase,
     private val getTranslationModelStatusUseCase: GetTranslationModelStatusUseCase,
     private val getReleaseNotificationGameIdsUseCase: GetReleaseNotificationGameIdsUseCase,
+    private val getAppearanceModeUseCase: GetAppearanceModeUseCase,
+    private val setAppearanceModeUseCase: SetAppearanceModeUseCase,
     private val networkStatusProvider: NetworkStatusProvider
 ) : ViewModel() {
 
@@ -46,6 +50,7 @@ class SettingsViewModel @Inject constructor(
         observeOwnedPlatforms()
         loadTranslationModelStatus()
         observeReleaseNotificationCount()
+        observeAppearanceMode()
     }
 
     internal fun onEvent(event: SettingsUiEvent) {
@@ -61,6 +66,18 @@ class SettingsViewModel @Inject constructor(
                     NotificationPermissionRowState.Blocked
                 }
                 _uiState.update { it.copy(notificationPermission = rowState) }
+            }
+
+            is SettingsUiEvent.AppearanceModeChanged ->
+                viewModelScope.launch { setAppearanceModeUseCase(event.mode) }
+        }
+    }
+
+    // Collected for the ViewModel's whole life, the same way observeOwnedPlatforms is.
+    private fun observeAppearanceMode() {
+        viewModelScope.launch {
+            getAppearanceModeUseCase().collect { mode ->
+                _uiState.update { it.copy(appearanceMode = mode) }
             }
         }
     }

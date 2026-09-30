@@ -172,13 +172,13 @@ object ImmersiveDetailLayoutDefaults {
             onClick = onClick,
             modifier = modifier,
             colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = (1f - alpha))
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = (1f - alpha))
             )
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
-                tint = if (alpha > 0.5f) MaterialTheme.colorScheme.onSurface else Color.White
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
     }
