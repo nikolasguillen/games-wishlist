@@ -47,9 +47,11 @@ is judged not to trigger it, but the call is worth a second pair of eyes.
 ## 3. Where Light vs. Dark is resolved
 
 **Decision**: The boolean `darkTheme` is computed once, at the single production call site
-(`MainActivity`'s `setContent`), by combining the persisted `AppearanceMode` (via a new `:app`-level
-`AppThemeViewModel`) with Compose's `isSystemInDarkTheme()`. `QuestLogTheme` itself takes `darkTheme:
-Boolean` as a plain parameter and stays ignorant of where that value came from.
+(`MainActivity`'s `setContent`), by combining the persisted `AppearanceMode` with Compose's
+`isSystemInDarkTheme()`. `AppearanceMode` is read via `GetAppearanceModeUseCase`, **field-injected directly
+into `MainActivity`** (it's already `@AndroidEntryPoint`) and collected with `collectAsStateWithLifecycle()`
+— no dedicated `ViewModel`. `QuestLogTheme` itself takes `darkTheme: Boolean` as a plain parameter and stays
+ignorant of where that value came from.
 
 **Rationale**: `core/designsystem/CLAUDE.md` currently states *"Do not assume light-mode support or add
 `isSystemInDarkTheme()` branches"* inside the theme file — this plan changes the first half of that rule but
@@ -57,10 +59,24 @@ keeps the spirit of the second: `QuestLogTheme` stays a pure function of an expl
 that reaches into system state itself. That keeps every `@Preview` call site (which doesn't have a real
 `Activity`/system config to read) fully in control of which variant it renders.
 
+No `ViewModel` sits in between. `GetAppearanceModeUseCase()` is a zero-logic `Flow` pass-through — no
+branching, no combined sources — so the two things a `ViewModel` would normally buy here (surviving a
+configuration change, and being the only way to reach Hilt) don't apply: a cheap DataStore re-read has no
+in-flight state worth preserving across rotation, and Hilt supports field injection into `@AndroidEntryPoint`
+Activities directly, which is the only injection style available to an `Activity` regardless (constructor
+injection isn't an option for framework components either way). An earlier draft of this plan introduced an
+`AppThemeViewModel` for this, reasoning it matched the codebase's ViewModel-per-screen convention; on review
+that convention is scoped to *screens* (`feature/CLAUDE.md`), not the app-shell composition root, and the
+"VM" bought nothing beyond what `collectAsStateWithLifecycle()` already does directly. Dropped in favor of
+the simpler shape.
+
 **Alternatives considered**:
 - **Read `isSystemInDarkTheme()` inside `QuestLogTheme`**: rejected — collapses the "Light"/"Dark" explicit
   choices and "Follow System" into the same code path, and previews would no longer be able to force a
   specific variant.
+- **A dedicated `AppThemeViewModel`**: considered and rejected (see above) — adds a file, a `hiltViewModel()`
+  call, and `:app`'s "first ViewModel" as a thing to explain, for a `Flow.stateIn(...)` that
+  `collectAsStateWithLifecycle()` already provides for free at the collection site.
 
 ## 4. `QuestLogTheme` signature change
 

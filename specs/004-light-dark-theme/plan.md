@@ -10,7 +10,9 @@ A new "Appearance" control in Settings (Light / Dark / Follow System, default Fo
 pick how the app renders. The choice persists in a new DataStore Preferences value read through a new
 `AppearancePreferenceStore` domain port — not a second `GameRepository` — and is resolved to a plain
 `darkTheme: Boolean` at the single production call site of `QuestLogTheme` (`MainActivity`), combining the
-stored preference with Compose's live `isSystemInDarkTheme()` signal. `QuestLogTheme` gains a light
+stored preference (read via `GetAppearanceModeUseCase`, field-injected directly into `MainActivity` — no
+dedicated `ViewModel`, since the read is a zero-logic `Flow` pass-through with no state worth surviving
+rotation) with Compose's live `isSystemInDarkTheme()` signal. `QuestLogTheme` gains a light
 `ColorScheme`/`AppColors` variant built from new `*Light` tokens that reuse the existing Gold brand hue, and
 now owns the system status/navigation bar icon color reactively, so both an explicit selection and a live
 system change apply instantly with no restart. The selector itself reuses the existing, currently-unused
@@ -28,8 +30,9 @@ one), `androidx.core:core-ktx` (new dependency of `:core:designsystem`, for
 **Storage**: DataStore Preferences — one new key, no Room change, no schema/version impact
 
 **Testing**: JUnit4 + MockK + `kotlinx-coroutines-test` in the existing `src/test` source sets of
-`:core:data`, `:core:domain` (where warranted — see below), `:feature:settings`, and a first real test in
-`:app` (currently only a placeholder `ExampleUnitTest`)
+`:core:data`, `:core:domain` (where warranted — see below), `:feature:settings`. No new test source in
+`:app` — there's no ViewModel or other unit-testable logic added there, just a field-injected use case read
+inline in `setContent`
 
 **Target Platform**: Android, minSdk 29 / compileSdk & targetSdk 37
 
@@ -53,11 +56,11 @@ addition called out below for explicit review.*
 
 | Principle | Verdict | How this plan satisfies it |
 |---|---|---|
-| I. Module boundaries are load-bearing | **Pass** | No new module edge. `feature/settings` still touches only `:core:{common,model,domain,ui,navigation,designsystem}` — it reaches the preference through `:core:domain` use cases, never through `:core:data`/DataStore directly. `AppThemeViewModel` and the resolved-theme wiring live in `:app`, which already depends on everything. No new `NavKey`, no new `entryProvider` branch — no route is added. |
+| I. Module boundaries are load-bearing | **Pass** | No new module edge. `feature/settings` still touches only `:core:{common,model,domain,ui,navigation,designsystem}` — it reaches the preference through `:core:domain` use cases, never through `:core:data`/DataStore directly. The resolved-theme wiring lives in `:app` (a field-injected use case read directly in `MainActivity`), which already depends on everything. No new `NavKey`, no new `entryProvider` branch — no route is added. |
 | II. Typed errors cross layers | **Pass** | `AppearancePreferenceStore` is DB-only in spirit (DataStore, not network), so both its methods and both new use cases return a bare `Flow<AppearanceMode>` / `Unit` — no `AppResult`, matching the rule that only network-touching methods wrap. Nothing new throws across a layer. |
 | III. The UI layer renders, it does not decide | **Pass** | Resolving `AppearanceMode` → `darkTheme: Boolean` combines a stored value with `isSystemInDarkTheme()`, which is unavoidably a UI-layer read (Compose has no other source for it) — but the *decision logic* (the three-way `when`) is a one-line, inline, side-effect-free expression at the composition root, not business logic hidden in a composable. `SettingsScreen` still only renders `state.appearanceMode` and emits `SettingsUiEvent.AppearanceModeChanged`; it does not decide anything. |
 | IV. Reuse the shared layer before adding to it | **Pass** | Reuses `CustomSegmentedButton` (previously declared but unused `AppColors` tokens `segmentedButtonSelectedColor`/`segmentedButtonSelectedContentColor` now get their first real consumer), `SettingsGroup`/`SettingsRow`'s sibling pattern, and the existing `MaterialTheme.spacing`/`appColors` plumbing. **Deliberate, flagged addition**: a new domain port (`AppearancePreferenceStore`) rather than folding into the one existing `GameRepository` — see Complexity Tracking below, this is the rule IV explicitly asks to be discussed rather than silently done. |
-| V. Verification is local, not automated | **Pass** | Verified with `./gradlew :app:assembleDebug` (spans modules, touches DI) plus `./gradlew test`. New store, use-case (where non-trivial), ViewModel and mapper logic gets a test in its own module's `src/test`. No lint gate or pipeline assumed. |
+| V. Verification is local, not automated | **Pass** | Verified with `./gradlew :app:assembleDebug` (spans modules, touches DI) plus `./gradlew test`. New store, use-case (where non-trivial), and mapper logic gets a test in its own module's `src/test`. No lint gate or pipeline assumed. |
 
 **Deliberate additions that are not violations, recorded so review does not mistake them for drift:**
 
@@ -65,9 +68,11 @@ addition called out below for explicit review.*
   `WindowCompat`/`WindowInsetsControllerCompat` inside `QuestLogTheme`'s system-bar `SideEffect`. A library
   dependency, not a module edge — same category as `:core:ui` gaining `activity-compose`/`core-ktx` in
   Phase 3.
-- `:app` gains its first real `ViewModel` (`AppThemeViewModel`) and, with it, its first real unit test file
-  beyond the generated placeholder. This is new *pattern* for the module, not a new *dependency* — `:app`
-  already has `androidx.lifecycle.viewmodel.compose` and Hilt wired.
+- `MainActivity` gains its first `@Inject lateinit var` field (`GetAppearanceModeUseCase`). `:app` is
+  already `@AndroidEntryPoint`-wired via Hilt; this is a new pattern for the class (no ViewModel has been
+  needed there before), not a new dependency. Considered and rejected: a dedicated `AppThemeViewModel` —
+  see research.md §3. It would have been `:app`'s first ViewModel for a zero-logic `Flow` read that
+  `collectAsStateWithLifecycle()` already handles directly; dropped as unnecessary indirection.
 - `androidx.datastore:datastore-preferences` moves from a declared-but-unused `:app` dependency to an
   actually-used `:core:data` one. Net module-graph change: a dead dependency is removed from `:app`.
 - `core/designsystem/CLAUDE.md`'s "dark theme only... do not add `isSystemInDarkTheme()` branches" line and
@@ -131,8 +136,8 @@ feature/settings/src/main/java/.../feature/settings/
 feature/settings/src/main/res/values/strings.xml   # EDIT settings_group_appearance
 
 app/src/main/java/.../
-├── AppThemeViewModel.kt                            # NEW  resolves AppearanceMode -> darkTheme
-└── MainActivity.kt                                 # EDIT setContent reads AppThemeViewModel + isSystemInDarkTheme()
+└── MainActivity.kt                                 # EDIT @Inject GetAppearanceModeUseCase, setContent
+                                                     #      resolves darkTheme via isSystemInDarkTheme()
 app/build.gradle.kts                               # EDIT remove now-unused datastore-preferences
 
 docs/roadmap.md                                    # EDIT delete the "appearance has nothing to switch" line
@@ -156,7 +161,8 @@ feature has had reason to touch.
   (not persisted) `darkTheme` resolution
 - [contracts/domain-ports.md](./contracts/domain-ports.md) — the port and the two use cases
 - [contracts/ui-contracts.md](./contracts/ui-contracts.md) — `QuestLogTheme`'s new signature and system-bar
-  behavior, the new `core:ui` mapper, the `feature/settings` state/event additions, `AppThemeViewModel`
+  behavior, the new `core:ui` mapper, the `feature/settings` state/event additions, `MainActivity`'s
+  field-injected use case
 - [quickstart.md](./quickstart.md) — how to verify all three user stories end to end, plus what's covered by
   JVM tests alone
 

@@ -41,7 +41,8 @@ operator fun invoke(): Flow<AppearanceMode>
 
 Straight pass-through to `AppearancePreferenceStore.observeAppearanceMode()`. Two independent consumers
 fold this into their own state: `SettingsViewModel` (to show the current selection) and the new
-`AppThemeViewModel` in `:app` (to resolve the whole app's color scheme).
+`MainActivity` in `:app`, via a field-injected use case (to resolve the whole app's color scheme —
+no dedicated ViewModel, see research.md §3).
 
 ### `SetAppearanceModeUseCase`
 

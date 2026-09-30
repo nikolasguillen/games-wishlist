@@ -72,37 +72,46 @@ over the three `AppearanceMode` values, `label = { Text(it.toLabelUiText().asStr
 `selectedIndex` derived from `state.appearanceMode`, `onOptionSelected` dispatching
 `SettingsUiEvent.AppearanceModeChanged`.
 
-## `:app` (new)
+## `:app`
 
-### `AppThemeViewModel` (new)
+No new ViewModel. `GetAppearanceModeUseCase` is a zero-logic Flow pass-through, and `MainActivity` is
+already `@AndroidEntryPoint` — a `ViewModel` whose only job is `Flow.stateIn(viewModelScope, ...)` earns its
+keep by surviving configuration changes or combining sources, neither of which applies to a cheap DataStore
+re-read with no in-flight state to lose. Hilt field injection directly into the `Activity` is simpler and
+was rejected only because it's a "first" for `:app` — replaced by an equally-new-pattern `ViewModel` in the
+original draft of this plan, which turned out to be the same tradeoff without the simplicity. See
+research.md §3 (updated).
 
-```kotlin
-@HiltViewModel
-class AppThemeViewModel @Inject constructor(
-    getAppearanceModeUseCase: GetAppearanceModeUseCase
-) : ViewModel() {
-    val appearanceMode: StateFlow<AppearanceMode> = getAppearanceModeUseCase()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppearanceMode.SYSTEM)
-}
-```
-
-`WhileSubscribed(5000)` is safe here (unlike the always-alive shape `SettingsViewModel` needs for its
-notification/discover sources) because this VM has exactly one collector — the root composition — which is
-never unsubscribed for longer than a configuration change.
-
-### `MainActivity.kt` — `setContent` change
+### `MainActivity.kt` — additions
 
 ```kotlin
-setContent {
-    val appThemeViewModel: AppThemeViewModel = hiltViewModel()
-    val appearanceMode by appThemeViewModel.appearanceMode.collectAsStateWithLifecycle()
-    val darkTheme = when (appearanceMode) {
-        AppearanceMode.LIGHT -> false
-        AppearanceMode.DARK -> true
-        AppearanceMode.SYSTEM -> isSystemInDarkTheme()
-    }
-    QuestLogTheme(darkTheme = darkTheme) {
-        MainContent(...)
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var getAppearanceModeUseCase: GetAppearanceModeUseCase
+
+    // ...
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
+        pendingDeepLinkGameId = intent.toGameDeepLinkId()
+        setContent {
+            val appearanceMode by getAppearanceModeUseCase()
+                .collectAsStateWithLifecycle(initialValue = AppearanceMode.SYSTEM)
+            val darkTheme = when (appearanceMode) {
+                AppearanceMode.LIGHT -> false
+                AppearanceMode.DARK -> true
+                AppearanceMode.SYSTEM -> isSystemInDarkTheme()
+            }
+            QuestLogTheme(darkTheme = darkTheme) {
+                MainContent(
+                    pendingDeepLinkGameId = pendingDeepLinkGameId,
+                    onDeepLinkConsumed = { pendingDeepLinkGameId = null }
+                )
+            }
+        }
     }
 }
 ```
