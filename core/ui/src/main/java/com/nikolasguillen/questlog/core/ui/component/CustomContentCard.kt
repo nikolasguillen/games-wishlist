@@ -3,8 +3,6 @@ package com.nikolasguillen.questlog.core.ui.component
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
@@ -58,7 +56,6 @@ fun CustomContentCard(
                     )
                     titleAction?.invoke()
                 }
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraSmall))
             }
             content()
         }

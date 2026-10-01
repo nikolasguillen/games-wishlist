@@ -68,7 +68,7 @@ internal fun GameReleaseInfoCard(
         ) {
             Column {
                 Text(
-                    stringResource(CoreUiR.string.main_release_date_title).uppercase(),
+                    stringResource(CoreUiR.string.main_release_date_title),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -171,7 +171,10 @@ private fun PlatformTileRow(
         }
         if (overflowCount > 0) {
             PlatformTile(
-                code = UiText.StringResource(CoreUiR.string.platform_overflow_format, overflowCount),
+                code = UiText.StringResource(
+                    CoreUiR.string.platform_overflow_format,
+                    overflowCount
+                ),
                 color = MaterialTheme.colorScheme.surfaceVariant
             )
         }
