@@ -96,3 +96,36 @@ The default is now data, not a constant (research R2).
 
 Once loaded, exactly one of `isDefaultList` and `showListOptions` is `true`. While loading, both are
 `false`, so neither the badge nor the menu flashes (research R6).
+
+## Overview list (`:core:domain`, `:feature:lists`)
+
+Added for FR-012 and SC-005. Nothing is persisted: the flag is derived from the same
+`default_wishlist` pointer, so there is no new table or column.
+
+### `WishlistSummary` (`core/domain/model/`) — new
+
+A list plus whether it is the default, for the overview. Same shape as `WishlistDetail` and
+`WishlistAssignment`.
+
+| Property    | Type           | Meaning                                                              |
+|-------------|----------------|----------------------------------------------------------------------|
+| `list`      | `WishlistList` | The list, including its derived `gameCount`.                         |
+| `isDefault` | `Boolean`      | `true` when `list.id` equals the current default list id.            |
+
+Across the summaries `GetListsUseCase` emits at any moment, exactly one has `isDefault = true`. This
+follows from the "exactly one default" invariant above.
+
+### `WishlistListUiModel` (`:feature:lists/model/`) — changed
+
+| Property    | Type      | Change                                                                        |
+|-------------|-----------|-------------------------------------------------------------------------------|
+| existing    |           | unchanged                                                                     |
+| `isDefault` | `Boolean` | **new.** Shows the "Default" badge beside the name on the row (FR-012).       |
+
+`isDefault` has no default value, so every construction site (the mapper and the previews) has to say it.
+
+### Strings
+
+`default_list_label` ("Default") moves to `:core:ui`'s `strings.xml` and is shared by both screens
+(research R11).
+

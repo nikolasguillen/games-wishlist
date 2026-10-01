@@ -99,13 +99,12 @@ same callback.
 
 **Rationale**: The only screen that needs "is this list the default?" in this scope is the list detail
 screen, which already consumes `WishlistDetail`. Putting the flag on the composite domain model keeps
-`:core:model`, `ListEntity`, `ListWithGameCount` and the list mappers untouched. When the Lists overview
-later needs a per-row badge (the deferred swipe-action discussion), `GetListsUseCase` can combine the
-same `observeDefaultListId()`.
+`:core:model`, `ListEntity`, `ListWithGameCount` and the list mappers untouched. The Lists overview needs
+the flag too, since FR-012 added the label there; research R10 covers how it gets it.
 
 **Alternatives considered**: Add `isDefault` to `WishlistList` as a computed SQL column. It touches four
-more files (entity relation, both list queries, the mapper, the model) to serve a screen that is out of
-scope. Deferred until the overview needs it.
+more files (entity relation, both list queries, the mapper, the model). Still rejected now that the
+overview needs the flag; see R10.
 
 ---
 
@@ -196,7 +195,8 @@ comment in `GameDetailViewModel.confirmListSelection()` is updated.
 
 **Decision**:
 
-- **`:core:domain`**: new `DeleteListUseCaseTest` (default refused, non-default deleted) and
+- **`:core:domain`**: new `GetListsUseCaseTest` (`isDefault` per row, follows the default when it moves,
+  an empty list stays empty); new `DeleteListUseCaseTest` (default refused, non-default deleted) and
   `GetWishlistDetailUseCaseTest` (`isDefault` derived; it flips when the default id emits a new value).
 - **`:core:data`**: `GameRepositoryImplToggleWishlistTest` stubs `listDao.getDefaultListId()` with a
   non-1 id, and asserts the cross-ref is built with that id. Today it matches `any()`, which would hide a
@@ -204,8 +204,75 @@ comment in `GameDetailViewModel.confirmListSelection()` is updated.
 - **`:feature:wishlist`**: new `WishlistViewModelTest`. It covers badge vs. menu flags,
   `OnSetAsDefault` → use case + snackbar, and that the delete path is unchanged. This needs the three
   `testImplementation` lines copied from `feature/lists/build.gradle.kts`.
+- **`:feature:lists`**: `ListsUiMapperTest` and `ListsViewModelTest` move to `WishlistSummary`. Each gains
+  one case showing that the default summary becomes a default row and the others do not.
 - **`docs/tech-debt.md`**: `:feature:wishlist` is removed from the "no tests at all" entry, per the
   remove-don't-annotate rule.
 - **No `SetDefaultListUseCase` test.** It is a pass-through with no logic of its own.
 - **No DAO tests.** They are a known, listed gap (`:core:database`). The foreign key and seed behavior are
   covered by the manual checks in [quickstart.md](./quickstart.md).
+
+---
+
+## R10 — How the overview list learns which list is the default
+
+**Decision**: `GetListsUseCase` combines `repository.getAllLists()` with `repository.observeDefaultListId()`
+and returns `Flow<List<WishlistSummary>>`. `WishlistSummary(list: WishlistList, isDefault: Boolean)` is a
+new composite in `:core:domain/model/`. `ListsUiMapper` maps a summary to `WishlistListUiModel`, which
+gains `isDefault`.
+
+**Rationale**:
+
+- **Same pattern as the detail screen.** `WishlistDetail` carries `isDefault` and `WishlistAssignment`
+  carries `isAssigned`: a list plus one derived fact. `:core:model`, `ListEntity`, the DAO queries and
+  the repository stay untouched.
+- **The label moves live.** `observeDefaultListId()` re-emits when the default changes, so after
+  "Set as default" on a detail screen the overview is already correct when the user goes back (FR-012,
+  US1 acceptance scenario 4).
+- **Test shape is unchanged.** `ListsViewModelTest` still mocks the use case, not the repository.
+
+**Alternatives considered**:
+
+- **`isDefault` on `WishlistList`.** `getAllLists()` and `observeListById()` would both have to fill it,
+  or one of them would be wrong. That is two sources for one fact. `WishlistList` is also used by the
+  assignment sheet and the create flow, where the flag means nothing.
+- **The ViewModel combines it, through a new `GetDefaultListIdUseCase`.** It moves combine logic into the
+  ViewModel and adds a use case for a one-line read.
+- **A computed SQL column.** Still rejected, for the reasons in R3.
+
+**Row order**: unchanged (spec FR-012). `getAllLists()` has no `ORDER BY` and this plan doesn't add one.
+
+---
+
+## R11 — Where the "Default" string lives
+
+**Decision**: `default_list_label` ("Default") moves to `:core:ui`'s `strings.xml`. Both screens read it
+as `CoreUiR.string.default_list_label`, and the copy in `feature/wishlist`'s `strings.xml` is deleted.
+
+**Rationale**: Two features now show the same word through the same badge. Separate copies drift in
+wording and translation. `:core:ui` already owns the strings shared across features (`cancel`,
+`empty_list_message`), and the project rule is to alias that module's `R` as `CoreUiR`.
+
+**Alternatives considered**:
+
+- **Duplicate the string in `feature/lists`.** Rejected: it drifts.
+- **A shared `DefaultListBadge` composable in `:core:ui`.** Rejected: it adds an abstraction for two call
+  sites that differ only in layout, and `CustomSummaryBadge` is already the shared component.
+
+**Side effect**: this edits code already built for US1 (`WishlistTopBar`, one reference, and one string in
+`feature/wishlist`). The two moves have to land together.
+
+---
+
+## R12 — The overview row
+
+**Decision**: `WishlistRow` renders `CustomSummaryBadge` beside the list name when `list.isDefault`. The
+name keeps its single-line ellipsis with `Modifier.weight(1f, fill = false)`, so the badge is never
+pushed out. This is the same arrangement as the detail top bar, with a `MaterialTheme.spacing` token and
+no `dp` literal. There is no new action, the click target is unchanged, and the row order is unchanged.
+
+**Rationale**: The badge is the existing shared component. The label stays beside the name rather than on
+the avatar, where the game-count badge already sits.
+
+**Accessibility**: the row is one clickable surface, so its text is announced with it. Check this once
+with TalkBack during quickstart scenario 13.

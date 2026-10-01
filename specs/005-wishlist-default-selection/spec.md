@@ -22,6 +22,12 @@
   way deleting a list already does? → A: Apply immediately and confirm with a snackbar; no confirmation
   dialog, since the action is non-destructive and instantly reversible.
 
+### Session 2026-10-02
+
+- Q: Should the overview list of all wishlists also show which one is the default? → A: Yes. The default
+  wishlist's row there carries the same "Default" label as its detail screen. Setting the default stays on
+  the detail screen's options menu; a swipe action on the overview rows remains a separate, later decision.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Choose a default wishlist (Priority: P1)
@@ -47,6 +53,9 @@ way to express a preference, and every other requirement in this feature has not
    and a brief confirmation message is shown.
 3. **Given** a user has only one wishlist, **When** they open its detail screen, **Then** it is shown as
    the default and no "Set as default" action is offered anywhere.
+4. **Given** a user has two or more wishlists, **When** they view the overview list of all wishlists,
+   **Then** exactly one row shows the "Default" label, and after a new default is chosen the label has
+   moved to that wishlist's row.
 
 ---
 
@@ -151,6 +160,9 @@ deletion of any non-default wishlist succeeds normally.
 - **FR-011**: Every other quick-save action and saved-game indicator in the app (search results, Discover,
   recently viewed) MUST use the same default wishlist as the game-detail heart, so a game shows as saved
   exactly when it is in the default wishlist.
+- **FR-012**: The overview list of all wishlists MUST show the same "Default" label on the row of
+  whichever wishlist currently holds the default designation, and on no other row. It is informational
+  only: it adds no action and does not change the order of the rows.
 
 ### Key Entities
 
@@ -172,12 +184,17 @@ deletion of any non-default wishlist succeeds normally.
 - **SC-003**: After any change of default, 100% of subsequent heart-button taps save to the newly chosen
   default wishlist, with no games moved or lost from their existing wishlists.
 - **SC-004**: Across the lifetime of an install, the app never reaches a state with zero wishlists.
+- **SC-005**: A user can tell which wishlist is their default from the overview list alone, without
+  opening any wishlist.
 
 ## Assumptions
 
 - Picking a default is scoped to each wishlist's own detail screen for now (via its existing options
-  menu, alongside "Delete list"); surfacing it elsewhere — e.g. a swipe action on the overview list of all
-  wishlists — is an intentionally separate, later decision and out of scope here.
+  menu, alongside "Delete list"). Showing the "Default" label on the overview list is in scope (FR-012),
+  but offering the action there — e.g. a swipe action on the overview rows — is an intentionally separate,
+  later decision and out of scope here.
+- On the overview list the label is the same "Default" wording the detail screen uses, shown on the row
+  itself; rows keep their current order, so the default list is not moved to the top.
 - Only one wishlist can be the default at a time, and the designation is a property of the set of
   wishlists as a whole, not of any single wishlist's own data — reassigning it is a change of "which one,"
   not a change to the wishlists' own attributes.

@@ -16,9 +16,10 @@ On Windows (PowerShell), use `.\gradlew.bat` instead of `./gradlew`.
 
 ```bash
 ./gradlew :core:database:compileDebugKotlin --console=plain -q   # entity, DAO, schema export
-./gradlew :core:domain:testDebugUnitTest --console=plain -q      # DeleteListUseCaseTest, GetWishlistDetailUseCaseTest
+./gradlew :core:domain:testDebugUnitTest --console=plain -q      # DeleteListUseCaseTest, GetWishlistDetailUseCaseTest, GetListsUseCaseTest
 ./gradlew :core:data:testDebugUnitTest --console=plain -q        # GameRepositoryImplToggleWishlistTest
 ./gradlew :feature:wishlist:testDebugUnitTest --console=plain -q # WishlistViewModelTest
+./gradlew :feature:lists:testDebugUnitTest --console=plain -q    # ListsViewModelTest, ListsUiMapperTest
 ./gradlew :app:assembleDebug                                     # spans modules
 ./gradlew test                                                   # all existing suites stay green
 ```
@@ -51,3 +52,5 @@ list is **A**.
 | 10 | Delete C, so only B remains | B still shows the badge; there is no menu anywhere | FR-006, SC-004, US3-AS2 |
 | 11 | Kill and relaunch the app | B is still the default; the heart still targets B | persistence |
 | 12 | Search tab → tap a result's save button | The game lands in the current default | FR-011 |
+| 13 | Open the Lists tab (the overview) | Exactly one row, A's, shows a "Default" badge beside its name. Rows keep their order, and no row has a new action. Read the row once with TalkBack. | FR-012, SC-005, US1-AS4 |
+| 14 | Do scenario 3 (set B as default), then go back to the overview | The badge is on B's row and gone from A's, without leaving and re-entering the tab | FR-012, US1-AS4 |

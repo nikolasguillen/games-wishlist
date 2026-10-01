@@ -31,8 +31,10 @@ Unchanged. `ShowSnackbar(message: UiText)` is reused.
 | Key                        | Value (en)                       |
 |----------------------------|----------------------------------|
 | `set_as_default_action`    | `Set as default`                 |
-| `default_list_label`       | `Default`                        |
 | `default_list_set_message` | `This is now your default list`  |
+
+The "Default" label is not in this file. `default_list_label` lives in `:core:ui`, and the top bar reads
+it as `CoreUiR.string.default_list_label` (research R11).
 
 ## Reactive behavior
 

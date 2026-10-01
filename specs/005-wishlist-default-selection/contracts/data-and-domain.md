@@ -56,5 +56,18 @@ are unchanged; what changes is which list that phrase resolves to.
 | `SetDefaultListUseCase`     | `suspend operator fun invoke(listId: Long)` | **New.** Delegates to `repository.setDefaultList(listId)`.                                        |
 | `DeleteListUseCase`         | `suspend operator fun invoke(listId: Long): Boolean` | **Changed.** Returns `false` without deleting if `listId == repository.getDefaultListId()`. Otherwise deletes and returns `true`. |
 | `GetWishlistDetailUseCase`  | `operator fun invoke(listId: Long): Flow<WishlistDetail?>` | **Changed.** Also combines `observeDefaultListId()` and fills `WishlistDetail.isDefault`. Still emits `null` when the list is gone. |
+| `GetListsUseCase`           | `operator fun invoke(): Flow<List<WishlistSummary>>` | **Changed.** Combines `getAllLists()` with `observeDefaultListId()`. Each row's `isDefault` is `list.id == defaultListId`, so the label moves live when the default changes. Row order is whatever `getAllLists()` emits. |
 | `ToggleWishlistUseCase`     | unchanged                                       | Targets whatever `getDefaultListId()` returns at call time (FR-007, FR-008).                        |
 | `GetWishlistedGameIdsUseCase` | unchanged                                     | Re-emits when the default changes, through the subquery in `observeGameIdsInDefaultList()`.         |
+
+## Domain model: `WishlistSummary` (`:core:domain/model/`), new
+
+```kotlin
+data class WishlistSummary(
+    val list: WishlistList,
+    val isDefault: Boolean
+)
+```
+
+Used only by `GetListsUseCase` and the overview screen. `WishlistList` in `:core:model` is unchanged
+(research R10).
