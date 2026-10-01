@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 
 private val DEFAULT_ICON_SIZE = 24.dp
-private val DEFAULT_OUTLINE_WIDTH = 1.5.dp
+private val DEFAULT_OUTLINE_WIDTH = 2.dp
 
 /**
  * An icon with an optional border traced from its own path data, so it hugs the icon's exact

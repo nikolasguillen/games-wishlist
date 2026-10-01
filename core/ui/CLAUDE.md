@@ -10,7 +10,8 @@ Shared wrappers are prefixed `Custom*`:
 `CustomFab`, `CustomFilterChip`, `CustomInfoChip`, `CustomModalBottomSheet`, `CustomSegmentedButton`,
 `CustomOutlinedIcon` (an `Icon` with an optional border traced from the icon's own path data via
 `PathParser`, so it hugs the exact silhouette rather than a bounding shape — pass `outlineColor` to
-enable it).
+enable it), `CustomSummaryBadge` (pill-shaped label badge; filled-selected-chip colors, dark/light handled
+internally via `MaterialTheme.isDarkTheme` — see `CustomFilterChip` for the same split).
 
 Screen-level and domain components:
 `EmptyPage`, `ErrorPage`, `LoadingPage`, `ControllerLoadingAnimation`, `RatingBadge`, `ImageGalleryPager` (+

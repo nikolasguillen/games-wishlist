@@ -2,8 +2,6 @@ package com.nikolasguillen.questlog.feature.gamedetail.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -13,15 +11,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,18 +30,16 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.GameStatus
 import com.nikolasguillen.questlog.core.model.Priority
 import com.nikolasguillen.questlog.core.ui.component.CustomContentCard
 import com.nikolasguillen.questlog.core.ui.component.CustomFilterChip
+import com.nikolasguillen.questlog.core.ui.component.CustomSummaryBadge
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailPersonalUiModel
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameStatusUiModel
@@ -76,14 +71,6 @@ internal fun GameDetailPersonalCard(
             .fillMaxWidth()
             .animateContentSize()
             .height(IntrinsicSize.Min)
-            // Only merge when collapsed: expanded content holds filter chips and a text
-            // field that must stay individually focusable for TalkBack.
-            .then(if (!expanded) Modifier.semantics(mergeDescendants = true) {} else Modifier)
-            .clickable(
-                onClick = { expanded = !expanded },
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            )
     ) {
         if (expanded) {
             PersonalCardExpandedContent(
@@ -91,12 +78,14 @@ internal fun GameDetailPersonalCard(
                 rotationState = rotationState,
                 onStatusChange = onStatusChange,
                 onPriorityChange = onPriorityChange,
-                onNotesChange = onNotesChange
+                onNotesChange = onNotesChange,
+                onCollapse = { expanded = false }
             )
         } else {
             PersonalCardCollapsedContent(
                 uiModel = uiModel,
-                rotationState = rotationState
+                rotationState = rotationState,
+                onExpand = { expanded = true }
             )
         }
     }
@@ -105,7 +94,8 @@ internal fun GameDetailPersonalCard(
 @Composable
 private fun PersonalCardCollapsedContent(
     uiModel: GameDetailPersonalUiModel,
-    rotationState: Float
+    rotationState: Float,
+    onExpand: () -> Unit
 ) {
     Column {
         Row(
@@ -127,23 +117,21 @@ private fun PersonalCardCollapsedContent(
                     modifier = Modifier.padding(top = MaterialTheme.spacing.extraSmall)
                 ) {
                     uiModel.availableStatuses.find { it.selected }?.let { status ->
-                        SummaryBadge(text = status.label.asString())
+                        CustomSummaryBadge(text = status.label.asString())
                     }
                     uiModel.availablePriorities.find { it.selected }?.let { priority ->
-                        SummaryBadge(
-                            text = priority.label.asString(),
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        CustomSummaryBadge(text = priority.label.asString())
                     }
                 }
             }
 
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = stringResource(CoreUiR.string.expand_content_description),
-                modifier = Modifier.rotate(rotationState)
-            )
+            IconButton(onClick = onExpand) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = stringResource(CoreUiR.string.expand_content_description),
+                    modifier = Modifier.rotate(rotationState)
+                )
+            }
         }
     }
 }
@@ -155,7 +143,8 @@ private fun PersonalCardExpandedContent(
     rotationState: Float,
     onStatusChange: (id: Int) -> Unit,
     onPriorityChange: (id: Int) -> Unit,
-    onNotesChange: (String) -> Unit
+    onNotesChange: (String) -> Unit,
+    onCollapse: () -> Unit
 ) {
     val notesFieldState = rememberTextFieldState(initialText = uiModel.notes.asString())
 
@@ -180,11 +169,13 @@ private fun PersonalCardExpandedContent(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = stringResource(CoreUiR.string.collapse_content_description),
-                modifier = Modifier.rotate(rotationState)
-            )
+            IconButton(onClick = onCollapse) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = stringResource(CoreUiR.string.collapse_content_description),
+                    modifier = Modifier.rotate(rotationState)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
@@ -244,29 +235,10 @@ private fun PersonalCardExpandedContent(
     }
 }
 
-@Composable
-private fun SummaryBadge(
-    text: String,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
-    contentColor: Color = MaterialTheme.colorScheme.onSurface
-) {
-    Surface(
-        color = containerColor,
-        shape = CircleShape,
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = contentColor,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-        )
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 private fun GameDetailPersonalCardPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = false) {
         GameDetailPersonalCard(
             uiModel = GameDetailPersonalUiModel(
                 availableStatuses = listOf(

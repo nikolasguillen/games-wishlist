@@ -13,9 +13,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,7 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -34,14 +30,12 @@ import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.FullScreenImageViewer
 import com.nikolasguillen.questlog.core.ui.component.ImmersiveDetailLayout
-import com.nikolasguillen.questlog.core.ui.component.ImmersiveDetailLayoutDefaults
 import com.nikolasguillen.questlog.core.ui.component.StatusBarProtection
 import com.nikolasguillen.questlog.feature.gamedetail.model.DescriptionTranslationState
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiEvent
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiModel
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
-import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
 /**
  * The full success content of the Game Detail screen, including the immersive layout and floating action pill.
@@ -75,26 +69,6 @@ internal fun GameDetailSuccessContent(
                     pagerState = pagerState,
                     onImageClick = { fullScreenImageIndex = it }
                 )
-            },
-            actions = { alpha ->
-                if (game.isNotificationAvailable) {
-                    ImmersiveDetailLayoutDefaults.ActionIconButton(
-                        onClick = { onEvent(GameDetailUiEvent.ToggleReleaseNotification) },
-                        icon = if (game.isNotificationEnabled) {
-                            Icons.Filled.Notifications
-                        } else {
-                            Icons.Outlined.NotificationsNone
-                        },
-                        contentDescription = stringResource(
-                            if (game.isNotificationEnabled) {
-                                CoreUiR.string.disable_notification_content_description
-                            } else {
-                                CoreUiR.string.enable_notification_content_description
-                            }
-                        ),
-                        alpha = alpha
-                    )
-                }
             }
         ) { innerPadding ->
             GameDetailSheetContent(
@@ -182,7 +156,20 @@ private fun GameDetailSheetContent(
                 genres = game.genres,
                 modifier = horizontalPadding
             )
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
 
+            // Notifications section
+            if (game.isNotificationAvailable) {
+                GameDetailNotificationsBanner(
+                    isNotificationEnabled = game.isNotificationEnabled,
+                    onToggleNotification = { onEvent(GameDetailUiEvent.ToggleReleaseNotification) },
+                    modifier = horizontalPadding
+                )
+            }
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
+
+            // Release Info Card (also carries the platform tile strip)
+            GameReleaseInfoCard(availability = game.availability, modifier = horizontalPadding)
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
 
             // Personal Progress Section
@@ -193,19 +180,26 @@ private fun GameDetailSheetContent(
                 onNotesChange = { onEvent(GameDetailUiEvent.UpdateNotes(it)) },
                 modifier = horizontalPadding
             )
-
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
 
-            // Game Technical Info Section
-            GameDetailInfoSection(
-                description = game.description,
-                descriptionTranslation = descriptionTranslation,
-                rating = game.rating,
-                availability = game.availability,
-                onTranslateClick = { onEvent(GameDetailUiEvent.TranslateDescription) },
-                onShowOriginalClick = { onEvent(GameDetailUiEvent.ShowOriginalDescription) },
-                modifier = horizontalPadding
-            )
+            // Rating Card
+            if (game.rating != null) {
+                GameRatingCard(rating = game.rating, modifier = horizontalPadding)
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
+            }
+
+            // Description
+            val descriptionString = game.description.asString()
+            if (descriptionString.isNotEmpty()) {
+                GameDescriptionCard(
+                    description = descriptionString,
+                    translation = descriptionTranslation,
+                    onTranslateClick = { onEvent(GameDetailUiEvent.TranslateDescription) },
+                    onShowOriginalClick = { onEvent(GameDetailUiEvent.ShowOriginalDescription) },
+                    modifier = horizontalPadding.then(Modifier.fillMaxWidth())
+                )
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
+            }
 
             if (game.relatedGames.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraLarge))

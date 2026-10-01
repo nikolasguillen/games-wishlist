@@ -17,9 +17,9 @@ val NeutralLightGrey = Color(0xFFB3B3B3)
 val NeutralWhite = Color(0xFFFFFFFF)
 
 val PrimaryDark = Gold
-val OnPrimaryDark = Color.Black
-val PrimaryContainerDark = GoldDeep
-val OnPrimaryContainerDark = GoldBright
+val OnPrimaryDark = NeutralBlack
+val PrimaryContainerDark = Gold
+val OnPrimaryContainerDark = NeutralBlack
 
 val SecondaryDark = NeutralLightGrey
 val OnSecondaryDark = NeutralBlack
@@ -63,8 +63,8 @@ val RatingAmber = Color(0xFFFFB300)
 // scheme (8.9:1) rather than inventing a third gold shade.
 val PrimaryLight = Gold
 val OnPrimaryLight = NeutralBlack
-val PrimaryContainerLight = GoldBright
-val OnPrimaryContainerLight = GoldDeep
+val PrimaryContainerLight = Gold
+val OnPrimaryContainerLight = NeutralBlack
 
 val SecondaryLight = NeutralMediumGrey
 val OnSecondaryLight = NeutralWhite

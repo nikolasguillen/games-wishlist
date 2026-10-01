@@ -12,6 +12,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -100,8 +101,10 @@ fun QuestLogTheme(darkTheme: Boolean = true, content: @Composable () -> Unit) {
             navBarContainerColor = NeutralMediumGrey,
             navBarItemIndicatorColor = Gold,
             navBarItemSelectedIconColor = NeutralBlack,
-            filterChipSelectedContainerColor = PrimaryContainerDark,
-            filterChipSelectedContentColor = OnPrimaryContainerDark,
+            chipSelectedContainerColor = PrimaryContainerDark,
+            chipSelectedContentColor = OnPrimaryContainerDark,
+            chipBorderColor = NeutralWhite.copy(alpha = 0.2f),
+            chipSelectedBorderColor = Color.Transparent,
             segmentedButtonSelectedColor = PrimaryContainerDark,
             segmentedButtonSelectedContentColor = OnPrimaryContainerDark,
             fabContainerColor = Gold,
@@ -121,8 +124,10 @@ fun QuestLogTheme(darkTheme: Boolean = true, content: @Composable () -> Unit) {
             navBarContainerColor = NeutralSoftGrey,
             navBarItemIndicatorColor = Gold,
             navBarItemSelectedIconColor = NeutralBlack,
-            filterChipSelectedContainerColor = PrimaryContainerLight,
-            filterChipSelectedContentColor = OnPrimaryContainerLight,
+            chipSelectedContainerColor = PrimaryContainerLight,
+            chipSelectedContentColor = OnPrimaryContainerLight,
+            chipBorderColor = OutlineVariantLight,
+            chipSelectedBorderColor = OnPrimaryContainerLight,
             segmentedButtonSelectedColor = PrimaryContainerLight,
             segmentedButtonSelectedContentColor = OnPrimaryContainerLight,
             fabContainerColor = Gold,

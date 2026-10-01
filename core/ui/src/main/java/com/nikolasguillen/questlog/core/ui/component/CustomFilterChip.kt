@@ -11,8 +11,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
+import com.nikolasguillen.questlog.core.designsystem.theme.isDarkTheme
 
 @Composable
 fun CustomFilterChip(
@@ -22,6 +24,7 @@ fun CustomFilterChip(
     trailingIcon: (@Composable () -> Unit)? = null,
     enabled: Boolean = true
 ) {
+    val isDarkTheme = MaterialTheme.isDarkTheme
     FilterChip(
         selected = selected,
         onClick = onFilterClick,
@@ -35,14 +38,16 @@ fun CustomFilterChip(
         trailingIcon = trailingIcon,
         shape = MaterialTheme.shapes.small,
         colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.appColors.filterChipSelectedContainerColor,
-            selectedLabelColor = MaterialTheme.appColors.filterChipSelectedContentColor,
-            selectedTrailingIconColor = MaterialTheme.appColors.filterChipSelectedContentColor
+            selectedContainerColor = MaterialTheme.appColors.chipSelectedContainerColor,
+            selectedLabelColor = MaterialTheme.appColors.chipSelectedContentColor,
+            selectedTrailingIconColor = MaterialTheme.appColors.chipSelectedContentColor
         ),
         border = FilterChipDefaults.filterChipBorder(
             enabled = enabled,
             selected = selected,
-            borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+            borderColor = MaterialTheme.appColors.chipBorderColor,
+            selectedBorderColor = MaterialTheme.appColors.chipSelectedBorderColor,
+            selectedBorderWidth = if (isDarkTheme) 0.dp else 1.dp
         ),
         modifier = Modifier.animateContentSize()
     )

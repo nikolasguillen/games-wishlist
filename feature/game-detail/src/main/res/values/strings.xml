@@ -15,4 +15,7 @@
 
     <string name="release_notification_enabled_message">You\'ll be notified when %1$s releases</string>
     <string name="release_notification_disabled_message">Reminder turned off for %1$s</string>
+
+    <string name="notification_banner_title">Release reminder</string>
+    <string name="notification_banner_subtitle">Get notified when this game releases</string>
 </resources>

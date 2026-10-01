@@ -50,7 +50,6 @@ private val PILL_HEIGHT = 76.dp
 private val MAIN_ACTION_SIZE = 60.dp
 private val GLOW_BLUR_RADIUS = 12.dp
 private val GLOW_BLUR_SPREAD = 4.dp
-private val ICON_OUTLINE_WIDTH = 2.dp
 
 /**
  * A floating action pill for the Game Detail screen.
@@ -152,8 +151,7 @@ private fun PillIconAction(
             imageVector = icon,
             contentDescription = contentDescription,
             tint = tint,
-            outlineColor = outlineColor,
-            outlineWidth = ICON_OUTLINE_WIDTH
+            outlineColor = outlineColor
         )
     }
 }
