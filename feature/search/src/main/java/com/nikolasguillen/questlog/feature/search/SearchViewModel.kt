@@ -52,6 +52,7 @@ import com.nikolasguillen.questlog.feature.search.model.SortBottomSheetState
 import com.nikolasguillen.questlog.feature.search.model.SortingUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -128,6 +129,8 @@ class SearchViewModel @Inject constructor(
     // of its cards can resolve back to a Game the same way a search result's card does -- the Discover
     // feed is shown while contentState is Idle, so it has no SearchContentState.Success.allGames to search.
     private var discoverFeed: DiscoverFeed? = null
+
+    private var searchJob: Job? = null
 
     init {
         initSearchHistory()
@@ -374,7 +377,8 @@ class SearchViewModel @Inject constructor(
 
         viewModelScope.launch { toggleWishlistUseCase(game) }
 
-        val messageRes = if (wasSaved) R.string.removed_from_wishlist else R.string.added_to_wishlist
+        val messageRes =
+            if (wasSaved) R.string.removed_from_wishlist else R.string.added_to_wishlist
         _uiEffect.trySend(
             SearchUiEffect.ShowSnackbar(message = UiText.StringResource(messageRes, game.name))
         )
@@ -420,8 +424,10 @@ class SearchViewModel @Inject constructor(
 
         viewModelScope.launch {
             val originalAssignments = getWishlistAssignmentsUseCase(selectorState.gameId).first()
-            val initialSelectedIds = originalAssignments.filter { it.isAssigned }.map { it.list.id }.toSet()
-            val finalSelectedIds = selectorState.availableLists.filter { it.isSelected }.map { it.id }.toSet()
+            val initialSelectedIds =
+                originalAssignments.filter { it.isAssigned }.map { it.list.id }.toSet()
+            val finalSelectedIds =
+                selectorState.availableLists.filter { it.isSelected }.map { it.id }.toSet()
 
             val toAdd = finalSelectedIds - initialSelectedIds
             val toRemove = initialSelectedIds - finalSelectedIds
@@ -567,7 +573,8 @@ class SearchViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 contentState = contentState.copy(
-                    games = sortedGames.toGameItemList(wishlistedGameIds.value), filters = newFilters
+                    games = sortedGames.toGameItemList(wishlistedGameIds.value),
+                    filters = newFilters
                 )
             )
         }
@@ -578,7 +585,7 @@ class SearchViewModel @Inject constructor(
         _uiState.update { it.copy(suggestions = SearchSuggestionsUiModel()) }
         suggestionsResetTrigger.tryEmit("")
 
-        viewModelScope.launch {
+        searchJob = viewModelScope.launch {
             addSearchToHistoryUseCase(query)
 
             _uiState.update { it.copy(contentState = SearchContentState.Loading) }
@@ -654,6 +661,7 @@ class SearchViewModel @Inject constructor(
                         discoverFeed = result.data
                         result.data.toDiscoverContentState(wishlistedGameIds.value)
                     }
+
                     is AppResult.Failure -> DiscoverContentState.Error(result.error.toUiText())
                 }
                 _uiState.update { it.copy(discover = newState) }
@@ -748,6 +756,9 @@ class SearchViewModel @Inject constructor(
      * interrupted by the search and has been sitting in its own slot the whole time.
      */
     private fun clearSearch() {
+        searchJob?.cancel()
+        searchJob = null
+
         textFieldState.edit { replace(0, length, "") }
         _uiState.update {
             it.copy(
