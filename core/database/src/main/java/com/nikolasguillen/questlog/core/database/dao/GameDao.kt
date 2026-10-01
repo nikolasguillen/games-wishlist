@@ -20,7 +20,6 @@ import com.nikolasguillen.questlog.core.database.entity.GenreEntity
 import com.nikolasguillen.questlog.core.database.entity.PlatformEntity
 import com.nikolasguillen.questlog.core.database.entity.RelatedGameEntity
 import com.nikolasguillen.questlog.core.database.relation.GameWithAllDetails
-import com.nikolasguillen.questlog.core.model.WishlistConstants
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -29,7 +28,7 @@ interface GameDao {
     @Query(
         "SELECT * FROM games " +
                 "INNER JOIN game_list_cross_ref ON games.id = game_list_cross_ref.gameId " +
-                "WHERE game_list_cross_ref.listId = ${WishlistConstants.DEFAULT_WISHLIST_ID}"
+                "WHERE game_list_cross_ref.listId = (SELECT listId FROM default_wishlist)"
     )
     fun getWishlistedGames(): Flow<List<GameWithAllDetails>>
 
@@ -96,8 +95,12 @@ interface GameDao {
     @Query("SELECT EXISTS(SELECT 1 FROM games WHERE id = :id)")
     suspend fun gameExists(id: Int): Boolean
 
-    @Query("SELECT gameId FROM game_list_cross_ref WHERE listId = :listId")
-    fun getGameIdsInList(listId: Long): Flow<List<Int>>
+    /**
+     * The subquery, rather than a concrete id, is what makes this re-emit when the default moves: Room's
+     * invalidation tracker watches `default_wishlist` as well as the cross-ref table.
+     */
+    @Query("SELECT gameId FROM game_list_cross_ref WHERE listId = (SELECT listId FROM default_wishlist)")
+    fun observeGameIdsInDefaultList(): Flow<List<Int>>
 
     @Query("SELECT listId FROM game_list_cross_ref WHERE gameId = :gameId")
     fun getListIdsForGame(gameId: Int): Flow<List<Long>>

@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.nikolasguillen.questlog.core.domain.usecase.list.DeleteListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.GetWishlistDetailUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.RemoveGameFromListUseCase
-import com.nikolasguillen.questlog.core.model.WishlistConstants
+import com.nikolasguillen.questlog.core.domain.usecase.list.SetDefaultListUseCase
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.wishlist.mapper.toWishlistSectionUiModel
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistContentState
@@ -31,11 +31,10 @@ class WishlistViewModel @AssistedInject constructor(
     getWishlistDetailUseCase: GetWishlistDetailUseCase,
     private val deleteListUseCase: DeleteListUseCase,
     private val removeGameFromListUseCase: RemoveGameFromListUseCase,
+    private val setDefaultListUseCase: SetDefaultListUseCase,
 ) : ViewModel() {
     private val _uiEffect = Channel<WishlistUiEffect>(Channel.BUFFERED)
     internal val uiEffect = _uiEffect.receiveAsFlow()
-
-    private val canDeleteList = listId != WishlistConstants.DEFAULT_WISHLIST_ID
 
     // Single source of truth: reactively observes local storage, no manually mirrored copy.
     internal val uiState: StateFlow<WishlistUiState> = getWishlistDetailUseCase(listId)
@@ -50,7 +49,8 @@ class WishlistViewModel @AssistedInject constructor(
                 val sections = detail.games.toWishlistSectionUiModel()
                 WishlistUiState(
                     listName = UiText.DynamicString(detail.list.name),
-                    canDeleteList = canDeleteList,
+                    isDefaultList = detail.isDefault,
+                    showListOptions = !detail.isDefault,
                     contentState = if (sections.isEmpty()) {
                         WishlistContentState.Empty
                     } else {
@@ -63,8 +63,21 @@ class WishlistViewModel @AssistedInject constructor(
 
     internal fun onEvent(event: WishlistUiEvent) {
         return when (event) {
+            is WishlistUiEvent.OnSetAsDefault -> setAsDefault()
             is WishlistUiEvent.OnWishlistDeleted -> deleteList()
             is WishlistUiEvent.OnGameRemoved -> removeGame(event.gameId)
+        }
+    }
+
+    private fun setAsDefault() {
+        if (uiState.value.isDefaultList) return
+        viewModelScope.launch {
+            setDefaultListUseCase(listId)
+            _uiEffect.send(
+                WishlistUiEffect.ShowSnackbar(
+                    message = UiText.StringResource(R.string.default_list_set_message)
+                )
+            )
         }
     }
 

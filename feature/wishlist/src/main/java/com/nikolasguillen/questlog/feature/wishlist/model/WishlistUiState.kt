@@ -6,6 +6,7 @@ import com.nikolasguillen.questlog.core.ui.model.UiText
 @Immutable
 internal data class WishlistUiState(
     val listName: UiText = UiText.DynamicString(""),
-    val canDeleteList: Boolean = false,
+    val isDefaultList: Boolean = false,
+    val showListOptions: Boolean = false,
     val contentState: WishlistContentState = WishlistContentState.Loading
 )

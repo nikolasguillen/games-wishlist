@@ -37,7 +37,6 @@ import com.nikolasguillen.questlog.core.model.Game
 import com.nikolasguillen.questlog.core.model.GameType
 import com.nikolasguillen.questlog.core.model.Platform
 import com.nikolasguillen.questlog.core.model.RepositoryError
-import com.nikolasguillen.questlog.core.model.WishlistConstants
 import com.nikolasguillen.questlog.core.model.WishlistIcon
 import com.nikolasguillen.questlog.core.model.WishlistList
 import com.nikolasguillen.questlog.core.network.IgdbApiService
@@ -442,7 +441,7 @@ class GameRepositoryImpl @Inject constructor(
     override fun observeGameDetail(id: Int): Flow<Game?> {
         return combine(
             gameDao.observeGameById(id),
-            gameDao.getGameIdsInList(WishlistConstants.DEFAULT_WISHLIST_ID)
+            gameDao.observeGameIdsInDefaultList()
         ) { entity, wishlistIds ->
             entity?.toGame()?.copy(isWishlisted = id in wishlistIds)
         }
@@ -451,7 +450,7 @@ class GameRepositoryImpl @Inject constructor(
     override suspend fun refreshGameDetail(id: Int): AppResult<Unit> {
         return try {
             val localGame = gameDao.getGameById(id)
-            val isWishlisted = gameDao.isGameInList(id, WishlistConstants.DEFAULT_WISHLIST_ID)
+            val isWishlisted = gameDao.isGameInList(id, listDao.getDefaultListId())
 
             // A row written by a catalogue save has no description, no per-platform dates and no related
             // games: it satisfies "cached" without being a detail. Only a row this method itself filled counts.
@@ -480,7 +479,7 @@ class GameRepositoryImpl @Inject constructor(
     override fun getRecentlyViewedGames(): Flow<List<Game>> {
         return combine(
             gameDao.getRecentlyViewedGames(),
-            gameDao.getGameIdsInList(WishlistConstants.DEFAULT_WISHLIST_ID)
+            gameDao.observeGameIdsInDefaultList()
         ) { entities, wishlistIds ->
             entities.map { it.toGame().copy(isWishlisted = it.game.id in wishlistIds) }
         }
@@ -501,18 +500,14 @@ class GameRepositoryImpl @Inject constructor(
     }
 
     override fun getWishlistedGameIds(): Flow<Set<Int>> {
-        return gameDao.getGameIdsInList(WishlistConstants.DEFAULT_WISHLIST_ID).map { it.toSet() }
+        return gameDao.observeGameIdsInDefaultList().map { it.toSet() }
     }
 
     override suspend fun toggleWishlist(game: Game): Boolean {
-        val isWishlisted = gameDao.isGameInList(game.id, WishlistConstants.DEFAULT_WISHLIST_ID)
+        val defaultListId = listDao.getDefaultListId()
+        val isWishlisted = gameDao.isGameInList(game.id, defaultListId)
         if (isWishlisted) {
-            gameDao.deleteGameListCrossRef(
-                GameListCrossRef(
-                    game.id,
-                    WishlistConstants.DEFAULT_WISHLIST_ID
-                )
-            )
+            gameDao.deleteGameListCrossRef(GameListCrossRef(game.id, defaultListId))
             return false
         } else {
             // The Game handed in by the search grid or the Discover feed is a catalogue result: no per-platform
@@ -521,12 +516,7 @@ class GameRepositoryImpl @Inject constructor(
             if (!gameDao.gameExists(game.id)) {
                 saveGameLocal(game)
             }
-            gameDao.insertGameListCrossRef(
-                GameListCrossRef(
-                    game.id,
-                    WishlistConstants.DEFAULT_WISHLIST_ID
-                )
-            )
+            gameDao.insertGameListCrossRef(GameListCrossRef(game.id, defaultListId))
             return true
         }
     }
@@ -538,7 +528,7 @@ class GameRepositoryImpl @Inject constructor(
     override fun getSavedGames(): Flow<List<Game>> {
         return combine(
             gameDao.getSavedGames(),
-            gameDao.getGameIdsInList(WishlistConstants.DEFAULT_WISHLIST_ID)
+            gameDao.observeGameIdsInDefaultList()
         ) { entities, wishlistIds ->
             entities.map { it.toGame().copy(isWishlisted = it.game.id in wishlistIds) }
         }
@@ -664,6 +654,18 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun observeDefaultListId(): Flow<Long> {
+        return listDao.observeDefaultListId()
+    }
+
+    override suspend fun getDefaultListId(): Long {
+        return listDao.getDefaultListId()
+    }
+
+    override suspend fun setDefaultList(listId: Long) {
+        listDao.setDefaultList(listId)
+    }
+
     override fun observeListById(listId: Long): Flow<WishlistList?> {
         return listDao.observeListById(listId).map { it?.toWishlistList() }
     }
@@ -713,7 +715,7 @@ class GameRepositoryImpl @Inject constructor(
     override fun getGamesByList(listId: Long): Flow<List<Game>> {
         return combine(
             gameDao.getGamesByListId(listId),
-            gameDao.getGameIdsInList(WishlistConstants.DEFAULT_WISHLIST_ID)
+            gameDao.observeGameIdsInDefaultList()
         ) { entities, wishlistIds ->
             entities.map { it.toGame().copy(isWishlisted = it.game.id in wishlistIds) }
         }

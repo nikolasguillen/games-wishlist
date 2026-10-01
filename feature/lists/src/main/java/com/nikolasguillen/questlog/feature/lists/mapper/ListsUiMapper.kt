@@ -1,6 +1,6 @@
 package com.nikolasguillen.questlog.feature.lists.mapper
 
-import com.nikolasguillen.questlog.core.model.WishlistList
+import com.nikolasguillen.questlog.core.domain.model.WishlistSummary
 import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.lists.model.WishlistListUiModel
@@ -8,14 +8,15 @@ import com.nikolasguillen.questlog.feature.lists.model.WishlistListUiModel
 private const val MAX_DISPLAYED_GAME_COUNT = 100
 private const val OVERFLOW_GAME_COUNT_LABEL = "99+"
 
-internal fun WishlistList.toUiModel(): WishlistListUiModel {
+internal fun WishlistSummary.toUiModel(): WishlistListUiModel {
     return WishlistListUiModel(
-        id = id,
-        name = name,
-        description = description,
-        iconRes = icon.toDrawableRes(),
-        coverImagePath = coverImagePath,
-        gameCountText = UiText.DynamicString(gameCount.toGameCountLabel())
+        id = list.id,
+        name = list.name,
+        description = list.description,
+        iconRes = list.icon.toDrawableRes(),
+        coverImagePath = list.coverImagePath,
+        gameCountText = UiText.DynamicString(list.gameCount.toGameCountLabel()),
+        isDefault = isDefault
     )
 }
 

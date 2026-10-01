@@ -255,7 +255,7 @@ class GameDetailViewModel @AssistedInject constructor(
             toRemove.forEach { listId -> removeGameFromListUseCase(game.id, listId) }
 
             // No manual isWishlisted sync needed: observeGameDetail recombines with the
-            // default list's cross-ref rows, so toggling WishlistConstants.DEFAULT_WISHLIST_ID
+            // default list's cross-ref rows, so toggling the default list
             // above already flows back through currentGameFlow.
             _uiState.update { it.copy(wishlistSelectorState = null) }
         }

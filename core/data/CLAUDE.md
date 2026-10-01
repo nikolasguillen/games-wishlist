@@ -68,7 +68,7 @@ still triggers a fetch. A network fetch stamps `detailsFetchedAt`; a row that al
 re-fetched. Either way `lastViewedAt` is stamped and the result is written through `gameDao.saveGame(...)`.
 
 Reads are reactive `Flow`s off Room. `isWishlisted` is **derived**, not stored: it comes from
-`combine(..., gameDao.getGameIdsInList(DEFAULT_WISHLIST_ID))`.
+`combine(..., gameDao.observeGameIdsInDefaultList())`, which follows the stored default wishlist.
 
 `local/WishlistCoverImageStorage.kt` is the best in-repo example of this codebase's comment style — it
 explains *why*, not *what*. Match it when writing non-obvious logic.

@@ -15,6 +15,7 @@ import com.nikolasguillen.questlog.core.database.entity.CachedGameEntity
 import com.nikolasguillen.questlog.core.database.entity.CachedGameGenreCrossRef
 import com.nikolasguillen.questlog.core.database.entity.CachedGamePlatformCrossRef
 import com.nikolasguillen.questlog.core.database.entity.CompanyEntity
+import com.nikolasguillen.questlog.core.database.entity.DefaultWishlistEntity
 import com.nikolasguillen.questlog.core.database.entity.DiscoverLaneCacheEntity
 import com.nikolasguillen.questlog.core.database.entity.DiscoverLaneEntryEntity
 import com.nikolasguillen.questlog.core.database.entity.EngineEntity
@@ -40,6 +41,7 @@ import com.nikolasguillen.questlog.core.database.util.Converters
         SearchHistoryEntity::class,
         GameEntity::class,
         ListEntity::class,
+        DefaultWishlistEntity::class,
         GameListCrossRef::class,
         PlatformEntity::class,
         GamePlatformCrossRef::class,

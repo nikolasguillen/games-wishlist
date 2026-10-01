@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "78ebfd5c3111ebeb669699ea648525ac",
+    "identityHash": "82cd2b4613482a0c1a24971641b2090e",
     "entities": [
       {
         "tableName": "search_history",
@@ -167,6 +167,54 @@
             "id"
           ]
         }
+      },
+      {
+        "tableName": "default_wishlist",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `listId` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`listId`) REFERENCES `wishlists`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "listId",
+            "columnName": "listId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_default_wishlist_listId",
+            "unique": false,
+            "columnNames": [
+              "listId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_default_wishlist_listId` ON `${TABLE_NAME}` (`listId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "wishlists",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "listId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
       },
       {
         "tableName": "game_list_cross_ref",
@@ -802,7 +850,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '78ebfd5c3111ebeb669699ea648525ac')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '82cd2b4613482a0c1a24971641b2090e')"
     ]
   }
 }

@@ -12,7 +12,8 @@ internal data class WishlistListUiModel(
     val description: String,
     @DrawableRes val iconRes: Int,
     val coverImagePath: String?,
-    val gameCountText: UiText
+    val gameCountText: UiText,
+    val isDefault: Boolean
 ) {
     val coverImageFile: File? get() = coverImagePath?.let { File(it) }
 }

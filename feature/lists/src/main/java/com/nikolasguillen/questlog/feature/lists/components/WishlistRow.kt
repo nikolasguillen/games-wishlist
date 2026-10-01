@@ -39,8 +39,10 @@ import com.nikolasguillen.questlog.core.model.WishlistIcon
 import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.lists.R
+import com.nikolasguillen.questlog.core.ui.component.CustomSummaryBadge
 import com.nikolasguillen.questlog.feature.lists.model.WishlistListUiModel
 import java.io.File
+import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
 @Composable
 internal fun WishlistRow(list: WishlistListUiModel, onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -63,13 +65,22 @@ internal fun WishlistRow(list: WishlistListUiModel, onClick: () -> Unit, modifie
                 gameCountText = list.gameCountText
             )
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = list.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+                ) {
+                    Text(
+                        text = list.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (list.isDefault) {
+                        CustomSummaryBadge(text = stringResource(CoreUiR.string.default_list_label))
+                    }
+                }
                 if (list.description.isNotBlank()) {
                     Text(
                         text = list.description,
@@ -158,7 +169,27 @@ private fun WishlistRowPreview() {
                 description = "Long ones, for when I have time off",
                 iconRes = WishlistIcon.BACKLOG.toDrawableRes(),
                 coverImagePath = null,
-                gameCountText = UiText.DynamicString("8")
+                gameCountText = UiText.DynamicString("8"),
+                isDefault = false
+            ),
+            onClick = {}
+        )
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun WishlistRowDefaultPreview() {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+        WishlistRow(
+            list = WishlistListUiModel(
+                id = 1,
+                name = "RPGs to Try",
+                description = "Long ones, for when I have time off",
+                iconRes = WishlistIcon.BACKLOG.toDrawableRes(),
+                coverImagePath = null,
+                gameCountText = UiText.DynamicString("8"),
+                isDefault = true
             ),
             onClick = {}
         )

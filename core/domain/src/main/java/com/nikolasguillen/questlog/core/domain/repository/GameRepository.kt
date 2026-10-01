@@ -130,6 +130,19 @@ interface GameRepository {
     suspend fun getReleaseNotificationDeliveredDate(gameId: Int): Long?
 
     fun getAllLists(): Flow<List<WishlistList>>
+
+    /** Emits the id of the wishlist currently set as the default, and again whenever it changes. */
+    fun observeDefaultListId(): Flow<Long>
+
+    /** One-shot read of the current default wishlist id. */
+    suspend fun getDefaultListId(): Long
+
+    /**
+     * Makes [listId] the default wishlist. The previous default loses the designation; no game
+     * membership changes.
+     */
+    suspend fun setDefaultList(listId: Long)
+
     /** Emits `null` when no list with [listId] exists (e.g. it was deleted). */
     fun observeListById(listId: Long): Flow<WishlistList?>
     fun getListIdsForGame(gameId: Int): Flow<List<Long>>

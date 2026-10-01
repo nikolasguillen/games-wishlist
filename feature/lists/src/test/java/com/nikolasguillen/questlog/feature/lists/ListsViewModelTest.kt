@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.feature.lists
 
+import com.nikolasguillen.questlog.core.domain.model.WishlistSummary
 import com.nikolasguillen.questlog.core.domain.usecase.list.CreateListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.GetListsUseCase
 import com.nikolasguillen.questlog.core.model.AppResult
@@ -55,14 +56,18 @@ class ListsViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun testList(id: Long, name: String, gameCount: Int = 0) = WishlistList(
-        id = id,
-        name = name,
-        icon = WishlistIcon.BACKLOG,
-        gameCount = gameCount
-    )
+    private fun testList(id: Long, name: String, gameCount: Int = 0, isDefault: Boolean = false) =
+        WishlistSummary(
+            list = WishlistList(
+                id = id,
+                name = name,
+                icon = WishlistIcon.BACKLOG,
+                gameCount = gameCount
+            ),
+            isDefault = isDefault
+        )
 
-    private fun TestScope.createViewModel(lists: List<WishlistList> = emptyList()): ListsViewModel {
+    private fun TestScope.createViewModel(lists: List<WishlistSummary> = emptyList()): ListsViewModel {
         every { getListsUseCase() } returns flowOf(lists)
         return ListsViewModel(
             getListsUseCase = getListsUseCase,
@@ -85,6 +90,18 @@ class ListsViewModelTest {
         val uiModel = viewModel.successLists().single()
         assertEquals(1L, uiModel.id)
         assertEquals("RPGs to Try", uiModel.name)
+    }
+
+    @Test
+    fun `uiState marks exactly the default list as the default row`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(
+            lists = listOf(
+                testList(id = 1, name = "Wishlist"),
+                testList(id = 3, name = "Co-op Picks", isDefault = true)
+            )
+        )
+
+        assertEquals(listOf(3L), viewModel.successLists().filter { it.isDefault }.map { it.id })
     }
 
     @Test

@@ -95,8 +95,10 @@ internal fun WishlistContent(
         topBar = {
             WishlistTopBar(
                 listName = state.listName.asString(),
-                canDeleteList = state.canDeleteList,
+                isDefaultList = state.isDefaultList,
+                showListOptions = state.showListOptions,
                 onBackClick = onBackClick,
+                onSetAsDefaultClick = { onEvent(WishlistUiEvent.OnSetAsDefault) },
                 onDeleteClick = { showDeleteDialog = true }
             )
         },
@@ -158,7 +160,7 @@ private fun WishlistContentPreview(contentState: WishlistContentState) {
         WishlistContent(
             state = WishlistUiState(
                 listName = UiText.DynamicString("My Wishlist"),
-                canDeleteList = true,
+                showListOptions = true,
                 contentState = contentState
             ),
             onEvent = {},

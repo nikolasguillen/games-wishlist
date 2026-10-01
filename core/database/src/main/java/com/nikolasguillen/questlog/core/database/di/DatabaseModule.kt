@@ -14,7 +14,6 @@ import com.nikolasguillen.questlog.core.database.dao.ReleaseNotificationDao
 import com.nikolasguillen.questlog.core.database.dao.SearchHistoryDao
 import com.nikolasguillen.questlog.core.database.dao.TranslationDao
 import com.nikolasguillen.questlog.core.database.util.Converters
-import com.nikolasguillen.questlog.core.model.WishlistConstants
 import com.nikolasguillen.questlog.core.model.WishlistIcon
 import dagger.Module
 import dagger.Provides
@@ -43,7 +42,11 @@ object DatabaseModule {
                         context.getString(R.string.default_wishlist_description)
                     val defaultIcon = Converters().fromWishlistIcon(WishlistIcon.HEART)
                     db.execSQL(
-                        "INSERT INTO wishlists (id, name, description, icon) VALUES (${WishlistConstants.DEFAULT_WISHLIST_ID}, '$defaultName', '$defaultDescription', '$defaultIcon')"
+                        "INSERT INTO wishlists (name, description, icon) VALUES ('$defaultName', '$defaultDescription', '$defaultIcon')"
+                    )
+                    // The only writer of the pointer row: it has to exist before anything reads the default.
+                    db.execSQL(
+                        "INSERT INTO default_wishlist (id, listId) VALUES (0, last_insert_rowid())"
                     )
                 }
             })

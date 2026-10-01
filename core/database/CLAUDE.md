@@ -35,7 +35,9 @@ So when you change an entity:
   of the source text so an IGDB summary that gets edited in place is re-translated instead of served stale,
   `RelatedGameEntity`("related_games") — a child table, not a cross-ref, because it carries the related
   game's own name and cover, `OwnedPlatformEntity`("owned_platforms") — one row per platform the user
-  picked in Settings, where an empty table means "no filter".
+  picked in Settings, where an empty table means "no filter", `DefaultWishlistEntity`("default_wishlist") —
+  a single row, fixed primary key `0`, pointing at the user's default wishlist; its `RESTRICT` foreign key
+  is what stops that list being deleted.
 - Junction tables: `<A><B>CrossRef` — **no `Entity` suffix** — with `primaryKeys = [...]`.
   `GameListCrossRef`, `GamePlatformCrossRef`, `GameGenreCrossRef`, `GameCompanyCrossRef`,
   `GameEngineCrossRef`.
@@ -72,9 +74,8 @@ is how the comma-joined `artworks`/`engines` columns happened in the first place
 - Type converters live in a single `util/Converters.kt` (`class Converters`, `@TypeConverter` pairs named
   `fromX`/`toX`), registered via `@TypeConverters(Converters::class)` on the database class.
 - This module owns `res/values/strings.xml`: the default wishlist's name and description, inserted with
-  `db.execSQL("INSERT INTO wishlists ...")` from `RoomDatabase.Callback.onCreate`.
-- `GameDao` interpolates a Kotlin constant into SQL:
-  `"... WHERE listId = ${WishlistConstants.DEFAULT_WISHLIST_ID}"`. That constant lives in `core/model`.
+  `db.execSQL("INSERT INTO wishlists ...")` from `RoomDatabase.Callback.onCreate`, followed by the
+  `default_wishlist` pointer row. That seed is the only writer of the row.
 - `DATABASE_NAME` is a `const val` in the database class's companion object.
 
 See `docs/tech-debt.md` for the known deviations in this module (missing DAO tests).

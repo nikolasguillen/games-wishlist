@@ -169,7 +169,8 @@ private fun ListsContentSuccessPreview() {
                     description = "Everything I want to play",
                     iconRes = WishlistIcon.BACKLOG.toDrawableRes(),
                     coverImagePath = null,
-                    gameCountText = UiText.DynamicString("12")
+                    gameCountText = UiText.DynamicString("12"),
+                    isDefault = true
                 ),
                 WishlistListUiModel(
                     id = 2,
@@ -177,7 +178,8 @@ private fun ListsContentSuccessPreview() {
                     description = "One day",
                     iconRes = WishlistIcon.HEART.toDrawableRes(),
                     coverImagePath = null,
-                    gameCountText = UiText.DynamicString("99+")
+                    gameCountText = UiText.DynamicString("99+"),
+                    isDefault = false
                 )
             )
         )

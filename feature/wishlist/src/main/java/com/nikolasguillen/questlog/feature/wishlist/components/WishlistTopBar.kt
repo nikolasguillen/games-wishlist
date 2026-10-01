@@ -1,7 +1,9 @@
 package com.nikolasguillen.questlog.feature.wishlist.components
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
@@ -10,6 +12,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -18,12 +21,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.designsystem.theme.spacing
+import com.nikolasguillen.questlog.core.ui.component.CustomSummaryBadge
 import com.nikolasguillen.questlog.feature.wishlist.R
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
@@ -31,13 +38,31 @@ import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 @Composable
 internal fun WishlistTopBar(
     listName: String,
-    canDeleteList: Boolean,
+    isDefaultList: Boolean,
+    showListOptions: Boolean,
     onBackClick: () -> Unit,
+    onSetAsDefaultClick: () -> Unit,
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     TopAppBar(
-        title = { Text(listName, fontWeight = FontWeight.Bold) },
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+            ) {
+                Text(
+                    text = listName,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                if (isDefaultList) {
+                    CustomSummaryBadge(text = stringResource(CoreUiR.string.default_list_label))
+                }
+            }
+        },
         navigationIcon = {
             IconButton(onClick = onBackClick) {
                 Icon(
@@ -47,8 +72,11 @@ internal fun WishlistTopBar(
             }
         },
         actions = {
-            if (canDeleteList) {
-                ListOptionsMenu(onDeleteClick = onDeleteClick)
+            if (showListOptions) {
+                ListOptionsMenu(
+                    onSetAsDefaultClick = onSetAsDefaultClick,
+                    onDeleteClick = onDeleteClick
+                )
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
@@ -57,7 +85,11 @@ internal fun WishlistTopBar(
 }
 
 @Composable
-private fun ListOptionsMenu(onDeleteClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun ListOptionsMenu(
+    onSetAsDefaultClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     var expanded by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
@@ -68,6 +100,13 @@ private fun ListOptionsMenu(onDeleteClick: () -> Unit, modifier: Modifier = Modi
             )
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.set_as_default_action)) },
+                onClick = {
+                    expanded = false
+                    onSetAsDefaultClick()
+                }
+            )
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.delete_list_action)) },
                 onClick = {
@@ -85,8 +124,25 @@ private fun WishlistTopBarPreview() {
     QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         WishlistTopBar(
             listName = "My Wishlist",
-            canDeleteList = true,
+            isDefaultList = false,
+            showListOptions = true,
             onBackClick = {},
+            onSetAsDefaultClick = {},
+            onDeleteClick = {}
+        )
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun WishlistTopBarDefaultPreview() {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+        WishlistTopBar(
+            listName = "My Wishlist",
+            isDefaultList = true,
+            showListOptions = false,
+            onBackClick = {},
+            onSetAsDefaultClick = {},
             onDeleteClick = {}
         )
     }

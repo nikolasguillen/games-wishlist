@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.feature.lists.mapper
 
+import com.nikolasguillen.questlog.core.domain.model.WishlistSummary
 import com.nikolasguillen.questlog.core.model.WishlistIcon
 import com.nikolasguillen.questlog.core.model.WishlistList
 import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
@@ -9,12 +10,15 @@ import org.junit.Test
 
 class ListsUiMapperTest {
 
-    private fun testList(gameCount: Int) = WishlistList(
-        id = 1,
-        name = "RPGs to Try",
-        description = "Long ones, for when I have time off",
-        icon = WishlistIcon.BACKLOG,
-        gameCount = gameCount
+    private fun testList(gameCount: Int, isDefault: Boolean = false) = WishlistSummary(
+        list = WishlistList(
+            id = 1,
+            name = "RPGs to Try",
+            description = "Long ones, for when I have time off",
+            icon = WishlistIcon.BACKLOG,
+            gameCount = gameCount
+        ),
+        isDefault = isDefault
     )
 
     @Test
@@ -25,6 +29,12 @@ class ListsUiMapperTest {
         assertEquals("RPGs to Try", uiModel.name)
         assertEquals("Long ones, for when I have time off", uiModel.description)
         assertEquals(WishlistIcon.BACKLOG.toDrawableRes(), uiModel.iconRes)
+    }
+
+    @Test
+    fun `toUiModel carries over whether the list is the default`() {
+        assertEquals(true, testList(gameCount = 8, isDefault = true).toUiModel().isDefault)
+        assertEquals(false, testList(gameCount = 8, isDefault = false).toUiModel().isDefault)
     }
 
     @Test

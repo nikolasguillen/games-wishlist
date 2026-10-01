@@ -1,8 +1,8 @@
 package com.nikolasguillen.questlog.core.model
 
 /**
- * A user-created list of games. The default wishlist is one of these, with the id fixed by
- * [WishlistConstants.DEFAULT_WISHLIST_ID].
+ * A user-created list of games. One of them is the user's default wishlist; which one is stored apart from
+ * the list itself, so a list carries no flag for it.
  *
  * @property id Room-generated identifier; 0 means the list has not been persisted yet.
  * @property name The name the user gave the list. Raw text, not a resource — the default list's name is

@@ -7,7 +7,8 @@ import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
 /**
- * Use case to observe a wishlist's details — its metadata and the games it contains.
+ * Use case to observe a wishlist's details — its metadata, the games it contains, and whether it is the
+ * default wishlist.
  *
  * Emits `null` when [listId] no longer exists (e.g. the list was deleted while observed).
  */
@@ -17,9 +18,10 @@ class GetWishlistDetailUseCase @Inject constructor(
     operator fun invoke(listId: Long): Flow<WishlistDetail?> {
         return combine(
             repository.observeListById(listId),
-            repository.getGamesByList(listId)
-        ) { list, games ->
-            list?.let { WishlistDetail(list = it, games = games) }
+            repository.getGamesByList(listId),
+            repository.observeDefaultListId()
+        ) { list, games, defaultListId ->
+            list?.let { WishlistDetail(list = it, games = games, isDefault = it.id == defaultListId) }
         }
     }
 }

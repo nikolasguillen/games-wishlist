@@ -29,6 +29,15 @@ interface ListDao {
     @Query("SELECT * FROM wishlists WHERE id = :listId")
     fun observeListById(listId: Long): Flow<ListEntity?>
 
+    @Query("SELECT listId FROM default_wishlist WHERE id = 0")
+    fun observeDefaultListId(): Flow<Long>
+
+    @Query("SELECT listId FROM default_wishlist WHERE id = 0")
+    suspend fun getDefaultListId(): Long
+
+    @Query("UPDATE default_wishlist SET listId = :listId WHERE id = 0")
+    suspend fun setDefaultList(listId: Long)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertList(list: ListEntity)
 
