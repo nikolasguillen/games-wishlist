@@ -8,6 +8,20 @@
 
 **Input**: User description: "we need to improve the wishlist screen. We need to allow the user to pick it's default wishlist. The default wishlist must NOT be deletable. This means that there must always be at least one wishlist. The heart button in GameDetailActionPill.kt must add the game to the wishlist the user selected as default."
 
+## Clarifications
+
+### Session 2026-10-01
+
+- Q: Should the list-detail screen still show its "⋮" options menu for the list that's currently the
+  default, even though neither "Delete" nor "Set as default" would be clickable there? → A: Keep the
+  menu's current hide-when-no-actions behavior untouched (it stays hidden for the default list, same as
+  today); show a separate, always-visible, non-interactive "Default" label in that screen's top bar
+  instead, next to the list name.
+- Q: When a user taps "Set as default" on a non-default wishlist, should the app apply it immediately
+  (with lightweight confirmation feedback), or should it first ask the user to confirm via a dialog, the
+  way deleting a list already does? → A: Apply immediately and confirm with a snackbar; no confirmation
+  dialog, since the action is non-destructive and instantly reversible.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Choose a default wishlist (Priority: P1)
@@ -19,18 +33,20 @@ obvious, predictable target instead of always landing in whichever list happened
 **Why this priority**: This is the capability the whole feature exists to deliver. Without it, there is no
 way to express a preference, and every other requirement in this feature has nothing to attach to.
 
-**Independent Test**: Can be fully tested by opening the wishlist management screen, selecting a
-different wishlist as default, and confirming the screen now reflects that choice as the current default.
+**Independent Test**: Can be fully tested by opening a non-default wishlist's detail screen, choosing
+"Set as default" from its options menu, and confirming that wishlist's detail screen now shows the
+"Default" indicator while the previous default's screen no longer does.
 
 **Acceptance Scenarios**:
 
-1. **Given** a user has two or more wishlists, **When** they view the wishlist management screen, **Then**
-   exactly one wishlist is visibly marked as the default.
-2. **Given** a user has two or more wishlists and one is marked default, **When** they choose a different
-   wishlist to be the default, **Then** that wishlist becomes the default and the previous default loses
-   the designation.
-3. **Given** a user has only one wishlist, **When** they view the wishlist management screen, **Then**
-   that single wishlist is shown as the default and no other choice is available.
+1. **Given** a user has two or more wishlists, **When** they open any one wishlist's detail screen, **Then**
+   that screen clearly shows whether or not it is the current default.
+2. **Given** a user has two or more wishlists and one is marked default, **When** they open a non-default
+   wishlist's detail screen and choose "Set as default" from its options menu, **Then** that wishlist
+   immediately becomes the default (no confirmation dialog), the previous default loses the designation,
+   and a brief confirmation message is shown.
+3. **Given** a user has only one wishlist, **When** they open its detail screen, **Then** it is shown as
+   the default and no "Set as default" action is offered anywhere.
 
 ---
 
@@ -95,18 +111,26 @@ wishlist succeeds normally.
   starts with is the default until the user changes it.
 - What happens if the user creates a brand-new wishlist? It is not automatically made the default; the
   existing default is unaffected until the user explicitly changes it.
-- How does the system behave if a deletion is attempted on the default wishlist through any entry point
-  (not just the primary wishlist management screen)? It must be blocked consistently everywhere deletion
-  can be triggered, not only on the main screen.
+- How does the system behave if a deletion is attempted on the default wishlist through any entry point?
+  It must be blocked consistently everywhere deletion can be triggered, not only from one screen.
+- What does the current default list's own detail screen show in place of the options menu, since it has
+  no available Delete or Set-as-default action? A non-interactive "Default" label in its top bar, not an
+  empty or disabled menu.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: The wishlist management screen MUST visibly indicate which single wishlist is currently the
-  default.
-- **FR-002**: Users MUST be able to designate any of their existing wishlists as the default from the
-  wishlist management screen.
+- **FR-001**: A wishlist's own detail screen MUST visibly indicate, via a persistent, non-interactive
+  "Default" label in its top bar, when that wishlist currently holds the default designation.
+- **FR-002**: Users MUST be able to designate a wishlist as the default via a "Set as default" action in
+  that wishlist's detail-screen options menu — the same menu that already hosts "Delete list".
+- **FR-002a**: The options menu on a wishlist's detail screen MUST follow the same show-only-when-actionable
+  rule it follows today: it stays hidden for the current default (which has neither Delete nor Set-as-default
+  available) and appears for any non-default wishlist, offering "Set as default" alongside "Delete list"
+  (when deletion is otherwise allowed).
+- **FR-002b**: Choosing "Set as default" MUST take effect immediately, without a confirmation dialog, and
+  MUST show the user a brief confirmation message afterward.
 - **FR-003**: Designating a new default MUST replace the previous default so that exactly one wishlist is
   the default at all times — never zero, never more than one.
 - **FR-004**: The system MUST prevent deletion of whichever wishlist currently holds the default
@@ -137,8 +161,8 @@ wishlist succeeds normally.
 
 ### Measurable Outcomes
 
-- **SC-001**: A user can change their default wishlist in a single action from the wishlist management
-  screen.
+- **SC-001**: A user can change their default wishlist in a single action from any non-default wishlist's
+  detail screen.
 - **SC-002**: 100% of attempts to delete the current default wishlist are blocked, across every entry
   point that can trigger a deletion.
 - **SC-003**: After any change of default, 100% of subsequent heart-button taps save to the newly chosen
@@ -147,9 +171,9 @@ wishlist succeeds normally.
 
 ## Assumptions
 
-- The wishlist management screen (where wishlists are listed and created today) is where the user picks
-  the default, since that is the existing surface for managing wishlists as a set; no new top-level screen
-  is introduced for this.
+- Picking a default is scoped to each wishlist's own detail screen for now (via its existing options
+  menu, alongside "Delete list"); surfacing it elsewhere — e.g. a swipe action on the overview list of all
+  wishlists — is an intentionally separate, later decision and out of scope here.
 - Only one wishlist can be the default at a time, and the designation is a property of the set of
   wishlists as a whole, not of any single wishlist's own data — reassigning it is a change of "which one,"
   not a change to the wishlists' own attributes.

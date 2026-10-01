@@ -31,5 +31,6 @@
 
 ## Notes
 
-- All items pass. The spec is ready for `/speckit-plan` (or `/speckit-clarify` if the owner wants to
-  challenge any of the assumptions before planning, e.g. where in the UI the default is picked from).
+- All items pass. Clarified on 2026-10-01: where "Set as default" lives (detail-screen options menu),
+  how the default is indicated (non-interactive top-bar label), and that it applies immediately with a
+  snackbar (no confirmation dialog). Spec is ready for `/speckit-plan`.
