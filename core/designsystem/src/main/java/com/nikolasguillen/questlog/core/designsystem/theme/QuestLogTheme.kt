@@ -93,8 +93,6 @@ fun QuestLogTheme(darkTheme: Boolean = true, content: @Composable () -> Unit) {
 
     val appColors = if (darkTheme) {
         AppColors(
-            appBackground = NeutralBlack,
-            onAppBackground = NeutralWhite,
             searchBarScrolledContainerColor = NeutralMediumGrey,
             searchBarInputFieldColor = lerp(NeutralMediumGrey, NeutralWhite, 0.05f),
             expandedSearchBarColor = NeutralMediumGrey,
@@ -116,8 +114,6 @@ fun QuestLogTheme(darkTheme: Boolean = true, content: @Composable () -> Unit) {
         )
     } else {
         AppColors(
-            appBackground = NeutralOffWhite,
-            onAppBackground = NeutralBlack,
             searchBarScrolledContainerColor = NeutralSoftGrey,
             searchBarInputFieldColor = lerp(NeutralSoftGrey, NeutralBlack, 0.05f),
             expandedSearchBarColor = NeutralSoftGrey,
@@ -159,7 +155,7 @@ fun QuestLogTheme(darkTheme: Boolean = true, content: @Composable () -> Unit) {
             colorScheme = colorScheme,
             typography = AppTypography
         ) {
-            Surface(color = MaterialTheme.appColors.appBackground) {
+            Surface(color = colorScheme.background) {
                 content()
             }
         }

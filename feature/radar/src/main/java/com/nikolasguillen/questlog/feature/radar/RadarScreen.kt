@@ -30,7 +30,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.ReleaseBucket
 import com.nikolasguillen.questlog.core.ui.component.LoadingPage
@@ -160,7 +159,7 @@ internal fun RadarContent(
                                 .padding(horizontal = MaterialTheme.spacing.large)
                                 .fillMaxWidth()
                                 .background(
-                                    MaterialTheme.appColors.appBackground
+                                    MaterialTheme.colorScheme.background
                                 )
                         )
                     }

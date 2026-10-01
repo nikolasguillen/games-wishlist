@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.GameStatus
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
@@ -64,7 +63,7 @@ internal fun WishlistGamesList(
                                     onGameClick(game.id)
                                 }
                             },
-                            modifier = Modifier.background(MaterialTheme.appColors.appBackground)
+                            modifier = Modifier.background(MaterialTheme.colorScheme.background)
                         )
                     }
                 }

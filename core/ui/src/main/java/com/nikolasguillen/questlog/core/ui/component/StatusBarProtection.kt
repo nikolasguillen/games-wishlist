@@ -12,10 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 
 @Composable
-fun StatusBarProtection(color: Color = MaterialTheme.appColors.appBackground) {
+fun StatusBarProtection(color: Color = MaterialTheme.colorScheme.background) {
     Spacer(
         modifier = Modifier
             .fillMaxWidth()

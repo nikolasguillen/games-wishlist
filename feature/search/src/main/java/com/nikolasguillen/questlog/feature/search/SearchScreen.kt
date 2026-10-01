@@ -211,7 +211,7 @@ internal fun SearchScreenContent(
     // 5. Layout
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.appColors.appBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             SearchTopBar(

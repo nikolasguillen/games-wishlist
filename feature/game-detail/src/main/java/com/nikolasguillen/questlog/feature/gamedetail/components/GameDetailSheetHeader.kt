@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.CustomInfoChip
 import com.nikolasguillen.questlog.core.ui.model.UiText
@@ -89,7 +88,7 @@ private fun GameDetailSheetHeaderPreview() {
                 UiText.DynamicString("Open World"),
                 UiText.DynamicString("Action")
             ),
-            modifier = Modifier.background(MaterialTheme.appColors.appBackground)
+            modifier = Modifier.background(MaterialTheme.colorScheme.background)
         )
     }
 }
