@@ -7,6 +7,8 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,15 +30,24 @@ import androidx.compose.ui.unit.dp
  * Shared constants for shimmer effects to ensure visual consistency across the app.
  */
 internal object ShimmerDefaults {
-    val Colors = listOf(
-        Color.LightGray.copy(alpha = 0.2f),
-        Color.LightGray.copy(alpha = 0.1f),
-        Color.LightGray.copy(alpha = 0.2f),
-    )
-
     val AnimationSpec = infiniteRepeatable<Float>(
         animation = tween(durationMillis = 1300, easing = LinearEasing),
         repeatMode = RepeatMode.Restart
+    )
+}
+
+/**
+ * The shimmer gradient's stops, derived from `onSurface` rather than a fixed gray so the effect stays
+ * readable on both themes — a fixed gray reads fine on dark surfaces but washes out to near-invisible on
+ * light ones. Same alpha shape (bright-dim-bright) as before, just re-based on the theme's own foreground.
+ */
+@Composable
+private fun shimmerColors(): List<Color> {
+    val base = MaterialTheme.colorScheme.onSurface
+    return listOf(
+        base.copy(alpha = 0.2f),
+        base.copy(alpha = 0.1f),
+        base.copy(alpha = 0.2f)
     )
 }
 
@@ -47,6 +58,7 @@ internal object ShimmerDefaults {
 fun Modifier.shimmerEffect(): Modifier = composed {
     var size by remember { mutableStateOf(IntSize.Zero) }
     val transition = rememberInfiniteTransition(label = "shimmer")
+    val colors = shimmerColors()
 
     val translateAnim by transition.animateFloat(
         initialValue = -2 * size.width.toFloat(),
@@ -60,7 +72,7 @@ fun Modifier.shimmerEffect(): Modifier = composed {
             .onGloballyPositioned { size = it.size }
             .background(
                 brush = Brush.linearGradient(
-                    colors = ShimmerDefaults.Colors,
+                    colors = colors,
                     start = Offset(translateAnim, translateAnim),
                     end = Offset(translateAnim + size.width.toFloat(), translateAnim + size.height.toFloat())
                 )
@@ -84,6 +96,7 @@ fun Modifier.lineShimmer(
     if (!visible) return@composed Modifier
 
     val transition = rememberInfiniteTransition(label = "lineShimmer")
+    val colors = shimmerColors()
 
     val translateAnim by transition.animateFloat(
         initialValue = -2f,
@@ -100,7 +113,7 @@ fun Modifier.lineShimmer(
             val xOffset = width * translateAnim
 
             val brush = Brush.linearGradient(
-                colors = ShimmerDefaults.Colors,
+                colors = colors,
                 start = Offset(xOffset, xOffset),
                 end = Offset(xOffset + width, xOffset + size.height)
             )
