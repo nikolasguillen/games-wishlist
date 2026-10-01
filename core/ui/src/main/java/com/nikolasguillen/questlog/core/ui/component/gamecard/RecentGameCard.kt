@@ -2,6 +2,7 @@ package com.nikolasguillen.questlog.core.ui.component.gamecard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,8 +25,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.R
@@ -112,10 +113,10 @@ fun RecentGameCard(
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun RecentGameCardPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         RecentGameCard(
             game = GameItemUiModel.getDummy(),
             onClick = {},

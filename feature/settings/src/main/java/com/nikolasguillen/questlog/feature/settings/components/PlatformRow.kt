@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.feature.settings.components
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,7 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.feature.settings.model.PlatformUiModel
@@ -65,10 +66,10 @@ internal fun PlatformRow(
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun PlatformRowSelectedPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         PlatformRow(
             platform = PlatformUiModel(
                 id = 167,
@@ -81,10 +82,10 @@ private fun PlatformRowSelectedPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun PlatformRowUnselectedPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         PlatformRow(
             platform = PlatformUiModel(
                 id = 471,

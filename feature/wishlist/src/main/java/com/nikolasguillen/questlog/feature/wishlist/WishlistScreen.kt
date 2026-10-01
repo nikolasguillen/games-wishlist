@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.feature.wishlist
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
@@ -18,11 +19,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.model.GameStatus
 import com.nikolasguillen.questlog.core.ui.component.EmptyPage
@@ -153,7 +154,7 @@ internal fun WishlistContent(
 
 @Composable
 private fun WishlistContentPreview(contentState: WishlistContentState) {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         WishlistContent(
             state = WishlistUiState(
                 listName = UiText.DynamicString("My Wishlist"),
@@ -168,7 +169,7 @@ private fun WishlistContentPreview(contentState: WishlistContentState) {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun WishlistContentSuccessPreview() {
     WishlistContentPreview(
@@ -191,13 +192,13 @@ private fun WishlistContentSuccessPreview() {
     )
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun WishlistContentEmptyPreview() {
     WishlistContentPreview(WishlistContentState.Empty)
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun WishlistContentLoadingPreview() {
     WishlistContentPreview(WishlistContentState.Loading)

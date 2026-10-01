@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.feature.settings
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,12 +39,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.AppearanceMode
@@ -310,10 +311,10 @@ private fun TranslationModelRow(rowState: TranslationModelRowState, onDownloadCl
     )
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SettingsContentPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         SettingsContent(
             state = SettingsUiState(
                 ownedPlatformsSummary = UiText.DynamicString("PS5, PC, Switch"),
@@ -329,10 +330,10 @@ private fun SettingsContentPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SettingsContentNoFilterPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         SettingsContent(
             state = SettingsUiState(
                 ownedPlatformsSummary = UiText.StringResource(R.string.settings_owned_platforms_all),
@@ -347,10 +348,10 @@ private fun SettingsContentNoFilterPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SettingsContentTranslationDownloadablePreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         SettingsContent(
             state = SettingsUiState(
                 ownedPlatformsSummary = UiText.DynamicString("PS5, PC, Switch"),
@@ -366,10 +367,10 @@ private fun SettingsContentTranslationDownloadablePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SettingsContentTranslationDownloadingPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         SettingsContent(
             state = SettingsUiState(
                 ownedPlatformsSummary = UiText.DynamicString("PS5, PC, Switch"),
@@ -385,10 +386,10 @@ private fun SettingsContentTranslationDownloadingPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SettingsContentTranslationReadyPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         SettingsContent(
             state = SettingsUiState(
                 ownedPlatformsSummary = UiText.DynamicString("PS5, PC, Switch"),
@@ -404,10 +405,10 @@ private fun SettingsContentTranslationReadyPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SettingsContentTranslationFailedPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         SettingsContent(
             state = SettingsUiState(
                 ownedPlatformsSummary = UiText.DynamicString("PS5, PC, Switch"),

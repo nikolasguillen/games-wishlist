@@ -3,6 +3,7 @@ package com.nikolasguillen.questlog.feature.search.components
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,8 +63,8 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
@@ -601,10 +602,10 @@ private val previewSuggestions = SearchSuggestionsUiModel(
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SearchTopBarPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         SearchTopBar(
             uiState = SearchUiState(
                 history = previewHistory,
@@ -632,10 +633,10 @@ private fun SearchTopBarPreview() {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SearchInputFieldPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         SearchInputField(
             textFieldState = rememberTextFieldState("The Witcher"),
             searchBarState = rememberContainedSearchBarState(),
@@ -646,10 +647,10 @@ private fun SearchInputFieldPreview() {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun CollapsedSearchBarPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         val searchBarState = rememberContainedSearchBarState()
         val textFieldState = rememberTextFieldState("The Witcher")
 
@@ -674,10 +675,10 @@ private fun CollapsedSearchBarPreview() {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun CollapsedSearchBarWithBackButtonPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         val searchBarState = rememberContainedSearchBarState()
         val textFieldState = rememberTextFieldState("The Witcher")
 
@@ -707,10 +708,10 @@ private fun CollapsedSearchBarWithBackButtonPreview() {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun ExpandedSearchBarPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         val searchBarState = rememberContainedSearchBarState(SearchBarValue.Expanded)
         val textFieldState = rememberTextFieldState()
 
@@ -738,10 +739,10 @@ private fun ExpandedSearchBarPreview() {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun ExpandedSearchBarTypingPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         val searchBarState = rememberContainedSearchBarState(SearchBarValue.Expanded)
         val textFieldState = rememberTextFieldState("cyberpunk")
 
@@ -769,10 +770,10 @@ private fun ExpandedSearchBarTypingPreview() {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun ExpandedSearchBarLoadingPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         val searchBarState = rememberContainedSearchBarState(SearchBarValue.Expanded)
         val textFieldState = rememberTextFieldState("cyberpunk")
 

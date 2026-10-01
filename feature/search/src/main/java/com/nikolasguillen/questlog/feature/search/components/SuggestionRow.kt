@@ -2,6 +2,7 @@ package com.nikolasguillen.questlog.feature.search.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,9 +27,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.gamecard.GameCoverImage
@@ -232,20 +233,20 @@ internal fun LoadingSuggestionRow(modifier: Modifier = Modifier) {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SuggestionSectionHeaderPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         Surface {
             SuggestionSectionHeader(title = stringResource(R.string.suggestions_section_recent))
         }
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun HistorySuggestionRowPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         Surface {
             HistorySuggestionRow(
                 query = "The Witcher 3", onClick = {})
@@ -253,10 +254,10 @@ private fun HistorySuggestionRowPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun GameSuggestionRowPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         Surface {
             GameSuggestionRow(
                 suggestion = GameSuggestionUiModel(
@@ -271,10 +272,10 @@ private fun GameSuggestionRowPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SeeAllResultsRowPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         Surface {
             SeeAllResultsRow(
                 query = "Elden Ring",
@@ -284,10 +285,10 @@ private fun SeeAllResultsRowPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun LoadingSuggestionRowPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         Surface {
             LoadingSuggestionRow()
         }

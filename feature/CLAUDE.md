@@ -37,8 +37,9 @@ internal fun WishlistContent(state: WishlistUiState, onEvent: (WishlistUiEvent) 
 `@Suppress("ParamsComparedByRef")` — see `feature/wishlist/WishlistScreen.kt`.
 
 Extract sub-composables into `components/` as soon as they form a logical unit. Do not let a screen file
-grow into a "God UI" file. Give every new composable a `@Preview` (multiple ones — Loading, Success,
-Empty, Error — when the state is non-trivial), `private`, wrapped in `QuestLogTheme { }`.
+grow into a "God UI" file. Give every new composable a `@QuestLogPreviews` (multiple ones — Loading,
+Success, Empty, Error — when the state is non-trivial), `private`, wrapped in
+`QuestLogTheme(darkTheme = isSystemInDarkTheme()) { }`.
 
 ## State, events, effects
 

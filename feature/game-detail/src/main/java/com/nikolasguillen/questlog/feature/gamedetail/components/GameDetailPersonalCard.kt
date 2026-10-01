@@ -2,6 +2,7 @@ package com.nikolasguillen.questlog.feature.gamedetail.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -32,7 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.GameStatus
@@ -235,10 +236,10 @@ private fun PersonalCardExpandedContent(
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun GameDetailPersonalCardPreview() {
-    QuestLogTheme(darkTheme = false) {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         GameDetailPersonalCard(
             uiModel = GameDetailPersonalUiModel(
                 availableStatuses = listOf(

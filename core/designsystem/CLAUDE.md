@@ -1,6 +1,12 @@
 # CLAUDE.md — core:designsystem
 
-Theme tokens only, six files under `theme/`. No composables beyond `QuestLogTheme`.
+Theme tokens only, seven files under `theme/`. No composables beyond `QuestLogTheme`.
+
+- **`@QuestLogPreviews`** (`QuestLogPreviews.kt`) — multipreview annotation (`@PreviewLightDark` under the
+  hood) that renders a preview in both light and dark theme. Use it instead of `@Preview` on every preview
+  composable; wrap the content in `QuestLogTheme(darkTheme = isSystemInDarkTheme())` so it resolves from
+  the `uiMode` the annotation sets. `QuestLogTheme` itself stays a pure function of the flag — the
+  `isSystemInDarkTheme()` call belongs at each preview call site, not inside this module.
 
 - **`QuestLogTheme(darkTheme: Boolean = true, content)`** branches between `darkColorScheme` and
   `lightColorScheme`, plus a matching light/dark `AppColors` instance. There is no dynamic color. The

@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.feature.lists
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -21,11 +22,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.WishlistIcon
@@ -145,7 +146,7 @@ internal fun ListsContent(
 
 @Composable
 private fun ListsContentPreview(contentState: ListsContentState) {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         ListsContent(
             state = ListsUiState(contentState = contentState),
             onEvent = {},
@@ -156,7 +157,7 @@ private fun ListsContentPreview(contentState: ListsContentState) {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun ListsContentSuccessPreview() {
     ListsContentPreview(
@@ -183,13 +184,13 @@ private fun ListsContentSuccessPreview() {
     )
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun ListsContentNoListsPreview() {
     ListsContentPreview(ListsContentState.Success(lists = emptyList()))
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun ListsContentLoadingPreview() {
     ListsContentPreview(ListsContentState.Loading)

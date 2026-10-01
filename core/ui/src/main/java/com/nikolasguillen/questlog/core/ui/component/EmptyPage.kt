@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.core.ui.component
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,8 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.model.UiText
@@ -81,10 +82,10 @@ fun EmptyPage(
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun EmptyPagePreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         EmptyPage(
             message = "No games found here.",
             icon = Icons.Outlined.SearchOff
@@ -92,10 +93,10 @@ private fun EmptyPagePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun EmptyPageWithActionPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         EmptyPage(
             message = "No games match the selected filters",
             icon = Icons.Outlined.SearchOff,
@@ -105,10 +106,10 @@ private fun EmptyPageWithActionPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun EmptyPageWithSubtitlePreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         EmptyPage(
             message = "Nothing on the radar yet",
             subtitle = "Save games with a release date and they'll show up here, sorted by when they launch.",

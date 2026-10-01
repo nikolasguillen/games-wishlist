@@ -1,14 +1,15 @@
 package com.nikolasguillen.questlog.core.ui.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.isDarkTheme
@@ -39,18 +40,10 @@ fun CustomSummaryBadge(
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
-private fun CustomSummaryBadgeLightPreview() {
-    QuestLogTheme(darkTheme = false) {
-        CustomSummaryBadge(text = "Playing")
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun CustomSummaryBadgeDarkPreview() {
-    QuestLogTheme(darkTheme = true) {
+private fun CustomSummaryBadgePreview() {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         CustomSummaryBadge(text = "Playing")
     }
 }

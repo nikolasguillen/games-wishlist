@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.feature.wishlist.components
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -21,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.feature.wishlist.R
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
@@ -78,10 +79,10 @@ private fun ListOptionsMenu(onDeleteClick: () -> Unit, modifier: Modifier = Modi
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun WishlistTopBarPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         WishlistTopBar(
             listName = "My Wishlist",
             canDeleteList = true,

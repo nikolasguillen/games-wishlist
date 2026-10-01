@@ -7,6 +7,7 @@ import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.gestures.animateTo
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.offset
@@ -27,9 +28,9 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.feature.wishlist.R
@@ -133,10 +134,10 @@ internal fun SwipeToRevealRow(
 private fun revealProgress(dragState: AnchoredDraggableState<Boolean>, revealWidthPx: Float): Float =
     ((-dragState.requireOffset()) / revealWidthPx).coerceIn(0f, 1f)
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SwipeToRevealRowClosedPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         Surface {
             SwipeToRevealRow(
                 isRevealed = false,
@@ -154,10 +155,10 @@ private fun SwipeToRevealRowClosedPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SwipeToRevealRowOpenPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         Surface {
             SwipeToRevealRow(
                 isRevealed = true,

@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.feature.radar.components
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.CustomInfoChip
@@ -117,20 +118,20 @@ private fun RadarDateLabel(entry: RadarEntryUiModel) {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun RadarGameRowThisWeekPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         Surface {
             RadarGameRow(entry = RadarEntryUiModel.getDummy(), onClick = {}, onToggleNotification = {})
         }
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun RadarGameRowPlainPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         Surface {
             RadarGameRow(
                 entry = RadarEntryUiModel.getDummy().copy(
@@ -146,10 +147,10 @@ private fun RadarGameRowPlainPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun RadarGameRowPillPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         Surface {
             RadarGameRow(
                 entry = RadarEntryUiModel.getDummy().copy(

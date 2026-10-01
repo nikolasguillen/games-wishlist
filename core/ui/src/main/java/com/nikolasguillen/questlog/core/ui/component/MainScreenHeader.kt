@@ -1,6 +1,7 @@
 package com.nikolasguillen.questlog.core.ui.component
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -24,9 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 
@@ -129,10 +130,10 @@ object MainScreenHeaderDefaults {
     val Height: Dp = SearchBarDefaults.InputFieldHeight + (12.dp * 2)
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun MainScreenHeaderPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         MainScreenHeader(
             onProfileClick = {},
             content = {
@@ -142,10 +143,10 @@ private fun MainScreenHeaderPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun MainScreenHeaderWithLeadingContentPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         MainScreenHeader(
             onProfileClick = {},
             leadingContent = {
@@ -163,10 +164,10 @@ private fun MainScreenHeaderWithLeadingContentPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun MainScreenHeaderTitlePreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         MainScreenHeader(
             title = "My Wishlists",
             onProfileClick = {}
@@ -174,10 +175,10 @@ private fun MainScreenHeaderTitlePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun MainScreenHeaderWithBottomContentPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         MainScreenHeader(
             title = "Search",
             onProfileClick = {},

@@ -3,6 +3,7 @@ package com.nikolasguillen.questlog.feature.search.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,11 +31,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.gamecard.GenericGameCardLayout
@@ -205,10 +206,10 @@ private fun HeroImageFallback() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun DiscoverHeroPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         DiscoverHero(
             game = GameItemUiModel.getDummy().copy(name = "Hollow Knight: Silksong"),
             onGameClick = {},
@@ -217,10 +218,10 @@ private fun DiscoverHeroPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun DiscoverHeroSavedPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         DiscoverHero(
             game = GameItemUiModel.getDummy()
                 .copy(name = "Hollow Knight: Silksong", isSaved = true),
@@ -230,10 +231,10 @@ private fun DiscoverHeroSavedPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun DiscoverHeroNoImagePreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         DiscoverHero(
             game = GameItemUiModel.getDummy()
                 .copy(name = "Hollow Knight: Silksong", coverImage = null),

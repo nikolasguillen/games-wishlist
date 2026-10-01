@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.feature.search.components
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -7,7 +8,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.ui.component.ErrorPage
 import com.nikolasguillen.questlog.core.ui.component.LoadingPage
@@ -99,7 +100,7 @@ private fun SearchMainContentPreview(
     contentState: SearchContentState,
     discoverState: DiscoverContentState = DiscoverContentState.Loading
 ) {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         SearchMainContent(
             contentState = contentState,
             discoverState = discoverState,
@@ -110,7 +111,7 @@ private fun SearchMainContentPreview(
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SearchMainContentDiscoverPreview() {
     SearchMainContentPreview(
@@ -123,7 +124,7 @@ private fun SearchMainContentDiscoverPreview() {
     )
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SearchMainContentDiscoverErrorPreview() {
     SearchMainContentPreview(
@@ -134,19 +135,19 @@ private fun SearchMainContentDiscoverErrorPreview() {
     )
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SearchMainContentLoadingPreview() {
     SearchMainContentPreview(SearchContentState.Loading)
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SearchMainContentEmptyPreview() {
     SearchMainContentPreview(SearchContentState.Empty)
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SearchMainContentErrorPreview() {
     SearchMainContentPreview(
@@ -154,7 +155,7 @@ private fun SearchMainContentErrorPreview() {
     )
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun SearchMainContentSuccessPreview() {
     SearchMainContentPreview(

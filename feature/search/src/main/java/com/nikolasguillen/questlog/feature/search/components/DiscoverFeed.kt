@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,8 +36,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.gamecard.CompactGameCard
@@ -260,10 +261,10 @@ private val previewGames = listOf(
     GameItemUiModel.getDummy().copy(id = 3, name = "Hollow Knight: Silksong")
 )
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun DiscoverFeedPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         DiscoverFeed(
             hero = previewGames.first(),
             popular = previewGames,
@@ -275,10 +276,10 @@ private fun DiscoverFeedPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun DiscoverFeedRecommendedPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         DiscoverFeed(
             hero = previewGames.first(),
             popular = previewGames,
@@ -300,10 +301,10 @@ private fun DiscoverFeedRecommendedPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun DiscoverFeedStalePreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         DiscoverFeed(
             hero = previewGames.first(),
             popular = previewGames,
@@ -316,10 +317,10 @@ private fun DiscoverFeedStalePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun DiscoverFeedRefreshingPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         DiscoverFeed(
             hero = previewGames.first(),
             popular = previewGames,
@@ -333,10 +334,10 @@ private fun DiscoverFeedRefreshingPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun DiscoverFeedEmptyPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         DiscoverFeed(
             hero = null,
             popular = emptyList(),

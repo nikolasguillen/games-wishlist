@@ -1,6 +1,7 @@
 package com.nikolasguillen.questlog.feature.radar
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,11 +25,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.ReleaseBucket
@@ -183,7 +184,7 @@ internal fun RadarContent(
 
 @Composable
 private fun RadarContentPreview(contentState: RadarContentState) {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         RadarContent(
             state = RadarUiState(contentState = contentState),
             onGameClick = {},
@@ -194,7 +195,7 @@ private fun RadarContentPreview(contentState: RadarContentState) {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun RadarContentSuccessPreview() {
     RadarContentPreview(
@@ -234,13 +235,13 @@ private fun RadarContentSuccessPreview() {
     )
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun RadarContentEmptyPreview() {
     RadarContentPreview(RadarContentState.Empty)
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun RadarContentLoadingPreview() {
     RadarContentPreview(RadarContentState.Loading)

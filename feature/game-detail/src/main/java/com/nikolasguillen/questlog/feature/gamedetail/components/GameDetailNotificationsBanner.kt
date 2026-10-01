@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.feature.gamedetail.components
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,7 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.isDarkTheme
 import com.nikolasguillen.questlog.core.ui.component.CustomContentCard
@@ -76,10 +77,10 @@ fun GameDetailNotificationsBanner(
     }
 }
 
-@Preview
+@QuestLogPreviews
 @Composable
 private fun GameDetailNotificationsBannerPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         GameDetailNotificationsBanner(
             isNotificationEnabled = true,
             onToggleNotification = {}

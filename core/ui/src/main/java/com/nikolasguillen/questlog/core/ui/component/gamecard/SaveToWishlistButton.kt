@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -25,8 +26,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.R
@@ -108,10 +109,10 @@ fun SaveToWishlistButton(
     }
 }
 
-@Preview
+@QuestLogPreviews
 @Composable
 private fun SaveToWishlistSelectedButtonPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         SaveToWishlistButton(
             isSaved = true,
             onSaveClick = {},
@@ -121,10 +122,10 @@ private fun SaveToWishlistSelectedButtonPreview() {
     }
 }
 
-@Preview
+@QuestLogPreviews
 @Composable
 private fun SaveToWishlistUnselectedButtonPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         SaveToWishlistButton(
             isSaved = false,
             onSaveClick = {},

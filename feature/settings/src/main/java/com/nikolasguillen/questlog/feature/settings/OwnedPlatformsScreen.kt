@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.feature.settings
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -28,8 +29,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.EmptyPage
@@ -180,10 +181,10 @@ private val previewPlatforms = listOf(
     PlatformUiModel(id = 471, name = "Meta Quest 3", abbreviation = null, isSelected = false)
 )
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun OwnedPlatformsContentSuccessPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         OwnedPlatformsContent(
             state = OwnedPlatformsUiState(
                 contentState = OwnedPlatformsContentState.Success(previewPlatforms),
@@ -196,10 +197,10 @@ private fun OwnedPlatformsContentSuccessPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun OwnedPlatformsContentNoSelectionPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         OwnedPlatformsContent(
             state = OwnedPlatformsUiState(
                 contentState = OwnedPlatformsContentState.Success(
@@ -214,10 +215,10 @@ private fun OwnedPlatformsContentNoSelectionPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun OwnedPlatformsContentNoSearchResultsPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         OwnedPlatformsContent(
             state = OwnedPlatformsUiState(
                 contentState = OwnedPlatformsContentState.NoSearchResults,
@@ -230,10 +231,10 @@ private fun OwnedPlatformsContentNoSearchResultsPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun OwnedPlatformsContentEmptyPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         OwnedPlatformsContent(
             state = OwnedPlatformsUiState(contentState = OwnedPlatformsContentState.Empty),
             searchFieldState = TextFieldState(),
@@ -243,10 +244,10 @@ private fun OwnedPlatformsContentEmptyPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun OwnedPlatformsContentLoadingPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         OwnedPlatformsContent(
             state = OwnedPlatformsUiState(),
             searchFieldState = TextFieldState(),

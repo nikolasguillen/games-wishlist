@@ -3,6 +3,7 @@ package com.nikolasguillen.questlog.feature.gamedetail.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -28,9 +29,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.isDarkTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
@@ -194,10 +195,10 @@ private val PREVIEW_HEIGHT = 180.dp
  * (title, subtitle, card) rather than the hero image, since that's what actually sits behind the
  * pill at rest — matching it keeps the glow read against a realistic backdrop instead of an empty one.
  */
-@Preview
+@QuestLogPreviews
 @Composable
 private fun GameDetailActionPillPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         val hazeState = rememberHazeState()
         Box(
             modifier = Modifier

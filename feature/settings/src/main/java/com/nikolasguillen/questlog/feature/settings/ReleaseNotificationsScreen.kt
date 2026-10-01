@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.feature.settings
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -28,11 +29,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.ui.component.EmptyPage
 import com.nikolasguillen.questlog.core.ui.component.GameListRow
@@ -181,10 +182,10 @@ private fun ReleaseNotificationRow(game: ReleaseNotificationUiModel, onSetEnable
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun ReleaseNotificationsContentSuccessPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         ReleaseNotificationsContent(
             state = ReleaseNotificationsUiState(
                 contentState = ReleaseNotificationsContentState.Success(
@@ -212,10 +213,10 @@ private fun ReleaseNotificationsContentSuccessPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun ReleaseNotificationsContentEmptyPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         ReleaseNotificationsContent(
             state = ReleaseNotificationsUiState(contentState = ReleaseNotificationsContentState.Empty),
             onEvent = {},
@@ -224,10 +225,10 @@ private fun ReleaseNotificationsContentEmptyPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun ReleaseNotificationsContentLoadingPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         ReleaseNotificationsContent(
             state = ReleaseNotificationsUiState(),
             onEvent = {},

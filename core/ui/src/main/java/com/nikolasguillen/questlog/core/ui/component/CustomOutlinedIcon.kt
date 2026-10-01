@@ -1,6 +1,7 @@
 package com.nikolasguillen.questlog.core.ui.component
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -23,9 +24,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 
 private val DEFAULT_ICON_SIZE = 24.dp
@@ -109,10 +110,10 @@ private fun ImageVector.toScaledPath(targetSizePx: Float): Path {
     return path
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun CustomOutlinedIconPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         CustomOutlinedIcon(
             imageVector = Icons.Default.Favorite,
             contentDescription = null,
@@ -122,10 +123,10 @@ private fun CustomOutlinedIconPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun CustomOutlinedIconNoOutlinePreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         CustomOutlinedIcon(
             imageVector = Icons.Default.Favorite,
             contentDescription = null,

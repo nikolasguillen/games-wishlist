@@ -1,6 +1,7 @@
 package com.nikolasguillen.questlog.feature.gamedetail
 
 import android.content.Intent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -17,11 +18,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.ListSelectorSheet
@@ -151,10 +152,10 @@ internal fun GameDetailContent(
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 fun GameDetailContentSuccessPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         GameDetailContent(
             uiState = GameDetailUiState(
                 contentState = GameDetailContentState.Success(GameDetailUiModel.getDummy())
@@ -165,10 +166,10 @@ fun GameDetailContentSuccessPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 fun GameDetailContentLoadingPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         GameDetailContent(
             uiState = GameDetailUiState(contentState = GameDetailContentState.Loading),
             onEvent = {},

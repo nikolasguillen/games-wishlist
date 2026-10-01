@@ -2,6 +2,7 @@ package com.nikolasguillen.questlog.feature.gamedetail.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,8 +34,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.CustomAlertDialog
@@ -219,10 +220,10 @@ private fun DescriptionTitleIconButton(
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun GameDescriptionCardAvailablePreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         GameDescriptionCard(
             description = "This is a long description that showcases how the card grows to fit its " +
                     "full content. There is no expand/collapse here — the whole text is always shown, " +
@@ -234,10 +235,10 @@ private fun GameDescriptionCardAvailablePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun GameDescriptionCardLoadingPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         GameDescriptionCard(
             description = "This is a long description that showcases how the card grows to fit its " +
                     "full content.",
@@ -248,10 +249,10 @@ private fun GameDescriptionCardLoadingPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun GameDescriptionCardTranslatedPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         GameDescriptionCard(
             description = "This is a long description that showcases how the card grows to fit its " +
                     "full content.",
@@ -265,10 +266,10 @@ private fun GameDescriptionCardTranslatedPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun GameDescriptionCardFailedPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         GameDescriptionCard(
             description = "This is a long description that showcases how the card grows to fit its " +
                     "full content.",

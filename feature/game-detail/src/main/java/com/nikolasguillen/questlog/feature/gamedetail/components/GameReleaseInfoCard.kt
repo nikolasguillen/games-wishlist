@@ -1,6 +1,7 @@
 package com.nikolasguillen.questlog.feature.gamedetail.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.CustomContentCard
@@ -181,10 +182,10 @@ private fun PlatformTileRow(
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun GameReleaseInfoCardPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         GameReleaseInfoCard(
             availability = AvailabilityUiModel(
                 mainDate = UiText.DynamicString("May 20th, 2026"),
@@ -238,10 +239,10 @@ private fun GameReleaseInfoCardPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun GameReleaseInfoCardNoDatePreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         GameReleaseInfoCard(
             availability = AvailabilityUiModel(
                 mainDate = UiText.StringResource(CoreUiR.string.release_date_tba),

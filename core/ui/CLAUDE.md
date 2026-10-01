@@ -36,8 +36,8 @@ Search); `SaveToWishlistButton`, the save toggle both full-size cards draw, also
 Search's `DiscoverHero`. A helper used by a single card stays private in that card's file —
 `GameMetadataRow` in `VerticalGameCard.kt`.
 
-Every component file ends with a `private fun XPreview()` annotated `@Preview(showBackground = true)` and
-wrapped in `QuestLogTheme { }`. Match that when adding a component.
+Every component file ends with a `private fun XPreview()` annotated `@QuestLogPreviews` and wrapped in
+`QuestLogTheme(darkTheme = isSystemInDarkTheme()) { }`. Match that when adding a component.
 
 ## Utilities (`util/`)
 

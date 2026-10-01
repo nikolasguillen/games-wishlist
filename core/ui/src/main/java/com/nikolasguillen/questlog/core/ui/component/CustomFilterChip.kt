@@ -1,6 +1,7 @@
 package com.nikolasguillen.questlog.core.ui.component
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.FilterChip
@@ -10,8 +11,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.isDarkTheme
@@ -53,10 +54,10 @@ fun CustomFilterChip(
     )
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun CustomFilterChipUnselectedPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         CustomFilterChip(
             label = "Action",
             selected = false,
@@ -65,10 +66,10 @@ private fun CustomFilterChipUnselectedPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun CustomFilterChipSelectedPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         CustomFilterChip(
             label = "RPG",
             selected = true,
@@ -77,10 +78,10 @@ private fun CustomFilterChipSelectedPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun CustomFilterChipWithTrailingIconPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         CustomFilterChip(
             label = "Platform: PC",
             selected = true,
@@ -92,10 +93,10 @@ private fun CustomFilterChipWithTrailingIconPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun CustomFilterChipDisabledPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         CustomFilterChip(
             label = "Status: Playing",
             selected = false,

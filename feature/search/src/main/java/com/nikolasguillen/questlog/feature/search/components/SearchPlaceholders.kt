@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.feature.search.components
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.outlined.SmartToy
@@ -7,7 +8,7 @@ import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.ui.component.EmptyPage
 import com.nikolasguillen.questlog.core.ui.model.UiText
@@ -44,26 +45,26 @@ internal fun NoFilteredResultsPlaceholder(onClearFiltersClick: () -> Unit, modif
     )
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun DiscoverPlaceholderPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         DiscoverPlaceholder()
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun EmptySearchPlaceholderPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         EmptySearchPlaceholder(onClearSearchClick = {})
     }
 }
 
-@Preview(showBackground = true)
+@QuestLogPreviews
 @Composable
 private fun NoFilteredResultsPlaceholderPreview() {
-    QuestLogTheme {
+    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         NoFilteredResultsPlaceholder(onClearFiltersClick = {})
     }
 }
