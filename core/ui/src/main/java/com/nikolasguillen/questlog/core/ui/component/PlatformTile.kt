@@ -26,21 +26,22 @@ import com.nikolasguillen.questlog.core.ui.model.UiText
 @Composable
 fun PlatformTile(
     code: UiText,
-    color: Color,
-    modifier: Modifier = Modifier
+    containerColor: Color,
+    modifier: Modifier = Modifier,
+    contentColor: Color = Color.White
 ) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .size(32.dp)
             .clip(MaterialTheme.shapes.small)
-            .background(color)
+            .background(containerColor)
     ) {
         Text(
             text = code.asString(),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
-            color = Color.White,
+            color = contentColor,
             maxLines = 1
         )
     }
@@ -51,7 +52,7 @@ fun PlatformTile(
 private fun PlatformTilePreview() {
     QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         Surface {
-            PlatformTile(code = UiText.DynamicString("PS5"), color = Color(0xFF2E4EA6))
+            PlatformTile(code = UiText.DynamicString("PS5"), containerColor = Color(0xFF2E4EA6))
         }
     }
 }

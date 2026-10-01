@@ -48,20 +48,17 @@ private const val MAX_VISIBLE_PLATFORM_TILES = 4
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun GameReleaseInfoCard(
-    availability: AvailabilityUiModel,
-    modifier: Modifier = Modifier
+    availability: AvailabilityUiModel, modifier: Modifier = Modifier
 ) {
     var showReleaseDatesSheet by rememberSaveable { mutableStateOf(false) }
 
     CustomContentCard(
         modifier = modifier.then(
             if (availability.isExpandable) {
-                Modifier.clickable { showReleaseDatesSheet = true }
-            } else {
-                Modifier
-            }
-        )
-    ) {
+        Modifier.clickable { showReleaseDatesSheet = true }
+    } else {
+        Modifier
+    })) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
@@ -125,8 +122,7 @@ internal fun GameReleaseInfoCard(
  */
 @Composable
 private fun PlatformReleaseDateRow(
-    platformReleaseDate: PlatformReleaseDateUiModel,
-    modifier: Modifier = Modifier
+    platformReleaseDate: PlatformReleaseDateUiModel, modifier: Modifier = Modifier
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.smallMedium),
@@ -134,8 +130,7 @@ private fun PlatformReleaseDateRow(
         modifier = modifier.fillMaxWidth()
     ) {
         PlatformTile(
-            code = platformReleaseDate.code,
-            color = platformReleaseDate.color
+            code = platformReleaseDate.code, containerColor = platformReleaseDate.color
         )
         Text(
             text = platformReleaseDate.platformName.asString(),
@@ -156,8 +151,7 @@ private fun PlatformReleaseDateRow(
  */
 @Composable
 private fun PlatformTileRow(
-    platforms: List<PlatformTileUiModel>,
-    modifier: Modifier = Modifier
+    platforms: List<PlatformTileUiModel>, modifier: Modifier = Modifier
 ) {
     val visiblePlatforms = platforms.take(MAX_VISIBLE_PLATFORM_TILES)
     val overflowCount = platforms.size - visiblePlatforms.size
@@ -168,15 +162,15 @@ private fun PlatformTileRow(
         modifier = modifier
     ) {
         visiblePlatforms.forEach { platform ->
-            PlatformTile(code = platform.code, color = platform.color)
+            PlatformTile(code = platform.code, containerColor = platform.color)
         }
         if (overflowCount > 0) {
             PlatformTile(
                 code = UiText.StringResource(
-                    CoreUiR.string.platform_overflow_format,
-                    overflowCount
+                    CoreUiR.string.platform_overflow_format, overflowCount
                 ),
-                color = MaterialTheme.colorScheme.surfaceVariant
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -188,53 +182,34 @@ private fun GameReleaseInfoCardPreview() {
     QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
         GameReleaseInfoCard(
             availability = AvailabilityUiModel(
-                mainDate = UiText.DynamicString("May 20th, 2026"),
-                platforms = listOf(
+                mainDate = UiText.DynamicString("May 20th, 2026"), platforms = listOf(
                     PlatformTileUiModel(
-                        id = 1,
-                        code = UiText.DynamicString("PC"),
-                        color = Color(0xFF5E5E5E)
-                    ),
-                    PlatformTileUiModel(
-                        id = 2,
-                        code = UiText.DynamicString("PS5"),
-                        color = Color(0xFF2E4EA6)
-                    ),
-                    PlatformTileUiModel(
-                        id = 3,
-                        code = UiText.DynamicString("XSX"),
-                        color = Color(0xFF107C10)
-                    ),
-                    PlatformTileUiModel(
-                        id = 4,
-                        code = UiText.DynamicString("SWI"),
-                        color = Color(0xFFE60012)
-                    ),
-                    PlatformTileUiModel(
-                        id = 5,
-                        code = UiText.DynamicString("MAC"),
-                        color = Color(0xFF8E8E93)
+                        id = 1, code = UiText.DynamicString("PC"), color = Color(0xFF5E5E5E)
+                    ), PlatformTileUiModel(
+                        id = 2, code = UiText.DynamicString("PS5"), color = Color(0xFF2E4EA6)
+                    ), PlatformTileUiModel(
+                        id = 3, code = UiText.DynamicString("XSX"), color = Color(0xFF107C10)
+                    ), PlatformTileUiModel(
+                        id = 4, code = UiText.DynamicString("SWI"), color = Color(0xFFE60012)
+                    ), PlatformTileUiModel(
+                        id = 5, code = UiText.DynamicString("MAC"), color = Color(0xFF8E8E93)
                     )
-                ),
-                detailedDates = listOf(
+                ), detailedDates = listOf(
                     PlatformReleaseDateUiModel(
                         platformId = 1,
                         platformName = UiText.DynamicString("PC (Microsoft Windows)"),
                         code = UiText.DynamicString("PC"),
                         color = Color(0xFF5E5E5E),
                         date = UiText.DynamicString("May 20th, 2026")
-                    ),
-                    PlatformReleaseDateUiModel(
+                    ), PlatformReleaseDateUiModel(
                         platformId = 2,
                         platformName = UiText.DynamicString("PlayStation 5"),
                         code = UiText.DynamicString("PS5"),
                         color = Color(0xFF2E4EA6),
                         date = UiText.DynamicString("May 22nd, 2026")
                     )
-                ),
-                isExpandable = true
-            ),
-            modifier = Modifier.padding(MaterialTheme.spacing.medium)
+                ), isExpandable = true
+            ), modifier = Modifier.padding(MaterialTheme.spacing.medium)
         )
     }
 }
@@ -248,20 +223,14 @@ private fun GameReleaseInfoCardNoDatePreview() {
                 mainDate = UiText.StringResource(CoreUiR.string.release_date_tba),
                 platforms = listOf(
                     PlatformTileUiModel(
-                        id = 1,
-                        code = UiText.DynamicString("PC"),
-                        color = Color(0xFF5E5E5E)
-                    ),
-                    PlatformTileUiModel(
-                        id = 2,
-                        code = UiText.DynamicString("PS5"),
-                        color = Color(0xFF2E4EA6)
+                        id = 1, code = UiText.DynamicString("PC"), color = Color(0xFF5E5E5E)
+                    ), PlatformTileUiModel(
+                        id = 2, code = UiText.DynamicString("PS5"), color = Color(0xFF2E4EA6)
                     )
                 ),
                 detailedDates = emptyList(),
                 isExpandable = false
-            ),
-            modifier = Modifier.padding(MaterialTheme.spacing.medium)
+            ), modifier = Modifier.padding(MaterialTheme.spacing.medium)
         )
     }
 }

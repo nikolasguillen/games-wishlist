@@ -49,7 +49,7 @@ internal fun RadarGameRow(
         Spacer(modifier = Modifier.width(MaterialTheme.spacing.medium))
         RadarDateLabel(entry)
         Spacer(modifier = Modifier.width(MaterialTheme.spacing.smallMedium))
-        PlatformTile(code = entry.platform.code, color = entry.platform.color)
+        PlatformTile(code = entry.platform.code, containerColor = entry.platform.color)
         if (showNotificationToggle) {
             RadarNotificationToggle(
                 isEnabled = entry.isNotificationEnabled,
