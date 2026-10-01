@@ -55,10 +55,10 @@ internal fun GameReleaseInfoCard(
     CustomContentCard(
         modifier = modifier.then(
             if (availability.isExpandable) {
-        Modifier.clickable { showReleaseDatesSheet = true }
-    } else {
-        Modifier
-    })) {
+                Modifier.clickable { showReleaseDatesSheet = true }
+            } else {
+                Modifier
+            })) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
@@ -169,8 +169,8 @@ private fun PlatformTileRow(
                 code = UiText.StringResource(
                     CoreUiR.string.platform_overflow_format, overflowCount
                 ),
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                containerColor = Color.Transparent,
+                contentColor = MaterialTheme.colorScheme.onSurface
             )
         }
     }
