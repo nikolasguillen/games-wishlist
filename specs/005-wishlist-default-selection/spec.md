@@ -86,14 +86,15 @@ the user never ends up with no wishlists at all and never loses the one list the
 **Why this priority**: This is a safety guard rail that protects the promise made in User Story 2. It
 matters less on its own and more as a backstop once a default can be freely reassigned.
 
-**Independent Test**: Can be fully tested by attempting to delete the wishlist currently marked as
-default and confirming the deletion is blocked with clear feedback, while deletion of any non-default
-wishlist succeeds normally.
+**Independent Test**: Can be fully tested by opening the wishlist currently marked as default and
+confirming no delete action is offered for it, and that a delete requested directly is refused, while
+deletion of any non-default wishlist succeeds normally.
 
 **Acceptance Scenarios**:
 
-1. **Given** a wishlist is currently the default, **When** the user attempts to delete it, **Then** the
-   deletion is blocked and the user is shown a clear explanation.
+1. **Given** a wishlist is currently the default, **When** the user opens its detail screen, **Then** no
+   delete action is offered; and **When** a delete is requested by any other means, **Then** it is refused
+   and nothing is removed.
 2. **Given** a user has exactly one wishlist, **When** they attempt to delete it, **Then** the deletion is
    blocked, because it is necessarily the default.
 3. **Given** a wishlist is not the current default, **When** the user deletes it, **Then** it is deleted
@@ -147,6 +148,9 @@ wishlist succeeds normally.
   belong to any wishlist.
 - **FR-010**: On first install, the wishlist the app is seeded with MUST be the default until the user
   changes it.
+- **FR-011**: Every other quick-save action and saved-game indicator in the app (search results, Discover,
+  recently viewed) MUST use the same default wishlist as the game-detail heart, so a game shows as saved
+  exactly when it is in the default wishlist.
 
 ### Key Entities
 
