@@ -27,6 +27,7 @@ internal fun WishlistGameRow(
     GameListRow(
         coverImage = game.coverImage,
         title = game.name,
+        subtitle = game.developer,
         onClick = onClick,
         modifier = modifier
     ) {
