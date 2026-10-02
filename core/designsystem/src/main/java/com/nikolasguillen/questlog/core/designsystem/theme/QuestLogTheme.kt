@@ -111,7 +111,10 @@ fun QuestLogTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composab
             hypeColor = HypeRed,
             ratingCountColor = RatingAmber,
             // Gold reads fine directly on this theme's near-black surfaces.
-            textOnSurface = Gold
+            textOnSurface = Gold,
+            ratingHighColor = RatingHighDark,
+            ratingMidColor = RatingMidDark,
+            ratingLowColor = RatingLowDark
         )
     } else {
         AppColors(
@@ -133,7 +136,10 @@ fun QuestLogTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composab
             ratingCountColor = RatingAmber,
             // GoldDeep is the ramp's step that actually clears WCAG AA on this theme's light
             // surfaces (~8.7-10.6:1) — Gold itself does not (~1.7:1).
-            textOnSurface = GoldDeep
+            textOnSurface = GoldDeep,
+            ratingHighColor = RatingHighLight,
+            ratingMidColor = RatingMidLight,
+            ratingLowColor = RatingLowLight
         )
     }
 

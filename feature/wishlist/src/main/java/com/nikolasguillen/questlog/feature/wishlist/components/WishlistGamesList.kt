@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -64,14 +63,6 @@ internal fun WishlistGamesList(
                                 }
                             },
                             modifier = Modifier.background(MaterialTheme.colorScheme.background)
-                        )
-                    }
-                }
-                if (index != section.games.lastIndex) {
-                    item(key = "divider_${section.status}_${game.id}", contentType = "divider") {
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
                         )
                     }
                 }

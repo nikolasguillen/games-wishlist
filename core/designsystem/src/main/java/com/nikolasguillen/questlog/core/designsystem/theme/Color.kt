@@ -16,6 +16,8 @@ val NeutralMediumGrey = Color(0xFF282828)
 val NeutralLightGrey = Color(0xFFB3B3B3)
 val NeutralWhite = Color(0xFFFFFFFF)
 
+val ErrorRed = Color(0xFFCB1914)
+
 val PrimaryDark = Gold
 val OnPrimaryDark = NeutralBlack
 val PrimaryContainerDark = Gold
@@ -33,8 +35,8 @@ val OnTertiaryContainerDark = NeutralWhite
 
 val ErrorDark = Color(0xFFF2B8B5)
 val OnErrorDark = Color(0xFF601410)
-val ErrorContainerDark = Color(0xFF8C1D18)
-val OnErrorContainerDark = Color(0xFFF9DEDC)
+val ErrorContainerDark = ErrorRed
+val OnErrorContainerDark = NeutralWhite
 
 val BackgroundDark = NeutralBlack
 val OnBackgroundDark = NeutralWhite
@@ -55,6 +57,16 @@ val NeutralSoftGrey = Color(0xFFE4E4E4) // Bars, containers, dividers
 // Fixed semantic indicators: same meaning regardless of appearance, so both color schemes share them.
 val HypeRed = Color(0xFFF44336)
 val RatingAmber = Color(0xFFFFB300)
+
+// Score tiers (high / mid / low). Unlike the indicators above these are drawn as bare text and icons
+// directly on a surface, so each scheme needs its own shade: the dark-scheme values are ~1.4-3.2:1 on the
+// light surfaces, the light-scheme ones are darkened to ~4.7-4.9:1 on SurfaceLight.
+val RatingHighDark = Color(0xFF4CAF50)
+val RatingMidDark = Color(0xFFFFC107)
+val RatingLowDark = Color(0xFFF44336)
+val RatingHighLight = Color(0xFF1B7A2E)
+val RatingMidLight = GoldDeep
+val RatingLowLight = Color(0xFFC62828)
 
 // Light scheme. Gold keeps the same hue as the dark scheme throughout (FR-004): where it doesn't clear
 // 4.5:1 as small text on a light surface (it doesn't — ~1.7:1 as body text on white), it is used as a
@@ -80,8 +92,8 @@ val OnTertiaryContainerLight = NeutralBlack
 // ErrorDark/OnErrorDark/etc. above are M3's baseline dark error tokens.
 val ErrorLight = Color(0xFFB3261E)
 val OnErrorLight = Color(0xFFFFFFFF)
-val ErrorContainerLight = Color(0xFFF9DEDC)
-val OnErrorContainerLight = Color(0xFF410E0B)
+val ErrorContainerLight = ErrorRed
+val OnErrorContainerLight = NeutralWhite
 
 val BackgroundLight = NeutralOffWhite
 val OnBackgroundLight = NeutralBlack

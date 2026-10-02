@@ -10,6 +10,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.feature.wishlist.R
 
@@ -27,7 +28,7 @@ fun StatusSectionHeader(
         ),
         style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 1.sp),
         fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.primary,
+        color = MaterialTheme.appColors.textOnSurface,
         modifier = modifier.padding(
             top = MaterialTheme.spacing.large,
             bottom = MaterialTheme.spacing.small
