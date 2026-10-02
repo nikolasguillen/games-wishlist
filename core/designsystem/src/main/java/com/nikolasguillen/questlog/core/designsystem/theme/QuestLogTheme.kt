@@ -110,11 +110,14 @@ fun QuestLogTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composab
             fabContentColor = NeutralBlack,
             hypeColor = HypeRed,
             ratingCountColor = RatingAmber,
-            // Gold reads fine directly on this theme's near-black surfaces.
             textOnSurface = Gold,
             ratingHighColor = RatingHighDark,
             ratingMidColor = RatingMidDark,
-            ratingLowColor = RatingLowDark
+            ratingLowColor = RatingLowDark,
+            createCardOutlineColor = PrimaryDark,
+            createCardIconContainerColor = PrimaryDark.copy(alpha = 0.12f),
+            createCardIconContentColor = Gold,
+            createCardIconBorderColor = OutlineDark
         )
     } else {
         AppColors(
@@ -134,12 +137,14 @@ fun QuestLogTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composab
             fabContentColor = NeutralBlack,
             hypeColor = HypeRed,
             ratingCountColor = RatingAmber,
-            // GoldDeep is the ramp's step that actually clears WCAG AA on this theme's light
-            // surfaces (~8.7-10.6:1) — Gold itself does not (~1.7:1).
             textOnSurface = GoldDeep,
             ratingHighColor = RatingHighLight,
             ratingMidColor = RatingMidLight,
-            ratingLowColor = RatingLowLight
+            ratingLowColor = RatingLowLight,
+            createCardOutlineColor = NeutralBlack,
+            createCardIconContainerColor = PrimaryLight,
+            createCardIconContentColor = OnPrimaryLight,
+            createCardIconBorderColor = OnPrimaryLight
         )
     }
 

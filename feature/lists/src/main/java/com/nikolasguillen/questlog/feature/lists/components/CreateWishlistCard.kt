@@ -1,6 +1,7 @@
 package com.nikolasguillen.questlog.feature.lists.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.util.modifiers.dashedBorder
 import com.nikolasguillen.questlog.feature.lists.R
@@ -36,7 +38,8 @@ internal fun CreateWishlistCard(onClick: () -> Unit, modifier: Modifier = Modifi
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.large)
             .dashedBorder(
-                color = MaterialTheme.colorScheme.outline,
+                strokeWidth = 2.dp,
+                color = MaterialTheme.appColors.createCardOutlineColor,
                 cornerRadius = MaterialTheme.spacing.large
             )
             .clickable(onClick = onClick)
@@ -47,19 +50,24 @@ internal fun CreateWishlistCard(onClick: () -> Unit, modifier: Modifier = Modifi
             modifier = Modifier
                 .size(56.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
+                .background(MaterialTheme.appColors.createCardIconContainerColor)
+                .border(
+                    width = MaterialTheme.spacing.extraSmall,
+                    color = MaterialTheme.appColors.createCardIconBorderColor,
+                    shape = CircleShape
+                )
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = stringResource(R.string.create_list_content_description),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.appColors.createCardIconContentColor
             )
         }
         Text(
             text = stringResource(R.string.create_new_wishlist),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }

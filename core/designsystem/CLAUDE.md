@@ -15,7 +15,7 @@ Theme tokens only, seven files under `theme/`. No composables beyond `QuestLogTh
 - **`MaterialTheme.spacing`** (`Spacing.kt`) — `default 0`, `extraSmall 2`, `small 4`, `smallMedium 6`,
   `medium 8`, `mediumLarge 12`, `large 16`, `extraLarge 24`, `doubleLarge 32` dp.
   Need a value that is not there? Add a token here rather than hardcoding a new `dp` in a composable.
-- **`MaterialTheme.appColors`** (`AppColors.kt`) — 20 semantic color slots provided through
+- **`MaterialTheme.appColors`** (`AppColors.kt`) — 24 semantic color slots provided through
   `LocalAppColors`, exposed as a `@Composable @ReadOnlyComposable` extension on `MaterialTheme`.
 - **`MaterialTheme.isDarkTheme`** — the resolved `darkTheme` flag `QuestLogTheme` was composed with.
   Read this rather than re-deriving light/dark further down the tree (e.g. from a color's luminance
