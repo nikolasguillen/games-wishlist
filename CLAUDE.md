@@ -13,6 +13,19 @@ Coil 2 · WorkManager + `androidx.hilt.work` (Radar's release-date refresh)
 that trailer. This applies only to the commit trailer — PR bodies still omit the "Generated with Claude
 Code" footer, per the global rule.
 
+Commit messages follow `type(scope): subject`, enforced by `.githooks/commit-msg`. Enable it once per clone
+with `git config core.hooksPath .githooks`.
+
+- **Types:** `feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `style`, `build`, `chore`.
+- **Scope** is optional; omit it when a commit spans several modules. When present it is a module name
+  without the `core`/`feature` prefix (`ui`, `data`, `game-detail`, …) or `deps` / `docs`. The authoritative
+  list is `SCOPES` in the hook.
+- **Subject:** English, imperative, lowercase first letter, no trailing period, first line at most 72
+  characters. Breaking changes use `!` (`feat(model)!: ...`).
+- **Body** is optional, separated by a blank line, and explains *why*; wrap it at 72.
+- Spec Kit commits keep their `[Spec Kit] ...` prefix and are exempt from the type/scope check.
+- Merge, revert, `fixup!` and `squash!` messages are not checked.
+
 ## Commands
 
 ```bash
