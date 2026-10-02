@@ -44,7 +44,11 @@ import java.io.File
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
 @Composable
-internal fun WishlistRow(list: WishlistListUiModel, onClick: () -> Unit, modifier: Modifier = Modifier) {
+internal fun WishlistRow(
+    list: WishlistListUiModel,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Surface(
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainer,
@@ -71,6 +75,7 @@ internal fun WishlistRow(list: WishlistListUiModel, onClick: () -> Unit, modifie
                     Text(
                         text = list.name,
                         style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
