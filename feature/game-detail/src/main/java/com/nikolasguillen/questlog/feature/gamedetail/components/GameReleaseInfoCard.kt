@@ -48,7 +48,8 @@ private const val MAX_VISIBLE_PLATFORM_TILES = 4
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun GameReleaseInfoCard(
-    availability: AvailabilityUiModel, modifier: Modifier = Modifier
+    availability: AvailabilityUiModel,
+    modifier: Modifier = Modifier
 ) {
     var showReleaseDatesSheet by rememberSaveable { mutableStateOf(false) }
 
@@ -58,7 +59,9 @@ internal fun GameReleaseInfoCard(
                 Modifier.clickable { showReleaseDatesSheet = true }
             } else {
                 Modifier
-            })) {
+            }
+        )
+    ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
