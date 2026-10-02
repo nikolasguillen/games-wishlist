@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.core.ui.component
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -85,7 +84,7 @@ fun EmptyPage(
 @QuestLogPreviews
 @Composable
 private fun EmptyPagePreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         EmptyPage(
             message = "No games found here.",
             icon = Icons.Outlined.SearchOff
@@ -96,7 +95,7 @@ private fun EmptyPagePreview() {
 @QuestLogPreviews
 @Composable
 private fun EmptyPageWithActionPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         EmptyPage(
             message = "No games match the selected filters",
             icon = Icons.Outlined.SearchOff,
@@ -109,7 +108,7 @@ private fun EmptyPageWithActionPreview() {
 @QuestLogPreviews
 @Composable
 private fun EmptyPageWithSubtitlePreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         EmptyPage(
             message = "Nothing on the radar yet",
             subtitle = "Save games with a release date and they'll show up here, sorted by when they launch.",

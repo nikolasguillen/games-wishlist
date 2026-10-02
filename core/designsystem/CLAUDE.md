@@ -4,15 +4,14 @@ Theme tokens only, seven files under `theme/`. No composables beyond `QuestLogTh
 
 - **`@QuestLogPreviews`** (`QuestLogPreviews.kt`) — multipreview annotation (`@PreviewLightDark` under the
   hood) that renders a preview in both light and dark theme. Use it instead of `@Preview` on every preview
-  composable; wrap the content in `QuestLogTheme(darkTheme = isSystemInDarkTheme())` so it resolves from
-  the `uiMode` the annotation sets. `QuestLogTheme` itself stays a pure function of the flag — the
-  `isSystemInDarkTheme()` call belongs at each preview call site, not inside this module.
+  composable; wrap the content in a bare `QuestLogTheme { }` so it resolves from the `uiMode` the
+  annotation sets. Do not pass `darkTheme` in previews.
 
-- **`QuestLogTheme(darkTheme: Boolean = true, content)`** branches between `darkColorScheme` and
-  `lightColorScheme`, plus a matching light/dark `AppColors` instance. There is no dynamic color. The
-  caller resolves `darkTheme` (manual selection vs. `isSystemInDarkTheme()`) — this module never reads
-  system state itself, so it stays a pure function of the flag; see `AppearanceMode` in `:core:model` and
-  `MainActivity`'s `setContent` for where that resolution happens.
+- **`QuestLogTheme(darkTheme: Boolean = isSystemInDarkTheme(), content)`** branches between
+  `darkColorScheme` and `lightColorScheme`, plus a matching light/dark `AppColors` instance. There is no
+  dynamic color. The default follows the system, which is what previews rely on. The app itself always
+  passes `darkTheme` explicitly, because the manual-vs-system `AppearanceMode` resolution happens in the
+  caller; see `AppearanceMode` in `:core:model` and `MainActivity`'s `setContent`.
 - **`MaterialTheme.spacing`** (`Spacing.kt`) — `default 0`, `extraSmall 2`, `small 4`, `smallMedium 6`,
   `medium 8`, `mediumLarge 12`, `large 16`, `extraLarge 24`, `doubleLarge 32` dp.
   Need a value that is not there? Add a token here rather than hardcoding a new `dp` in a composable.

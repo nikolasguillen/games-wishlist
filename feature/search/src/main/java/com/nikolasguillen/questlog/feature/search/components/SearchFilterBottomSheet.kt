@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.feature.search.components
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -184,7 +183,7 @@ private fun FilterSection(
 @QuestLogPreviews
 @Composable
 private fun SearchFilterBottomSheetPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SearchFilterBottomSheet(
             state = FilterBottomSheetState(
                 isVisible = true,

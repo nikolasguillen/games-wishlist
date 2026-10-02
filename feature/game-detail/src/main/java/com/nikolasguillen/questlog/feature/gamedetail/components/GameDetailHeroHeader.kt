@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.gamedetail.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.pager.PagerState
@@ -46,7 +45,7 @@ internal fun GameDetailHeroHeader(
 @QuestLogPreviews
 @Composable
 private fun GameDetailHeroHeaderPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameDetailHeroHeader(
             images = listOf("artwork-1", "artwork-2", "artwork-3"),
             scrollOffsetProvider = { 0 },

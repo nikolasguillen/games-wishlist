@@ -2,7 +2,6 @@ package com.nikolasguillen.questlog.feature.gamedetail.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -223,7 +222,7 @@ private fun DescriptionTitleIconButton(
 @QuestLogPreviews
 @Composable
 private fun GameDescriptionCardAvailablePreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameDescriptionCard(
             description = "This is a long description that showcases how the card grows to fit its " +
                     "full content. There is no expand/collapse here — the whole text is always shown, " +
@@ -238,7 +237,7 @@ private fun GameDescriptionCardAvailablePreview() {
 @QuestLogPreviews
 @Composable
 private fun GameDescriptionCardLoadingPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameDescriptionCard(
             description = "This is a long description that showcases how the card grows to fit its " +
                     "full content.",
@@ -252,7 +251,7 @@ private fun GameDescriptionCardLoadingPreview() {
 @QuestLogPreviews
 @Composable
 private fun GameDescriptionCardTranslatedPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameDescriptionCard(
             description = "This is a long description that showcases how the card grows to fit its " +
                     "full content.",
@@ -269,7 +268,7 @@ private fun GameDescriptionCardTranslatedPreview() {
 @QuestLogPreviews
 @Composable
 private fun GameDescriptionCardFailedPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameDescriptionCard(
             description = "This is a long description that showcases how the card grows to fit its " +
                     "full content.",

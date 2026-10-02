@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.core.ui.component
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -66,7 +65,7 @@ fun CustomContentCard(
 @QuestLogPreviews
 @Composable
 private fun CustomContentCardPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         CustomContentCard(
             title = "Descrizione Gioco",
             modifier = Modifier.padding(16.dp)
@@ -82,7 +81,7 @@ private fun CustomContentCardPreview() {
 @QuestLogPreviews
 @Composable
 private fun CustomContentCardWithTitleActionPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         CustomContentCard(
             title = "Descrizione Gioco",
             titleAction = {

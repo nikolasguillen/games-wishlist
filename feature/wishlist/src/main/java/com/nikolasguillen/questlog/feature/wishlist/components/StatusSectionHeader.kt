@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.wishlist.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,7 +38,7 @@ fun StatusSectionHeader(
 @QuestLogPreviews
 @Composable
 private fun StatusSectionHeaderPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         StatusSectionHeader(label = "Playing", count = 2)
     }
 }

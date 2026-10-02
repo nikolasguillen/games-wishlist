@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.settings
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -184,7 +183,7 @@ private val previewPlatforms = listOf(
 @QuestLogPreviews
 @Composable
 private fun OwnedPlatformsContentSuccessPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         OwnedPlatformsContent(
             state = OwnedPlatformsUiState(
                 contentState = OwnedPlatformsContentState.Success(previewPlatforms),
@@ -200,7 +199,7 @@ private fun OwnedPlatformsContentSuccessPreview() {
 @QuestLogPreviews
 @Composable
 private fun OwnedPlatformsContentNoSelectionPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         OwnedPlatformsContent(
             state = OwnedPlatformsUiState(
                 contentState = OwnedPlatformsContentState.Success(
@@ -218,7 +217,7 @@ private fun OwnedPlatformsContentNoSelectionPreview() {
 @QuestLogPreviews
 @Composable
 private fun OwnedPlatformsContentNoSearchResultsPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         OwnedPlatformsContent(
             state = OwnedPlatformsUiState(
                 contentState = OwnedPlatformsContentState.NoSearchResults,
@@ -234,7 +233,7 @@ private fun OwnedPlatformsContentNoSearchResultsPreview() {
 @QuestLogPreviews
 @Composable
 private fun OwnedPlatformsContentEmptyPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         OwnedPlatformsContent(
             state = OwnedPlatformsUiState(contentState = OwnedPlatformsContentState.Empty),
             searchFieldState = TextFieldState(),
@@ -247,7 +246,7 @@ private fun OwnedPlatformsContentEmptyPreview() {
 @QuestLogPreviews
 @Composable
 private fun OwnedPlatformsContentLoadingPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         OwnedPlatformsContent(
             state = OwnedPlatformsUiState(),
             searchFieldState = TextFieldState(),

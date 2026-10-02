@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.search.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.outlined.SmartToy
@@ -48,7 +47,7 @@ internal fun NoFilteredResultsPlaceholder(onClearFiltersClick: () -> Unit, modif
 @QuestLogPreviews
 @Composable
 private fun DiscoverPlaceholderPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         DiscoverPlaceholder()
     }
 }
@@ -56,7 +55,7 @@ private fun DiscoverPlaceholderPreview() {
 @QuestLogPreviews
 @Composable
 private fun EmptySearchPlaceholderPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         EmptySearchPlaceholder(onClearSearchClick = {})
     }
 }
@@ -64,7 +63,7 @@ private fun EmptySearchPlaceholderPreview() {
 @QuestLogPreviews
 @Composable
 private fun NoFilteredResultsPlaceholderPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         NoFilteredResultsPlaceholder(onClearFiltersClick = {})
     }
 }

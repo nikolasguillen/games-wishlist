@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.core.ui.component
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -68,7 +67,7 @@ fun ErrorPage(
 @QuestLogPreviews
 @Composable
 private fun ErrorPagePreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         ErrorPage(message = UiText.DynamicString("No internet connection."))
     }
 }
@@ -76,7 +75,7 @@ private fun ErrorPagePreview() {
 @QuestLogPreviews
 @Composable
 private fun ErrorPageWithRetryPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         ErrorPage(
             message = UiText.DynamicString("No internet connection."),
             onRetryClick = {}

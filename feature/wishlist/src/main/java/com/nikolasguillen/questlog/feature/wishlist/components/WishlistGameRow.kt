@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.wishlist.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -55,7 +54,7 @@ internal fun WishlistGameRow(
 @QuestLogPreviews
 @Composable
 private fun WishlistGameRowPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         Surface {
             WishlistGameRow(
                 game = GameItemUiModel.getDummy(),

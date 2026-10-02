@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.gamedetail.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -145,7 +144,7 @@ private fun RatingStatItem(
 @QuestLogPreviews
 @Composable
 private fun GameRatingCardPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameRatingCard(
             rating = RatingUiModel(
                 score = 95,
@@ -163,7 +162,7 @@ private fun GameRatingCardPreview() {
 @QuestLogPreviews
 @Composable
 private fun GameRatingCardUpcomingPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameRatingCard(
             rating = RatingUiModel(
                 score = null,

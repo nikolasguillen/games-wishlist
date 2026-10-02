@@ -3,7 +3,6 @@ package com.nikolasguillen.questlog.feature.search.components
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -605,7 +604,7 @@ private val previewSuggestions = SearchSuggestionsUiModel(
 @QuestLogPreviews
 @Composable
 private fun SearchTopBarPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SearchTopBar(
             uiState = SearchUiState(
                 history = previewHistory,
@@ -636,7 +635,7 @@ private fun SearchTopBarPreview() {
 @QuestLogPreviews
 @Composable
 private fun SearchInputFieldPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SearchInputField(
             textFieldState = rememberTextFieldState("The Witcher"),
             searchBarState = rememberContainedSearchBarState(),
@@ -650,7 +649,7 @@ private fun SearchInputFieldPreview() {
 @QuestLogPreviews
 @Composable
 private fun CollapsedSearchBarPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         val searchBarState = rememberContainedSearchBarState()
         val textFieldState = rememberTextFieldState("The Witcher")
 
@@ -678,7 +677,7 @@ private fun CollapsedSearchBarPreview() {
 @QuestLogPreviews
 @Composable
 private fun CollapsedSearchBarWithBackButtonPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         val searchBarState = rememberContainedSearchBarState()
         val textFieldState = rememberTextFieldState("The Witcher")
 
@@ -711,7 +710,7 @@ private fun CollapsedSearchBarWithBackButtonPreview() {
 @QuestLogPreviews
 @Composable
 private fun ExpandedSearchBarPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         val searchBarState = rememberContainedSearchBarState(SearchBarValue.Expanded)
         val textFieldState = rememberTextFieldState()
 
@@ -742,7 +741,7 @@ private fun ExpandedSearchBarPreview() {
 @QuestLogPreviews
 @Composable
 private fun ExpandedSearchBarTypingPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         val searchBarState = rememberContainedSearchBarState(SearchBarValue.Expanded)
         val textFieldState = rememberTextFieldState("cyberpunk")
 
@@ -773,7 +772,7 @@ private fun ExpandedSearchBarTypingPreview() {
 @QuestLogPreviews
 @Composable
 private fun ExpandedSearchBarLoadingPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         val searchBarState = rememberContainedSearchBarState(SearchBarValue.Expanded)
         val textFieldState = rememberTextFieldState("cyberpunk")
 

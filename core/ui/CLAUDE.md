@@ -37,7 +37,7 @@ Search's `DiscoverHero`. A helper used by a single card stays private in that ca
 `GameMetadataRow` in `VerticalGameCard.kt`.
 
 Every component file ends with a `private fun XPreview()` annotated `@QuestLogPreviews` and wrapped in
-`QuestLogTheme(darkTheme = isSystemInDarkTheme()) { }`. Match that when adding a component.
+`QuestLogTheme { }`. Match that when adding a component.
 
 ## Utilities (`util/`)
 

@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.feature.settings.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -93,7 +92,7 @@ internal fun SettingsRow(
 @QuestLogPreviews
 @Composable
 private fun SettingsRowNavigablePreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SettingsRow(
             icon = Icons.Default.SportsEsports,
             title = "Owned platforms",
@@ -106,7 +105,7 @@ private fun SettingsRowNavigablePreview() {
 @QuestLogPreviews
 @Composable
 private fun SettingsRowValueOnlyPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SettingsRow(
             icon = Icons.Default.SportsEsports,
             title = "About",

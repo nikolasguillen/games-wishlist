@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.gamedetail.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -57,7 +56,7 @@ internal fun DetailErrorLoadingWrapper(
 @QuestLogPreviews
 @Composable
 private fun DetailErrorLoadingWrapperPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         DetailErrorLoadingWrapper(onBackClick = {}) {
             LoadingPage()
         }

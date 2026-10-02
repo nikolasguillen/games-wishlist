@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.core.ui.component.gamecard
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -22,7 +21,7 @@ fun MiniGameCard(coverImage: String?, modifier: Modifier = Modifier) {
 @QuestLogPreviews
 @Composable
 private fun MiniGameCardPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         MiniGameCard(coverImage = null)
     }
 }

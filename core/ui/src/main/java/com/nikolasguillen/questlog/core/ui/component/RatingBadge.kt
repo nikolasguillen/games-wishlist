@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.core.ui.component
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -63,7 +62,7 @@ fun RatingBadge(
 @QuestLogPreviews
 @Composable
 private fun RatingBadgeGoodPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         RatingBadge(rating = 92)
     }
 }
@@ -71,7 +70,7 @@ private fun RatingBadgeGoodPreview() {
 @QuestLogPreviews
 @Composable
 private fun RatingBadgeMixedPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         RatingBadge(rating = 68)
     }
 }
@@ -79,7 +78,7 @@ private fun RatingBadgeMixedPreview() {
 @QuestLogPreviews
 @Composable
 private fun RatingBadgePoorPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         RatingBadge(rating = 41)
     }
 }

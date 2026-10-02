@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.search.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -100,7 +99,7 @@ private fun SearchMainContentPreview(
     contentState: SearchContentState,
     discoverState: DiscoverContentState = DiscoverContentState.Loading
 ) {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SearchMainContent(
             contentState = contentState,
             discoverState = discoverState,

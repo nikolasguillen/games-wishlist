@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.feature.gamedetail
 
 import android.content.Intent
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -155,7 +154,7 @@ internal fun GameDetailContent(
 @QuestLogPreviews
 @Composable
 fun GameDetailContentSuccessPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameDetailContent(
             uiState = GameDetailUiState(
                 contentState = GameDetailContentState.Success(GameDetailUiModel.getDummy())
@@ -169,7 +168,7 @@ fun GameDetailContentSuccessPreview() {
 @QuestLogPreviews
 @Composable
 fun GameDetailContentLoadingPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameDetailContent(
             uiState = GameDetailUiState(contentState = GameDetailContentState.Loading),
             onEvent = {},

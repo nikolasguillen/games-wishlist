@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.gamedetail.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -66,7 +65,7 @@ internal fun RelatedGamesSection(
 @QuestLogPreviews
 @Composable
 private fun RelatedGamesSectionPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         RelatedGamesSection(
             relatedGames = listOf(
                 RelatedGamesUiModel(

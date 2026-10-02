@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.feature.gamedetail.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -182,7 +181,7 @@ private fun PlatformTileRow(
 @QuestLogPreviews
 @Composable
 private fun GameReleaseInfoCardPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameReleaseInfoCard(
             availability = AvailabilityUiModel(
                 mainDate = UiText.DynamicString("May 20th, 2026"), platforms = listOf(
@@ -220,7 +219,7 @@ private fun GameReleaseInfoCardPreview() {
 @QuestLogPreviews
 @Composable
 private fun GameReleaseInfoCardNoDatePreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameReleaseInfoCard(
             availability = AvailabilityUiModel(
                 mainDate = UiText.StringResource(CoreUiR.string.release_date_tba),

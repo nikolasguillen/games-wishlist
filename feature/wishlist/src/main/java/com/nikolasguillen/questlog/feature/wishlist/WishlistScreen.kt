@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.wishlist
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
@@ -156,7 +155,7 @@ internal fun WishlistContent(
 
 @Composable
 private fun WishlistContentPreview(contentState: WishlistContentState) {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         WishlistContent(
             state = WishlistUiState(
                 listName = UiText.DynamicString("My Wishlist"),

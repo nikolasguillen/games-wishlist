@@ -3,7 +3,6 @@ package com.nikolasguillen.questlog.feature.search.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -209,7 +208,7 @@ private fun HeroImageFallback() {
 @QuestLogPreviews
 @Composable
 private fun DiscoverHeroPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         DiscoverHero(
             game = GameItemUiModel.getDummy().copy(name = "Hollow Knight: Silksong"),
             onGameClick = {},
@@ -221,7 +220,7 @@ private fun DiscoverHeroPreview() {
 @QuestLogPreviews
 @Composable
 private fun DiscoverHeroSavedPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         DiscoverHero(
             game = GameItemUiModel.getDummy()
                 .copy(name = "Hollow Knight: Silksong", isSaved = true),
@@ -234,7 +233,7 @@ private fun DiscoverHeroSavedPreview() {
 @QuestLogPreviews
 @Composable
 private fun DiscoverHeroNoImagePreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         DiscoverHero(
             game = GameItemUiModel.getDummy()
                 .copy(name = "Hollow Knight: Silksong", coverImage = null),

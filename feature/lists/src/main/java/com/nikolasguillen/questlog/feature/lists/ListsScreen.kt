@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.lists
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -146,7 +145,7 @@ internal fun ListsContent(
 
 @Composable
 private fun ListsContentPreview(contentState: ListsContentState) {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         ListsContent(
             state = ListsUiState(contentState = contentState),
             onEvent = {},

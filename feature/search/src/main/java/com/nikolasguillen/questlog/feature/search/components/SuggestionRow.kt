@@ -2,7 +2,6 @@ package com.nikolasguillen.questlog.feature.search.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -236,7 +235,7 @@ internal fun LoadingSuggestionRow(modifier: Modifier = Modifier) {
 @QuestLogPreviews
 @Composable
 private fun SuggestionSectionHeaderPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         Surface {
             SuggestionSectionHeader(title = stringResource(R.string.suggestions_section_recent))
         }
@@ -246,7 +245,7 @@ private fun SuggestionSectionHeaderPreview() {
 @QuestLogPreviews
 @Composable
 private fun HistorySuggestionRowPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         Surface {
             HistorySuggestionRow(
                 query = "The Witcher 3", onClick = {})
@@ -257,7 +256,7 @@ private fun HistorySuggestionRowPreview() {
 @QuestLogPreviews
 @Composable
 private fun GameSuggestionRowPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         Surface {
             GameSuggestionRow(
                 suggestion = GameSuggestionUiModel(
@@ -275,7 +274,7 @@ private fun GameSuggestionRowPreview() {
 @QuestLogPreviews
 @Composable
 private fun SeeAllResultsRowPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         Surface {
             SeeAllResultsRow(
                 query = "Elden Ring",
@@ -288,7 +287,7 @@ private fun SeeAllResultsRowPreview() {
 @QuestLogPreviews
 @Composable
 private fun LoadingSuggestionRowPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         Surface {
             LoadingSuggestionRow()
         }

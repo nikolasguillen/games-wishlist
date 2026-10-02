@@ -2,7 +2,6 @@ package com.nikolasguillen.questlog.feature.lists.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -68,7 +67,7 @@ internal fun CreateWishlistCard(onClick: () -> Unit, modifier: Modifier = Modifi
 @QuestLogPreviews
 @Composable
 private fun CreateWishlistCardPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         CreateWishlistCard(onClick = {})
     }
 }

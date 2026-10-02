@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.core.ui.component
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -72,7 +71,7 @@ fun GameListRow(
 @QuestLogPreviews
 @Composable
 private fun GameListRowWithSubtitlePreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         Surface {
             GameListRow(
                 coverImage = null,
@@ -87,7 +86,7 @@ private fun GameListRowWithSubtitlePreview() {
 @QuestLogPreviews
 @Composable
 private fun GameListRowNoSubtitlePreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         Surface {
             GameListRow(
                 coverImage = null,
@@ -101,7 +100,7 @@ private fun GameListRowNoSubtitlePreview() {
 @QuestLogPreviews
 @Composable
 private fun GameListRowWithTrailingContentPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         Surface {
             GameListRow(
                 coverImage = null,

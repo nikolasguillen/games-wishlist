@@ -2,7 +2,6 @@ package com.nikolasguillen.questlog.feature.gamedetail.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -239,7 +238,7 @@ private fun PersonalCardExpandedContent(
 @QuestLogPreviews
 @Composable
 private fun GameDetailPersonalCardPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameDetailPersonalCard(
             uiModel = GameDetailPersonalUiModel(
                 availableStatuses = listOf(

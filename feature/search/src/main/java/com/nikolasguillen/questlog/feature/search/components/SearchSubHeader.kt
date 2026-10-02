@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.search.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -70,7 +69,7 @@ internal fun SearchSubHeader(
 @QuestLogPreviews
 @Composable
 private fun SearchSubHeaderPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SearchSubHeader(
             resultsCount = 42,
             isSortActive = true,

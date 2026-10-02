@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.gamedetail.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -80,7 +79,7 @@ fun GameDetailNotificationsBanner(
 @QuestLogPreviews
 @Composable
 private fun GameDetailNotificationsBannerPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameDetailNotificationsBanner(
             isNotificationEnabled = true,
             onToggleNotification = {}

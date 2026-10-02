@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.core.ui.component
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -133,7 +132,7 @@ object MainScreenHeaderDefaults {
 @QuestLogPreviews
 @Composable
 private fun MainScreenHeaderPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         MainScreenHeader(
             onProfileClick = {},
             content = {
@@ -146,7 +145,7 @@ private fun MainScreenHeaderPreview() {
 @QuestLogPreviews
 @Composable
 private fun MainScreenHeaderWithLeadingContentPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         MainScreenHeader(
             onProfileClick = {},
             leadingContent = {
@@ -167,7 +166,7 @@ private fun MainScreenHeaderWithLeadingContentPreview() {
 @QuestLogPreviews
 @Composable
 private fun MainScreenHeaderTitlePreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         MainScreenHeader(
             title = "My Wishlists",
             onProfileClick = {}
@@ -178,7 +177,7 @@ private fun MainScreenHeaderTitlePreview() {
 @QuestLogPreviews
 @Composable
 private fun MainScreenHeaderWithBottomContentPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         MainScreenHeader(
             title = "Search",
             onProfileClick = {},

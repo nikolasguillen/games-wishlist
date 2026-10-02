@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.core.ui.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
@@ -50,7 +49,7 @@ fun PlatformTile(
 @QuestLogPreviews
 @Composable
 private fun PlatformTilePreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         Surface {
             PlatformTile(code = UiText.DynamicString("PS5"), containerColor = Color(0xFF2E4EA6))
         }

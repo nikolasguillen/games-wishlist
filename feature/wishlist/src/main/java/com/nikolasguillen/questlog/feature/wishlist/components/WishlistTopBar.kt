@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.wishlist.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -121,7 +120,7 @@ private fun ListOptionsMenu(
 @QuestLogPreviews
 @Composable
 private fun WishlistTopBarPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         WishlistTopBar(
             listName = "My Wishlist",
             isDefaultList = false,
@@ -136,7 +135,7 @@ private fun WishlistTopBarPreview() {
 @QuestLogPreviews
 @Composable
 private fun WishlistTopBarDefaultPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         WishlistTopBar(
             listName = "My Wishlist",
             isDefaultList = true,

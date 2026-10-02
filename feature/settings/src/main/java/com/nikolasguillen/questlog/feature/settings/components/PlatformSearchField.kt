@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.settings.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
@@ -60,7 +59,7 @@ internal fun PlatformSearchField(
 @QuestLogPreviews
 @Composable
 private fun PlatformSearchFieldEmptyPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         PlatformSearchField(state = TextFieldState(), onClearQuery = {})
     }
 }
@@ -68,7 +67,7 @@ private fun PlatformSearchFieldEmptyPreview() {
 @QuestLogPreviews
 @Composable
 private fun PlatformSearchFieldTypedPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         PlatformSearchField(state = TextFieldState("PlayStation"), onClearQuery = {})
     }
 }

@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.feature.gamedetail.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -219,7 +218,7 @@ private fun GameDetailSheetContent(
 @QuestLogPreviews
 @Composable
 private fun GameDetailSuccessContentPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameDetailSuccessContent(
             game = GameDetailUiModel.getDummy(),
             descriptionTranslation = DescriptionTranslationState.Unavailable,

@@ -7,7 +7,6 @@ import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.gestures.animateTo
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.offset
@@ -137,7 +136,7 @@ private fun revealProgress(dragState: AnchoredDraggableState<Boolean>, revealWid
 @QuestLogPreviews
 @Composable
 private fun SwipeToRevealRowClosedPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         Surface {
             SwipeToRevealRow(
                 isRevealed = false,
@@ -158,7 +157,7 @@ private fun SwipeToRevealRowClosedPreview() {
 @QuestLogPreviews
 @Composable
 private fun SwipeToRevealRowOpenPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         Surface {
             SwipeToRevealRow(
                 isRevealed = true,

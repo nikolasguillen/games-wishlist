@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.core.ui.component
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -50,7 +49,7 @@ fun ProfileIconButton(
 @QuestLogPreviews
 @Composable
 private fun ProfileIconButtonPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         ProfileIconButton(onClick = {})
     }
 }

@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -159,7 +158,7 @@ private fun WishlistItem(
 @QuestLogPreviews
 @Composable
 private fun ListSelectorSheetPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         ListSelectorSheet(
             gameName = UiText.DynamicString("The Witcher 3"), list = listOf(
                 ListSelectorItemUiModel(

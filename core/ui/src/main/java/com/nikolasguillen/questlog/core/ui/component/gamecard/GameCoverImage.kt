@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.core.ui.component.gamecard
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -38,7 +37,7 @@ fun GameCoverImage(
 @QuestLogPreviews
 @Composable
 private fun GameCoverImagePreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameCoverImage(coverImage = null, modifier = Modifier.size(48.dp))
     }
 }

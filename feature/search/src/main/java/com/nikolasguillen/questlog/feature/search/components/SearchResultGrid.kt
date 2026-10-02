@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.search.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -148,7 +147,7 @@ private val previewFilters = listOf(
 @QuestLogPreviews
 @Composable
 private fun SearchResultGridPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SearchResultGrid(
             games = listOf(
                 GameItemUiModel.getDummy(),
@@ -170,7 +169,7 @@ private fun SearchResultGridPreview() {
 @QuestLogPreviews
 @Composable
 private fun SearchResultGridNoMatchPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SearchResultGrid(
             games = emptyList(),
             activeFilters = previewFilters,

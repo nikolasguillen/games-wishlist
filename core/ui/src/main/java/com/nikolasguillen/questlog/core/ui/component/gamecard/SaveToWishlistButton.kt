@@ -4,7 +4,6 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -112,7 +111,7 @@ fun SaveToWishlistButton(
 @QuestLogPreviews
 @Composable
 private fun SaveToWishlistSelectedButtonPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SaveToWishlistButton(
             isSaved = true,
             onSaveClick = {},
@@ -125,7 +124,7 @@ private fun SaveToWishlistSelectedButtonPreview() {
 @QuestLogPreviews
 @Composable
 private fun SaveToWishlistUnselectedButtonPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SaveToWishlistButton(
             isSaved = false,
             onSaveClick = {},

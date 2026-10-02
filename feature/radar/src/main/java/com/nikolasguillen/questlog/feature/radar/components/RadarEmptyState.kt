@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.radar.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Radar
 import androidx.compose.runtime.Composable
@@ -24,7 +23,7 @@ internal fun RadarEmptyState(modifier: Modifier = Modifier) {
 @QuestLogPreviews
 @Composable
 private fun RadarEmptyStatePreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         RadarEmptyState()
     }
 }

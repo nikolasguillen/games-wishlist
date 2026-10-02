@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.gamedetail.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
@@ -55,7 +54,7 @@ internal fun GameDetailMainContent(
 @QuestLogPreviews
 @Composable
 private fun GameDetailMainContentLoadingPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameDetailMainContent(
             uiState = GameDetailUiState(contentState = GameDetailContentState.Loading),
             onEvent = {},
@@ -67,7 +66,7 @@ private fun GameDetailMainContentLoadingPreview() {
 @QuestLogPreviews
 @Composable
 private fun GameDetailMainContentErrorPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameDetailMainContent(
             uiState = GameDetailUiState(
                 contentState = GameDetailContentState.Error(
@@ -83,7 +82,7 @@ private fun GameDetailMainContentErrorPreview() {
 @QuestLogPreviews
 @Composable
 private fun GameDetailMainContentSuccessPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameDetailMainContent(
             uiState = GameDetailUiState(
                 contentState = GameDetailContentState.Success(GameDetailUiModel.getDummy())

@@ -3,6 +3,7 @@ package com.nikolasguillen.questlog.core.designsystem.theme
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.darkColorScheme
@@ -32,7 +33,7 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
 private val LocalDarkTheme = staticCompositionLocalOf { true }
 
 @Composable
-fun QuestLogTheme(darkTheme: Boolean = true, content: @Composable () -> Unit) {
+fun QuestLogTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     val colorScheme = if (darkTheme) {
         darkColorScheme(
             primary = PrimaryDark,

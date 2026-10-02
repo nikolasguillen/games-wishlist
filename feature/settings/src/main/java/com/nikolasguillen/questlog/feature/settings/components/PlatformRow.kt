@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.settings.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -69,7 +68,7 @@ internal fun PlatformRow(
 @QuestLogPreviews
 @Composable
 private fun PlatformRowSelectedPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         PlatformRow(
             platform = PlatformUiModel(
                 id = 167,
@@ -85,7 +84,7 @@ private fun PlatformRowSelectedPreview() {
 @QuestLogPreviews
 @Composable
 private fun PlatformRowUnselectedPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         PlatformRow(
             platform = PlatformUiModel(
                 id = 471,

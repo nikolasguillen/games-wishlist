@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.settings.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -52,7 +51,7 @@ internal fun SettingsGroup(
 @QuestLogPreviews
 @Composable
 private fun SettingsGroupPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SettingsGroup(
             title = "My game profile",
             modifier = Modifier.padding(MaterialTheme.spacing.large)

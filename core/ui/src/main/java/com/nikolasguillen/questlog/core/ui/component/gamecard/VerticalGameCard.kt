@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.core.ui.component.gamecard
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -169,7 +168,7 @@ private fun GameMetadataRow(
 @QuestLogPreviews
 @Composable
 private fun GameCardPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         VerticalGameCard(
             game = GameItemUiModel.getDummy(),
             onClick = {}
@@ -180,7 +179,7 @@ private fun GameCardPreview() {
 @QuestLogPreviews
 @Composable
 private fun GameCardSavedPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         VerticalGameCard(
             game = GameItemUiModel.getDummy().copy(isSaved = true),
             onClick = {}

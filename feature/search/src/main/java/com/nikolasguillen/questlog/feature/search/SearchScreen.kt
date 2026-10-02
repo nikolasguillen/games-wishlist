@@ -6,7 +6,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -274,7 +273,7 @@ internal fun SearchScreenContent(
 @QuestLogPreviews
 @Composable
 private fun SearchScreenPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SearchScreenContent(
             uiState = SearchUiState(
                 contentState = SearchContentState.Success(
@@ -315,7 +314,7 @@ private fun SearchScreenPreview() {
 @QuestLogPreviews
 @Composable
 private fun SearchScreenInitialWithHistoryPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SearchScreenContent(
             uiState = SearchUiState(
                 history = SearchHistoryUiModel(
@@ -339,7 +338,7 @@ private fun SearchScreenInitialWithHistoryPreview() {
 @QuestLogPreviews
 @Composable
 private fun SearchScreenLoadingPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SearchScreenContent(
             uiState = SearchUiState(
                 contentState = SearchContentState.Loading
@@ -356,7 +355,7 @@ private fun SearchScreenLoadingPreview() {
 @QuestLogPreviews
 @Composable
 private fun SearchScreenInitialPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SearchScreenContent(
             uiState = SearchUiState(),
             textFieldState = rememberTextFieldState(),
@@ -371,7 +370,7 @@ private fun SearchScreenInitialPreview() {
 @QuestLogPreviews
 @Composable
 private fun SearchScreenEmptyPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SearchScreenContent(
             uiState = SearchUiState(
                 contentState = SearchContentState.Empty

@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.feature.search.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -95,7 +94,7 @@ internal fun SearchSortBottomSheet(
 @QuestLogPreviews
 @Composable
 private fun SearchSortBottomSheetPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         SearchSortBottomSheet(
             state = SortBottomSheetState(
                 isVisible = true,

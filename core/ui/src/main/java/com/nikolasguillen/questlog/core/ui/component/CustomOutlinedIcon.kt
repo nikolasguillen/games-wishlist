@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.core.ui.component
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -113,7 +112,7 @@ private fun ImageVector.toScaledPath(targetSizePx: Float): Path {
 @QuestLogPreviews
 @Composable
 private fun CustomOutlinedIconPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         CustomOutlinedIcon(
             imageVector = Icons.Default.Favorite,
             contentDescription = null,
@@ -126,7 +125,7 @@ private fun CustomOutlinedIconPreview() {
 @QuestLogPreviews
 @Composable
 private fun CustomOutlinedIconNoOutlinePreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         CustomOutlinedIcon(
             imageVector = Icons.Default.Favorite,
             contentDescription = null,

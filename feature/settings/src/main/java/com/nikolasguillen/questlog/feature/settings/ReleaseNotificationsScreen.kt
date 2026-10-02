@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.settings
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -185,7 +184,7 @@ private fun ReleaseNotificationRow(game: ReleaseNotificationUiModel, onSetEnable
 @QuestLogPreviews
 @Composable
 private fun ReleaseNotificationsContentSuccessPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         ReleaseNotificationsContent(
             state = ReleaseNotificationsUiState(
                 contentState = ReleaseNotificationsContentState.Success(
@@ -216,7 +215,7 @@ private fun ReleaseNotificationsContentSuccessPreview() {
 @QuestLogPreviews
 @Composable
 private fun ReleaseNotificationsContentEmptyPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         ReleaseNotificationsContent(
             state = ReleaseNotificationsUiState(contentState = ReleaseNotificationsContentState.Empty),
             onEvent = {},
@@ -228,7 +227,7 @@ private fun ReleaseNotificationsContentEmptyPreview() {
 @QuestLogPreviews
 @Composable
 private fun ReleaseNotificationsContentLoadingPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         ReleaseNotificationsContent(
             state = ReleaseNotificationsUiState(),
             onEvent = {},

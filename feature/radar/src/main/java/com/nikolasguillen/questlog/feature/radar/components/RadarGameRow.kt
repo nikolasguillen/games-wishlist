@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.radar.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -121,7 +120,7 @@ private fun RadarDateLabel(entry: RadarEntryUiModel) {
 @QuestLogPreviews
 @Composable
 private fun RadarGameRowThisWeekPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         Surface {
             RadarGameRow(entry = RadarEntryUiModel.getDummy(), onClick = {}, onToggleNotification = {})
         }
@@ -131,7 +130,7 @@ private fun RadarGameRowThisWeekPreview() {
 @QuestLogPreviews
 @Composable
 private fun RadarGameRowPlainPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         Surface {
             RadarGameRow(
                 entry = RadarEntryUiModel.getDummy().copy(
@@ -150,7 +149,7 @@ private fun RadarGameRowPlainPreview() {
 @QuestLogPreviews
 @Composable
 private fun RadarGameRowPillPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         Surface {
             RadarGameRow(
                 entry = RadarEntryUiModel.getDummy().copy(

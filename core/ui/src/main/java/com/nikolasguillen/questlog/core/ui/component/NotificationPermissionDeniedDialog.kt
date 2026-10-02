@@ -2,7 +2,6 @@ package com.nikolasguillen.questlog.core.ui.component
 
 import android.content.Intent
 import android.provider.Settings
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -37,7 +36,7 @@ fun NotificationPermissionDeniedDialog(onDismiss: () -> Unit) {
 @QuestLogPreviews
 @Composable
 private fun NotificationPermissionDeniedDialogPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         NotificationPermissionDeniedDialog(onDismiss = {})
     }
 }

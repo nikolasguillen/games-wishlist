@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.feature.radar
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -184,7 +183,7 @@ internal fun RadarContent(
 
 @Composable
 private fun RadarContentPreview(contentState: RadarContentState) {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         RadarContent(
             state = RadarUiState(contentState = contentState),
             onGameClick = {},

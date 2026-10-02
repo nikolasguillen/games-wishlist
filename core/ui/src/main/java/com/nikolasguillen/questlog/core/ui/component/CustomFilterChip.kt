@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.core.ui.component
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.FilterChip
@@ -57,7 +56,7 @@ fun CustomFilterChip(
 @QuestLogPreviews
 @Composable
 private fun CustomFilterChipUnselectedPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         CustomFilterChip(
             label = "Action",
             selected = false,
@@ -69,7 +68,7 @@ private fun CustomFilterChipUnselectedPreview() {
 @QuestLogPreviews
 @Composable
 private fun CustomFilterChipSelectedPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         CustomFilterChip(
             label = "RPG",
             selected = true,
@@ -81,7 +80,7 @@ private fun CustomFilterChipSelectedPreview() {
 @QuestLogPreviews
 @Composable
 private fun CustomFilterChipWithTrailingIconPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         CustomFilterChip(
             label = "Platform: PC",
             selected = true,
@@ -96,7 +95,7 @@ private fun CustomFilterChipWithTrailingIconPreview() {
 @QuestLogPreviews
 @Composable
 private fun CustomFilterChipDisabledPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         CustomFilterChip(
             label = "Status: Playing",
             selected = false,

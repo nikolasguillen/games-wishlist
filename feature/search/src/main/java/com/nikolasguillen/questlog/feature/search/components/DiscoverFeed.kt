@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -264,7 +263,7 @@ private val previewGames = listOf(
 @QuestLogPreviews
 @Composable
 private fun DiscoverFeedPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         DiscoverFeed(
             hero = previewGames.first(),
             popular = previewGames,
@@ -279,7 +278,7 @@ private fun DiscoverFeedPreview() {
 @QuestLogPreviews
 @Composable
 private fun DiscoverFeedRecommendedPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         DiscoverFeed(
             hero = previewGames.first(),
             popular = previewGames,
@@ -304,7 +303,7 @@ private fun DiscoverFeedRecommendedPreview() {
 @QuestLogPreviews
 @Composable
 private fun DiscoverFeedStalePreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         DiscoverFeed(
             hero = previewGames.first(),
             popular = previewGames,
@@ -320,7 +319,7 @@ private fun DiscoverFeedStalePreview() {
 @QuestLogPreviews
 @Composable
 private fun DiscoverFeedRefreshingPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         DiscoverFeed(
             hero = previewGames.first(),
             popular = previewGames,
@@ -337,7 +336,7 @@ private fun DiscoverFeedRefreshingPreview() {
 @QuestLogPreviews
 @Composable
 private fun DiscoverFeedEmptyPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         DiscoverFeed(
             hero = null,
             popular = emptyList(),

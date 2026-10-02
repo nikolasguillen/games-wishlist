@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.feature.wishlist.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -87,7 +86,7 @@ internal fun WishlistGamesList(
 @QuestLogPreviews
 @Composable
 private fun WishlistGamesListPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         WishlistGamesList(
             sections = listOf(
                 WishlistSectionUiModel(

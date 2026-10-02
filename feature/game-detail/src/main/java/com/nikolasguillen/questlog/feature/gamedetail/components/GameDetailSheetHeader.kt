@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.feature.gamedetail.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -79,7 +78,7 @@ internal fun GameDetailSheetHeader(
 @QuestLogPreviews
 @Composable
 private fun GameDetailSheetHeaderPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         GameDetailSheetHeader(
             name = UiText.DynamicString("The Witcher 3: Wild Hunt"),
             gameType = UiText.DynamicString("Main Game"),

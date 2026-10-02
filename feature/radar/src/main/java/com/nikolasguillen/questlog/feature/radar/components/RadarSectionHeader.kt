@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.feature.radar.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -52,7 +51,7 @@ internal fun RadarSectionHeader(
 @QuestLogPreviews
 @Composable
 private fun RadarSectionHeaderThisWeekPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         RadarSectionHeader(label = "This week", bucket = ReleaseBucket.THIS_WEEK)
     }
 }
@@ -60,7 +59,7 @@ private fun RadarSectionHeaderThisWeekPreview() {
 @QuestLogPreviews
 @Composable
 private fun RadarSectionHeaderThisMonthPreview() {
-    QuestLogTheme(darkTheme = isSystemInDarkTheme()) {
+    QuestLogTheme {
         RadarSectionHeader(label = "This month", bucket = ReleaseBucket.THIS_MONTH)
     }
 }
