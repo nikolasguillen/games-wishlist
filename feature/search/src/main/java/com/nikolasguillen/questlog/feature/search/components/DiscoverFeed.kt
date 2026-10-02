@@ -189,7 +189,11 @@ private fun DiscoverRefreshPrompt(
             )
         ) {
             if (isRefreshing) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             } else {
                 Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
             }
