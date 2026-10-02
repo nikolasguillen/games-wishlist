@@ -35,10 +35,10 @@ import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.WishlistIcon
+import com.nikolasguillen.questlog.core.ui.component.CustomSummaryBadge
 import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.lists.R
-import com.nikolasguillen.questlog.core.ui.component.CustomSummaryBadge
 import com.nikolasguillen.questlog.feature.lists.model.WishlistListUiModel
 import java.io.File
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
@@ -76,9 +76,6 @@ internal fun WishlistRow(list: WishlistListUiModel, onClick: () -> Unit, modifie
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false)
                     )
-                    if (list.isDefault) {
-                        CustomSummaryBadge(text = stringResource(CoreUiR.string.default_list_label))
-                    }
                 }
                 if (list.description.isNotBlank()) {
                     Text(
@@ -89,6 +86,9 @@ internal fun WishlistRow(list: WishlistListUiModel, onClick: () -> Unit, modifie
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+            }
+            if (list.isDefault) {
+                CustomSummaryBadge(text = stringResource(CoreUiR.string.default_list_label))
             }
             Icon(
                 imageVector = Icons.Default.ChevronRight,
