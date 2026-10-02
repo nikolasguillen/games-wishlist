@@ -19,6 +19,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -38,8 +39,12 @@ class WishlistViewModel @AssistedInject constructor(
 
     // Single source of truth: reactively observes local storage, no manually mirrored copy.
     internal val uiState: StateFlow<WishlistUiState> = getWishlistDetailUseCase(listId)
+        // Deleting a list that holds games invalidates several queries, so the flow can report it gone more
+        // than once. Only the first report may navigate; every other emission has to get through.
+        .distinctUntilChanged { old, new -> old == null && new == null }
         .onEach { detail ->
-            // The list was deleted from under this screen (e.g. from another screen).
+            // The list is gone: deleted from this screen, or from under it. This is the only place that
+            // leaves the screen after a delete, so one delete pops exactly one screen.
             if (detail == null) _uiEffect.send(WishlistUiEffect.NavigateBack)
         }
         .map { detail ->
@@ -83,9 +88,7 @@ class WishlistViewModel @AssistedInject constructor(
 
     private fun deleteList() {
         viewModelScope.launch {
-            if (deleteListUseCase(listId)) {
-                _uiEffect.send(WishlistUiEffect.NavigateBack)
-            } else {
+            if (!deleteListUseCase(listId)) {
                 _uiEffect.send(
                     WishlistUiEffect.ShowSnackbar(
                         message = UiText.StringResource(R.string.unable_to_delete_wishlist)

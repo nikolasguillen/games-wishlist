@@ -16,6 +16,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -78,12 +79,20 @@ class WishlistViewModelTest {
         setDefaultListUseCase = setDefaultListUseCase
     )
 
-    private fun TestScope.createViewModel(detail: WishlistDetail): WishlistViewModel {
-        every { getWishlistDetailUseCase(LIST_ID) } returns flowOf(detail)
+    private fun TestScope.createViewModel(detail: WishlistDetail): WishlistViewModel =
+        createViewModel(flowOf(detail))
+
+    private fun TestScope.createViewModel(details: Flow<WishlistDetail?>): WishlistViewModel {
+        every { getWishlistDetailUseCase(LIST_ID) } returns details
         return newViewModel().also { viewModel ->
             backgroundScope.launch { viewModel.uiState.collect {} }
             advanceUntilIdle()
         }
+    }
+
+    private fun TestScope.newViewModelWith(details: Flow<WishlistDetail?>): WishlistViewModel {
+        every { getWishlistDetailUseCase(LIST_ID) } returns details
+        return newViewModel()
     }
 
     private fun TestScope.collectEffects(viewModel: WishlistViewModel): List<WishlistUiEffect> {
@@ -169,8 +178,12 @@ class WishlistViewModelTest {
         )
     }
 
+    /**
+     * Leaving the screen follows the list disappearing from storage, not the delete call itself: sending
+     * `NavigateBack` from both made one delete pop two screens (see the next test).
+     */
     @Test
-    fun `a successful delete navigates back`() = runTest(testDispatcher) {
+    fun `a successful delete does not navigate by itself`() = runTest(testDispatcher) {
         val viewModel = createViewModel(detail(isDefault = false))
         val effects = collectEffects(viewModel)
         coEvery { deleteListUseCase(LIST_ID) } returns true
@@ -178,6 +191,36 @@ class WishlistViewModelTest {
         viewModel.onEvent(WishlistUiEvent.OnWishlistDeleted)
         advanceUntilIdle()
 
-        assertEquals(listOf<WishlistUiEffect>(WishlistUiEffect.NavigateBack), effects)
+        assertEquals(emptyList<WishlistUiEffect>(), effects)
     }
+
+    /**
+     * Deleting a list that holds games invalidates more than one query, so the detail flow can report the
+     * list as gone several times in a row. Each report used to pop a screen.
+     */
+    @Test
+    fun `a list that vanishes navigates back once, however often it is reported gone`() =
+        runTest(testDispatcher) {
+            val viewModel = newViewModelWith(flowOf(detail(isDefault = false), null, null))
+            val effects = collectEffects(viewModel)
+            backgroundScope.launch { viewModel.uiState.collect {} }
+
+            advanceUntilIdle()
+
+            assertEquals(listOf<WishlistUiEffect>(WishlistUiEffect.NavigateBack), effects)
+        }
+
+    @Test
+    fun `updates to the list keep reaching the state after it was reported gone once or never`() =
+        runTest(testDispatcher) {
+            val details = MutableSharedFlow<WishlistDetail?>()
+            val viewModel = createViewModel(details)
+
+            details.emit(detail(isDefault = false))
+            advanceUntilIdle()
+            details.emit(detail(isDefault = true))
+            advanceUntilIdle()
+
+            assertTrue(viewModel.uiState.value.isDefaultList)
+        }
 }
