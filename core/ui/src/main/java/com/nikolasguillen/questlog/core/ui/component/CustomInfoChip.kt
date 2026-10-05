@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 
 @Composable
@@ -21,7 +22,7 @@ fun CustomInfoChip(
     borderColor: Color? = null
 ) {
     val style =
-        if (isLarge) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelMedium
+        if (isLarge) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelSmall
 
     Surface(
         modifier = modifier,
@@ -39,4 +40,10 @@ fun CustomInfoChip(
             )
         )
     }
+}
+
+@QuestLogPreviews
+@Composable
+private fun CustomInfoChipPreview() {
+    CustomInfoChip(text = "Main Game")
 }
