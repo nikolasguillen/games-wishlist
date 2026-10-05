@@ -12,6 +12,7 @@ import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.isDarkTheme
+import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 
 @Composable
 fun CustomSummaryBadge(
@@ -34,7 +35,10 @@ fun CustomSummaryBadge(
             text = text,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.appColors.chipSelectedContentColor,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+            modifier = Modifier.padding(
+                horizontal = MaterialTheme.spacing.medium,
+                vertical = MaterialTheme.spacing.small
+            )
         )
     }
 }
