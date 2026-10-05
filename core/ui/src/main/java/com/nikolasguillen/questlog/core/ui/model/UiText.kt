@@ -1,9 +1,11 @@
 package com.nikolasguillen.questlog.core.ui.model
 
 import android.content.Context
+import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 
 /**
@@ -35,6 +37,28 @@ sealed class UiText {
         override fun toString(): String = "StringResource(resId=$resId, args=$args)"
     }
 
+    /**
+     * A quantity string. [quantity] only selects the plural form; pass it again in [args] if the string
+     * prints it (`%1$d games`).
+     */
+    class PluralResource(
+        @PluralsRes val resId: Int,
+        val quantity: Int,
+        vararg args: Any
+    ) : UiText() {
+        val args: List<Any> = args.toList()
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is PluralResource) return false
+            return resId == other.resId && quantity == other.quantity && args == other.args
+        }
+
+        override fun hashCode(): Int = 31 * (31 * resId + quantity) + args.hashCode()
+
+        override fun toString(): String = "PluralResource(resId=$resId, quantity=$quantity, args=$args)"
+    }
+
     data class CompoundString(
         val texts: List<UiText>,
         val separator: String = ""
@@ -49,6 +73,12 @@ sealed class UiText {
                     if (arg is UiText) arg.asString() else arg
                 }.toTypedArray()
                 stringResource(resId, *resolvedArgs)
+            }
+            is PluralResource -> {
+                val resolvedArgs = args.map { arg ->
+                    if (arg is UiText) arg.asString() else arg
+                }.toTypedArray()
+                pluralStringResource(resId, quantity, *resolvedArgs)
             }
             is CompoundString -> {
                 val stringBuilder = StringBuilder()
@@ -71,6 +101,12 @@ sealed class UiText {
                     if (arg is UiText) arg.asString(context) else arg
                 }.toTypedArray()
                 context.getString(resId, *resolvedArgs)
+            }
+            is PluralResource -> {
+                val resolvedArgs = args.map { arg ->
+                    if (arg is UiText) arg.asString(context) else arg
+                }.toTypedArray()
+                context.resources.getQuantityString(resId, quantity, *resolvedArgs)
             }
             is CompoundString -> {
                 texts.joinToString(separator) { it.asString(context) }

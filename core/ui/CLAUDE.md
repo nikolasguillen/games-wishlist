@@ -63,11 +63,12 @@ Also: `ColorUtils.kt`, `HtmlUtils.kt`, `MetallicEffects.kt` (brush factories:
 ## UiText (`model/UiText.kt`)
 
 The localization abstraction that keeps ViewModels free of `Context`. `@Immutable sealed class UiText` with
-`DynamicString`, `StringResource(@StringRes resId, vararg args)` and `CompoundString(texts, separator)`.
+`DynamicString`, `StringResource(@StringRes resId, vararg args)`,
+`PluralResource(@PluralsRes resId, quantity, vararg args)` and `CompoundString(texts, separator)`.
 Two resolvers: `@Composable asString()` and `asString(context: Context)`.
 
-`StringResource` has **hand-written `equals`/`hashCode`/`toString`** because of the `vararg` array — array
-identity would break state comparison. If you add a case, preserve that discipline.
+`StringResource` and `PluralResource` have **hand-written `equals`/`hashCode`/`toString`** because of the
+`vararg` array — array identity would break state comparison. If you add a case, preserve that discipline.
 
 ## Mappers (`mapper/`)
 
