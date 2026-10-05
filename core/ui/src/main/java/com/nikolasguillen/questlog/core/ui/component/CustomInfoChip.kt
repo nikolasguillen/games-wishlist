@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 
 @Composable
@@ -45,5 +46,7 @@ fun CustomInfoChip(
 @QuestLogPreviews
 @Composable
 private fun CustomInfoChipPreview() {
-    CustomInfoChip(text = "Main Game")
+    QuestLogTheme {
+        CustomInfoChip(text = "Main Game")
+    }
 }
