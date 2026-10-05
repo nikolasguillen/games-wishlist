@@ -166,8 +166,6 @@ private fun PillMainAction(onClick: () -> Unit) {
         modifier = Modifier
             .background(MaterialTheme.colorScheme.primary, CircleShape)
             .size(MAIN_ACTION_SIZE)
-            .padding(MaterialTheme.spacing.smallMedium)
-            .pillGlow(color = MaterialTheme.colorScheme.primary, borderRadius = PILL_HEIGHT / 2)
     ) {
         Icon(imageVector = Icons.Default.BookmarkAdd, contentDescription = null, tint = Color.Black)
     }
