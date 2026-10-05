@@ -79,7 +79,6 @@ fun WishlistScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun WishlistContent(
     state: WishlistUiState,
@@ -96,7 +95,7 @@ internal fun WishlistContent(
     Scaffold(
         topBar = {
             WishlistTopBar(
-                showListOptions = state.showListOptions,
+                showActions = state.showListOptions,
                 onBackClick = onBackClick,
                 onSetAsDefaultClick = { onEvent(WishlistUiEvent.OnSetAsDefault) },
                 onDeleteClick = { showDeleteDialog = true }

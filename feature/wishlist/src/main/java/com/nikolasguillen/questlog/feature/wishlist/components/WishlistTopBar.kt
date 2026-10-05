@@ -1,23 +1,16 @@
 package com.nikolasguillen.questlog.feature.wishlist.components
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.CheckCircleOutline
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
@@ -25,10 +18,9 @@ import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.feature.wishlist.R
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun WishlistTopBar(
-    showListOptions: Boolean,
+    showActions: Boolean,
     onBackClick: () -> Unit,
     onSetAsDefaultClick: () -> Unit,
     onDeleteClick: () -> Unit,
@@ -45,11 +37,25 @@ internal fun WishlistTopBar(
             }
         },
         actions = {
-            if (showListOptions) {
-                ListOptionsMenu(
-                    onSetAsDefaultClick = onSetAsDefaultClick,
-                    onDeleteClick = onDeleteClick
-                )
+            if (showActions) {
+                IconButton(
+                    onClick = onSetAsDefaultClick,
+                    colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircleOutline,
+                        contentDescription = stringResource(R.string.set_as_default_action)
+                    )
+                }
+                IconButton(
+                    onClick = onDeleteClick,
+                    colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = stringResource(R.string.delete_list_action)
+                    )
+                }
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -57,50 +63,15 @@ internal fun WishlistTopBar(
     )
 }
 
-@Composable
-private fun ListOptionsMenu(
-    onSetAsDefaultClick: () -> Unit,
-    onDeleteClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Box(modifier = modifier) {
-        IconButton(onClick = { expanded = true }) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.list_options_content_description)
-            )
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.set_as_default_action)) },
-                onClick = {
-                    expanded = false
-                    onSetAsDefaultClick()
-                }
-            )
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.delete_list_action)) },
-                onClick = {
-                    expanded = false
-                    onDeleteClick()
-                }
-            )
-        }
-    }
-}
-
 @QuestLogPreviews
 @Composable
 private fun WishlistTopBarPreview() {
     QuestLogTheme {
         WishlistTopBar(
-            showListOptions = true,
+            showActions = true,
             onBackClick = {},
             onSetAsDefaultClick = {},
-            onDeleteClick = {}
-        )
+            onDeleteClick = {})
     }
 }
 
@@ -109,10 +80,9 @@ private fun WishlistTopBarPreview() {
 private fun WishlistTopBarDefaultPreview() {
     QuestLogTheme {
         WishlistTopBar(
-            showListOptions = false,
+            showActions = false,
             onBackClick = {},
             onSetAsDefaultClick = {},
-            onDeleteClick = {}
-        )
+            onDeleteClick = {})
     }
 }
