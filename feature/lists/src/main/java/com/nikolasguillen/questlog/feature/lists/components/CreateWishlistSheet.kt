@@ -31,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -50,6 +51,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.WishlistIcon
 import com.nikolasguillen.questlog.core.ui.component.CustomModalBottomSheet
@@ -100,12 +102,22 @@ internal fun CreateWishlistSheet(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { descriptionFocusRequester.requestFocus() }),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.appColors.textOnSurface,
+                    focusedLabelColor = MaterialTheme.appColors.textOnSurface,
+                    cursorColor = MaterialTheme.appColors.textOnSurface
+                ),
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
                 label = { Text(stringResource(R.string.description_optional_label)) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.appColors.textOnSurface,
+                    focusedLabelColor = MaterialTheme.appColors.textOnSurface,
+                    cursorColor = MaterialTheme.appColors.textOnSurface
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(descriptionFocusRequester)
@@ -132,12 +144,20 @@ internal fun CreateWishlistSheet(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 TextButton(onClick = onDismiss) {
-                    Text(text = stringResource(CoreUiR.string.cancel))
+                    Text(
+                        text = stringResource(CoreUiR.string.cancel),
+                        color = MaterialTheme.appColors.textOnSurface
+                    )
                 }
                 Spacer(modifier = Modifier.width(MaterialTheme.spacing.large))
                 Button(
                     onClick = {
-                        onCreate(name.trim(), description.trim(), selectedIcon, selectedCoverImageUri)
+                        onCreate(
+                            name.trim(),
+                            description.trim(),
+                            selectedIcon,
+                            selectedCoverImageUri
+                        )
                     },
                     enabled = name.isNotBlank()
                 ) {
