@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.feature.wishlist
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
@@ -31,6 +32,7 @@ import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.wishlist.components.DeleteWishlistDialog
 import com.nikolasguillen.questlog.feature.wishlist.components.RemoveGameDialog
+import com.nikolasguillen.questlog.feature.wishlist.components.WishlistDetailHeader
 import com.nikolasguillen.questlog.feature.wishlist.components.WishlistGamesList
 import com.nikolasguillen.questlog.feature.wishlist.components.WishlistTopBar
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistContentState
@@ -38,6 +40,7 @@ import com.nikolasguillen.questlog.feature.wishlist.model.WishlistSectionUiModel
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiEffect
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiEvent
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiState
+import java.io.File
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
 // viewModel is the same instance for the route's whole lifetime, so ref-comparison skips correctly.
@@ -93,8 +96,6 @@ internal fun WishlistContent(
     Scaffold(
         topBar = {
             WishlistTopBar(
-                listName = state.listName.asString(),
-                isDefaultList = state.isDefaultList,
                 showListOptions = state.showListOptions,
                 onBackClick = onBackClick,
                 onSetAsDefaultClick = { onEvent(WishlistUiEvent.OnSetAsDefault) },
@@ -106,14 +107,27 @@ internal fun WishlistContent(
         modifier = modifier
     ) { innerPadding ->
         val contentModifier = Modifier.padding(innerPadding)
+        val header: @Composable () -> Unit = {
+            WishlistDetailHeader(
+                title = state.listName.asString(),
+                description = state.description,
+                iconRes = state.iconRes,
+                coverImageFile = state.coverImagePath?.let(::File),
+                gameCountText = state.gameCountText.asString(),
+                isDefaultList = state.isDefaultList
+            )
+        }
         when (val content = state.contentState) {
             WishlistContentState.Loading -> LoadingPage(modifier = contentModifier)
 
-            WishlistContentState.Empty -> EmptyPage(
-                message = stringResource(CoreUiR.string.empty_list_message),
-                icon = Icons.Outlined.Inventory2,
-                modifier = contentModifier
-            )
+            WishlistContentState.Empty -> Column(modifier = contentModifier) {
+                header()
+                EmptyPage(
+                    message = stringResource(CoreUiR.string.empty_list_message),
+                    icon = Icons.Outlined.Inventory2,
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
             is WishlistContentState.Success -> WishlistGamesList(
                 sections = content.sections,
@@ -121,6 +135,7 @@ internal fun WishlistContent(
                 onRevealedGameIdChange = { revealedGameId = it },
                 onGameClick = onGameClick,
                 onGameRemoveClick = { game -> gamePendingRemoval = game },
+                header = header,
                 modifier = contentModifier
             )
         }
@@ -158,7 +173,9 @@ private fun WishlistContentPreview(contentState: WishlistContentState) {
     QuestLogTheme {
         WishlistContent(
             state = WishlistUiState(
-                listName = UiText.DynamicString("My Wishlist"),
+                listName = UiText.DynamicString("Couch Co-op"),
+                description = "Games worth playing together, controllers in hand.",
+                gameCountText = UiText.DynamicString("12 games"),
                 showListOptions = true,
                 contentState = contentState
             ),

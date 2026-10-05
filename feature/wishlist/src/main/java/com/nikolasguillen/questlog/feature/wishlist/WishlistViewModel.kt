@@ -6,6 +6,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.list.DeleteListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.GetWishlistDetailUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.RemoveGameFromListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.SetDefaultListUseCase
+import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.wishlist.mapper.toWishlistSectionUiModel
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistContentState
@@ -54,6 +55,14 @@ class WishlistViewModel @AssistedInject constructor(
                 val sections = detail.games.toWishlistSectionUiModel()
                 WishlistUiState(
                     listName = UiText.DynamicString(detail.list.name),
+                    description = detail.list.description.ifBlank { null },
+                    iconRes = detail.list.icon.toDrawableRes(),
+                    coverImagePath = detail.list.coverImagePath,
+                    gameCountText = UiText.PluralResource(
+                        R.plurals.game_count,
+                        detail.games.size,
+                        detail.games.size
+                    ),
                     isDefaultList = detail.isDefault,
                     showListOptions = !detail.isDefault,
                     contentState = if (sections.isEmpty()) {

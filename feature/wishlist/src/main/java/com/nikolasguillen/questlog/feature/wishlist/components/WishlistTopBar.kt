@@ -1,8 +1,6 @@
 package com.nikolasguillen.questlog.feature.wishlist.components
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
@@ -20,24 +18,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.spacing
-import com.nikolasguillen.questlog.core.ui.component.CustomSummaryBadge
 import com.nikolasguillen.questlog.feature.wishlist.R
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun WishlistTopBar(
-    listName: String,
-    isDefaultList: Boolean,
     showListOptions: Boolean,
     onBackClick: () -> Unit,
     onSetAsDefaultClick: () -> Unit,
@@ -45,23 +35,7 @@ internal fun WishlistTopBar(
     modifier: Modifier = Modifier
 ) {
     TopAppBar(
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
-            ) {
-                Text(
-                    text = listName,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false)
-                )
-                if (isDefaultList) {
-                    CustomSummaryBadge(text = stringResource(CoreUiR.string.default_list_label))
-                }
-            }
-        },
+        title = {},
         navigationIcon = {
             IconButton(onClick = onBackClick) {
                 Icon(
@@ -78,7 +52,7 @@ internal fun WishlistTopBar(
                 )
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = modifier
     )
 }
@@ -122,8 +96,6 @@ private fun ListOptionsMenu(
 private fun WishlistTopBarPreview() {
     QuestLogTheme {
         WishlistTopBar(
-            listName = "My Wishlist",
-            isDefaultList = false,
             showListOptions = true,
             onBackClick = {},
             onSetAsDefaultClick = {},
@@ -137,8 +109,6 @@ private fun WishlistTopBarPreview() {
 private fun WishlistTopBarDefaultPreview() {
     QuestLogTheme {
         WishlistTopBar(
-            listName = "My Wishlist",
-            isDefaultList = true,
             showListOptions = false,
             onBackClick = {},
             onSetAsDefaultClick = {},

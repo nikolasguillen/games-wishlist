@@ -5,7 +5,9 @@ import com.nikolasguillen.questlog.core.domain.usecase.list.DeleteListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.GetWishlistDetailUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.RemoveGameFromListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.SetDefaultListUseCase
+import com.nikolasguillen.questlog.core.model.WishlistIcon
 import com.nikolasguillen.questlog.core.model.WishlistList
+import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiEffect
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiEvent
@@ -30,6 +32,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -37,8 +40,8 @@ import org.junit.Test
 private const val LIST_ID = 3L
 
 /**
- * Covers how [WishlistViewModel] turns a [WishlistDetail] into the two flags the top bar renders from
- * (the "Default" badge and the options menu), what choosing "Set as default" does, and how a refused or
+ * Covers how [WishlistViewModel] turns a [WishlistDetail] into the header fields (description, cover, game
+ * count), the two flags the screen renders from (the "Default" badge and the options menu), what choosing "Set as default" does, and how a refused or
  * successful delete is reported.
  *
  * [WishlistViewModel.uiState] is shared with [kotlinx.coroutines.flow.SharingStarted.WhileSubscribed], so
@@ -114,6 +117,34 @@ class WishlistViewModelTest {
         assertEquals(WishlistUiState(), state)
         assertFalse(state.isDefaultList)
         assertFalse(state.showListOptions)
+    }
+
+    @Test
+    fun `the header carries the list's description, cover and game count`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(
+            detail(isDefault = false).copy(
+                list = WishlistList(
+                    id = LIST_ID,
+                    name = "Co-op Picks",
+                    description = "Controllers in hand.",
+                    icon = WishlistIcon.MULTIPLAYER,
+                    coverImagePath = "/covers/co-op.jpg"
+                )
+            )
+        )
+
+        val state = viewModel.uiState.value
+        assertEquals("Controllers in hand.", state.description)
+        assertEquals(WishlistIcon.MULTIPLAYER.toDrawableRes(), state.iconRes)
+        assertEquals("/covers/co-op.jpg", state.coverImagePath)
+        assertEquals(UiText.PluralResource(R.plurals.game_count, 0, 0), state.gameCountText)
+    }
+
+    @Test
+    fun `a blank description is reported as none`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(detail(isDefault = false))
+
+        assertNull(viewModel.uiState.value.description)
     }
 
     @Test

@@ -13,6 +13,8 @@ import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.GameStatus
+import com.nikolasguillen.questlog.core.model.WishlistIcon
+import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistSectionUiModel
@@ -26,9 +28,11 @@ internal fun WishlistGamesList(
     onRevealedGameIdChange: (Int?) -> Unit,
     onGameClick: (Int) -> Unit,
     onGameRemoveClick: (GameItemUiModel) -> Unit,
+    header: @Composable () -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(modifier = modifier.fillMaxSize()) {
+        item(key = "list_header", contentType = "list_header") { header() }
         sections.forEach { section ->
             item(key = "header_${section.status}", contentType = "header") {
                 StatusSectionHeader(
@@ -94,7 +98,17 @@ private fun WishlistGamesListPreview() {
             revealedGameId = null,
             onRevealedGameIdChange = {},
             onGameClick = {},
-            onGameRemoveClick = {}
+            onGameRemoveClick = {},
+            header = {
+                WishlistDetailHeader(
+                    title = "Couch Co-op",
+                    description = "Games worth playing together.",
+                    iconRes = WishlistIcon.MULTIPLAYER.toDrawableRes(),
+                    coverImageFile = null,
+                    gameCountText = "2 games",
+                    isDefaultList = false
+                )
+            }
         )
     }
 }

@@ -13,4 +13,8 @@
     <string name="remove_game_action">Remove game</string>
     <string name="remove_game_dialog_title">Remove \"%1$s\"?</string>
     <string name="remove_game_dialog_message">The game will be removed from this list. You can add it back at any time.</string>
+    <plurals name="game_count">
+        <item quantity="one">%1$d game</item>
+        <item quantity="other">%1$d games</item>
+    </plurals>
 </resources>
