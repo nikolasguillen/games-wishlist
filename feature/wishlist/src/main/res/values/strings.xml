@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="list_options_content_description">List options</string>
     <string name="delete_list_action">Delete list</string>
     <string name="set_as_default_action">Set as default</string>
     <string name="default_list_set_message">This is now your default list</string>
