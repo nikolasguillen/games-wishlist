@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
+import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 
 @Composable
 fun CustomAlertDialog(
@@ -31,7 +32,7 @@ fun CustomAlertDialog(
         text = content,
         confirmButton = {
             if (confirmButtonText.isNotEmpty()) {
-                Button (onClick = onConfirm) {
+                Button(onClick = onConfirm) {
                     Text(text = confirmButtonText)
                 }
             }
@@ -39,7 +40,7 @@ fun CustomAlertDialog(
         dismissButton = if (dismissButtonText.isNotEmpty()) {
             {
                 TextButton(onClick = onDismiss) {
-                    Text(text = dismissButtonText)
+                    Text(text = dismissButtonText, color = MaterialTheme.appColors.textOnSurface)
                 }
             }
         } else null,
