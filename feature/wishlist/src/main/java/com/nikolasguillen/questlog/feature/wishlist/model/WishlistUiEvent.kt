@@ -7,4 +7,6 @@ internal sealed interface WishlistUiEvent {
     data object OnWishlistDeleted : WishlistUiEvent
     data class OnGameRemoved(val gameId: Int) : WishlistUiEvent
     data class OnListEdited(val values: WishlistFormUiModel) : WishlistUiEvent
+    data object OnViewModeToggled : WishlistUiEvent
+    data class OnStatusFilterSelected(val filter: WishlistStatusFilter) : WishlistUiEvent
 }

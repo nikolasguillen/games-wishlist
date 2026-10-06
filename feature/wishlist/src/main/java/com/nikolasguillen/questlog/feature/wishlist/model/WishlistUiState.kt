@@ -2,6 +2,7 @@ package com.nikolasguillen.questlog.feature.wishlist.model
 
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Immutable
+import com.nikolasguillen.questlog.core.model.WishlistViewMode
 import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.core.ui.model.WishlistFormUiModel
@@ -17,5 +18,7 @@ internal data class WishlistUiState(
     val showListOptions: Boolean = false,
     val showEditAction: Boolean = false,
     val formValues: WishlistFormUiModel = WishlistFormUiModel(),
+    val viewMode: WishlistViewMode = WishlistViewMode.LIST,
+    val filterChips: List<WishlistFilterChipUiModel> = emptyList(),
     val contentState: WishlistContentState = WishlistContentState.Loading
 )
