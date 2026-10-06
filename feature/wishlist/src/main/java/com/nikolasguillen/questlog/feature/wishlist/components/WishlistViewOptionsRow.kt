@@ -20,6 +20,7 @@ import com.nikolasguillen.questlog.core.model.GameStatus
 import com.nikolasguillen.questlog.core.model.WishlistViewMode
 import com.nikolasguillen.questlog.core.ui.component.CustomFilterChip
 import com.nikolasguillen.questlog.core.ui.model.UiText
+import com.nikolasguillen.questlog.core.ui.util.modifiers.fadingEdgeHorizontal
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistFilterChipUiModel
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistStatusFilter
 import kotlinx.coroutines.launch
@@ -53,7 +54,13 @@ internal fun WishlistViewOptionsRow(
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
             verticalAlignment = Alignment.CenterVertically,
             contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .fadingEdgeHorizontal(
+                    state = state,
+                    maxFadeSize = MaterialTheme.spacing.doubleLarge,
+                    rampDistance = MaterialTheme.spacing.doubleLarge * 1.5f
+                )
         ) {
             items(items = chips, key = { chip -> chip.filter.key() }) { chip ->
                 CustomFilterChip(
@@ -114,19 +121,6 @@ private fun WishlistViewOptionsRowPreview() {
         WishlistViewOptionsRow(
             viewMode = WishlistViewMode.LIST,
             chips = previewChips,
-            onChipClick = {},
-            onToggleClick = {}
-        )
-    }
-}
-
-@QuestLogPreviews
-@Composable
-private fun WishlistViewOptionsRowWithoutChipsPreview() {
-    QuestLogTheme {
-        WishlistViewOptionsRow(
-            viewMode = WishlistViewMode.GRID,
-            chips = emptyList(),
             onChipClick = {},
             onToggleClick = {}
         )
