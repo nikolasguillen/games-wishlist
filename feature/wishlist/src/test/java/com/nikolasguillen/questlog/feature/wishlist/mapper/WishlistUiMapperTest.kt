@@ -28,7 +28,8 @@ private fun List<WishlistFilterChipUiModel>.filters() = map { it.filter }
  * Covers how a wishlist's games are grouped into status sections, which both the list and the grid view render
  * unchanged: the section order, that a status without games gets no section (so no orphan header), the counts
  * each header shows, and the "No status" section that always comes last. Also covers the status filter: which
- * chips the strip offers (and when it is hidden) and which sections each filter keeps.
+ * chips the strip offers (All always, per-status chips from two statuses on) and which sections each filter
+ * keeps.
  */
 class WishlistUiMapperTest {
 
@@ -116,8 +117,11 @@ class WishlistUiMapperTest {
     }
 
     @Test
-    fun `a single section has no chips while no filter is active`() {
-        assertTrue(sectionsOf(GameStatus.PLAYING).toFilterChips(WishlistStatusFilter.All).isEmpty())
+    fun `a single section offers only the All chip while no filter is active`() {
+        val chips = sectionsOf(GameStatus.PLAYING).toFilterChips(WishlistStatusFilter.All)
+
+        assertEquals(listOf<WishlistStatusFilter>(WishlistStatusFilter.All), chips.filters())
+        assertEquals(listOf(true), chips.map { it.isSelected })
     }
 
     @Test
@@ -155,15 +159,17 @@ class WishlistUiMapperTest {
         assertEquals(listOf(WishlistStatusFilter.Only(GameStatus.BOUGHT)), chips.filter { it.isSelected }.filters())
     }
 
+    /**
+     * Status chips only appear once there are two statuses to choose between, so a filter on the one status
+     * left leaves just the (unselected) All chip. Documented here because nothing then marks the filter that is
+     * still applied.
+     */
     @Test
-    fun `a filter on the only remaining section keeps the chips`() {
+    fun `a filter on the only remaining status leaves just the All chip`() {
         val chips = sectionsOf(GameStatus.PLAYING).toFilterChips(WishlistStatusFilter.Only(GameStatus.PLAYING))
 
-        assertEquals(
-            listOf(WishlistStatusFilter.All, WishlistStatusFilter.Only(GameStatus.PLAYING)),
-            chips.filters()
-        )
-        assertEquals(listOf(false, true), chips.map { it.isSelected })
+        assertEquals(listOf<WishlistStatusFilter>(WishlistStatusFilter.All), chips.filters())
+        assertEquals(listOf(false), chips.map { it.isSelected })
     }
 
     @Test

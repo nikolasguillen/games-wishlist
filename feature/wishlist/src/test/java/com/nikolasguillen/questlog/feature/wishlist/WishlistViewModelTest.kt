@@ -558,10 +558,13 @@ class WishlistViewModelTest {
         }
 
     @Test
-    fun `a list with a single status offers no chips`() = runTest(testDispatcher) {
+    fun `a list with a single status offers only the All chip`() = runTest(testDispatcher) {
         val viewModel = createViewModel(detailWith(GameStatus.PLAYING, GameStatus.PLAYING))
 
-        assertTrue(viewModel.uiState.value.filterChips.isEmpty())
+        assertEquals(
+            listOf<WishlistStatusFilter>(WishlistStatusFilter.All),
+            viewModel.uiState.value.filterChips.map { it.filter }
+        )
     }
 
     @Test
