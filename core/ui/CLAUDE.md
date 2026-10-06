@@ -39,6 +39,12 @@ Search); `SaveToWishlistButton`, the save toggle both full-size cards draw, also
 Search's `DiscoverHero`. A helper used by a single card stays private in that card's file —
 `GameMetadataRow` in `VerticalGameCard.kt`.
 
+`VerticalGameCard` makes the caller say what its long press does: `onLongClickLabel` is required, with no
+default, because the card cannot know whether the press opens the list chooser (Search) or removes the game
+(a wishlist grid), and accessibility services announce it. `onSaveClick` is nullable — leave it `null` to
+hide the heart where it would mislead: it shows membership of the *default* wishlist, not of the list the
+card is shown in.
+
 Every component file ends with a `private fun XPreview()` annotated `@QuestLogPreviews` and wrapped in
 `QuestLogTheme { }`. Match that when adding a component.
 

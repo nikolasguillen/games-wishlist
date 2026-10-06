@@ -34,6 +34,7 @@ import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.search.R
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
+import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
 @Composable
 internal fun SearchResultGrid(
@@ -47,6 +48,7 @@ internal fun SearchResultGrid(
     state: LazyGridState,
     modifier: Modifier = Modifier
 ) {
+    val chooseListLabel = stringResource(CoreUiR.string.choose_list_content_description)
     val filtersHeader = @Composable {
         if (activeFilters.isNotEmpty()) {
             ActiveFiltersRow(
@@ -90,6 +92,7 @@ internal fun SearchResultGrid(
                 VerticalGameCard(
                     game = game,
                     onClick = { onGameClick(game.id) },
+                    onLongClickLabel = chooseListLabel,
                     onSaveClick = { onSaveClick(game.id) },
                     onLongClick = { onLongClick(game.id) },
                     modifier = Modifier

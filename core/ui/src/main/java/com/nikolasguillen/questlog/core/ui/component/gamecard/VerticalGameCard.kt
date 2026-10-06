@@ -18,33 +18,38 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
-import com.nikolasguillen.questlog.core.ui.R
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.util.ColorUtils
 import com.nikolasguillen.questlog.core.ui.util.UiConstants
 import com.nikolasguillen.questlog.core.ui.util.modifiers.fadingEdge
 
+/**
+ * @param onLongClickLabel What a long press does, announced to accessibility services. Required: the card
+ * does not know what its caller binds the long press to (Search opens the list chooser, a wishlist removes
+ * the game), so every caller says it.
+ * @param onSaveClick Taps on the save button. `null` hides the button altogether, for screens where it
+ * would be misleading: it reflects membership of the *default* wishlist, not of the list on screen.
+ */
 @Composable
 fun VerticalGameCard(
     game: GameItemUiModel,
     onClick: () -> Unit,
+    onLongClickLabel: String,
     modifier: Modifier = Modifier,
-    onSaveClick: () -> Unit = {},
+    onSaveClick: (() -> Unit)? = null,
     onLongClick: () -> Unit = {}
 ) {
     val cardHeight = 250.dp
-    val chooseListLabel = stringResource(R.string.choose_list_content_description)
     GenericGameCardLayout(
         onClick = onClick,
         onLongClick = onLongClick,
-        onLongClickLabel = chooseListLabel,
+        onLongClickLabel = onLongClickLabel,
         modifier = modifier
             .width(180.dp)
             .height(cardHeight)
@@ -55,15 +60,17 @@ fun VerticalGameCard(
                 height = cardHeight
             )
 
-            SaveToWishlistButton(
-                isSaved = game.isSaved,
-                onSaveClick = onSaveClick,
-                onLongClick = onLongClick,
-                longClickLabel = chooseListLabel,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(MaterialTheme.spacing.small)
-            )
+            if (onSaveClick != null) {
+                SaveToWishlistButton(
+                    isSaved = game.isSaved,
+                    onSaveClick = onSaveClick,
+                    onLongClick = onLongClick,
+                    longClickLabel = onLongClickLabel,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(MaterialTheme.spacing.small)
+                )
+            }
 
             Column(
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall),
@@ -171,7 +178,9 @@ private fun GameCardPreview() {
     QuestLogTheme {
         VerticalGameCard(
             game = GameItemUiModel.getDummy(),
-            onClick = {}
+            onClick = {},
+            onLongClickLabel = "Choose list",
+            onSaveClick = {}
         )
     }
 }
@@ -182,7 +191,21 @@ private fun GameCardSavedPreview() {
     QuestLogTheme {
         VerticalGameCard(
             game = GameItemUiModel.getDummy().copy(isSaved = true),
-            onClick = {}
+            onClick = {},
+            onLongClickLabel = "Choose list",
+            onSaveClick = {}
+        )
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun GameCardWithoutSaveButtonPreview() {
+    QuestLogTheme {
+        VerticalGameCard(
+            game = GameItemUiModel.getDummy(),
+            onClick = {},
+            onLongClickLabel = "Remove game"
         )
     }
 }
