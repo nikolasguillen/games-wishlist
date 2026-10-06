@@ -7,38 +7,32 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
+import com.nikolasguillen.questlog.core.ui.component.CustomChipRow
 import com.nikolasguillen.questlog.core.ui.component.CustomFilterChip
 import com.nikolasguillen.questlog.core.ui.component.ScrollToTopFabDefaults
 import com.nikolasguillen.questlog.core.ui.component.gamecard.VerticalGameCard
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
-import com.nikolasguillen.questlog.core.ui.util.modifiers.fadingEdgeHorizontal
 import com.nikolasguillen.questlog.feature.search.R
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
-import kotlinx.coroutines.launch
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
 @Composable
@@ -118,51 +112,27 @@ private fun ActiveFiltersRow(
     onFilterClick: (GameFilterUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val state = rememberLazyListState()
-    val scope = rememberCoroutineScope()
-
-    LazyRow(
-        state = state,
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
-        verticalAlignment = Alignment.CenterVertically,
-        contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large),
-        modifier = modifier.fadingEdgeHorizontal(
-            state = state,
-            maxFadeSize = MaterialTheme.spacing.doubleLarge,
-            rampDistance = MaterialTheme.spacing.doubleLarge * 1.5f
+    // Tapping an active filter removes it, so there is no chip left to bring into view.
+    CustomChipRow(
+        items = filters,
+        key = { filter -> "${filter::class.simpleName}:${filter.id}" },
+        modifier = modifier
+    ) { gameFilter, _ ->
+        CustomFilterChip(
+            label = gameFilter.label.asString(),
+            selected = true,
+            onFilterClick = { onFilterClick(gameFilter) },
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = stringResource(
+                        R.string.remove_filter_content_description,
+                        gameFilter.label.asString()
+                    ),
+                    modifier = Modifier.requiredSize(FilterChipDefaults.IconSize)
+                )
+            }
         )
-    ) {
-        items(
-            items = filters,
-            key = { filter -> "${filter::class.simpleName}:${filter.id}" }
-        ) { gameFilter ->
-            CustomFilterChip(
-                label = gameFilter.label.asString(),
-                selected = true,
-                onFilterClick = {
-                    onFilterClick(gameFilter)
-                    val itemInfo = state.layoutInfo.visibleItemsInfo
-                        .firstOrNull { it.index == filters.indexOf(gameFilter) }
-                    val isFullyVisible = itemInfo != null &&
-                            itemInfo.offset >= state.layoutInfo.viewportStartOffset &&
-                            itemInfo.offset + itemInfo.size <= state.layoutInfo.viewportEndOffset
-
-                    if (itemInfo == null || !isFullyVisible) {
-                        scope.launch { state.animateScrollToItem(filters.indexOf(gameFilter)) }
-                    }
-                },
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = stringResource(
-                            R.string.remove_filter_content_description,
-                            gameFilter.label.asString()
-                        ),
-                        modifier = Modifier.requiredSize(FilterChipDefaults.IconSize)
-                    )
-                }
-            )
-        }
     }
 }
 

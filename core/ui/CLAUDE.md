@@ -7,7 +7,10 @@ Shared Compose components, UI models, mappers and utilities. Everything here is 
 
 Shared wrappers are prefixed `Custom*`:
 `CustomAlertDialog` (3 overloads — always use it instead of Material's `AlertDialog`), `CustomContentCard`,
-`CustomFab`, `CustomFilterChip`, `CustomInfoChip`, `CustomModalBottomSheet`, `CustomSegmentedButton`,
+`CustomFab`, `CustomFilterChip`, `CustomChipRow` (horizontally scrolling chip row with fading edges;
+generic over the item, the caller draws each chip and gets a `bringIntoView` callback that scrolls a chip
+clear of the fade — call it when the chip stays after a click, skip it when the click removes the chip;
+use it for any new chip strip rather than a bare `LazyRow`), `CustomInfoChip`, `CustomModalBottomSheet`, `CustomSegmentedButton`,
 `CustomOutlinedIcon` (an `Icon` with an optional border traced from the icon's own path data via
 `PathParser`, so it hugs the exact silhouette rather than a bounding shape — pass `outlineColor` to
 enable it), `CustomSummaryBadge` (pill-shaped label badge; filled-selected-chip colors, dark/light handled

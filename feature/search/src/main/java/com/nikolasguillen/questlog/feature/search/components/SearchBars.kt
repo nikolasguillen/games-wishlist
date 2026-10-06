@@ -68,6 +68,7 @@ import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.CustomAlertDialog
+import com.nikolasguillen.questlog.core.ui.component.CustomChipRow
 import com.nikolasguillen.questlog.core.ui.component.MainScreenHeader
 import com.nikolasguillen.questlog.core.ui.component.gamecard.RecentGameCard
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
@@ -510,44 +511,43 @@ private fun RecentSearchesSection(
                 Text(stringResource(R.string.clear_all))
             }
         }
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
-            contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large)
-        ) {
-            items(items = recentSearches, key = { it.hashCode() }) { recentSearch ->
-                val inputChipInteractionSource = remember { MutableInteractionSource() }
-                Box {
-                    SuggestionChip(
-                        onClick = { onHistoryItemClicked(recentSearch) },
-                        label = {
-                            Text(
-                                text = recentSearch,
-                                maxLines = 1
-                            )
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Outlined.History,
-                                contentDescription = null
-                            )
-                        },
-                        contentPadding = PaddingValues(all = MaterialTheme.spacing.small),
-                        interactionSource = inputChipInteractionSource,
-                        colors = SuggestionChipDefaults.suggestionChipColors(
-                            iconContentColor = MaterialTheme.appColors.textOnSurface
+        // A tap runs the search and a long press asks to remove it: neither leaves a chip to bring into view.
+        CustomChipRow(
+            items = recentSearches,
+            key = { it.hashCode() }
+        ) { recentSearch, _ ->
+            val inputChipInteractionSource = remember { MutableInteractionSource() }
+            Box {
+                SuggestionChip(
+                    onClick = { onHistoryItemClicked(recentSearch) },
+                    label = {
+                        Text(
+                            text = recentSearch,
+                            maxLines = 1
                         )
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Outlined.History,
+                            contentDescription = null
+                        )
+                    },
+                    contentPadding = PaddingValues(all = MaterialTheme.spacing.small),
+                    interactionSource = inputChipInteractionSource,
+                    colors = SuggestionChipDefaults.suggestionChipColors(
+                        iconContentColor = MaterialTheme.appColors.textOnSurface
                     )
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .combinedClickable(
-                                onLongClick = { onShowRemovalDialog(recentSearch) },
-                                onClick = { onHistoryItemClicked(recentSearch) },
-                                interactionSource = inputChipInteractionSource,
-                                indication = null
-                            )
-                    )
-                }
+                )
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .combinedClickable(
+                            onLongClick = { onShowRemovalDialog(recentSearch) },
+                            onClick = { onHistoryItemClicked(recentSearch) },
+                            interactionSource = inputChipInteractionSource,
+                            indication = null
+                        )
+                )
             }
         }
     }
