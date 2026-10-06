@@ -1,6 +1,9 @@
 package com.nikolasguillen.questlog.core.ui.util.modifiers
 
+import androidx.compose.foundation.background
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.BlendMode
@@ -73,5 +76,21 @@ fun Modifier.dashedBorder(
             pathEffect = PathEffect.dashPathEffect(floatArrayOf(dashLength.toPx(), gapLength.toPx()))
         ),
         cornerRadius = CornerRadius(cornerRadius.toPx())
+    )
+}
+
+/**
+ * Paints the diagonal surface gradient that sits behind cover art, so a cover that is still loading, has
+ * failed or is missing reads as a deliberate tile instead of a flat fill. Apply it before any clip or
+ * border you want it to follow.
+ */
+fun Modifier.coverBackground(): Modifier = composed {
+    background(
+        Brush.linearGradient(
+            listOf(
+                MaterialTheme.colorScheme.surfaceVariant,
+                MaterialTheme.colorScheme.surfaceContainerLowest
+            )
+        )
     )
 }

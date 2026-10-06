@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -31,6 +30,7 @@ import com.nikolasguillen.questlog.core.model.WishlistIcon
 import com.nikolasguillen.questlog.core.ui.component.CustomInfoChip
 import com.nikolasguillen.questlog.core.ui.component.CustomSummaryBadge
 import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
+import com.nikolasguillen.questlog.core.ui.util.modifiers.coverBackground
 import java.io.File
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
@@ -100,14 +100,7 @@ private fun WishlistCover(
         modifier = modifier
             .size(width = 96.dp, height = 128.dp)
             .clip(MaterialTheme.shapes.large)
-            .background(
-                Brush.linearGradient(
-                    listOf(
-                        MaterialTheme.colorScheme.surfaceVariant,
-                        MaterialTheme.colorScheme.surfaceContainerLowest
-                    )
-                )
-            )
+            .coverBackground()
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
     ) {
         if (coverImageFile != null) {

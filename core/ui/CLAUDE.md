@@ -48,7 +48,8 @@ Every component file ends with a `private fun XPreview()` annotated `@QuestLogPr
 one by hand:
 
 - `VisualModifiers.kt` — `Modifier.fadingEdge(...)` (gradient fade for scrollable edges),
-  `Modifier.dashedBorder(...)`.
+  `Modifier.dashedBorder(...)`, `Modifier.coverBackground()` (the surface gradient behind cover art —
+  `GameCoverHeader`, `GameCoverImage` and the wishlist cover all use it).
 - `ShimmerModifiers.kt` — `Modifier.shimmerEffect()` for a single shimmering block, and
   `Modifier.lineShimmer(...)` (state via `LineShimmerState.kt`'s `rememberLineShimmerState()`) for a
   skeleton that traces the lines of a `Text` that has already been laid out — prefer it over

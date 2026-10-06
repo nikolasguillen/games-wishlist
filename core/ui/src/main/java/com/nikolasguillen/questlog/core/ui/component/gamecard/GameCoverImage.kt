@@ -13,6 +13,7 @@ import coil.compose.AsyncImage
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
+import com.nikolasguillen.questlog.core.ui.util.modifiers.coverBackground
 
 /**
  * Bare cover art -- placeholder on error, cropped, corner-clipped -- with no fixed size so callers size it
@@ -30,7 +31,9 @@ fun GameCoverImage(
         contentDescription = null,
         error = painterResource(CoreUiR.drawable.placeholder),
         contentScale = ContentScale.Crop,
-        modifier = modifier.clip(shape)
+        modifier = modifier
+            .clip(shape)
+            .coverBackground()
     )
 }
 

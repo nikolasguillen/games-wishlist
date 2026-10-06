@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.core.ui.component.gamecard
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +20,7 @@ import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.R
+import com.nikolasguillen.questlog.core.ui.util.modifiers.coverBackground
 
 @Composable
 internal fun GameCoverHeader(
@@ -31,6 +31,7 @@ internal fun GameCoverHeader(
         modifier = Modifier
             .height(height)
             .fillMaxWidth()
+            .coverBackground()
     ) {
         if (coverImage != null) {
             SubcomposeAsyncImage(
@@ -55,9 +56,7 @@ internal fun GameCoverHeader(
                 error = {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.ImageNotSupported,
@@ -71,9 +70,7 @@ internal fun GameCoverHeader(
         } else {
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                modifier = Modifier.fillMaxSize()
             ) {
                 Icon(
                     imageVector = Icons.Outlined.ImageNotSupported,
