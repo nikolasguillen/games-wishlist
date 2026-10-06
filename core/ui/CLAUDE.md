@@ -58,7 +58,8 @@ Every component file ends with a `private fun XPreview()` annotated `@QuestLogPr
 **`util/modifiers/` already provides a set of visual effect modifiers** — check here before implementing
 one by hand:
 
-- `VisualModifiers.kt` — `Modifier.fadingEdge(...)` (gradient fade for scrollable edges),
+- `VisualModifiers.kt` — `Modifier.fadingEdge(...)` (vertical gradient fade, caller-driven alphas),
+  `Modifier.fadingEdgeHorizontal(state, ...)` (RTL-aware start/end fades of a `LazyRow` that grow as it scrolls),
   `Modifier.dashedBorder(...)`, `Modifier.coverBackground()` (the surface gradient behind cover art —
   `GameCoverHeader`, `GameCoverImage` and the wishlist cover all use it).
 - `ShimmerModifiers.kt` — `Modifier.shimmerEffect()` for a single shimmering block, and

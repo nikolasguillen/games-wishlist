@@ -7,14 +7,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 
 /**
@@ -59,13 +63,28 @@ fun Modifier.fadingEdge(
     }
 
 /**
- * A modifier that applies a horizontal fading edge effect to a [LazyListState].
- * The fade width continuously scales from 0 to [maxFadeSize] over [rampDistance] as the user scrolls,
- * using an eased multi-stop gradient for a feather-soft, gradual transition.
+ * Alpha ramp of one horizontal fade edge, from fully transparent at the viewport edge to fully opaque where
+ * the fade ends.
+ */
+private val FadeEdgeStops = arrayOf(
+    0f to Color.Transparent,
+    0.25f to Color.Black.copy(alpha = 0.06f),
+    0.50f to Color.Black.copy(alpha = 0.25f),
+    0.75f to Color.Black.copy(alpha = 0.65f),
+    1f to Color.Black
+)
+
+/**
+ * A modifier that fades the content of a horizontal [LazyListState] out at the edges that still have
+ * something to scroll to. Each fade grows from 0 to [maxFadeSize] over [rampDistance] of scrolling, so it
+ * appears gradually instead of popping in. It follows the layout direction, so the fade of the list's start
+ * lands on the right in RTL. Lists with `reverseLayout = true` are not supported.
+ *
+ * Scroll state is read in the draw phase only: scrolling redraws the layer but never recomposes.
  *
  * @param state The [LazyListState] used to calculate scroll offsets and remaining distance.
- * @param maxFadeSize The maximum width of the fading edge gradient.
- * @param rampDistance The scroll distance over which the fading edge expands to its full width.
+ * @param maxFadeSize The maximum width of each fading edge, capped at half of the composable's width.
+ * @param rampDistance The scroll distance over which a fading edge expands to its full width.
  */
 fun Modifier.fadingEdgeHorizontal(
     state: LazyListState,
@@ -76,71 +95,47 @@ fun Modifier.fadingEdgeHorizontal(
     .drawWithContent {
         drawContent()
 
-        val maxFadePx = maxFadeSize.toPx()
-        val rampPx = rampDistance.toPx()
-        val width = size.width
-        if (width <= 0f) return@drawWithContent
+        val maxFadePx = maxFadeSize.toPx().coerceAtMost(size.width / 2f)
+        if (maxFadePx <= 0f) return@drawWithContent
+        val rampPx = rampDistance.toPx().coerceAtLeast(1f)
 
-        // 1. Calculate start fade expansion fraction based on scroll offset from the start edge
-        val startProgress = if (state.firstVisibleItemIndex > 0) {
-            1f
-        } else {
-            (state.firstVisibleItemScrollOffset.toFloat() / rampPx).coerceIn(0f, 1f)
-        }
-        val startFadePx = maxFadePx * startProgress
+        val leadingFadePx = maxFadePx * state.leadingFadeFraction(rampPx)
+        val trailingFadePx = maxFadePx * state.trailingFadeFraction(rampPx)
+        val isRtl = layoutDirection == LayoutDirection.Rtl
 
-        // 2. Calculate end fade expansion fraction based on remaining scroll distance to the end edge
-        val layoutInfo = state.layoutInfo
-        val visibleItems = layoutInfo.visibleItemsInfo
-        val endFadePx = if (visibleItems.isEmpty()) {
-            0f
-        } else {
-            val lastItem = visibleItems.last()
-            if (lastItem.index < layoutInfo.totalItemsCount - 1) {
-                maxFadePx
-            } else {
-                val itemEnd = lastItem.offset + lastItem.size
-                val viewportEnd = layoutInfo.viewportEndOffset
-                val remainingScroll = (itemEnd - viewportEnd).toFloat().coerceAtLeast(0f)
-                val endProgress = (remainingScroll / rampPx).coerceIn(0f, 1f)
-                maxFadePx * endProgress
-            }
-        }
-
-        if (startFadePx <= 0f && endFadePx <= 0f) return@drawWithContent
-
-        val colorStops = mutableListOf<Pair<Float, Color>>()
-
-        if (startFadePx > 0f) {
-            val startStop = (startFadePx / width).coerceAtMost(0.5f)
-            // Multi-stop quadratic easing for a feather-soft fade at the start edge
-            colorStops.add(0f to Color.Black.copy(alpha = 0f))
-            colorStops.add((startStop * 0.25f) to Color.Black.copy(alpha = 0.06f))
-            colorStops.add((startStop * 0.50f) to Color.Black.copy(alpha = 0.25f))
-            colorStops.add((startStop * 0.75f) to Color.Black.copy(alpha = 0.65f))
-            colorStops.add(startStop to Color.Black)
-        } else {
-            colorStops.add(0f to Color.Black)
-        }
-
-        if (endFadePx > 0f) {
-            val endStart = ((width - endFadePx) / width).coerceAtLeast(0.5f)
-            val endWidth = 1f - endStart
-            // Multi-stop quadratic easing for a feather-soft fade at the end edge
-            colorStops.add(endStart to Color.Black)
-            colorStops.add((endStart + endWidth * 0.25f) to Color.Black.copy(alpha = 0.65f))
-            colorStops.add((endStart + endWidth * 0.50f) to Color.Black.copy(alpha = 0.25f))
-            colorStops.add((endStart + endWidth * 0.75f) to Color.Black.copy(alpha = 0.06f))
-            colorStops.add(1f to Color.Black.copy(alpha = 0f))
-        } else {
-            colorStops.add(1f to Color.Black)
-        }
-
-        drawRect(
-            brush = Brush.horizontalGradient(*colorStops.toTypedArray()),
-            blendMode = BlendMode.DstIn
-        )
+        drawFadeEdge(fadePx = if (isRtl) trailingFadePx else leadingFadePx, atRight = false)
+        drawFadeEdge(fadePx = if (isRtl) leadingFadePx else trailingFadePx, atRight = true)
     }
+
+/** How far the list has been scrolled away from its first item, from 0 (at rest) to 1 (past [rampPx]). */
+private fun LazyListState.leadingFadeFraction(rampPx: Float): Float =
+    if (firstVisibleItemIndex > 0) 1f
+    else (firstVisibleItemScrollOffset / rampPx).coerceIn(0f, 1f)
+
+/** How much content is still hidden past the last item's end, from 0 (at the end) to 1 (over [rampPx]). */
+private fun LazyListState.trailingFadeFraction(rampPx: Float): Float {
+    val info = layoutInfo
+    val lastItem = info.visibleItemsInfo.lastOrNull() ?: return 0f
+    if (lastItem.index < info.totalItemsCount - 1) return 1f
+    val remaining = (lastItem.offset + lastItem.size - info.viewportEndOffset).coerceAtLeast(0)
+    return (remaining / rampPx).coerceIn(0f, 1f)
+}
+
+/**
+ * Erases the content under a [fadePx]-wide strip on one side of the layer. `DstIn` leaves everything outside
+ * the drawn rect untouched, so only the strip itself needs painting.
+ */
+private fun DrawScope.drawFadeEdge(fadePx: Float, atRight: Boolean) {
+    if (fadePx <= 0f) return
+    val edgeX = if (atRight) size.width else 0f
+    val innerX = if (atRight) size.width - fadePx else fadePx
+    drawRect(
+        brush = Brush.horizontalGradient(*FadeEdgeStops, startX = edgeX, endX = innerX),
+        topLeft = Offset(minOf(edgeX, innerX), 0f),
+        size = Size(fadePx, size.height),
+        blendMode = BlendMode.DstIn
+    )
+}
 
 /**
  * Draws a dashed rounded-rect border around the composable, for affordances like
