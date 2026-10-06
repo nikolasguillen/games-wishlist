@@ -1,8 +1,6 @@
 package com.nikolasguillen.questlog.core.ui.component
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -16,8 +14,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.R
+import com.nikolasguillen.questlog.core.ui.util.modifiers.metallicBorder
 
 /**
  * Entry point to the Settings screen. Shared by every top-level screen (Search, Radar, Lists) so it stays
@@ -32,7 +30,10 @@ fun ProfileIconButton(
     IconButton(
         onClick = onClick,
         modifier = modifier
-            .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+            .metallicBorder(
+                width = 2.dp,
+                shape = CircleShape
+            )
             .size(48.dp)
     ) {
         Icon(
@@ -41,7 +42,6 @@ fun ProfileIconButton(
             tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(MaterialTheme.spacing.extraSmall)
         )
     }
 }
