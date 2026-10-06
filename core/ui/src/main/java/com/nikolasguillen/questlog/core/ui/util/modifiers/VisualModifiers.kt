@@ -1,10 +1,10 @@
 package com.nikolasguillen.questlog.core.ui.util.modifiers
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -160,17 +160,16 @@ fun Modifier.dashedBorder(
 }
 
 /**
- * Paints the diagonal surface gradient that sits behind cover art, so a cover that is still loading, has
- * failed or is missing reads as a deliberate tile instead of a flat fill. Apply it before any clip or
- * border you want it to follow.
+ * The diagonal surface gradient that sits behind cover art, so a cover that is still loading, has failed or
+ * is missing reads as a deliberate tile instead of a flat fill. Paint it with `Modifier.background(brush)`
+ * before any clip or border you want it to follow.
+ *
+ * A brush rather than a modifier because the colors come from [MaterialTheme], which a modifier can only read
+ * through `Modifier.composed`.
  */
-fun Modifier.coverBackground(): Modifier = composed {
-    background(
-        Brush.linearGradient(
-            listOf(
-                MaterialTheme.colorScheme.surfaceVariant,
-                MaterialTheme.colorScheme.surfaceContainerLowest
-            )
-        )
-    )
+@Composable
+fun rememberCoverBrush(): Brush {
+    val start = MaterialTheme.colorScheme.surfaceVariant
+    val end = MaterialTheme.colorScheme.surfaceContainerLowest
+    return remember(start, end) { Brush.linearGradient(listOf(start, end)) }
 }

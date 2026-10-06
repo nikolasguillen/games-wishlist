@@ -30,7 +30,7 @@ import com.nikolasguillen.questlog.core.model.WishlistIcon
 import com.nikolasguillen.questlog.core.ui.component.CustomInfoChip
 import com.nikolasguillen.questlog.core.ui.component.CustomSummaryBadge
 import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
-import com.nikolasguillen.questlog.core.ui.util.modifiers.coverBackground
+import com.nikolasguillen.questlog.core.ui.util.modifiers.rememberCoverBrush
 import java.io.File
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
@@ -100,7 +100,7 @@ private fun WishlistCover(
         modifier = modifier
             .size(width = 96.dp, height = 128.dp)
             .clip(MaterialTheme.shapes.large)
-            .coverBackground()
+            .background(rememberCoverBrush())
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
     ) {
         if (coverImageFile != null) {

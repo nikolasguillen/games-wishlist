@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.core.ui.component.gamecard
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -13,7 +14,7 @@ import coil.compose.AsyncImage
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
-import com.nikolasguillen.questlog.core.ui.util.modifiers.coverBackground
+import com.nikolasguillen.questlog.core.ui.util.modifiers.rememberCoverBrush
 
 /**
  * Bare cover art -- placeholder on error, cropped, corner-clipped -- with no fixed size so callers size it
@@ -33,7 +34,7 @@ fun GameCoverImage(
         contentScale = ContentScale.Crop,
         modifier = modifier
             .clip(shape)
-            .coverBackground()
+            .background(rememberCoverBrush())
     )
 }
 

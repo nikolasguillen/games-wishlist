@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.core.ui.component.gamecard
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,7 +21,7 @@ import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.R
-import com.nikolasguillen.questlog.core.ui.util.modifiers.coverBackground
+import com.nikolasguillen.questlog.core.ui.util.modifiers.rememberCoverBrush
 
 @Composable
 internal fun GameCoverHeader(
@@ -31,7 +32,7 @@ internal fun GameCoverHeader(
         modifier = Modifier
             .height(height)
             .fillMaxWidth()
-            .coverBackground()
+            .background(rememberCoverBrush())
     ) {
         if (coverImage != null) {
             SubcomposeAsyncImage(
