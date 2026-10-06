@@ -13,9 +13,11 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -31,9 +33,11 @@ import com.nikolasguillen.questlog.core.model.GameStatus
 import com.nikolasguillen.questlog.core.model.WishlistViewMode
 import com.nikolasguillen.questlog.core.ui.component.EmptyPage
 import com.nikolasguillen.questlog.core.ui.component.LoadingPage
+import com.nikolasguillen.questlog.core.ui.component.ScrollToTopFab
 import com.nikolasguillen.questlog.core.ui.component.WishlistFormSheet
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
+import com.nikolasguillen.questlog.core.ui.util.UiConstants
 import com.nikolasguillen.questlog.feature.wishlist.components.DeleteWishlistDialog
 import com.nikolasguillen.questlog.feature.wishlist.components.RemoveGameDialog
 import com.nikolasguillen.questlog.feature.wishlist.components.WishlistDetailHeader
@@ -48,6 +52,7 @@ import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiEffect
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiEvent
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiState
 import java.io.File
+import kotlinx.coroutines.launch
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
 // viewModel is the same instance for the route's whole lifetime, so ref-comparison skips correctly.
@@ -102,6 +107,11 @@ internal fun WishlistContent(
     var gamePendingRemoval by remember { mutableStateOf<GameItemUiModel?>(null) }
     // Hoisted so one scroll state serves both views (and whatever needs to observe it later).
     val gridState = rememberLazyGridState()
+    val scope = rememberCoroutineScope()
+    // The same point Search shows its button: the first visible item is past the header and the options row.
+    val showScrollToTop by remember {
+        derivedStateOf { gridState.firstVisibleItemIndex > UiConstants.SCROLL_TO_TOP_AFTER_ITEM_INDEX }
+    }
 
     // A row left revealed in the list view must not survive a switch to the grid and back.
     LaunchedEffect(state.viewMode) { revealedGameId = null }
@@ -115,6 +125,14 @@ internal fun WishlistContent(
                 onEditClick = { showEditSheet = true },
                 onSetAsDefaultClick = { onEvent(WishlistUiEvent.OnSetAsDefault) },
                 onDeleteClick = { showDeleteDialog = true }
+            )
+        },
+        floatingActionButton = {
+            // The grid state outlives the empty and filtered-empty content, where it may still hold a stale
+            // position, so those states are excluded here rather than left to the scroll test alone.
+            ScrollToTopFab(
+                visible = state.contentState is WishlistContentState.Success && showScrollToTop,
+                onClick = { scope.launch { gridState.animateScrollToItem(0) } }
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },

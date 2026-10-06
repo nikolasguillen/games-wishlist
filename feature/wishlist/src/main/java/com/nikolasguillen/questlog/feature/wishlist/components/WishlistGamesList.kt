@@ -2,6 +2,7 @@ package com.nikolasguillen.questlog.feature.wishlist.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -23,6 +24,7 @@ import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.GameStatus
 import com.nikolasguillen.questlog.core.model.WishlistIcon
 import com.nikolasguillen.questlog.core.model.WishlistViewMode
+import com.nikolasguillen.questlog.core.ui.component.ScrollToTopFabDefaults
 import com.nikolasguillen.questlog.core.ui.component.gamecard.VerticalGameCard
 import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
@@ -64,6 +66,9 @@ internal fun WishlistGamesList(
         columns = GridCells.Fixed(2),
         state = gridState,
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large),
+        // Room under the last line for the screen's floating scroll-to-top button, so the last game is never
+        // left covered.
+        contentPadding = PaddingValues(bottom = ScrollToTopFabDefaults.ContentBottomPadding),
         modifier = modifier.fillMaxSize()
     ) {
         item(key = "list_header", span = FullLineSpan, contentType = "list_header") { header() }
