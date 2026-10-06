@@ -22,4 +22,10 @@ object UiConstants {
 
     // Sorting Constants
     const val RECENT_GENERATION_THRESHOLD = 8
+
+    /**
+     * A screen shows its scroll-to-top button once its first visible item index is greater than this, so the
+     * button appears at the same point wherever it is used (Search, a wishlist).
+     */
+    const val SCROLL_TO_TOP_AFTER_ITEM_INDEX = 1
 }

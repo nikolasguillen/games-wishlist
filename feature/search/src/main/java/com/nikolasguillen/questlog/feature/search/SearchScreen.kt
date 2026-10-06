@@ -13,17 +13,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.animateFloatingActionButton
 import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,12 +28,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,11 +39,12 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
-import com.nikolasguillen.questlog.core.ui.component.CustomFab
 import com.nikolasguillen.questlog.core.ui.component.ListSelectorSheet
+import com.nikolasguillen.questlog.core.ui.component.ScrollToTopFab
 import com.nikolasguillen.questlog.core.ui.component.StatusBarProtection
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
+import com.nikolasguillen.questlog.core.ui.util.UiConstants
 import com.nikolasguillen.questlog.feature.search.components.SearchFilterBottomSheet
 import com.nikolasguillen.questlog.feature.search.components.SearchMainContent
 import com.nikolasguillen.questlog.feature.search.components.SearchSortBottomSheet
@@ -147,8 +142,11 @@ internal fun SearchScreenContent(
 
     val showScrollToTop by remember(isDiscoverActive) {
         derivedStateOf {
-            if (isDiscoverActive) discoverListState.firstVisibleItemIndex > 1
-            else gridState.firstVisibleItemIndex > 1
+            if (isDiscoverActive) {
+                discoverListState.firstVisibleItemIndex > UiConstants.SCROLL_TO_TOP_AFTER_ITEM_INDEX
+            } else {
+                gridState.firstVisibleItemIndex > UiConstants.SCROLL_TO_TOP_AFTER_ITEM_INDEX
+            }
         }
     }
 
@@ -227,18 +225,10 @@ internal fun SearchScreenContent(
             )
         },
         floatingActionButton = {
-            CustomFab(
-                onClick = { scope.launch { onScrollToTop() } },
-                modifier = Modifier.animateFloatingActionButton(
-                    visible = showScrollToTop,
-                    alignment = Alignment.Center
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowUp,
-                    contentDescription = stringResource(R.string.scroll_to_top_content_description)
-                )
-            }
+            ScrollToTopFab(
+                visible = showScrollToTop,
+                onClick = { scope.launch { onScrollToTop() } }
+            )
         }
     ) { innerPadding ->
         SearchMainContent(

@@ -29,7 +29,12 @@ uses it to create, the wishlist detail screen to edit), `GameListRow` (cover + t
 optional subtitle + a `trailingContent` slot for whatever the caller puts at the row's end — Radar's
 date/platform pair, Wishlist's rating; check here before hand-rolling another game list row),
 `PlatformTile` (32dp colored tile holding a platform's short code — game detail's platform strip, Radar's
-per-platform rows; its data comes from `PlatformTileUiModel`).
+per-platform rows; its data comes from `PlatformTileUiModel`), `ScrollToTopFab` (the floating up-arrow that
+returns a long screen to its top, shared by Search and the wishlist: it holds no scroll state, so the caller
+owns `visible` and `onClick`, and shows it once its first visible item index is greater than
+`UiConstants.SCROLL_TO_TOP_AFTER_ITEM_INDEX`, and gives the list under it
+`ScrollToTopFabDefaults.ContentBottomPadding` as bottom content padding so the button never covers the last
+item; use it for any new screen that needs one rather than drawing another).
 
 `component/gamecard/` groups the game-card family: `VerticalGameCard`, `RecentGameCard`, `CompactGameCard`,
 and the `internal` `GameCoverHeader` they all share; `MiniGameCard` (48x48 bordered cover, used in list
@@ -68,7 +73,8 @@ Also: `ColorUtils.kt`, `HtmlUtils.kt`, `MetallicEffects.kt` (brush factories:
 `primaryMetallicGradient()`, `rememberAnimatedMetallicGradient()`, `rainbowMetallicGradient()`),
 `PlatformVisuals.kt`, and `Constants.kt` (`object UiConstants` — IGDB platform category/family ids,
 `MAX_PLATFORM_NAME_LENGTH`,
-`RECENT_GENERATION_THRESHOLD`). Shared UI constants belong in `UiConstants`, not inline in a composable.
+`RECENT_GENERATION_THRESHOLD`, `SCROLL_TO_TOP_AFTER_ITEM_INDEX`). Shared UI constants belong in `UiConstants`,
+not inline in a composable.
 
 ## UiText (`model/UiText.kt`)
 

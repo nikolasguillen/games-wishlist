@@ -75,6 +75,7 @@
     <string name="add_to_wishlist_content_description">Add to wishlist</string>
     <string name="remove_from_wishlist_content_description">Remove from wishlist</string>
     <string name="choose_list_content_description">Choose list</string>
+    <string name="scroll_to_top_content_description">Scroll to top</string>
     <string name="score_title">Score</string>
     <string name="rating_title">Rating</string>
     <string name="hypes_title">Hypes</string>
