@@ -75,8 +75,10 @@ The shared layer already covers most of what a new screen needs. Check it before
 - Before writing a `dp` literal, look for the token in `MaterialTheme.spacing`. A missing value is
   added there, never inlined at the call site.
 - Colors and typography come from `MaterialTheme.appColors` and `AppTypography`.
-- The app is dark-theme only. There is no light scheme, no dynamic color, and no
-  `isSystemInDarkTheme()` branches.
+- The app has a light and a dark scheme, chosen by the user's `AppearanceMode` (system, light or
+  dark) and resolved once in `MainActivity`. There is no dynamic color. Below `QuestLogTheme`, read
+  `MaterialTheme.isDarkTheme` rather than re-deriving light/dark (no `isSystemInDarkTheme()` calls in
+  components).
 - Shared UI constants belong in `UiConstants`, not inline in a composable.
 - There is exactly one `GameRepository` implementation. Adding a second repository requires the
   owner's agreement.
@@ -96,7 +98,7 @@ Verification means compiling and running the JVM test suites locally:
 - `./gradlew test` for the suites.
 
 The existing test source sets — `core/data`, `core/domain`, `core/network`,
-`feature/{search,radar,lists,game-detail,settings}` and `app` — MUST stay green. New ViewModel,
+`feature/{search,radar,lists,game-detail,settings,wishlist}` and `app` — MUST stay green. New ViewModel,
 mapper, use-case or error-mapping logic gets a test in its own module's `src/test` using JUnit4 +
 MockK + `kotlinx-coroutines-test`, mocking the use cases rather than the repository, with a
 `StandardTestDispatcher` and `Dispatchers.setMain`/`resetMain`.
@@ -170,4 +172,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-09-25
+**Version**: 1.0.1 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-06
