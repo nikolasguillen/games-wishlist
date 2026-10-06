@@ -20,7 +20,8 @@ private val STATUS_ORDER = listOf(
 )
 
 /** The "No status" section (and its chip) goes after every real status. */
-private fun GameStatus?.sectionPosition(): Int = this?.let(STATUS_ORDER::indexOf) ?: STATUS_ORDER.size
+private fun GameStatus?.sectionPosition(): Int =
+    this?.let(STATUS_ORDER::indexOf) ?: STATUS_ORDER.size
 
 /** The label of a status section, and of its filter chip. `null` is the "No status" section. */
 internal fun GameStatus?.toSectionLabel(): UiText =
@@ -33,13 +34,21 @@ internal fun List<Game>.toWishlistSectionUiModel(): List<WishlistSectionUiModel>
     val statusSections = STATUS_ORDER.mapNotNull { status ->
         val filteredGames = byStatus[status]
         if (filteredGames.isNullOrEmpty()) return@mapNotNull null
-        WishlistSectionUiModel(status = status, label = status.toSectionLabel(), games = filteredGames)
+        WishlistSectionUiModel(
+            status = status,
+            label = status.toSectionLabel(),
+            games = filteredGames
+        )
     }
     val unstatusedGames = byStatus[null]
     val unstatusedSection = if (unstatusedGames.isNullOrEmpty()) {
         null
     } else {
-        WishlistSectionUiModel(status = null, label = null.toSectionLabel(), games = unstatusedGames)
+        WishlistSectionUiModel(
+            status = null,
+            label = null.toSectionLabel(),
+            games = unstatusedGames
+        )
     }
     return statusSections + listOfNotNull(unstatusedSection)
 }
@@ -61,7 +70,7 @@ internal fun List<WishlistSectionUiModel>.filteredBy(filter: WishlistStatusFilte
 internal fun List<WishlistSectionUiModel>.toFilterChips(
     filter: WishlistStatusFilter
 ): List<WishlistFilterChipUiModel> {
-    if (isEmpty() || (size < 2 && filter == WishlistStatusFilter.All)) return emptyList()
+    if (isEmpty()) return emptyList()
 
     val statuses = map { it.status }.toMutableSet()
     if (filter is WishlistStatusFilter.Only) statuses += filter.status
@@ -71,13 +80,17 @@ internal fun List<WishlistSectionUiModel>.toFilterChips(
         label = UiText.StringResource(R.string.filter_all),
         isSelected = filter == WishlistStatusFilter.All
     )
-    val statusChips = statuses.sortedBy { it.sectionPosition() }.map { status ->
-        val statusFilter = WishlistStatusFilter.Only(status)
-        WishlistFilterChipUiModel(
-            filter = statusFilter,
-            label = status.toSectionLabel(),
-            isSelected = filter == statusFilter
-        )
+    val statusChips = if (statuses.size < 2) {
+        emptyList()
+    } else {
+        statuses.sortedBy { it.sectionPosition() }.map { status ->
+            val statusFilter = WishlistStatusFilter.Only(status)
+            WishlistFilterChipUiModel(
+                filter = statusFilter,
+                label = status.toSectionLabel(),
+                isSelected = filter == statusFilter
+            )
+        }
     }
     return listOf(allChip) + statusChips
 }

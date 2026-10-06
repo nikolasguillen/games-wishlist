@@ -1,6 +1,7 @@
 package com.nikolasguillen.questlog.feature.wishlist.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -39,11 +40,12 @@ internal fun WishlistViewOptionsRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = MaterialTheme.spacing.large)
+            .padding(end = MaterialTheme.spacing.medium)
     ) {
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
             verticalAlignment = Alignment.CenterVertically,
+            contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large),
             modifier = Modifier.weight(1f)
         ) {
             items(items = chips, key = { chip -> chip.filter.key() }) { chip ->
@@ -65,7 +67,11 @@ private fun WishlistStatusFilter.key(): String = when (this) {
 }
 
 private val previewChips = listOf(
-    WishlistFilterChipUiModel(WishlistStatusFilter.All, UiText.DynamicString("All"), isSelected = false),
+    WishlistFilterChipUiModel(
+        WishlistStatusFilter.All,
+        UiText.DynamicString("All"),
+        isSelected = false
+    ),
     WishlistFilterChipUiModel(
         WishlistStatusFilter.Only(GameStatus.PLAYING),
         UiText.DynamicString("Playing"),
@@ -76,7 +82,11 @@ private val previewChips = listOf(
         UiText.DynamicString("Completed"),
         isSelected = false
     ),
-    WishlistFilterChipUiModel(WishlistStatusFilter.Only(null), UiText.DynamicString("No status"), isSelected = false)
+    WishlistFilterChipUiModel(
+        WishlistStatusFilter.Only(null),
+        UiText.DynamicString("No status"),
+        isSelected = false
+    )
 )
 
 @QuestLogPreviews
