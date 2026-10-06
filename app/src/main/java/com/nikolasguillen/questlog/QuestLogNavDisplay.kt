@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -44,6 +43,7 @@ import com.nikolasguillen.questlog.feature.settings.SettingsViewModel
 import com.nikolasguillen.questlog.feature.wishlist.WishlistScreen
 import com.nikolasguillen.questlog.feature.wishlist.WishlistViewModel
 
+@Suppress("ParamsComparedByRef")
 @Composable
 fun QuestLogNavDisplay(
     backStack: NavBackStack<NavKey>,
@@ -59,15 +59,7 @@ fun QuestLogNavDisplay(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator()
         ),
-        predictivePopTransitionSpec = {
-            (slideInHorizontally { -it } + fadeIn(
-                tween(
-                    durationMillis = 400,
-                    delayMillis = 200
-                )
-            )) togetherWith
-                    (slideOutHorizontally { it } + fadeOut(tween(durationMillis = 200)))
-        },
+        predictivePopTransitionSpec = { (slideInHorizontally { -it } + fadeIn()) togetherWith (slideOutHorizontally { it } + fadeOut()) },
         entryProvider = { key ->
             when (key) {
                 is SearchRoute -> NavEntry(key) {
