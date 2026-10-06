@@ -21,6 +21,13 @@
 - Q: Is the view choice global or per wishlist? → A: One app-wide choice, persisted across relaunches.
 - Q: What should sit on the left of the row that holds the view toggle? → A: Status filter chips, so the
   row is a filter-and-view bar rather than a lone button. (This brings status filtering into scope.)
+- Q: What happens when the active status filter no longer matches any game (its last game was removed
+  or re-statused)? → A: The filter stays applied, and a centered message is shown below the
+  filter-and-view row, the same way the empty-list state is shown. The filter is not reset automatically.
+- Q: Is the whole filter-and-view row (chips and toggle) shown when the list has no games? → A: No. The
+  whole row is hidden whenever the list has no games, whatever the filter was.
+- Q: Does changing the filter scroll the content? → A: No. The row stays in place and the filtered content
+  starts directly below it.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -129,7 +136,12 @@ holds, then clear the filter and confirm all games return.
 4. **Given** a status filter is active, **When** the user taps "All", **Then** every status section is
    shown again.
 5. **Given** a status filter is active and the last game of that status is removed or changes status,
-   **When** the list updates, **Then** the filter returns to "All" and that status's chip disappears.
+   while other games remain in the list, **When** the list updates, **Then** the filter stays selected,
+   its chip stays visible and selected, and a centered "no games match this filter" message replaces
+   the games, in the same style as the empty-list state.
+7. **Given** the "no games match" message is shown, **When** the user taps "All" or another chip,
+   **Then** the matching games are shown again; **When** instead a game gains the filtered status,
+   **Then** it appears under the still-active filter.
 6. **Given** a wishlist whose games all share one status (or have no status at all), **When** the user
    opens it, **Then** no status chips are shown, because there is nothing to filter, and the view toggle
    remains on the row.
@@ -171,10 +183,14 @@ choice persists.
   that same confirmation. Cancelling the confirmation leaves the game in place.
 - **Many statuses on a narrow screen**: the chips scroll horizontally; the view toggle stays pinned at the
   end of the row and is never pushed off-screen.
-- **Changing the filter while scrolled down**: the content returns to the top of the filtered result so
-  the user does not land in the middle of a shorter list.
-- **Filter matches nothing**: cannot normally happen, since chips exist only for statuses that have games;
-  if the last matching game disappears the filter resets to "All" (User Story 4, scenario 5).
+- **Changing the filter while scrolled down**: there is no scroll jump. The filter-and-view row stays where
+  it is on screen and the filtered content starts directly below it, so the user never lands in the middle
+  of a shorter list.
+- **Filter matches nothing**: happens only when the last game of the filtered status disappears while the
+  filter is on. The filter stays, its chip stays selected so the user can see why the list looks empty,
+  and a centered message is shown below the row (User Story 4, scenarios 5 and 7).
+- **Whole list emptied while a filter is on**: the existing empty-list state wins (FR-012). With no row
+  left to show the filter, it is cleared, so a game added later is not hidden behind a stale filter.
 - **Odd number of games in a status**: the last row of a section may hold a single card, which keeps the
   same width as the others rather than stretching; the next status header always starts on a new
   full-width row.
@@ -223,14 +239,20 @@ choice persists.
   state and hide the view control, without discarding the stored view choice.
 - **FR-013**: The row MUST show an "All" chip plus one chip per status that has at least one game in the
   list (including a chip for games with no status when there are any), in the same order as the status
-  sections. The chip row MUST be hidden when the list contains fewer than two distinct statuses.
+  sections. While a status filter is active, that status's chip MUST stay in the row (selected) even if
+  it no longer has games. The chip strip MUST be hidden when the list contains fewer than two
+  distinct statuses **and** no status filter is active. The whole row (chips and view toggle) MUST NOT be
+  shown at all while the list has no games or is loading (FR-003, FR-012), whatever the filter was.
 - **FR-014**: Selecting a status chip MUST show only that status's section (header, count and games) in
   the current view; selecting "All" MUST show every section. Exactly one chip is selected at a time, and
   "All" is selected by default.
 - **FR-015**: The active filter MUST apply identically in list and grid view and MUST survive switching
   between them.
-- **FR-016**: If the filtered status stops having games (removed or re-statused), the filter MUST reset
-  to "All" automatically.
+- **FR-016**: If the filtered status stops having games (removed or re-statused) while the list still has
+  other games, the filter MUST stay applied and the screen MUST show a centered "no games match this
+  filter" message below the filter-and-view row, styled like the empty-list state. The view toggle
+  stays visible (the list is not empty). If the whole list becomes empty, the empty-list state of FR-012
+  applies instead and the filter is cleared.
 - **FR-017**: Changing the filter MUST NOT change the stored view choice, the game count in the header,
   or any game's data; it only changes which games are displayed.
 - **FR-018**: The chips MUST be selectable by assistive technology, announce their selected state, and
@@ -264,6 +286,8 @@ choice persists.
   within 1 second, in both views.
 - **SC-008**: With a status filter active, 100% of the visible games have that status and 100% of the
   games with that status are visible.
+- **SC-009**: Whenever the active filter matches no games, the user sees an explanatory message and the
+  selected chip, never a blank area, and can return to all games with one tap.
 
 ## Assumptions
 
