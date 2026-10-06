@@ -29,6 +29,7 @@ import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.CustomFilterChip
+import com.nikolasguillen.questlog.core.ui.component.ScrollToTopFabDefaults
 import com.nikolasguillen.questlog.core.ui.component.gamecard.VerticalGameCard
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
@@ -75,7 +76,7 @@ internal fun SearchResultGrid(
             state = state,
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large),
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large),
-            contentPadding = PaddingValues(bottom = MaterialTheme.spacing.medium),
+            contentPadding = PaddingValues(bottom = ScrollToTopFabDefaults.ContentBottomPadding),
             modifier = modifier.fillMaxSize()
         ) {
             item(span = { GridItemSpan(maxLineSpan) }) {
