@@ -1,13 +1,17 @@
 package com.nikolasguillen.questlog.core.ui.component
 
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
+import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 
 /**
  * A reusable segmented button component for single-choice selections.
@@ -18,7 +22,6 @@ import com.nikolasguillen.questlog.core.designsystem.theme.appColors
  * @param label Composable to display as the label for each option.
  * @param modifier The modifier to be applied to the row.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> CustomSegmentedButton(
     options: List<T>,
@@ -34,16 +37,34 @@ fun <T> CustomSegmentedButton(
                 onClick = { onOptionSelected(index) },
                 shape = SegmentedButtonDefaults.itemShape(
                     index = index,
-                    count = options.size
+                    count = options.size,
+                    baseShape = MaterialTheme.shapes.medium
+                ),
+                contentPadding = PaddingValues(
+                    horizontal = MaterialTheme.spacing.mediumLarge,
+                    vertical = MaterialTheme.spacing.large
                 ),
                 label = { label(option) },
                 colors = SegmentedButtonDefaults.colors(
                     activeContainerColor = MaterialTheme.appColors.segmentedButtonSelectedColor,
                     activeContentColor = MaterialTheme.appColors.segmentedButtonSelectedContentColor,
-                    inactiveContainerColor = MaterialTheme.colorScheme.surface,
+                    inactiveContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun CustomSegmentedButtonPreview() {
+    QuestLogTheme {
+        CustomSegmentedButton(
+            options = listOf("Option 1", "Option 2", "Option 3"),
+            selectedIndex = 1,
+            onOptionSelected = {},
+            label = { Text(it) }
+        )
     }
 }
