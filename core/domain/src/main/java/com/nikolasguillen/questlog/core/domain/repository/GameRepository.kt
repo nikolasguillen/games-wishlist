@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.core.domain.repository
 
+import com.nikolasguillen.questlog.core.domain.model.CoverImageUpdate
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.Game
 import com.nikolasguillen.questlog.core.model.Platform
@@ -155,6 +156,20 @@ interface GameRepository {
         description: String,
         icon: WishlistIcon? = null,
         coverImageUri: String? = null
+    ): AppResult<Unit>
+    /**
+     * Saves new details for [listId]. Its games, their statuses and whether it is the default are left
+     * alone. Updating an unknown [listId] is a no-op.
+     *
+     * Like [createList], a [AppResult.Failure] only means [coverImage] was a [CoverImageUpdate.Replace]
+     * whose image failed to persist: the other fields are still saved and the previous cover is kept.
+     */
+    suspend fun updateList(
+        listId: Long,
+        name: String,
+        description: String,
+        icon: WishlistIcon?,
+        coverImage: CoverImageUpdate
     ): AppResult<Unit>
     /**
      * Deletes the list along with its game references and its cover image file, if any.

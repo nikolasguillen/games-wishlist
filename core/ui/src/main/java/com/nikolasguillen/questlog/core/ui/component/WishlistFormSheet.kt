@@ -1,4 +1,4 @@
-package com.nikolasguillen.questlog.feature.lists.components
+package com.nikolasguillen.questlog.core.ui.component
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -51,32 +51,46 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
+import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.WishlistIcon
-import com.nikolasguillen.questlog.core.ui.component.CustomModalBottomSheet
+import com.nikolasguillen.questlog.core.ui.R
 import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
-import com.nikolasguillen.questlog.feature.lists.R
-import com.nikolasguillen.questlog.core.ui.R as CoreUiR
+import com.nikolasguillen.questlog.core.ui.model.WishlistFormUiModel
+import java.io.File
 
+/**
+ * Bottom sheet with the form shared by creating and editing a wishlist. It has no create/edit mode of its
+ * own: the caller supplies the [title], the [confirmLabel] and the [initialValues].
+ *
+ * Each field is seeded from [initialValues] once, on first composition, and survives rotation and process
+ * death. Dismissing the sheet drops that state, so reopening it starts again from the caller's values.
+ *
+ * @param onConfirm Receives the trimmed values. Only reachable while the name is not blank.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun CreateWishlistSheet(
+fun WishlistFormSheet(
+    title: String,
+    confirmLabel: String,
     onDismiss: () -> Unit,
-    onCreate: (name: String, description: String, icon: WishlistIcon?, coverImageUri: String?) -> Unit
+    onConfirm: (WishlistFormUiModel) -> Unit,
+    initialValues: WishlistFormUiModel = WishlistFormUiModel()
 ) {
-    var name by rememberSaveable { mutableStateOf("") }
-    var description by rememberSaveable { mutableStateOf("") }
-    var selectedIcon by rememberSaveable { mutableStateOf<WishlistIcon?>(null) }
-    var selectedCoverImageUri by rememberSaveable { mutableStateOf<String?>(null) }
+    var name by rememberSaveable { mutableStateOf(initialValues.name) }
+    var description by rememberSaveable { mutableStateOf(initialValues.description) }
+    var selectedIcon by rememberSaveable { mutableStateOf(initialValues.icon) }
+    var selectedCoverImage by rememberSaveable { mutableStateOf(initialValues.coverImage) }
     val descriptionFocusRequester = remember { FocusRequester() }
     val pickCoverImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
-    ) { uri -> if (uri != null) selectedCoverImageUri = uri.toString() }
+    ) { uri -> if (uri != null) selectedCoverImage = uri.toString() }
 
     CustomModalBottomSheet(
         onDismiss = onDismiss,
-        title = stringResource(R.string.new_wishlist_sheet_title)
+        title = title
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.mediumLarge),
@@ -87,13 +101,13 @@ internal fun CreateWishlistSheet(
                 .padding(all = MaterialTheme.spacing.large)
         ) {
             CoverImagePicker(
-                coverImageUri = selectedCoverImageUri,
+                coverImage = selectedCoverImage,
                 onPickClick = {
                     pickCoverImageLauncher.launch(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
                 },
-                onRemoveClick = { selectedCoverImageUri = null }
+                onRemoveClick = { selectedCoverImage = null }
             )
             OutlinedTextField(
                 value = name,
@@ -145,23 +159,25 @@ internal fun CreateWishlistSheet(
             ) {
                 TextButton(onClick = onDismiss) {
                     Text(
-                        text = stringResource(CoreUiR.string.cancel),
+                        text = stringResource(R.string.cancel),
                         color = MaterialTheme.appColors.textOnSurface
                     )
                 }
                 Spacer(modifier = Modifier.width(MaterialTheme.spacing.large))
                 Button(
                     onClick = {
-                        onCreate(
-                            name.trim(),
-                            description.trim(),
-                            selectedIcon,
-                            selectedCoverImageUri
+                        onConfirm(
+                            WishlistFormUiModel(
+                                name = name.trim(),
+                                description = description.trim(),
+                                icon = selectedIcon,
+                                coverImage = selectedCoverImage
+                            )
                         )
                     },
                     enabled = name.isNotBlank()
                 ) {
-                    Text(text = stringResource(R.string.create_action))
+                    Text(text = confirmLabel)
                 }
             }
         }
@@ -170,7 +186,7 @@ internal fun CreateWishlistSheet(
 
 @Composable
 private fun CoverImagePicker(
-    coverImageUri: String?,
+    coverImage: String?,
     onPickClick: () -> Unit,
     onRemoveClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -188,12 +204,14 @@ private fun CoverImagePicker(
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .clickable(onClick = onPickClick)
         ) {
-            if (coverImageUri != null) {
+            if (coverImage != null) {
                 AsyncImage(
-                    model = coverImageUri,
+                    // A stored cover is an absolute file path and a freshly picked one a content URI.
+                    // Wrapping the path keeps it from depending on how Coil parses a scheme-less string.
+                    model = if (coverImage.startsWith("/")) File(coverImage) else coverImage,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    error = painterResource(CoreUiR.drawable.placeholder),
+                    error = painterResource(R.drawable.placeholder),
                     modifier = Modifier
                         .size(72.dp)
                         .clip(CircleShape)
@@ -206,7 +224,7 @@ private fun CoverImagePicker(
                 )
             }
         }
-        if (coverImageUri != null) {
+        if (coverImage != null) {
             IconButton(onClick = onRemoveClick) {
                 Icon(
                     imageVector = Icons.Default.Close,
@@ -253,7 +271,25 @@ private fun IconOption(
             painter = painterResource(icon.toDrawableRes()),
             contentDescription = null,
             tint = tintColor,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(MaterialTheme.spacing.extraLarge)
+        )
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun WishlistFormSheetPreview() {
+    QuestLogTheme {
+        WishlistFormSheet(
+            title = "Edit Wishlist",
+            confirmLabel = "Save",
+            onDismiss = {},
+            onConfirm = {},
+            initialValues = WishlistFormUiModel(
+                name = "Couch Co-op",
+                description = "Games worth playing together.",
+                icon = WishlistIcon.HEART
+            )
         )
     }
 }

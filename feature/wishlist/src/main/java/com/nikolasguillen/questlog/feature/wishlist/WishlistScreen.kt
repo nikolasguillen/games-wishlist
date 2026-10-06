@@ -14,6 +14,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -27,6 +28,7 @@ import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.model.GameStatus
 import com.nikolasguillen.questlog.core.ui.component.EmptyPage
 import com.nikolasguillen.questlog.core.ui.component.LoadingPage
+import com.nikolasguillen.questlog.core.ui.component.WishlistFormSheet
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.wishlist.components.DeleteWishlistDialog
@@ -88,14 +90,18 @@ internal fun WishlistContent(
     modifier: Modifier = Modifier
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+    // Saveable so a rotation keeps the sheet open; its own fields are saveable too.
+    var showEditSheet by rememberSaveable { mutableStateOf(false) }
     var revealedGameId by remember { mutableStateOf<Int?>(null) }
     var gamePendingRemoval by remember { mutableStateOf<GameItemUiModel?>(null) }
 
     Scaffold(
         topBar = {
             WishlistTopBar(
-                showActions = state.showListOptions,
+                showEditAction = state.showEditAction,
+                showListOptions = state.showListOptions,
                 onBackClick = onBackClick,
+                onEditClick = { showEditSheet = true },
                 onSetAsDefaultClick = { onEvent(WishlistUiEvent.OnSetAsDefault) },
                 onDeleteClick = { showDeleteDialog = true }
             )
@@ -138,6 +144,19 @@ internal fun WishlistContent(
             )
         }
 
+        if (showEditSheet) {
+            WishlistFormSheet(
+                title = stringResource(R.string.edit_wishlist_sheet_title),
+                confirmLabel = stringResource(CoreUiR.string.save_label),
+                initialValues = state.formValues,
+                onDismiss = { showEditSheet = false },
+                onConfirm = { values ->
+                    onEvent(WishlistUiEvent.OnListEdited(values))
+                    showEditSheet = false
+                }
+            )
+        }
+
         if (showDeleteDialog) {
             DeleteWishlistDialog(
                 listName = state.listName.asString(),
@@ -175,6 +194,7 @@ private fun WishlistContentPreview(contentState: WishlistContentState) {
                 description = "Games worth playing together, controllers in hand.",
                 gameCountText = UiText.DynamicString("12 games"),
                 showListOptions = true,
+                showEditAction = true,
                 contentState = contentState
             ),
             onEvent = {},

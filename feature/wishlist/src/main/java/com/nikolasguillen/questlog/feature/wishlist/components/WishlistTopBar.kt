@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -20,8 +21,10 @@ import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
 @Composable
 internal fun WishlistTopBar(
-    showActions: Boolean,
+    showEditAction: Boolean,
+    showListOptions: Boolean,
     onBackClick: () -> Unit,
+    onEditClick: () -> Unit,
     onSetAsDefaultClick: () -> Unit,
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -37,7 +40,18 @@ internal fun WishlistTopBar(
             }
         },
         actions = {
-            if (showActions) {
+            if (showEditAction) {
+                IconButton(
+                    onClick = onEditClick,
+                    colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = stringResource(R.string.edit_list_action)
+                    )
+                }
+            }
+            if (showListOptions) {
                 IconButton(
                     onClick = onSetAsDefaultClick,
                     colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
@@ -68,8 +82,10 @@ internal fun WishlistTopBar(
 private fun WishlistTopBarPreview() {
     QuestLogTheme {
         WishlistTopBar(
-            showActions = true,
+            showEditAction = true,
+            showListOptions = true,
             onBackClick = {},
+            onEditClick = {},
             onSetAsDefaultClick = {},
             onDeleteClick = {})
     }
@@ -80,8 +96,10 @@ private fun WishlistTopBarPreview() {
 private fun WishlistTopBarDefaultPreview() {
     QuestLogTheme {
         WishlistTopBar(
-            showActions = false,
+            showEditAction = true,
+            showListOptions = false,
             onBackClick = {},
+            onEditClick = {},
             onSetAsDefaultClick = {},
             onDeleteClick = {})
     }

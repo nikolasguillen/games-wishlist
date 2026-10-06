@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="edit_list_action">Edit list</string>
+    <string name="edit_wishlist_sheet_title">Edit Wishlist</string>
     <string name="delete_list_action">Delete list</string>
     <string name="set_as_default_action">Set as default</string>
     <string name="default_list_set_message">This is now your default list</string>

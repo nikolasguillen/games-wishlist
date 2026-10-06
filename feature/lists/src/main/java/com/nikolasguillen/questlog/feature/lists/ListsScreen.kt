@@ -31,10 +31,10 @@ import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.WishlistIcon
 import com.nikolasguillen.questlog.core.ui.component.LoadingPage
 import com.nikolasguillen.questlog.core.ui.component.MainScreenHeader
+import com.nikolasguillen.questlog.core.ui.component.WishlistFormSheet
 import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.lists.components.CreateWishlistCard
-import com.nikolasguillen.questlog.feature.lists.components.CreateWishlistSheet
 import com.nikolasguillen.questlog.feature.lists.components.WishlistRow
 import com.nikolasguillen.questlog.feature.lists.model.ListsContentState
 import com.nikolasguillen.questlog.feature.lists.model.ListsUiEffect
@@ -125,15 +125,17 @@ internal fun ListsContent(
         }
 
         if (showCreateSheet) {
-            CreateWishlistSheet(
+            WishlistFormSheet(
+                title = stringResource(R.string.new_wishlist_sheet_title),
+                confirmLabel = stringResource(R.string.create_action),
                 onDismiss = { showCreateSheet = false },
-                onCreate = { name, description, icon, coverImageUri ->
+                onConfirm = { form ->
                     onEvent(
                         ListsUiEvent.OnListCreated(
-                            name = name,
-                            description = description,
-                            icon = icon,
-                            coverImageUri = coverImageUri
+                            name = form.name,
+                            description = form.description,
+                            icon = form.icon,
+                            coverImageUri = form.coverImage
                         )
                     )
                     showCreateSheet = false

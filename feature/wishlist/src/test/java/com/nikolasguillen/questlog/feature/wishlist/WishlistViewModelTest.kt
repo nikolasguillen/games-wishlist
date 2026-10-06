@@ -1,14 +1,20 @@
 package com.nikolasguillen.questlog.feature.wishlist
 
+import com.nikolasguillen.questlog.core.domain.model.CoverImageUpdate
 import com.nikolasguillen.questlog.core.domain.model.WishlistDetail
 import com.nikolasguillen.questlog.core.domain.usecase.list.DeleteListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.GetWishlistDetailUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.RemoveGameFromListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.SetDefaultListUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.list.UpdateListUseCase
+import com.nikolasguillen.questlog.core.model.AppResult
+import com.nikolasguillen.questlog.core.model.RepositoryError
 import com.nikolasguillen.questlog.core.model.WishlistIcon
 import com.nikolasguillen.questlog.core.model.WishlistList
 import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
+import com.nikolasguillen.questlog.core.ui.mapper.toUiText
 import com.nikolasguillen.questlog.core.ui.model.UiText
+import com.nikolasguillen.questlog.core.ui.model.WishlistFormUiModel
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiEffect
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiEvent
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiState
@@ -41,8 +47,9 @@ private const val LIST_ID = 3L
 
 /**
  * Covers how [WishlistViewModel] turns a [WishlistDetail] into the header fields (description, cover, game
- * count), the two flags the screen renders from (the "Default" badge and the options menu), what choosing "Set as default" does, and how a refused or
- * successful delete is reported.
+ * count), the flags the screen renders from (the "Default" badge, the options menu and the edit action), what
+ * choosing "Set as default" does, how a refused or successful delete is reported, and how editing a list
+ * turns the form's cover into a keep/remove/replace update and reports a failure to save it.
  *
  * [WishlistViewModel.uiState] is shared with [kotlinx.coroutines.flow.SharingStarted.WhileSubscribed], so
  * [createViewModel] collects it in the background, the same way the screen does via
@@ -57,6 +64,7 @@ class WishlistViewModelTest {
     private val deleteListUseCase = mockk<DeleteListUseCase>()
     private val removeGameFromListUseCase = mockk<RemoveGameFromListUseCase>(relaxed = true)
     private val setDefaultListUseCase = mockk<SetDefaultListUseCase>(relaxed = true)
+    private val updateListUseCase = mockk<UpdateListUseCase>()
 
     @Before
     fun setUp() {
@@ -74,12 +82,29 @@ class WishlistViewModelTest {
         isDefault = isDefault
     )
 
+    private fun detailWithCover(isDefault: Boolean, coverImagePath: String? = "/covers/old.jpg") = WishlistDetail(
+        list = WishlistList(
+            id = LIST_ID,
+            name = "Co-op Picks",
+            description = "Controllers in hand.",
+            icon = WishlistIcon.MULTIPLAYER,
+            coverImagePath = coverImagePath
+        ),
+        games = emptyList(),
+        isDefault = isDefault
+    )
+
+    private fun stubUpdate(result: AppResult<Unit> = AppResult.success(Unit)) {
+        coEvery { updateListUseCase(any(), any(), any(), any(), any()) } returns result
+    }
+
     private fun newViewModel() = WishlistViewModel(
         listId = LIST_ID,
         getWishlistDetailUseCase = getWishlistDetailUseCase,
         deleteListUseCase = deleteListUseCase,
         removeGameFromListUseCase = removeGameFromListUseCase,
-        setDefaultListUseCase = setDefaultListUseCase
+        setDefaultListUseCase = setDefaultListUseCase,
+        updateListUseCase = updateListUseCase
     )
 
     private fun TestScope.createViewModel(detail: WishlistDetail): WishlistViewModel =
@@ -252,6 +277,164 @@ class WishlistViewModelTest {
             details.emit(detail(isDefault = true))
             advanceUntilIdle()
 
+            assertTrue(viewModel.uiState.value.isDefaultList)
+        }
+
+    @Test
+    fun `before the detail loads the edit action is hidden and the form is empty`() = runTest(testDispatcher) {
+        every { getWishlistDetailUseCase(LIST_ID) } returns MutableSharedFlow()
+
+        val state = newViewModel().uiState.value
+
+        assertFalse(state.showEditAction)
+        assertEquals(WishlistFormUiModel(), state.formValues)
+    }
+
+    @Test
+    fun `the form is pre-filled with the list's stored values`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(detailWithCover(isDefault = false))
+
+        assertEquals(
+            WishlistFormUiModel(
+                name = "Co-op Picks",
+                description = "Controllers in hand.",
+                icon = WishlistIcon.MULTIPLAYER,
+                coverImage = "/covers/old.jpg"
+            ),
+            viewModel.uiState.value.formValues
+        )
+    }
+
+    @Test
+    fun `a non-default list shows the edit action next to the options menu`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(detail(isDefault = false))
+
+        assertTrue(viewModel.uiState.value.showEditAction)
+        assertTrue(viewModel.uiState.value.showListOptions)
+    }
+
+    /** The default list hides "Set as default" and "Delete", but it stays editable. */
+    @Test
+    fun `the default list shows the edit action although it has no options menu`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(detail(isDefault = true))
+
+        assertTrue(viewModel.uiState.value.showEditAction)
+        assertFalse(viewModel.uiState.value.showListOptions)
+        assertTrue(viewModel.uiState.value.isDefaultList)
+    }
+
+    @Test
+    fun `OnListEdited with an untouched cover keeps it and passes the edited fields`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(detailWithCover(isDefault = false))
+        stubUpdate()
+
+        viewModel.onEvent(
+            WishlistUiEvent.OnListEdited(
+                viewModel.uiState.value.formValues.copy(
+                    name = "Renamed",
+                    description = "",
+                    icon = null
+                )
+            )
+        )
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { updateListUseCase(LIST_ID, "Renamed", "", null, CoverImageUpdate.Keep) }
+    }
+
+    @Test
+    fun `OnListEdited with the cover cleared removes it`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(detailWithCover(isDefault = false))
+        stubUpdate()
+
+        viewModel.onEvent(
+            WishlistUiEvent.OnListEdited(viewModel.uiState.value.formValues.copy(coverImage = null))
+        )
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) {
+            updateListUseCase(LIST_ID, "Co-op Picks", "Controllers in hand.", WishlistIcon.MULTIPLAYER, CoverImageUpdate.Remove)
+        }
+    }
+
+    @Test
+    fun `OnListEdited with a newly picked cover replaces it`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(detailWithCover(isDefault = false))
+        stubUpdate()
+
+        viewModel.onEvent(
+            WishlistUiEvent.OnListEdited(
+                viewModel.uiState.value.formValues.copy(coverImage = "content://picked/1")
+            )
+        )
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) {
+            updateListUseCase(
+                LIST_ID,
+                "Co-op Picks",
+                "Controllers in hand.",
+                WishlistIcon.MULTIPLAYER,
+                CoverImageUpdate.Replace("content://picked/1")
+            )
+        }
+    }
+
+    @Test
+    fun `OnListEdited on a list without a cover that still has none keeps it`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(detailWithCover(isDefault = false, coverImagePath = null))
+        stubUpdate()
+
+        viewModel.onEvent(WishlistUiEvent.OnListEdited(viewModel.uiState.value.formValues))
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { updateListUseCase(LIST_ID, any(), any(), any(), CoverImageUpdate.Keep) }
+    }
+
+    @Test
+    fun `OnListEdited that succeeds shows nothing`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(detailWithCover(isDefault = false))
+        val effects = collectEffects(viewModel)
+        stubUpdate()
+
+        viewModel.onEvent(WishlistUiEvent.OnListEdited(viewModel.uiState.value.formValues))
+        advanceUntilIdle()
+
+        assertEquals(emptyList<WishlistUiEffect>(), effects)
+    }
+
+    @Test
+    fun `OnListEdited whose cover fails to save shows the storage error`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(detailWithCover(isDefault = false))
+        val effects = collectEffects(viewModel)
+        stubUpdate(AppResult.failure(RepositoryError.FileStorage))
+
+        viewModel.onEvent(
+            WishlistUiEvent.OnListEdited(
+                viewModel.uiState.value.formValues.copy(coverImage = "content://picked/1")
+            )
+        )
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf<WishlistUiEffect>(WishlistUiEffect.ShowSnackbar(RepositoryError.FileStorage.toUiText())),
+            effects
+        )
+    }
+
+    @Test
+    fun `editing the default list reaches the use case and does not touch the default flag`() =
+        runTest(testDispatcher) {
+            val viewModel = createViewModel(detailWithCover(isDefault = true))
+            stubUpdate()
+
+            viewModel.onEvent(
+                WishlistUiEvent.OnListEdited(viewModel.uiState.value.formValues.copy(name = "Renamed"))
+            )
+            advanceUntilIdle()
+
+            coVerify(exactly = 1) { updateListUseCase(LIST_ID, "Renamed", any(), any(), any()) }
+            coVerify(exactly = 0) { setDefaultListUseCase(any()) }
             assertTrue(viewModel.uiState.value.isDefaultList)
         }
 }

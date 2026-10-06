@@ -24,9 +24,9 @@ override suspend fun searchGames(query: String): AppResult<List<Game>> = try {
 ```
 
 Only methods that touch the network return `AppResult`. **DB-only methods return bare `Flow<T>` or `Unit`**
-(`getWishlistedGames()`, `toggleWishlist()`, `deleteList()`). The exception is `createList`, which returns
-`AppResult<Unit>` where a `Failure` means only the cover image failed to persist — that is documented in
-the interface KDoc, keep it in sync.
+(`getWishlistedGames()`, `toggleWishlist()`, `deleteList()`). The exceptions are `createList` and
+`updateList`, which return `AppResult<Unit>` where a `Failure` means only the cover image failed to persist
+— that is documented in the interface KDoc, keep it in sync.
 
 Use `AppResult.map` to transform across layers rather than unwrapping and rewrapping.
 

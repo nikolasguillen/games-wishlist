@@ -2,12 +2,16 @@ package com.nikolasguillen.questlog.feature.wishlist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nikolasguillen.questlog.core.domain.model.CoverImageUpdate
 import com.nikolasguillen.questlog.core.domain.usecase.list.DeleteListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.GetWishlistDetailUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.RemoveGameFromListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.SetDefaultListUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.list.UpdateListUseCase
 import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
+import com.nikolasguillen.questlog.core.ui.mapper.toUiText
 import com.nikolasguillen.questlog.core.ui.model.UiText
+import com.nikolasguillen.questlog.core.ui.model.WishlistFormUiModel
 import com.nikolasguillen.questlog.feature.wishlist.mapper.toWishlistSectionUiModel
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistContentState
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiEffect
@@ -34,6 +38,7 @@ class WishlistViewModel @AssistedInject constructor(
     private val deleteListUseCase: DeleteListUseCase,
     private val removeGameFromListUseCase: RemoveGameFromListUseCase,
     private val setDefaultListUseCase: SetDefaultListUseCase,
+    private val updateListUseCase: UpdateListUseCase,
 ) : ViewModel() {
     private val _uiEffect = Channel<WishlistUiEffect>(Channel.BUFFERED)
     internal val uiEffect = _uiEffect.receiveAsFlow()
@@ -65,6 +70,14 @@ class WishlistViewModel @AssistedInject constructor(
                     ),
                     isDefaultList = detail.isDefault,
                     showListOptions = !detail.isDefault,
+                    // Independent of showListOptions: the default list is editable too.
+                    showEditAction = true,
+                    formValues = WishlistFormUiModel(
+                        name = detail.list.name,
+                        description = detail.list.description,
+                        icon = detail.list.icon,
+                        coverImage = detail.list.coverImagePath
+                    ),
                     contentState = if (sections.isEmpty()) {
                         WishlistContentState.Empty
                     } else {
@@ -80,6 +93,7 @@ class WishlistViewModel @AssistedInject constructor(
             is WishlistUiEvent.OnSetAsDefault -> setAsDefault()
             is WishlistUiEvent.OnWishlistDeleted -> deleteList()
             is WishlistUiEvent.OnGameRemoved -> removeGame(event.gameId)
+            is WishlistUiEvent.OnListEdited -> editList(event.values)
         }
     }
 
@@ -104,6 +118,23 @@ class WishlistViewModel @AssistedInject constructor(
                     )
                 )
             }
+        }
+    }
+
+    private fun editList(values: WishlistFormUiModel) {
+        val currentCover = uiState.value.formValues.coverImage
+        // Only the form's own cover string can tell the three cases apart: untouched, cleared, or a freshly
+        // picked image (the sheet starts from the stored path, so anything else is a new pick).
+        val coverImage = when (val pickedCover = values.coverImage) {
+            currentCover -> CoverImageUpdate.Keep
+            null -> CoverImageUpdate.Remove
+            else -> CoverImageUpdate.Replace(pickedCover)
+        }
+        viewModelScope.launch {
+            updateListUseCase(listId, values.name, values.description, values.icon, coverImage)
+                .onFailure { error ->
+                    _uiEffect.send(WishlistUiEffect.ShowSnackbar(error.toUiText()))
+                }
         }
     }
 

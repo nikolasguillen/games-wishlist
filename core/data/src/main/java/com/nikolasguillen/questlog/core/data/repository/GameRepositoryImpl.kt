@@ -30,6 +30,7 @@ import com.nikolasguillen.questlog.core.database.entity.GameListCrossRef
 import com.nikolasguillen.questlog.core.database.entity.ListEntity
 import com.nikolasguillen.questlog.core.database.entity.ReleaseNotificationEntity
 import com.nikolasguillen.questlog.core.database.entity.SearchHistoryEntity
+import com.nikolasguillen.questlog.core.domain.model.CoverImageUpdate
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.DiscoverLane
@@ -690,6 +691,45 @@ class GameRepositoryImpl @Inject constructor(
             )
         )
         return if (coverImageUri != null && coverImagePath == null) {
+            AppResult.failure(RepositoryError.FileStorage)
+        } else {
+            AppResult.success(Unit)
+        }
+    }
+
+    override suspend fun updateList(
+        listId: Long,
+        name: String,
+        description: String,
+        icon: WishlistIcon?,
+        coverImage: CoverImageUpdate
+    ): AppResult<Unit> {
+        val existing = listDao.getListById(listId) ?: return AppResult.success(Unit)
+        val oldPath = existing.coverImagePath
+        val persistedPath = (coverImage as? CoverImageUpdate.Replace)?.let {
+            coverImageStorage.persist(it.sourceUri)
+        }
+        val coverCopyFailed = coverImage is CoverImageUpdate.Replace && persistedPath == null
+        val newPath = when (coverImage) {
+            CoverImageUpdate.Keep -> oldPath
+            CoverImageUpdate.Remove -> null
+            // A failed copy keeps the previous cover instead of silently stripping it.
+            is CoverImageUpdate.Replace -> persistedPath ?: oldPath
+        }
+        // @Update, never insertList: REPLACE would delete and re-insert the row, which the RESTRICT
+        // foreign key of default_wishlist refuses for the default list.
+        listDao.updateList(
+            existing.copy(
+                name = name,
+                description = description,
+                icon = icon,
+                coverImagePath = newPath
+            )
+        )
+        // The row goes first, as in deleteList: an orphaned file is invisible, whereas a surviving row
+        // whose cover file is already gone would render as a broken list.
+        if (oldPath != null && oldPath != newPath) coverImageStorage.delete(oldPath)
+        return if (coverCopyFailed) {
             AppResult.failure(RepositoryError.FileStorage)
         } else {
             AppResult.success(Unit)

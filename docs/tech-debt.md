@@ -47,6 +47,10 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
   which is a real feature addition (new IGDB field, new `ShelfReason` case, a precedence rule against the
   developer and genre shelves for the two available slots), not a tweak. Left alone for now: the common
   case — one prolific single-studio developer — already works.
+- **`WishlistFormSheet` keeps two component-size literals**: the `72.dp` cover circle and the `48.dp` icon
+  button have no token in `MaterialTheme.spacing`, and the root `CLAUDE.md` rule against `dp` literals has
+  no exemption for component sizes. They came over unchanged from the create-list sheet. Resolve it by
+  adding size tokens to `:core:designsystem`, or by agreeing that component sizes are exempt.
 
 ## Infrastructure
 

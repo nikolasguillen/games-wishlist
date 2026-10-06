@@ -22,7 +22,10 @@ header height and the `ProfileIconButton` slot so top-level screens line up, see
 `MainScreenHeaderDefaults.Height`; the slot overload also exposes an optional `leadingContent` to the left
 of the main slot — always laid out, width-animated, empty by default — for a caller that needs a
 conditional icon there, such as Search's back-to-feed arrow), `ListSelectorSheet` (bottom sheet for adding
-a game to one or more lists, working against `ListSelectorItemUiModel`), `GameListRow` (cover + title +
+a game to one or more lists, working against `ListSelectorItemUiModel`), `WishlistFormSheet` (the form for
+creating and editing a wishlist — cover, name, description, icon. It has no mode of its own: the caller
+passes the title, the confirm label and a `WishlistFormUiModel` of initial values, and gets one back; Lists
+uses it to create, the wishlist detail screen to edit), `GameListRow` (cover + title +
 optional subtitle + a `trailingContent` slot for whatever the caller puts at the row's end — Radar's
 date/platform pair, Wishlist's rating; check here before hand-rolling another game list row),
 `PlatformTile` (32dp colored tile holding a platform's short code — game detail's platform strip, Radar's
