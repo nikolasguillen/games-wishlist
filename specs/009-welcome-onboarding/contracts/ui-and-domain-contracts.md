@@ -107,7 +107,9 @@ fun PlatformPickerList(
     onToggle: (platformId: Int) -> Unit,
     onClearQuery: () -> Unit,
     onRetry: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** Emitted as the first item of the list in `Success`, so it scrolls away with it. Other states: the caller draws it. */
+    header: (@Composable () -> Unit)? = null
 )
 
 // util/NotificationPermission.kt — backwards-compatible change

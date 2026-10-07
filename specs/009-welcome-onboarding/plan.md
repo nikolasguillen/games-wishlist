@@ -188,23 +188,24 @@ app/
 settings.gradle.kts                                   # + include(":feature:onboarding")
 ```
 
-**Documentation updated in the same commits.** The owner approved these on 2026-10-07, including the
-constitution amendment.
+**Documentation is updated in the same commit as the change that causes it.** The owner approved these on
+2026-10-07, including the constitution amendment. The constitution's Governance section requires an
+amendment to land with the change that motivates it, so none of this is deferred to a closing commit:
 
-- Root `CLAUDE.md`:
-  - "17 modules" becomes 18.
-  - The module graph gains `onboarding`.
-- `feature/CLAUDE.md`: add `feature/onboarding` to "Applies to".
-- `core/ui/CLAUDE.md`:
-  - The component inventory gains `PlatformRow`, `PlatformSearchField` and `PlatformPickerList`.
-  - Mention the new mapper.
-- `docs/tech-debt.md`:
-  - "all 17 module build files" becomes 18.
-  - The test-coverage entry no longer says `:core:ui` mappers have no tests at all. It is reworded to
-    what is still true, which is that the other `:core:ui` mappers are untested.
-- `.specify/memory/constitution.md`, PATCH amendment:
-  - Principle I's module count.
-  - Principle V's test source sets gain `core/ui` and `feature/onboarding`.
+- With the module commit (tasks T001–T004):
+  - Root `CLAUDE.md`: "17 modules" becomes 18 and the module graph gains `onboarding`.
+  - `feature/CLAUDE.md`: add `feature/onboarding` to "Applies to".
+  - `docs/tech-debt.md`: "all 17 module build files" becomes 18.
+  - `.specify/memory/constitution.md`: Principle I's module count. This opens the PATCH amendment
+    (`1.0.2`, `Last Amended` 2026-10-07).
+- With the first ViewModel test (T012): Principle V's list of test source sets gains `feature/onboarding`.
+- With the commits that move the picker into `:core:ui` (T033, T040, T042):
+  - Principle V's list gains `core/ui`.
+  - The `core/ui/CLAUDE.md` inventory gains `PlatformRow`, `PlatformSearchField` and `PlatformPickerList`.
+  - The `docs/tech-debt.md` test-coverage entry no longer says `:core:ui` mappers have no tests at all. It
+    is reworded to what is still true, which is that the other `:core:ui` mappers are untested.
+- With the permission-helper change (T068): `core/ui/CLAUDE.md` mentions the optional `onResult` if it lists
+  the helper.
 
 **Structure Decision**: The flow is a standard feature module laid out like every other one (see
 `feature/CLAUDE.md`). The platform picker becomes a shared `:core:ui` component used by two screens,

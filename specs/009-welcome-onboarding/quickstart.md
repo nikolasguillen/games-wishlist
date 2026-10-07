@@ -63,8 +63,11 @@ Use an API 33+ emulator for the reminders steps. Use an API 29–32 emulator for
 | 9 | API 29–32 emulator, `pm clear`, go through the flow | There is no reminders page. The platforms page is last and shows "Get started". |
 | 10 | Airplane mode, `pm clear`, go through the flow | The platforms page shows its empty state with retry and a Settings hint. The flow still completes. |
 | 11 | Rotate on page 3, and on the platforms page with a search query typed | The same page, query and picks remain. |
-| 12 | Kill the app on page 4 (`adb shell am kill` while backgrounded) and relaunch | The flow starts again from page 1, and picks made before the kill are still selected. |
-| 13 | Switch the system to dark mode, then light mode; set a large font size | Every page is readable, with text scrolling if needed, and all controls stay reachable. |
+| 12a | On page 4, swipe the app away from recents and relaunch | The flow starts again from page 1 (nothing was completed), and picks made before are still selected on the platforms page. |
+| 12b | On page 4, background the app, run `adb shell am kill com.nikolasguillen.questlog`, then reopen it from recents | The system restores the same page (4) and the same picks, as it does after rotation. |
+| 13 | Switch the system to dark mode, then light mode; set the largest font size and display size | Every page is readable, with text scrolling if needed, and all controls stay reachable. On the platforms page the headline, body and caption scroll away with the list, the search field stays pinned, and the list is usable. |
 | 14 | TalkBack on | Each page's headline, body and buttons are announced. |
 | 15 | Time a read-through of the full flow | Under 60 seconds (SC-001). |
 | 16 | Settings → Owned platforms: tap three platforms as fast as possible, then untap one | Exactly two remain selected, in both the list and the Settings summary. The picker looks, orders and searches exactly as before the move. |
+| 17 | `pm clear`, then `adb shell am start -a android.intent.action.VIEW -d questlog://game/1942 com.nikolasguillen.questlog` | The flow is shown first. Finishing it lands on Search, not on the game, because the link is ignored while the flow is the root. |
+| 18 | Inspection: open `app/src/main/res/xml/backup_rules.xml` and `data_extraction_rules.xml` | Both are still the unmodified samples, with no `<exclude>` for the `settings` DataStore, so a restored backup brings the completed flag back and the flow is not shown. No emulator run needed. |
