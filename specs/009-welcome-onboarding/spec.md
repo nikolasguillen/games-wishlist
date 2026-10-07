@@ -8,6 +8,17 @@
 
 **Input**: User description: "We need to implement a tutorial/welcome flow that needs to be shown the first time a user installs the app. We need to discuss about what to include in this flow"
 
+## Clarifications
+
+### Session 2026-10-07
+
+- Q: If a user picks some platforms in the flow and then skips, or the app is closed before the end, should
+  those picks be kept? → A: Kept. Every pick is saved the moment it is made, as in the Settings picker, so
+  skipping or closing the app mid-flow never loses a pick.
+- Q: In the platforms step, should the user see the full searchable list of platforms or a short list of
+  common ones? → A: The same full, searchable list as the Settings picker, with the user's current picks
+  shown first.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Understand the app on first launch (Priority: P1)
@@ -81,8 +92,9 @@ the reminders page, and confirm the flow explains how to change this later and s
 
 **Acceptance Scenarios**:
 
-1. **Given** the user reaches the setup step, **When** they select one or more platforms and continue,
-   **Then** those platforms are saved as owned, exactly as if they had been picked from Settings.
+1. **Given** the user reaches the setup step, **When** they select one or more platforms, **Then** each is
+   saved as owned the moment it is selected, exactly as if it had been picked from Settings — including if
+   the user then skips the flow or closes the app.
 2. **Given** the user reaches the setup step, **When** they continue without selecting anything, **Then**
    no platform filter is applied and the flow proceeds — the step is never a blocker.
 3. **Given** the device has no connection and no platform list has been fetched yet, **When** the user
@@ -125,7 +137,8 @@ its first page, finish it, and confirm the user returns to where they started it
 ### Edge Cases
 
 - The app is closed or killed part-way through the flow (before finishing or skipping): the next launch
-  shows the flow again from its first page, since it was never completed.
+  shows the flow again from its first page, since it was never completed. Platforms picked before the
+  app closed are kept, and the platforms step shows them as already selected.
 - The device is rotated, or the app is sent to the background and restored, mid-flow: the user stays on the
   same page with any selections they had made.
 - The user presses the system back action on the first page of a first-launch flow: the app closes (as it
@@ -169,11 +182,14 @@ its first page, finish it, and confirm the user returns to where they started it
 - **FR-008**: Each page's text MUST be short enough to read at a glance — one headline and no more than two
   sentences — and MUST be translatable, never hard-coded.
 - **FR-009**: Beyond the informational pages, the flow MUST include two optional setup steps: choosing
-  owned platforms, and a reminders page about notification permission (FR-016 to FR-018).
+  owned platforms, and a reminders page about notification permission (FR-016 to FR-018). The platforms
+  step MUST offer the same full, searchable list of platforms as the Settings picker, with the user's
+  current picks shown first, rather than a reduced set.
 - **FR-010**: Any setup step in the flow MUST be optional: continuing without making a choice leaves the
   corresponding setting at its default, and the flow never blocks on it.
 - **FR-011**: Any choice made in a setup step MUST be stored exactly as if it had been made from Settings,
-  and MUST be visible and editable there afterwards.
+  and MUST be visible and editable there afterwards. A choice MUST be saved the moment it is made — there is
+  no confirm step — so skipping the flow or closing the app mid-flow never discards it.
 - **FR-012**: A setup step that needs data from the network MUST degrade gracefully when that data is
   unavailable: it explains the situation, points to Settings for later, and lets the user continue.
 - **FR-013**: The flow MUST NOT start the offline translation model download, ask for an account, or require
