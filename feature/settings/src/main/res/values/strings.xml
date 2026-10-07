@@ -28,11 +28,6 @@
         <item quantity="one">Recommendations and release dates are filtered to this platform.</item>
         <item quantity="other">Recommendations and release dates are filtered to these %1$d platforms.</item>
     </plurals>
-    <string name="owned_platforms_search_hint">Search platforms</string>
-    <string name="owned_platforms_search_clear_content_description">Clear search</string>
-    <string name="owned_platforms_clear_search_action">Clear search</string>
-    <string name="owned_platforms_no_results">No platform matches your search.</string>
-    <string name="owned_platforms_empty">No platforms cached yet. Check your connection and try again.</string>
 
     <string name="settings_release_notifications">Release reminders</string>
     <plurals name="settings_release_notifications_count">

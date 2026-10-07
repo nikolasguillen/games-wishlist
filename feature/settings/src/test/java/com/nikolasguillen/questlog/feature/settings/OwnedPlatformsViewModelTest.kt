@@ -8,7 +8,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.discover.SetOwnedPlatform
 import com.nikolasguillen.questlog.core.domain.usecase.discover.SyncPlatformCatalogUseCase
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.Platform
-import com.nikolasguillen.questlog.feature.settings.model.OwnedPlatformsContentState
+import com.nikolasguillen.questlog.core.ui.model.PlatformPickerContentState
 import com.nikolasguillen.questlog.feature.settings.model.OwnedPlatformsUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.OwnedPlatformsUiState
 import io.mockk.coEvery
@@ -34,7 +34,9 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * Covers the picker's selection round trip, the search filter and the entry-time ordering.
+ * Covers the picker's wiring: the selection round trip, that typing reaches the shared mapper, the
+ * entry-time pinning, and the catalogue sync. The ordering and search rules themselves are covered by
+ * `PlatformPickerMapperTest` in `:core:ui`.
  *
  * [storedSelection] stands in for the `owned_platforms` table: the fake [SetOwnedPlatformsUseCase]
  * writes into it and [GetSelectedPlatformIdsUseCase] reads back out of it, so a tap travels the same
@@ -91,8 +93,8 @@ class OwnedPlatformsViewModelTest {
         Snapshot.sendApplyNotifications()
     }
 
-    private fun List<OwnedPlatformsUiState>.lastSuccess(): OwnedPlatformsContentState.Success =
-        last().contentState as OwnedPlatformsContentState.Success
+    private fun List<OwnedPlatformsUiState>.lastSuccess(): PlatformPickerContentState.Success =
+        last().contentState as PlatformPickerContentState.Success
 
     @Test
     fun `marks the stored platforms as selected and leaves the rest unselected`() = runTest {
@@ -121,22 +123,9 @@ class OwnedPlatformsViewModelTest {
             val job = collectStates(viewModel, states)
             advanceUntilIdle()
 
-            assertTrue(states.all { it.contentState is OwnedPlatformsContentState.Loading })
+            assertTrue(states.all { it.contentState is PlatformPickerContentState.Loading })
             job.cancel()
         }
-
-    @Test
-    fun `reports Empty when nothing is cached to pick from`() = runTest {
-        every { getKnownPlatformsUseCase() } returns flowOf(emptyList())
-
-        val viewModel = viewModel()
-        val states = mutableListOf<OwnedPlatformsUiState>()
-        val job = collectStates(viewModel, states)
-        advanceUntilIdle()
-
-        assertTrue(states.last().contentState is OwnedPlatformsContentState.Empty)
-        job.cancel()
-    }
 
     @Test
     fun `refreshes the platform catalogue on open`() = runTest {
@@ -219,7 +208,7 @@ class OwnedPlatformsViewModelTest {
     }
 
     @Test
-    fun `the search field matches on name and on abbreviation`() = runTest {
+    fun `typing in the search field narrows the list`() = runTest {
         every { getKnownPlatformsUseCase() } returns flowOf(catalogue)
 
         val viewModel = viewModel()
@@ -231,26 +220,6 @@ class OwnedPlatformsViewModelTest {
         advanceUntilIdle()
         assertEquals(listOf("Nintendo Switch"), states.lastSuccess().platforms.map { it.name })
 
-        viewModel.setQuery("ps5")
-        advanceUntilIdle()
-        assertEquals(listOf("PlayStation 5"), states.lastSuccess().platforms.map { it.name })
-
-        job.cancel()
-    }
-
-    @Test
-    fun `reports NoSearchResults when the query matches nothing`() = runTest {
-        every { getKnownPlatformsUseCase() } returns flowOf(catalogue)
-
-        val viewModel = viewModel()
-        val states = mutableListOf<OwnedPlatformsUiState>()
-        val job = collectStates(viewModel, states)
-        advanceUntilIdle()
-
-        viewModel.setQuery("Dreamcast")
-        advanceUntilIdle()
-
-        assertTrue(states.last().contentState is OwnedPlatformsContentState.NoSearchResults)
         job.cancel()
     }
 
@@ -276,46 +245,4 @@ class OwnedPlatformsViewModelTest {
             job.cancel()
         }
 
-    @Test
-    fun `a query drops the entry pinning but keeps the catalogue ranking`() = runTest {
-        every { getKnownPlatformsUseCase() } returns flowOf(catalogue)
-        storedSelection.value = setOf(ps5.id)
-
-        val viewModel = viewModel()
-        val states = mutableListOf<OwnedPlatformsUiState>()
-        val job = collectStates(viewModel, states)
-        advanceUntilIdle()
-
-        viewModel.setQuery("p")
-        advanceUntilIdle()
-
-        // PS5 outranks PC in the curated order, so it leads even though PC sorts first by name.
-        assertEquals(
-            listOf("PlayStation 5", "PC (Microsoft Windows)"),
-            states.lastSuccess().platforms.map { it.name }
-        )
-        job.cancel()
-    }
-
-    /**
-     * IGDB returns the catalogue in no useful order, and `generation` alone would bury PC and every
-     * headset at the bottom. The curated list is what keeps the head of the list recognisable.
-     */
-    @Test
-    fun `ranks curated platforms first and the rest newest hardware first`() = runTest {
-        val saturn = Platform(id = 32, name = "Sega Saturn", abbreviation = "Saturn", generation = 5)
-        val quest = Platform(id = 471, name = "Meta Quest 3", abbreviation = null, generation = null)
-        every { getKnownPlatformsUseCase() } returns flowOf(listOf(quest, saturn, ps5))
-
-        val viewModel = viewModel()
-        val states = mutableListOf<OwnedPlatformsUiState>()
-        val job = collectStates(viewModel, states)
-        advanceUntilIdle()
-
-        assertEquals(
-            listOf("PlayStation 5", "Sega Saturn", "Meta Quest 3"),
-            states.lastSuccess().platforms.map { it.name }
-        )
-        job.cancel()
-    }
 }

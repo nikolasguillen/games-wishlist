@@ -58,8 +58,8 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
   are repeated by hand in all 18 module build files.
 - **No CI** (`.github/` does not exist) and **no static analysis** (no detekt, ktlint, spotless,
   `.editorconfig`, or `lint {}` block).
-- **Test coverage gaps**: no tests at all for `:core:database` DAOs or `:core:ui`
-  mappers. In `:core:domain` only the `usecase/discover/` and `radar/` use cases are covered; the search,
+- **Test coverage gaps**: no tests at all for `:core:database` DAOs, and in `:core:ui` only
+  `PlatformPickerMapper` is covered — the other mappers are not. In `:core:domain` only the `usecase/discover/` and `radar/` use cases are covered; the search,
   list, detail and translation ones are not. In `:core:network` only `IgdbAuthManager` is covered —
   `IgdbHttpErrorInterceptor` and the API service are not. `:core:ai` has no test source set at all:
   `GeminiNanoClient` wraps `Generation.getClient()`, a static factory that would need static mocking to

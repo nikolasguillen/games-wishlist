@@ -1,4 +1,4 @@
-package com.nikolasguillen.questlog.feature.settings.components
+package com.nikolasguillen.questlog.core.ui.component
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.input.TextFieldLineLimits
@@ -16,14 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.feature.settings.R
+import com.nikolasguillen.questlog.core.ui.R
 
 /**
  * Narrows the platform list. The catalogue runs to hundreds of entries once synced, most of them
  * hardware nobody is looking for, so the field is how the list stays usable rather than a nicety.
  */
 @Composable
-internal fun PlatformSearchField(
+fun PlatformSearchField(
     state: TextFieldState,
     onClearQuery: () -> Unit,
     modifier: Modifier = Modifier

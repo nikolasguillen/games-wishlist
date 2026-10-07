@@ -9,7 +9,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.discover.GetKnownPlatform
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatformIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.SetOwnedPlatformsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.SyncPlatformCatalogUseCase
-import com.nikolasguillen.questlog.feature.settings.mapper.toContentState
+import com.nikolasguillen.questlog.core.ui.mapper.toPlatformPickerContentState
 import com.nikolasguillen.questlog.feature.settings.model.OwnedPlatformsUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.OwnedPlatformsUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -56,7 +56,7 @@ class OwnedPlatformsViewModel @Inject constructor(
         pinnedPlatformIds
     ) { known, selected, query, pinned ->
         OwnedPlatformsUiState(
-            contentState = known.toContentState(
+            contentState = known.toPlatformPickerContentState(
                 selectedIds = selected,
                 query = query,
                 pinnedIds = pinned

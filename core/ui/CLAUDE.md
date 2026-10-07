@@ -32,7 +32,10 @@ uses it to create, the wishlist detail screen to edit), `GameListRow` (cover + t
 optional subtitle + a `trailingContent` slot for whatever the caller puts at the row's end — Radar's
 date/platform pair, Wishlist's rating; check here before hand-rolling another game list row),
 `PlatformTile` (32dp colored tile holding a platform's short code — game detail's platform strip, Radar's
-per-platform rows; its data comes from `PlatformTileUiModel`), `ScrollToTopFab` (the floating up-arrow that
+per-platform rows; its data comes from `PlatformTileUiModel`), `PlatformRow`, `PlatformSearchField` and
+`PlatformPickerList` (the owned-platforms picker shared by Settings and the welcome flow: stateless, driven by
+`PlatformPickerContentState` from `toPlatformPickerContentState`, which owns the ordering, search and
+entry-pinning rules — each screen supplies its own ViewModel), `ScrollToTopFab` (the floating up-arrow that
 returns a long screen to its top, shared by Search and the wishlist: it holds no scroll state, so the caller
 owns `visible` and `onClick`, and shows it once its first visible item index is greater than
 `UiConstants.SCROLL_TO_TOP_AFTER_ITEM_INDEX`, and gives the list under it

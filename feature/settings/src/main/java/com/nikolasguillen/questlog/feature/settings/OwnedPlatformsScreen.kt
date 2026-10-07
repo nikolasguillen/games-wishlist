@@ -2,17 +2,12 @@ package com.nikolasguillen.questlog.feature.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.SearchOff
-import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,15 +27,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
-import com.nikolasguillen.questlog.core.ui.component.EmptyPage
-import com.nikolasguillen.questlog.core.ui.component.LoadingPage
-import com.nikolasguillen.questlog.core.ui.model.UiText
-import com.nikolasguillen.questlog.feature.settings.components.PlatformRow
-import com.nikolasguillen.questlog.feature.settings.components.PlatformSearchField
-import com.nikolasguillen.questlog.feature.settings.model.OwnedPlatformsContentState
+import com.nikolasguillen.questlog.core.ui.component.PlatformPickerList
+import com.nikolasguillen.questlog.core.ui.component.PlatformSearchField
+import com.nikolasguillen.questlog.core.ui.model.PlatformPickerContentState
+import com.nikolasguillen.questlog.core.ui.model.PlatformPickerItemUiModel
 import com.nikolasguillen.questlog.feature.settings.model.OwnedPlatformsUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.OwnedPlatformsUiState
-import com.nikolasguillen.questlog.feature.settings.model.PlatformUiModel
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
 // viewModel is the same instance for the route's whole lifetime, so ref-comparison skips correctly.
@@ -137,47 +129,24 @@ internal fun OwnedPlatformsContent(
                 )
             }
 
-            when (val contentState = state.contentState) {
-                is OwnedPlatformsContentState.Loading -> LoadingPage()
-
-                is OwnedPlatformsContentState.Empty -> EmptyPage(
-                    message = stringResource(R.string.owned_platforms_empty),
-                    icon = Icons.Default.SportsEsports,
-                    actionLabel = UiText.StringResource(CoreUiR.string.retry),
-                    onActionClick = { onEvent(OwnedPlatformsUiEvent.OnRetrySync) }
-                )
-
-                is OwnedPlatformsContentState.NoSearchResults -> EmptyPage(
-                    message = stringResource(R.string.owned_platforms_no_results),
-                    icon = Icons.Default.SearchOff,
-                    actionLabel = UiText.StringResource(R.string.owned_platforms_clear_search_action),
-                    onActionClick = { onEvent(OwnedPlatformsUiEvent.OnClearQuery) }
-                )
-
-                is OwnedPlatformsContentState.Success -> LazyColumn(
-                    contentPadding = PaddingValues(bottom = MaterialTheme.spacing.extraLarge),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(contentState.platforms, key = { it.id }) { platform ->
-                        PlatformRow(
-                            platform = platform,
-                            onToggle = {
-                                onEvent(OwnedPlatformsUiEvent.OnPlatformToggled(platform.id))
-                            }
-                        )
-                    }
-                }
-            }
+            PlatformPickerList(
+                state = state.contentState,
+                onToggle = { platformId ->
+                    onEvent(OwnedPlatformsUiEvent.OnPlatformToggled(platformId))
+                },
+                onClearQuery = { onEvent(OwnedPlatformsUiEvent.OnClearQuery) },
+                onRetry = { onEvent(OwnedPlatformsUiEvent.OnRetrySync) }
+            )
         }
     }
 }
 
 private val previewPlatforms = listOf(
-    PlatformUiModel(id = 167, name = "PlayStation 5", abbreviation = "PS5", isSelected = true),
-    PlatformUiModel(id = 6, name = "PC (Microsoft Windows)", abbreviation = "PC", isSelected = true),
-    PlatformUiModel(id = 130, name = "Nintendo Switch", abbreviation = "Switch", isSelected = false),
-    PlatformUiModel(id = 169, name = "Xbox Series X|S", abbreviation = "Series X", isSelected = false),
-    PlatformUiModel(id = 471, name = "Meta Quest 3", abbreviation = null, isSelected = false)
+    PlatformPickerItemUiModel(id = 167, name = "PlayStation 5", abbreviation = "PS5", isSelected = true),
+    PlatformPickerItemUiModel(id = 6, name = "PC (Microsoft Windows)", abbreviation = "PC", isSelected = true),
+    PlatformPickerItemUiModel(id = 130, name = "Nintendo Switch", abbreviation = "Switch", isSelected = false),
+    PlatformPickerItemUiModel(id = 169, name = "Xbox Series X|S", abbreviation = "Series X", isSelected = false),
+    PlatformPickerItemUiModel(id = 471, name = "Meta Quest 3", abbreviation = null, isSelected = false)
 )
 
 @QuestLogPreviews
@@ -186,7 +155,7 @@ private fun OwnedPlatformsContentSuccessPreview() {
     QuestLogTheme {
         OwnedPlatformsContent(
             state = OwnedPlatformsUiState(
-                contentState = OwnedPlatformsContentState.Success(previewPlatforms),
+                contentState = PlatformPickerContentState.Success(previewPlatforms),
                 selectedCount = 2
             ),
             searchFieldState = TextFieldState(),
@@ -202,7 +171,7 @@ private fun OwnedPlatformsContentNoSelectionPreview() {
     QuestLogTheme {
         OwnedPlatformsContent(
             state = OwnedPlatformsUiState(
-                contentState = OwnedPlatformsContentState.Success(
+                contentState = PlatformPickerContentState.Success(
                     previewPlatforms.map { it.copy(isSelected = false) }
                 ),
                 selectedCount = 0
@@ -220,7 +189,7 @@ private fun OwnedPlatformsContentNoSearchResultsPreview() {
     QuestLogTheme {
         OwnedPlatformsContent(
             state = OwnedPlatformsUiState(
-                contentState = OwnedPlatformsContentState.NoSearchResults,
+                contentState = PlatformPickerContentState.NoSearchResults,
                 selectedCount = 2
             ),
             searchFieldState = TextFieldState("Dreamcast 2"),
@@ -235,7 +204,7 @@ private fun OwnedPlatformsContentNoSearchResultsPreview() {
 private fun OwnedPlatformsContentEmptyPreview() {
     QuestLogTheme {
         OwnedPlatformsContent(
-            state = OwnedPlatformsUiState(contentState = OwnedPlatformsContentState.Empty),
+            state = OwnedPlatformsUiState(contentState = PlatformPickerContentState.Empty),
             searchFieldState = TextFieldState(),
             onEvent = {},
             onBackClick = {}

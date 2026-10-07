@@ -1,6 +1,7 @@
 package com.nikolasguillen.questlog.feature.settings.model
 
 import androidx.compose.runtime.Immutable
+import com.nikolasguillen.questlog.core.ui.model.PlatformPickerContentState
 
 /**
  * @property selectedCount How many platforms are stored. It cannot be counted off the rendered list,
@@ -9,6 +10,6 @@ import androidx.compose.runtime.Immutable
  */
 @Immutable
 internal data class OwnedPlatformsUiState(
-    val contentState: OwnedPlatformsContentState = OwnedPlatformsContentState.Loading,
+    val contentState: PlatformPickerContentState = PlatformPickerContentState.Loading,
     val selectedCount: Int = 0
 )

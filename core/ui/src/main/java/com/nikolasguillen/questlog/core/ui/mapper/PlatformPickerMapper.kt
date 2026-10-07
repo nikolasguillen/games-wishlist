@@ -1,9 +1,9 @@
-package com.nikolasguillen.questlog.feature.settings.mapper
+package com.nikolasguillen.questlog.core.ui.mapper
 
 import com.nikolasguillen.questlog.core.model.Platform
 import com.nikolasguillen.questlog.core.ui.util.PlatformVisuals
-import com.nikolasguillen.questlog.feature.settings.model.OwnedPlatformsContentState
-import com.nikolasguillen.questlog.feature.settings.model.PlatformUiModel
+import com.nikolasguillen.questlog.core.ui.model.PlatformPickerContentState
+import com.nikolasguillen.questlog.core.ui.model.PlatformPickerItemUiModel
 
 private val CURATED_RANK: Map<Int, Int> =
     PlatformVisuals.curatedPlatformIds.withIndex().associate { (index, id) -> id to index }
@@ -21,8 +21,8 @@ private val PLATFORM_ORDER: Comparator<Platform> =
         .thenByDescending { it.generation ?: 0 }
         .thenBy { it.name }
 
-internal fun Platform.toUiModel(selectedIds: Set<Int>): PlatformUiModel {
-    return PlatformUiModel(
+private fun Platform.toPickerItemUiModel(selectedIds: Set<Int>): PlatformPickerItemUiModel {
+    return PlatformPickerItemUiModel(
         id = id,
         name = name,
         abbreviation = abbreviation,
@@ -41,16 +41,16 @@ internal fun Platform.toUiModel(selectedIds: Set<Int>): PlatformUiModel {
  * jump under the finger on every tap. `null` means the entry-time snapshot has not been taken yet,
  * which is the difference between "still loading" and "nothing is selected".
  */
-internal fun List<Platform>.toContentState(
+fun List<Platform>.toPlatformPickerContentState(
     selectedIds: Set<Int>,
     query: String,
     pinnedIds: Set<Int>?
-): OwnedPlatformsContentState {
-    if (pinnedIds == null) return OwnedPlatformsContentState.Loading
-    if (isEmpty()) return OwnedPlatformsContentState.Empty
+): PlatformPickerContentState {
+    if (pinnedIds == null) return PlatformPickerContentState.Loading
+    if (isEmpty()) return PlatformPickerContentState.Empty
 
     val matches = if (query.isBlank()) this else filter { it.matches(query) }
-    if (matches.isEmpty()) return OwnedPlatformsContentState.NoSearchResults
+    if (matches.isEmpty()) return PlatformPickerContentState.NoSearchResults
 
     // Partitioning is stable, so the ranking survives inside both halves.
     val ranked = matches.sortedWith(PLATFORM_ORDER)
@@ -60,7 +60,7 @@ internal fun List<Platform>.toContentState(
     } else {
         ranked
     }
-    return OwnedPlatformsContentState.Success(ordered.map { it.toUiModel(selectedIds) })
+    return PlatformPickerContentState.Success(ordered.map { it.toPickerItemUiModel(selectedIds) })
 }
 
 private fun Platform.matches(query: String): Boolean {

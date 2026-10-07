@@ -1,4 +1,4 @@
-package com.nikolasguillen.questlog.feature.settings.components
+package com.nikolasguillen.questlog.core.ui.component
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,15 +18,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
-import com.nikolasguillen.questlog.feature.settings.model.PlatformUiModel
+import com.nikolasguillen.questlog.core.ui.model.PlatformPickerItemUiModel
 
 /**
  * One selectable platform. The whole row is the target rather than the checkbox alone, and it carries
  * the `Checkbox` role so the toggle is announced once instead of twice.
  */
 @Composable
-internal fun PlatformRow(
-    platform: PlatformUiModel,
+fun PlatformRow(
+    platform: PlatformPickerItemUiModel,
     onToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -70,7 +70,7 @@ internal fun PlatformRow(
 private fun PlatformRowSelectedPreview() {
     QuestLogTheme {
         PlatformRow(
-            platform = PlatformUiModel(
+            platform = PlatformPickerItemUiModel(
                 id = 167,
                 name = "PlayStation 5",
                 abbreviation = "PS5",
@@ -86,7 +86,7 @@ private fun PlatformRowSelectedPreview() {
 private fun PlatformRowUnselectedPreview() {
     QuestLogTheme {
         PlatformRow(
-            platform = PlatformUiModel(
+            platform = PlatformPickerItemUiModel(
                 id = 471,
                 name = "Meta Quest 3",
                 abbreviation = null,

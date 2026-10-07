@@ -97,7 +97,7 @@ Verification means compiling and running the JVM test suites locally:
 - `./gradlew :app:assembleDebug` when the change spans modules or touches DI wiring.
 - `./gradlew test` for the suites.
 
-The existing test source sets — `core/data`, `core/domain`, `core/network`,
+The existing test source sets — `core/data`, `core/domain`, `core/network`, `core/ui`,
 `feature/{search,radar,lists,game-detail,settings,wishlist,onboarding}` and `app` — MUST stay green. New ViewModel,
 mapper, use-case or error-mapping logic gets a test in its own module's `src/test` using JUnit4 +
 MockK + `kotlinx-coroutines-test`, mocking the use cases rather than the repository, with a
