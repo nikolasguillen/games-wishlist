@@ -10,9 +10,12 @@ import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatf
 import com.nikolasguillen.questlog.core.domain.usecase.discover.ToggleOwnedPlatformUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.SyncPlatformCatalogUseCase
 import com.nikolasguillen.questlog.core.ui.mapper.toPlatformPickerContentState
+import com.nikolasguillen.questlog.core.ui.util.UiConstants
 import com.nikolasguillen.questlog.feature.settings.model.OwnedPlatformsUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.OwnedPlatformsUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -40,17 +43,22 @@ class OwnedPlatformsViewModel @Inject constructor(
      */
     private val pinnedPlatformIds = MutableStateFlow<Set<Int>?>(null)
 
+    /** True while the catalogue is being fetched, so an empty cache reads as loading rather than empty. */
+    private val isSyncing = MutableStateFlow(false)
+
     internal val uiState: StateFlow<OwnedPlatformsUiState> = combine(
         getKnownPlatformsUseCase(),
         getSelectedPlatformIdsUseCase(),
         snapshotFlow { textFieldState.text.toString() }.distinctUntilChanged(),
-        pinnedPlatformIds
-    ) { known, selected, query, pinned ->
+        pinnedPlatformIds,
+        isSyncing
+    ) { known, selected, query, pinned, syncing ->
         OwnedPlatformsUiState(
             contentState = known.toPlatformPickerContentState(
                 selectedIds = selected,
                 query = query,
-                pinnedIds = pinned
+                pinnedIds = pinned,
+                isSyncing = syncing
             ),
             selectedCount = selected.size
         )
@@ -75,13 +83,21 @@ class OwnedPlatformsViewModel @Inject constructor(
         }
     }
 
-    // Fire and forget: the list renders from Room either way, so a failed sync leaves whatever is
-    // already cached rather than blanking the screen. Only an empty cache reaches the user, as the
-    // Empty state -- which is also what OnRetrySync retries, since there is nothing else to show for
-    // a failed sync until the next successful one lands.
+    // The list renders from Room either way, so a failed sync leaves whatever is already cached rather
+    // than blanking the screen. Only an empty cache reaches the user, as the Empty state -- which is also
+    // what OnRetrySync retries. While the sync runs that empty cache reads as Loading, held for at least
+    // MIN_LOADING_FEEDBACK_MILLIS so a retry that fails instantly still visibly did something.
     private fun syncCatalog() {
         viewModelScope.launch {
-            syncPlatformCatalogUseCase()
+            isSyncing.value = true
+            try {
+                coroutineScope {
+                    launch { delay(UiConstants.MIN_LOADING_FEEDBACK_MILLIS) }
+                    syncPlatformCatalogUseCase()
+                }
+            } finally {
+                isSyncing.value = false
+            }
         }
     }
 

@@ -40,14 +40,19 @@ private fun Platform.toPickerItemUiModel(selectedIds: Set<Int>): PlatformPickerI
  * the top. It is deliberately not [selectedIds]: ordering on the live selection would make the list
  * jump under the finger on every tap. `null` means the entry-time snapshot has not been taken yet,
  * which is the difference between "still loading" and "nothing is selected".
+ * @param isSyncing Whether the catalogue is being fetched right now. With nothing cached yet that is
+ * "still loading", not "empty": showing Empty while a retry is in flight is what made the tap look ignored.
  */
 fun List<Platform>.toPlatformPickerContentState(
     selectedIds: Set<Int>,
     query: String,
-    pinnedIds: Set<Int>?
+    pinnedIds: Set<Int>?,
+    isSyncing: Boolean = false
 ): PlatformPickerContentState {
     if (pinnedIds == null) return PlatformPickerContentState.Loading
-    if (isEmpty()) return PlatformPickerContentState.Empty
+    if (isEmpty()) {
+        return if (isSyncing) PlatformPickerContentState.Loading else PlatformPickerContentState.Empty
+    }
 
     val matches = if (query.isBlank()) this else filter { it.matches(query) }
     if (matches.isEmpty()) return PlatformPickerContentState.NoSearchResults

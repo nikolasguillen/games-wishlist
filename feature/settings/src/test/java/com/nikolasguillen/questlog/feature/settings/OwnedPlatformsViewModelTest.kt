@@ -15,6 +15,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -139,6 +140,27 @@ class OwnedPlatformsViewModelTest {
         advanceUntilIdle()
 
         coVerify { syncPlatformCatalogUseCase() }
+    }
+
+    @Test
+    fun `OnRetrySync shows Loading until the sync has finished, then Empty again`() = runTest {
+        every { getKnownPlatformsUseCase() } returns flowOf(emptyList())
+        val viewModel = viewModel()
+        val states = mutableListOf<OwnedPlatformsUiState>()
+        val job = collectStates(viewModel, states)
+        advanceUntilIdle()
+        assertTrue(states.last().contentState is PlatformPickerContentState.Empty)
+
+        val gate = CompletableDeferred<AppResult<Unit>>()
+        coEvery { syncPlatformCatalogUseCase() } coAnswers { gate.await() }
+        viewModel.onEvent(OwnedPlatformsUiEvent.OnRetrySync)
+        advanceUntilIdle()
+        assertTrue(states.last().contentState is PlatformPickerContentState.Loading)
+
+        gate.complete(AppResult.success(Unit))
+        advanceUntilIdle()
+        assertTrue(states.last().contentState is PlatformPickerContentState.Empty)
+        job.cancel()
     }
 
     @Test

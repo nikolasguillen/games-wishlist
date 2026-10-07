@@ -11,6 +11,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.discover.SyncPlatformCata
 import com.nikolasguillen.questlog.core.domain.usecase.discover.ToggleOwnedPlatformUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.settings.CompleteOnboardingUseCase
 import com.nikolasguillen.questlog.core.ui.mapper.toPlatformPickerContentState
+import com.nikolasguillen.questlog.core.ui.util.UiConstants
 import com.nikolasguillen.questlog.feature.onboarding.mapper.buildOnboardingPages
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingContentState
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingUiEffect
@@ -19,6 +20,8 @@ import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingUiState
 import com.nikolasguillen.questlog.feature.onboarding.model.ReminderStepState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -54,6 +57,9 @@ class OnboardingViewModel @Inject constructor(
      */
     private val pinnedPlatformIds = MutableStateFlow<Set<Int>?>(null)
 
+    /** True while the catalogue is being fetched, so an empty cache reads as loading rather than empty. */
+    private val isSyncing = MutableStateFlow(false)
+
     // Completing is guarded rather than idempotent-by-effect: a second tap would otherwise send a second
     // Finished, and the host would pop two screens.
     private var isCompleting = false
@@ -71,12 +77,14 @@ class OnboardingViewModel @Inject constructor(
                 getKnownPlatformsUseCase(),
                 getSelectedPlatformIdsUseCase(),
                 snapshotFlow { textFieldState.text.toString() }.distinctUntilChanged(),
-                pinnedPlatformIds
-            ) { known, selected, query, pinned ->
+                pinnedPlatformIds,
+                isSyncing
+            ) { known, selected, query, pinned, syncing ->
                 known.toPlatformPickerContentState(
                     selectedIds = selected,
                     query = query,
-                    pinnedIds = pinned
+                    pinnedIds = pinned,
+                    isSyncing = syncing
                 ) to selected.size
             }.collect { (picker, selectedCount) ->
                 _uiState.update {
@@ -142,12 +150,21 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 
-    // Fire and forget: the list renders from Room either way, so a failed sync leaves whatever is already
-    // cached. Only an empty cache reaches the user, as the picker's Empty state, which is also what
-    // RetryPlatformSync retries.
+    // The list renders from Room either way, so a failed sync leaves whatever is already cached. Only an
+    // empty cache reaches the user, as the picker's Empty state, which is also what RetryPlatformSync
+    // retries. While the sync runs that empty cache reads as Loading, held for at least
+    // MIN_LOADING_FEEDBACK_MILLIS so a retry that fails instantly still visibly did something.
     private fun syncCatalog() {
         viewModelScope.launch {
-            syncPlatformCatalogUseCase()
+            isSyncing.value = true
+            try {
+                coroutineScope {
+                    launch { delay(UiConstants.MIN_LOADING_FEEDBACK_MILLIS) }
+                    syncPlatformCatalogUseCase()
+                }
+            } finally {
+                isSyncing.value = false
+            }
         }
     }
 

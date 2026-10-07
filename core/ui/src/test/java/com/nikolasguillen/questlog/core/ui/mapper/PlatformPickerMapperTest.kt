@@ -22,8 +22,14 @@ class PlatformPickerMapperTest {
     private fun List<Platform>.state(
         selected: Set<Int> = emptySet(),
         query: String = "",
-        pinned: Set<Int>? = emptySet()
-    ) = toPlatformPickerContentState(selectedIds = selected, query = query, pinnedIds = pinned)
+        pinned: Set<Int>? = emptySet(),
+        isSyncing: Boolean = false
+    ) = toPlatformPickerContentState(
+        selectedIds = selected,
+        query = query,
+        pinnedIds = pinned,
+        isSyncing = isSyncing
+    )
 
     private fun PlatformPickerContentState.names(): List<String> =
         (this as PlatformPickerContentState.Success).platforms.map { it.name }
@@ -46,6 +52,18 @@ class PlatformPickerMapperTest {
     @Test
     fun `reports Empty when nothing is cached to pick from`() {
         assertEquals(PlatformPickerContentState.Empty, emptyList<Platform>().state())
+    }
+
+    @Test
+    fun `an empty catalogue reads as Loading while it is being synced`() {
+        assertEquals(PlatformPickerContentState.Loading, emptyList<Platform>().state(isSyncing = true))
+    }
+
+    @Test
+    fun `a cached catalogue is shown even while a sync is running`() {
+        val state = catalogue.state(isSyncing = true)
+
+        assertTrue(state is PlatformPickerContentState.Success)
     }
 
     @Test

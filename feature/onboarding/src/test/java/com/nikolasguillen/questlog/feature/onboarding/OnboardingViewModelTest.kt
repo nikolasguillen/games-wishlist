@@ -21,6 +21,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -30,6 +31,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -205,6 +207,39 @@ class OnboardingViewModelTest {
 
         coVerify(exactly = 1) { syncPlatformCatalogUseCase() }
     }
+
+    @Test
+    fun `retrying shows Loading until the sync has finished, then Empty again`() = runTest(testDispatcher) {
+        every { getKnownPlatformsUseCase() } returns flowOf(emptyList())
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        assertEquals(PlatformPickerContentState.Empty, viewModel.uiState.value.platformPicker)
+
+        val gate = CompletableDeferred<AppResult<Unit>>()
+        coEvery { syncPlatformCatalogUseCase() } coAnswers { gate.await() }
+        viewModel.onEvent(OnboardingUiEvent.RetryPlatformSync)
+        advanceUntilIdle()
+        assertEquals(PlatformPickerContentState.Loading, viewModel.uiState.value.platformPicker)
+
+        gate.complete(AppResult.success(Unit))
+        advanceUntilIdle()
+        assertEquals(PlatformPickerContentState.Empty, viewModel.uiState.value.platformPicker)
+    }
+
+    @Test
+    fun `a retry that fails at once still shows Loading for the minimum feedback time`() =
+        runTest(testDispatcher) {
+            every { getKnownPlatformsUseCase() } returns flowOf(emptyList())
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+
+            viewModel.onEvent(OnboardingUiEvent.RetryPlatformSync)
+            runCurrent()
+
+            assertEquals(PlatformPickerContentState.Loading, viewModel.uiState.value.platformPicker)
+            advanceUntilIdle()
+            assertEquals(PlatformPickerContentState.Empty, viewModel.uiState.value.platformPicker)
+        }
 
     @Test
     fun `RetryPlatformSync syncs the catalogue again`() = runTest(testDispatcher) {

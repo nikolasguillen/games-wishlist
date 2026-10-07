@@ -34,4 +34,11 @@ object UiConstants {
      * readable block instead of running edge to edge.
      */
     const val EMPTY_PAGE_CONTENT_WIDTH_FRACTION = 0.8f
+
+    /**
+     * How long a user-triggered retry keeps showing its loading state, even if the work fails at once.
+     * Offline, a retry fails in a few milliseconds: without a floor the loader would flash for a frame
+     * and the tap would look ignored.
+     */
+    const val MIN_LOADING_FEEDBACK_MILLIS = 600L
 }
