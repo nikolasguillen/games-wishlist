@@ -11,6 +11,14 @@
     <string name="onboarding_radar_headline">Never miss a release</string>
     <string name="onboarding_radar_body">Radar shows when your saved games come out. Turn on a reminder for any of them.</string>
 
+    <string name="onboarding_platforms_headline">Which platforms do you own?</string>
+    <string name="onboarding_platforms_body">Pick the ones you play on. It\'s optional, and you can change it any time in Settings.</string>
+    <string name="onboarding_platforms_none_selected">Nothing selected — suggestions and release dates are not filtered by platform.</string>
+    <plurals name="onboarding_platforms_filtering">
+        <item quantity="one">Suggestions and release dates are filtered to this platform.</item>
+        <item quantity="other">Suggestions and release dates are filtered to these %1$d platforms.</item>
+    </plurals>
+
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_next">Next</string>

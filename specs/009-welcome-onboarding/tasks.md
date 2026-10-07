@@ -219,24 +219,24 @@ and land on Search. Relaunch and confirm no flow. Quickstart scenarios 1, 2, 8, 
 
 ### 5c. Platforms step in the flow
 
-- [ ] T053 [US3] Extend `FTEST/OnboardingViewModelTest.kt` with mocks for `GetKnownPlatformsUseCase`, `GetSelectedPlatformIdsUseCase`, `ToggleOwnedPlatformUseCase` and `SyncPlatformCatalogUseCase`. Cases:
+- [X] T053 [US3] Extend `FTEST/OnboardingViewModelTest.kt` with mocks for `GetKnownPlatformsUseCase`, `GetSelectedPlatformIdsUseCase`, `ToggleOwnedPlatformUseCase` and `SyncPlatformCatalogUseCase`. Cases:
   - `buildOnboardingPages` ends with `Platforms` after the four info pages;
   - `PlatformToggled(id)` calls the toggle use case with that id;
   - the catalogue sync runs on init, and again on `RetryPlatformSync`;
   - `selectedPlatformCount` follows the stored selection;
   - the picker state is built from the shared mapper: the current picks appear first when the ViewModel is created with a stored selection (the replay case), and it stays `Loading` until the entry-time selection has been read.
-- [ ] T054 [P] [US3] Add `data object Platforms` to `FEATURE/model/OnboardingPage.kt`.
-- [ ] T055 [P] [US3] Add `val platformPicker: PlatformPickerContentState = PlatformPickerContentState.Loading` and `val selectedPlatformCount: Int = 0` to `FEATURE/model/OnboardingUiState.kt`.
-- [ ] T056 [P] [US3] Add `data class PlatformToggled(val platformId: Int)`, `data object ClearPlatformQuery` and `data object RetryPlatformSync` to `FEATURE/model/OnboardingUiEvent.kt`.
-- [ ] T057 [P] [US3] Add to `feature/onboarding/.../strings.xml` the platforms page headline and body (at most two sentences, saying the choice is optional and changeable in Settings), plus a caption pair mirroring Settings' wording: none selected means no platform filter, otherwise a plural "Filtering to %1$d platforms".
-- [ ] T058 [US3] Update `FEATURE/mapper/OnboardingPageUiMapper.kt` so `buildOnboardingPages` appends `Platforms` after the four info pages. Depends on T054.
-- [ ] T059 [US3] Update `FEATURE/OnboardingViewModel.kt`: inject the four platform use cases; own a `TextFieldState`; read the stored selection once in `init` as the pinned set (`null` until read); sync the catalogue in `init`; and fold `combine(getKnownPlatforms(), getSelectedPlatformIds(), snapshotFlow { query }.distinctUntilChanged(), pinnedIds)` into `_uiState` through `viewModelScope.launch { …collect { _uiState.update { … } } }` using `toPlatformPickerContentState`. Handle `PlatformToggled` (calls the use case), `ClearPlatformQuery` (clears the text) and `RetryPlatformSync`. Depends on T049, T053, T055, T056, T058.
-- [ ] T060 [US3] Create `FEATURE/components/OnboardingPlatformsPage.kt`: headline, body, the count caption, `PlatformSearchField(state = textFieldState, …)` and `PlatformPickerList(…)` from `:core:ui`, with `onToggle`, `onClearQuery` and `onRetry` sending the events from T056. Spacing comes from `MaterialTheme.spacing`. Add previews for Success and Empty.
+- [X] T054 [P] [US3] Add `data object Platforms` to `FEATURE/model/OnboardingPage.kt`.
+- [X] T055 [P] [US3] Add `val platformPicker: PlatformPickerContentState = PlatformPickerContentState.Loading` and `val selectedPlatformCount: Int = 0` to `FEATURE/model/OnboardingUiState.kt`.
+- [X] T056 [P] [US3] Add `data class PlatformToggled(val platformId: Int)`, `data object ClearPlatformQuery` and `data object RetryPlatformSync` to `FEATURE/model/OnboardingUiEvent.kt`.
+- [X] T057 [P] [US3] Add to `feature/onboarding/.../strings.xml` the platforms page headline and body (at most two sentences, saying the choice is optional and changeable in Settings), plus a caption pair mirroring Settings' wording: none selected means no platform filter, otherwise a plural "Filtering to %1$d platforms".
+- [X] T058 [US3] Update `FEATURE/mapper/OnboardingPageUiMapper.kt` so `buildOnboardingPages` appends `Platforms` after the four info pages. Depends on T054.
+- [X] T059 [US3] Update `FEATURE/OnboardingViewModel.kt`: inject the four platform use cases; own a `TextFieldState`; read the stored selection once in `init` as the pinned set (`null` until read); sync the catalogue in `init`; and fold `combine(getKnownPlatforms(), getSelectedPlatformIds(), snapshotFlow { query }.distinctUntilChanged(), pinnedIds)` into `_uiState` through `viewModelScope.launch { …collect { _uiState.update { … } } }` using `toPlatformPickerContentState`. Handle `PlatformToggled` (calls the use case), `ClearPlatformQuery` (clears the text) and `RetryPlatformSync`. Depends on T049, T053, T055, T056, T058.
+- [X] T060 [US3] Create `FEATURE/components/OnboardingPlatformsPage.kt`: headline, body, the count caption, `PlatformSearchField(state = textFieldState, …)` and `PlatformPickerList(…)` from `:core:ui`, with `onToggle`, `onClearQuery` and `onRetry` sending the events from T056. Spacing comes from `MaterialTheme.spacing`. Add previews for Success and Empty.
   - In `Success`, the headline, body and count caption are passed as `PlatformPickerList`'s `header`, so they are the first items of the list and scroll away at large font scales. The search field is pinned above the list.
   - In the other states (Loading, Empty, NoSearchResults) there is nothing long to scroll, so draw the same headline, body and caption statically above the state's message. In every state, including the offline/empty one, the body saying the choice can be made later in Settings stays visible (FR-012).
   - The headline carries `semantics { heading() }` (FR-015).
   - Depends on T057.
-- [ ] T061 [US3] In `FEATURE/OnboardingScreen.kt`, render `OnboardingPlatformsPage` for `OnboardingPage.Platforms`, passing `viewModel.textFieldState`. Add `LocalFocusManager.clearFocus()` whenever `pagerState.currentPage` changes, so the keyboard never stays open on another page. The picker's vertical scrolling inside the horizontal pager must keep working. Depends on T059, T060.
+- [X] T061 [US3] In `FEATURE/OnboardingScreen.kt`, render `OnboardingPlatformsPage` for `OnboardingPage.Platforms`, passing `viewModel.textFieldState`. Add `LocalFocusManager.clearFocus()` whenever `pagerState.currentPage` changes, so the keyboard never stays open on another page. The picker's vertical scrolling inside the horizontal pager must keep working. Depends on T059, T060.
 
 ### 5d. Reminders step in the flow
 

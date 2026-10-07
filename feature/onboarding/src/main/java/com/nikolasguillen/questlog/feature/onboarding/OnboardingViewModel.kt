@@ -1,8 +1,16 @@
 package com.nikolasguillen.questlog.feature.onboarding
 
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nikolasguillen.questlog.core.domain.usecase.discover.GetKnownPlatformsUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatformIdsUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.discover.SyncPlatformCatalogUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.discover.ToggleOwnedPlatformUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.settings.CompleteOnboardingUseCase
+import com.nikolasguillen.questlog.core.ui.mapper.toPlatformPickerContentState
 import com.nikolasguillen.questlog.feature.onboarding.mapper.buildOnboardingPages
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingContentState
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingUiEffect
@@ -13,6 +21,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -20,6 +31,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
+    getKnownPlatformsUseCase: GetKnownPlatformsUseCase,
+    private val getSelectedPlatformIdsUseCase: GetSelectedPlatformIdsUseCase,
+    private val toggleOwnedPlatformUseCase: ToggleOwnedPlatformUseCase,
+    private val syncPlatformCatalogUseCase: SyncPlatformCatalogUseCase,
     private val completeOnboardingUseCase: CompleteOnboardingUseCase
 ) : ViewModel() {
 
@@ -29,13 +44,53 @@ class OnboardingViewModel @Inject constructor(
     private val _uiEffect = Channel<OnboardingUiEffect>(Channel.BUFFERED)
     internal val uiEffect = _uiEffect.receiveAsFlow()
 
+    internal val textFieldState = TextFieldState()
+
+    /**
+     * The selection as it stood when the flow opened, kept only to float those rows to the top — empty on a
+     * first launch, the current picks on a replay. `null` until the first read lands, which is what holds
+     * the picker on `Loading` instead of rendering once unordered and then jumping.
+     */
+    private val pinnedPlatformIds = MutableStateFlow<Set<Int>?>(null)
+
     // Completing is guarded rather than idempotent-by-effect: a second tap would otherwise send a second
     // Finished, and the host would pop two screens.
     private var isCompleting = false
 
+    init {
+        viewModelScope.launch {
+            pinnedPlatformIds.value = getSelectedPlatformIdsUseCase().first()
+        }
+        syncCatalog()
+
+        // The picker is derived from continuously-observed sources, but the rest of the state is changed
+        // by event handlers, so it is folded into the same MutableStateFlow rather than exposed separately.
+        viewModelScope.launch {
+            combine(
+                getKnownPlatformsUseCase(),
+                getSelectedPlatformIdsUseCase(),
+                snapshotFlow { textFieldState.text.toString() }.distinctUntilChanged(),
+                pinnedPlatformIds
+            ) { known, selected, query, pinned ->
+                known.toPlatformPickerContentState(
+                    selectedIds = selected,
+                    query = query,
+                    pinnedIds = pinned
+                ) to selected.size
+            }.collect { (picker, selectedCount) ->
+                _uiState.update {
+                    it.copy(platformPicker = picker, selectedPlatformCount = selectedCount)
+                }
+            }
+        }
+    }
+
     internal fun onEvent(event: OnboardingUiEvent) {
         when (event) {
             is OnboardingUiEvent.NotificationFactsResolved -> resolveFacts(event)
+            is OnboardingUiEvent.PlatformToggled -> togglePlatform(event.platformId)
+            OnboardingUiEvent.ClearPlatformQuery -> textFieldState.clearText()
+            OnboardingUiEvent.RetryPlatformSync -> syncCatalog()
             OnboardingUiEvent.FinishClicked, OnboardingUiEvent.SkipClicked -> complete()
         }
     }
@@ -56,6 +111,23 @@ class OnboardingViewModel @Inject constructor(
                     )
                 )
             }
+        }
+    }
+
+    // Fire and forget: the list renders from Room either way, so a failed sync leaves whatever is already
+    // cached. Only an empty cache reaches the user, as the picker's Empty state, which is also what
+    // RetryPlatformSync retries.
+    private fun syncCatalog() {
+        viewModelScope.launch {
+            syncPlatformCatalogUseCase()
+        }
+    }
+
+    // Saved the moment it is tapped: the step has no confirm button, so skipping the flow or closing the
+    // app part-way never discards a pick. The flip itself is atomic in the data layer.
+    private fun togglePlatform(platformId: Int) {
+        viewModelScope.launch {
+            toggleOwnedPlatformUseCase(platformId)
         }
     }
 

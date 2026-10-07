@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -20,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -32,6 +34,7 @@ import com.nikolasguillen.questlog.core.ui.component.LoadingPage
 import com.nikolasguillen.questlog.core.ui.util.rememberNotificationPermissionState
 import com.nikolasguillen.questlog.feature.onboarding.components.OnboardingBottomBar
 import com.nikolasguillen.questlog.feature.onboarding.components.OnboardingInfoPage
+import com.nikolasguillen.questlog.feature.onboarding.components.OnboardingPlatformsPage
 import com.nikolasguillen.questlog.feature.onboarding.mapper.toInfoUiModel
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingContentState
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingPage
@@ -78,6 +81,7 @@ fun OnboardingScreen(
 
     OnboardingContent(
         state = state,
+        searchFieldState = viewModel.textFieldState,
         onEvent = viewModel::onEvent,
         modifier = modifier
     )
@@ -90,6 +94,7 @@ fun OnboardingScreen(
 @Composable
 internal fun OnboardingContent(
     state: OnboardingUiState,
+    searchFieldState: TextFieldState,
     onEvent: (OnboardingUiEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -97,6 +102,8 @@ internal fun OnboardingContent(
         OnboardingContentState.Loading -> LoadingPage(modifier = modifier)
         is OnboardingContentState.Ready -> OnboardingPager(
             pages = contentState.pages,
+            state = state,
+            searchFieldState = searchFieldState,
             onEvent = onEvent,
             modifier = modifier
         )
@@ -106,11 +113,17 @@ internal fun OnboardingContent(
 @Composable
 private fun OnboardingPager(
     pages: List<OnboardingPage>,
+    state: OnboardingUiState,
+    searchFieldState: TextFieldState,
     onEvent: (OnboardingUiEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val pagerState = rememberPagerState { pages.size }
     val scope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
+
+    // The platforms page has a text field; without this the keyboard would stay up over the next page.
+    LaunchedEffect(pagerState.currentPage) { focusManager.clearFocus() }
 
     fun scrollToPage(page: Int) {
         scope.launch { pagerState.animateScrollToPage(page) }
@@ -137,8 +150,17 @@ private fun OnboardingPager(
             state = pagerState,
             modifier = Modifier.weight(1f)
         ) { index ->
-            pages[index].toInfoUiModel()?.let { page ->
-                OnboardingInfoPage(page = page)
+            when (val page = pages[index]) {
+                OnboardingPage.Platforms -> OnboardingPlatformsPage(
+                    pickerState = state.platformPicker,
+                    selectedCount = state.selectedPlatformCount,
+                    searchFieldState = searchFieldState,
+                    onToggle = { platformId -> onEvent(OnboardingUiEvent.PlatformToggled(platformId)) },
+                    onClearQuery = { onEvent(OnboardingUiEvent.ClearPlatformQuery) },
+                    onRetry = { onEvent(OnboardingUiEvent.RetryPlatformSync) }
+                )
+
+                else -> page.toInfoUiModel()?.let { OnboardingInfoPage(page = it) }
             }
         }
         OnboardingBottomBar(
@@ -154,7 +176,7 @@ private fun OnboardingPager(
 @Composable
 private fun OnboardingContentLoadingPreview() {
     QuestLogTheme {
-        OnboardingContent(state = OnboardingUiState(), onEvent = {})
+        OnboardingContent(state = OnboardingUiState(), searchFieldState = TextFieldState(), onEvent = {})
     }
 }
 
@@ -169,10 +191,12 @@ private fun OnboardingContentReadyPreview() {
                         OnboardingPage.Welcome,
                         OnboardingPage.Discover,
                         OnboardingPage.Lists,
-                        OnboardingPage.Radar
+                        OnboardingPage.Radar,
+                        OnboardingPage.Platforms
                     )
                 )
             ),
+            searchFieldState = TextFieldState(),
             onEvent = {}
         )
     }

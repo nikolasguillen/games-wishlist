@@ -9,4 +9,7 @@ internal sealed interface OnboardingPage {
     data object Discover : OnboardingPage
     data object Lists : OnboardingPage
     data object Radar : OnboardingPage
+
+    /** The owned-platforms step. Optional, and never blocks the flow. */
+    data object Platforms : OnboardingPage
 }

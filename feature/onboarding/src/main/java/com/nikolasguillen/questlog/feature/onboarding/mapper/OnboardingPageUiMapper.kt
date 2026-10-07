@@ -12,8 +12,8 @@ import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingPage
 /**
  * The pages this launch shows, in order.
  *
- * Both parameters are the device facts the setup pages depend on. The informational pages do not use
- * them, so they are accepted ahead of the setup pages that will.
+ * Both parameters are the device facts the setup pages depend on. The platforms step does not use them,
+ * so they are accepted ahead of the reminders page that will.
  */
 @Suppress("UNUSED_PARAMETER")
 internal fun buildOnboardingPages(
@@ -23,7 +23,8 @@ internal fun buildOnboardingPages(
     OnboardingPage.Welcome,
     OnboardingPage.Discover,
     OnboardingPage.Lists,
-    OnboardingPage.Radar
+    OnboardingPage.Radar,
+    OnboardingPage.Platforms
 )
 
 /** The informational content of [this], or `null` for a page that is not purely informational. */
@@ -51,4 +52,6 @@ internal fun OnboardingPage.toInfoUiModel(): OnboardingInfoPageUiModel? = when (
         body = UiText.StringResource(R.string.onboarding_radar_body),
         icon = Icons.Default.CalendarMonth
     )
+
+    OnboardingPage.Platforms -> null
 }
