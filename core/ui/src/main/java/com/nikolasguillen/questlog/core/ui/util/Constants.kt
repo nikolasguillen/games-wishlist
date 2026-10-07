@@ -28,4 +28,10 @@ object UiConstants {
      * button appears at the same point wherever it is used (Search, a wishlist).
      */
     const val SCROLL_TO_TOP_AFTER_ITEM_INDEX = 1
+
+    /**
+     * How much of the screen's width an empty state's text may take, so a long message wraps into a
+     * readable block instead of running edge to edge.
+     */
+    const val EMPTY_PAGE_CONTENT_WIDTH_FRACTION = 0.8f
 }
