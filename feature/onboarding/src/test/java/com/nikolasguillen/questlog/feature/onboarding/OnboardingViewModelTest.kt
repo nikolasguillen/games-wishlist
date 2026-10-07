@@ -108,6 +108,37 @@ class OnboardingViewModelTest {
     }
 
     @Test
+    fun `SkipClicked records completion once and emits Finished`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        val effects = mutableListOf<OnboardingUiEffect>()
+        val effectJob = launch { viewModel.uiEffect.collect { effects.add(it) } }
+        advanceUntilIdle()
+
+        viewModel.onEvent(OnboardingUiEvent.SkipClicked)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { completeOnboardingUseCase() }
+        assertEquals(listOf(OnboardingUiEffect.Finished), effects)
+        effectJob.cancel()
+    }
+
+    @Test
+    fun `SkipClicked followed by FinishClicked still emits a single Finished`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        val effects = mutableListOf<OnboardingUiEffect>()
+        val effectJob = launch { viewModel.uiEffect.collect { effects.add(it) } }
+        advanceUntilIdle()
+
+        viewModel.onEvent(OnboardingUiEvent.SkipClicked)
+        viewModel.onEvent(OnboardingUiEvent.FinishClicked)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { completeOnboardingUseCase() }
+        assertEquals(listOf(OnboardingUiEffect.Finished), effects)
+        effectJob.cancel()
+    }
+
+    @Test
     fun `tapping FinishClicked twice emits Finished only once`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
         val effects = mutableListOf<OnboardingUiEffect>()

@@ -11,4 +11,7 @@ internal sealed interface OnboardingUiEvent {
     ) : OnboardingUiEvent
 
     data object FinishClicked : OnboardingUiEvent
+
+    /** Leaves the flow from any page. Counts as completing it. */
+    data object SkipClicked : OnboardingUiEvent
 }

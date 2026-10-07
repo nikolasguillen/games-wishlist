@@ -157,13 +157,13 @@ and land on Search. Relaunch and confirm no flow. Quickstart scenarios 1, 2, 8, 
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T028 [US2] Extend `FTEST/OnboardingViewModelTest.kt`: `SkipClicked` calls `CompleteOnboardingUseCase` once and emits `Finished`; `SkipClicked` followed by `FinishClicked` still emits a single `Finished`. Confirm the new cases fail before T029.
+- [X] T028 [US2] Extend `FTEST/OnboardingViewModelTest.kt`: `SkipClicked` calls `CompleteOnboardingUseCase` once and emits `Finished`; `SkipClicked` followed by `FinishClicked` still emits a single `Finished`. Confirm the new cases fail before T029.
 
 ### Implementation for User Story 2
 
-- [ ] T029 [US2] Add `data object SkipClicked` to `FEATURE/model/OnboardingUiEvent.kt` and route it through the same guarded `complete()` in `FEATURE/OnboardingViewModel.kt`.
-- [ ] T030 [P] [US2] Add `onboarding_skip` to `feature/onboarding/src/main/res/values/strings.xml`.
-- [ ] T031 [US2] In `FEATURE/OnboardingScreen.kt`, add a "Skip" text button in the top end corner, visible on every page including the last (FR-004), sending `SkipClicked`. It sits inside the safe-drawing insets and stays reachable at large font sizes. Add a preview with it. Depends on T029, T030.
+- [X] T029 [US2] Add `data object SkipClicked` to `FEATURE/model/OnboardingUiEvent.kt` and route it through the same guarded `complete()` in `FEATURE/OnboardingViewModel.kt`.
+- [X] T030 [P] [US2] Add `onboarding_skip` to `feature/onboarding/src/main/res/values/strings.xml`.
+- [X] T031 [US2] In `FEATURE/OnboardingScreen.kt`, add a "Skip" text button in the top end corner, visible on every page including the last (FR-004), sending `SkipClicked`. It sits inside the safe-drawing insets and stays reachable at large font sizes. Add a preview with it. Depends on T029, T030.
 - [ ] T032 [US2] Run `./gradlew :feature:onboarding:testDebugUnitTest --console=plain -q`, then walk quickstart scenario 3 (skip, relaunch).
 
 **Checkpoint**: US1 and US2 both work. This is the shippable MVP.

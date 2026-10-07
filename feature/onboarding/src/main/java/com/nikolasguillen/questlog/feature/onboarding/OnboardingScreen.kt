@@ -2,23 +2,32 @@ package com.nikolasguillen.questlog.feature.onboarding
 
 import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.LoadingPage
 import com.nikolasguillen.questlog.core.ui.util.rememberNotificationPermissionState
 import com.nikolasguillen.questlog.feature.onboarding.components.OnboardingBottomBar
@@ -113,6 +122,17 @@ private fun OnboardingPager(
     }
 
     Column(modifier = modifier.fillMaxSize().safeDrawingPadding()) {
+        // Skip is on every page, the last one included, because FR-004 promises a way out from anywhere.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = MaterialTheme.spacing.large),
+            horizontalArrangement = Arrangement.End
+        ) {
+            TextButton(onClick = { onEvent(OnboardingUiEvent.SkipClicked) }) {
+                Text(text = stringResource(R.string.onboarding_skip))
+            }
+        }
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.weight(1f)

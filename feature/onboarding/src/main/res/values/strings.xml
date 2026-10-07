@@ -11,6 +11,7 @@
     <string name="onboarding_radar_headline">Never miss a release</string>
     <string name="onboarding_radar_body">Radar shows when your saved games come out. Turn on a reminder for any of them.</string>
 
+    <string name="onboarding_skip">Skip</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_get_started">Get started</string>

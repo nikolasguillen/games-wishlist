@@ -36,7 +36,7 @@ class OnboardingViewModel @Inject constructor(
     internal fun onEvent(event: OnboardingUiEvent) {
         when (event) {
             is OnboardingUiEvent.NotificationFactsResolved -> resolveFacts(event)
-            OnboardingUiEvent.FinishClicked -> complete()
+            OnboardingUiEvent.FinishClicked, OnboardingUiEvent.SkipClicked -> complete()
         }
     }
 
