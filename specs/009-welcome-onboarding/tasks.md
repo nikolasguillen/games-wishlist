@@ -304,7 +304,7 @@ and land on Search. Relaunch and confirm no flow. Quickstart scenarios 1, 2, 8, 
 
 **Purpose**: Final verification. Documentation edits are not collected here: each was made in the task that causes it (see the header).
 
-- [ ] T079 Run `./gradlew test` and `./gradlew :app:assembleDebug`. Every suite must be green, `git status` must show no change under `core/database/schemas/`, and `grep -rn "SetOwnedPlatformsUseCase\|setOwnedPlatforms\|clearOwnedPlatforms" --include=*.kt .` must find nothing.
+- [X] T079 Run `./gradlew test` and `./gradlew :app:assembleDebug`. Every suite must be green, `git status` must show no change under `core/database/schemas/`, and `grep -rn "SetOwnedPlatformsUseCase\|setOwnedPlatforms\|clearOwnedPlatforms" --include=*.kt .` must find nothing.
 - [ ] T080 Run the whole `quickstart.md` manual table on an API 33+ emulator, and scenario 9 on an API 29–32 emulator. Report any scenario that fails rather than marking this task done.
 
 ---
