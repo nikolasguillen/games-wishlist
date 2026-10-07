@@ -3,6 +3,7 @@ package com.nikolasguillen.questlog.feature.gamedetail
 import com.nikolasguillen.questlog.core.domain.model.WishlistAssignment
 import com.nikolasguillen.questlog.core.domain.usecase.GetGameDetailUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.RefreshGameDetailUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.SetGameStatusUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.ToggleWishlistUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.UpdateGameUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.AddGameToListUseCase
@@ -65,6 +66,7 @@ class GameDetailViewModelTest {
     private val getGameDetailUseCase = mockk<GetGameDetailUseCase>()
     private val refreshGameDetailUseCase = mockk<RefreshGameDetailUseCase>()
     private val updateGameUseCase = mockk<UpdateGameUseCase>(relaxed = true)
+    private val setGameStatusUseCase = mockk<SetGameStatusUseCase>(relaxed = true)
     private val toggleWishlistUseCase = mockk<ToggleWishlistUseCase>(relaxed = true)
     private val getWishlistAssignmentsUseCase = mockk<GetWishlistAssignmentsUseCase>()
     private val addGameToListUseCase = mockk<AddGameToListUseCase>(relaxed = true)
@@ -109,6 +111,7 @@ class GameDetailViewModelTest {
         getGameDetailUseCase = getGameDetailUseCase,
         refreshGameDetailUseCase = refreshGameDetailUseCase,
         updateGameUseCase = updateGameUseCase,
+        setGameStatusUseCase = setGameStatusUseCase,
         toggleWishlistUseCase = toggleWishlistUseCase,
         getWishlistAssignmentsUseCase = getWishlistAssignmentsUseCase,
         addGameToListUseCase = addGameToListUseCase,
@@ -210,7 +213,18 @@ class GameDetailViewModelTest {
         viewModel.onEvent(GameDetailUiEvent.UpdateStatus(GameStatus.PLAYING.id))
         advanceUntilIdle()
 
-        coVerify { updateGameUseCase(match { it.status == null }) }
+        coVerify { setGameStatusUseCase(any(), null, any()) }
+    }
+
+    @Test
+    fun `updateStatus hands a new status to the use case`() = runTest(testDispatcher) {
+        val game = testGame()
+        val viewModel = createViewModel(game)
+
+        viewModel.onEvent(GameDetailUiEvent.UpdateStatus(GameStatus.BOUGHT.id))
+        advanceUntilIdle()
+
+        coVerify { setGameStatusUseCase(game, GameStatus.BOUGHT, any()) }
     }
 
     @Test

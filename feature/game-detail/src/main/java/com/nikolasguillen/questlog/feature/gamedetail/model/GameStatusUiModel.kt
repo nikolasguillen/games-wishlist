@@ -7,5 +7,6 @@ import com.nikolasguillen.questlog.core.ui.model.UiText
 internal data class GameStatusUiModel(
     val id: Int,
     val label: UiText,
-    val selected: Boolean
+    val selected: Boolean,
+    val enabled: Boolean
 )

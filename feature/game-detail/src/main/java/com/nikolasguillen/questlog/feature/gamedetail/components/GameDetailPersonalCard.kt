@@ -195,9 +195,17 @@ private fun PersonalCardExpandedContent(
                 CustomFilterChip(
                     label = statusUi.label.asString(),
                     selected = statusUi.selected,
-                    onFilterClick = { onStatusChange(statusUi.id) }
+                    onFilterClick = { onStatusChange(statusUi.id) },
+                    enabled = statusUi.enabled
                 )
             }
+        }
+        uiModel.lockedStatusesHint?.let { hint ->
+            Text(
+                text = hint.asString(),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
@@ -245,14 +253,17 @@ private fun GameDetailPersonalCardPreview() {
                     GameStatusUiModel(
                         GameStatus.WANT_TO_BUY.id,
                         UiText.DynamicString("Want to buy"),
-                        false
+                        selected = false,
+                        enabled = true
                     ),
                     GameStatusUiModel(
                         GameStatus.PLAYING.id,
                         UiText.DynamicString("Playing"),
-                        true
+                        selected = true,
+                        enabled = true
                     )
                 ),
+                lockedStatusesHint = null,
                 availablePriorities = listOf(
                     PriorityUiModel(
                         Priority.LOW.id,
@@ -276,5 +287,52 @@ private fun GameDetailPersonalCardPreview() {
             onPriorityChange = {},
             onNotesChange = {}
         )
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun PersonalCardExpandedContentUnreleasedPreview() {
+    QuestLogTheme {
+        CustomContentCard {
+            PersonalCardExpandedContent(
+                uiModel = GameDetailPersonalUiModel(
+                    availableStatuses = listOf(
+                        GameStatusUiModel(
+                            GameStatus.WANT_TO_BUY.id,
+                            UiText.DynamicString("Want to buy"),
+                            selected = false,
+                            enabled = true
+                        ),
+                        GameStatusUiModel(
+                            GameStatus.BOUGHT.id,
+                            UiText.DynamicString("Bought"),
+                            selected = true,
+                            enabled = true
+                        ),
+                        GameStatusUiModel(
+                            GameStatus.PLAYING.id,
+                            UiText.DynamicString("Playing"),
+                            selected = false,
+                            enabled = false
+                        )
+                    ),
+                    lockedStatusesHint = UiText.DynamicString("More statuses unlock once the game is released"),
+                    availablePriorities = listOf(
+                        PriorityUiModel(
+                            Priority.HIGH.id,
+                            UiText.DynamicString("High"),
+                            true
+                        )
+                    ),
+                    notes = UiText.DynamicString("Pre-ordered the collector's edition")
+                ),
+                rotationState = 180f,
+                onStatusChange = {},
+                onPriorityChange = {},
+                onNotesChange = {},
+                onCollapse = {}
+            )
+        }
     }
 }

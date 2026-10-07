@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nikolasguillen.questlog.core.domain.usecase.GetGameDetailUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.RefreshGameDetailUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.SetGameStatusUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.ToggleWishlistUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.UpdateGameUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.AddGameToListUseCase
@@ -41,6 +42,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Clock
 
 @HiltViewModel(assistedFactory = GameDetailViewModel.Factory::class)
 class GameDetailViewModel @AssistedInject constructor(
@@ -48,6 +50,7 @@ class GameDetailViewModel @AssistedInject constructor(
     getGameDetailUseCase: GetGameDetailUseCase,
     private val refreshGameDetailUseCase: RefreshGameDetailUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
+    private val setGameStatusUseCase: SetGameStatusUseCase,
     private val toggleWishlistUseCase: ToggleWishlistUseCase,
     private val getWishlistAssignmentsUseCase: GetWishlistAssignmentsUseCase,
     private val addGameToListUseCase: AddGameToListUseCase,
@@ -93,7 +96,7 @@ class GameDetailViewModel @AssistedInject constructor(
             combine(currentGameFlow, _refreshError, notificationEnabledGameIdsFlow) { game, error, notificationIds ->
                 when {
                     game != null -> GameDetailContentState.Success(
-                        game.toUiModel(isNotificationEnabled = gameId in notificationIds)
+                        game.toUiModel(isNotificationEnabled = gameId in notificationIds, now = Clock.System.now())
                     )
                     error != null -> GameDetailContentState.Error(error)
                     else -> GameDetailContentState.Loading
@@ -208,7 +211,7 @@ class GameDetailViewModel @AssistedInject constructor(
         val status = GameStatus.fromId(statusId)
         val game = currentGameFlow.value ?: return
         val newStatus = if (game.status == status) null else status
-        viewModelScope.launch { updateGameUseCase(game.copy(status = newStatus)) }
+        viewModelScope.launch { setGameStatusUseCase(game, newStatus) }
     }
 
     private fun openListSelector() {

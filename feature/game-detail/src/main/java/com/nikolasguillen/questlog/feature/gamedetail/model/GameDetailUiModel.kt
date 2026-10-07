@@ -60,8 +60,9 @@ internal data class GameDetailUiModel(
             personalDetails = GameDetailPersonalUiModel(
                 notes = UiText.DynamicString("Geralt's adventures are amazing!"),
                 availableStatuses = GameStatus.entries.mapIndexed { index, status ->
-                    status.toUiModel(index == 1)
+                    status.toUiModel(selected = index == 1, enabled = true)
                 },
+                lockedStatusesHint = null,
                 availablePriorities = Priority.entries.mapIndexed { index, priority ->
                     priority.toUiModel(index == 1)
                 }

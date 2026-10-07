@@ -2,6 +2,8 @@ package com.nikolasguillen.questlog.feature.gamedetail.mapper
 
 import com.nikolasguillen.questlog.core.common.DateUtils
 import com.nikolasguillen.questlog.core.domain.model.WishlistAssignment
+import com.nikolasguillen.questlog.core.domain.release.canSetStatus
+import com.nikolasguillen.questlog.core.domain.release.isPastReleaseDay
 import com.nikolasguillen.questlog.core.model.DatePrecision
 import com.nikolasguillen.questlog.core.model.Game
 import com.nikolasguillen.questlog.core.model.GameStatus
@@ -26,9 +28,10 @@ import com.nikolasguillen.questlog.feature.gamedetail.model.PriorityUiModel
 import com.nikolasguillen.questlog.feature.gamedetail.model.RatingUiModel
 import com.nikolasguillen.questlog.feature.gamedetail.model.RelatedGamesUiModel
 import java.util.Locale
+import kotlin.time.Instant
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
-internal fun Game.toUiModel(isNotificationEnabled: Boolean): GameDetailUiModel {
+internal fun Game.toUiModel(isNotificationEnabled: Boolean, now: Instant): GameDetailUiModel {
     val related = mutableListOf<RelatedGamesUiModel>()
 
     parentGame?.let {
@@ -136,14 +139,24 @@ internal fun Game.toUiModel(isNotificationEnabled: Boolean): GameDetailUiModel {
         genres = genres.map { UiText.DynamicString(it.name) },
         companyInfo = UiText.DynamicString(companies),
         isWishlisted = isWishlisted,
-        personalDetails = GameDetailPersonalUiModel(
-            notes = UiText.DynamicString(notes),
-            availableStatuses = GameStatus.entries.map { it.toUiModel(selected = this.status?.id == it.id) },
-            availablePriorities = Priority.entries.map { it.toUiModel(selected = this.priority?.id == it.id) }
-        ),
+        personalDetails = toPersonalUiModel(now),
         relatedGames = related,
         isNotificationEnabled = isNotificationEnabled,
-        isNotificationAvailable = isSaved && !isReleaseAlreadyPast()
+        isNotificationAvailable = isSaved && !isPastReleaseDay(now)
+    )
+}
+
+private fun Game.toPersonalUiModel(now: Instant): GameDetailPersonalUiModel {
+    val lockedStatuses = GameStatus.entries.filterNot { canSetStatus(it, now) }
+    return GameDetailPersonalUiModel(
+        notes = UiText.DynamicString(notes),
+        availableStatuses = GameStatus.entries.map {
+            // The current status stays enabled even when locked, so a slipped release can still be cleared.
+            it.toUiModel(selected = status == it, enabled = it == status || it !in lockedStatuses)
+        },
+        lockedStatusesHint = lockedStatuses.takeIf { it.isNotEmpty() }
+            ?.let { UiText.StringResource(R.string.status_locked_until_release) },
+        availablePriorities = Priority.entries.map { it.toUiModel(selected = this.priority?.id == it.id) }
     )
 }
 
@@ -156,14 +169,6 @@ internal fun Game.toUiModel(isNotificationEnabled: Boolean): GameDetailUiModel {
  */
 private val Game.isSaved: Boolean
     get() = isWishlisted || status != null || priority != null
-
-/** True only when the earliest known release date is a precise day that has already elapsed. */
-private fun Game.isReleaseAlreadyPast(): Boolean {
-    val earliestDate = releaseDates.minByOrNull { it.date ?: Long.MAX_VALUE } ?: return false
-    if (earliestDate.precision != DatePrecision.EXACT_DATE) return false
-    val date = earliestDate.date ?: return false
-    return DateUtils.timestampToLocalDate(date).isBefore(java.time.LocalDate.now())
-}
 
 /**
  * Formats a per-platform release date, respecting [precision] instead of always showing a full day+month+
@@ -207,7 +212,7 @@ private fun formatLargeNumber(number: Int): String {
     }
 }
 
-internal fun GameStatus.toUiModel(selected: Boolean): GameStatusUiModel {
+internal fun GameStatus.toUiModel(selected: Boolean, enabled: Boolean): GameStatusUiModel {
     val resId = when (this) {
         GameStatus.WANT_TO_BUY -> CoreUiR.string.status_want_to_buy
         GameStatus.BOUGHT -> CoreUiR.string.status_bought
@@ -216,7 +221,7 @@ internal fun GameStatus.toUiModel(selected: Boolean): GameStatusUiModel {
         GameStatus.DROPPED -> CoreUiR.string.status_dropped
     }
     return GameStatusUiModel(
-        id = this.id, label = UiText.StringResource(resId), selected = selected
+        id = this.id, label = UiText.StringResource(resId), selected = selected, enabled = enabled
     )
 }
 
