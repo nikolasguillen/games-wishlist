@@ -156,5 +156,5 @@
     <string name="owned_platforms_search_clear_content_description">Clear search</string>
     <string name="owned_platforms_clear_search_action">Clear search</string>
     <string name="owned_platforms_no_results">No platform matches your search.</string>
-    <string name="owned_platforms_empty">No platforms cached yet. Check your connection and try again.</string>
+    <string name="owned_platforms_empty">No platforms cached yet.\nCheck your connection and try again.</string>
 </resources>

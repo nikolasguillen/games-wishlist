@@ -251,7 +251,8 @@ ViewModel's page list:
 
 **Decision**: Each informational page shows an icon from Material Icons Extended in a container styled
 with the existing modifiers (`metallicBorder`, `rememberCoverBrush`). The Welcome page reuses
-`ControllerLoadingAnimation`. The illustration is sized by `fillMaxWidth(fraction)` plus `aspectRatio(1f)`
+`ControllerLoadingAnimation`, played once (it gained a `repeat` parameter; the loader keeps looping by
+default) and drawn, like the icons, in `appColors.textOnSurface` for contrast on the light background. The illustration is sized by `fillMaxWidth(fraction)` plus `aspectRatio(1f)`
 rather than a `dp` literal.
 
 **Rationale**:

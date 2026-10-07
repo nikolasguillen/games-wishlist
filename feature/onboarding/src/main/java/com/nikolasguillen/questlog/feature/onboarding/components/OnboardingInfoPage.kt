@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.ControllerLoadingAnimation
 import com.nikolasguillen.questlog.core.ui.model.UiText
@@ -51,6 +52,8 @@ internal fun OnboardingInfoPage(
 ) {
     val spacing = MaterialTheme.spacing
     val shape = MaterialTheme.shapes.extraLarge
+    // `primary` is a gold that vanishes against the light background; textOnSurface is its readable twin.
+    val illustrationColor = MaterialTheme.appColors.textOnSurface
 
     // The constraints are read outside the scrolling column: inside it the height is unbounded.
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
@@ -82,12 +85,17 @@ internal fun OnboardingInfoPage(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = illustrationColor,
                         modifier = Modifier.fillMaxSize(ICON_FRACTION)
                     )
                 } else {
-                    // Purely decorative here: nothing is loading, so it carries no description.
-                    ControllerLoadingAnimation(modifier = Modifier.fillMaxSize(ICON_FRACTION))
+                    // Purely decorative here: nothing is loading, so it carries no description, and one pass
+                    // is enough — it plays once as the page appears instead of circling forever.
+                    ControllerLoadingAnimation(
+                        modifier = Modifier.fillMaxSize(ICON_FRACTION),
+                        color = illustrationColor,
+                        repeat = false
+                    )
                 }
             }
             Text(

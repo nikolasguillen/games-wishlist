@@ -65,7 +65,7 @@ Use an API 33+ emulator for the reminders steps. Use an API 29–32 emulator for
 | 11 | Rotate on page 3, and on the platforms page with a search query typed | The same page, query and picks remain. |
 | 12a | On page 4, swipe the app away from recents and relaunch | The flow starts again from page 1 (nothing was completed), and picks made before are still selected on the platforms page. |
 | 12b | On page 4, background the app, run `adb shell am kill com.nikolasguillen.questlog`, then reopen it from recents | The system restores the same page (4) and the same picks, as it does after rotation. |
-| 13 | Switch the system to dark mode, then light mode; set the largest font size and display size | Every page is readable, with text scrolling if needed, and all controls stay reachable. On the platforms page the headline, body and caption scroll away with the list, the search field stays pinned, and the list is usable. |
+| 13 | Switch the system to dark mode, then light mode; set the largest font size and display size | Every page is readable, with text scrolling if needed, and all controls stay reachable. On the platforms page the headline and the search field stay pinned, the body and caption scroll away with the list, and the list is usable. In light mode, Skip, Back, "Not now" and the page icons are readable (dark gold, not the light primary gold). |
 | 14 | TalkBack on | Each page's headline, body and buttons are announced. |
 | 15 | Time a read-through of the full flow | Under 60 seconds (SC-001). |
 | 16 | Settings → Owned platforms: tap three platforms as fast as possible, then untap one | Exactly two remain selected, in both the list and the Settings summary. The picker looks, orders and searches exactly as before the move. |

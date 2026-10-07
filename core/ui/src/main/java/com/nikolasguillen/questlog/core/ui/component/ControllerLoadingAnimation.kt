@@ -1,10 +1,7 @@
 package com.nikolasguillen.questlog.core.ui.component
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -12,7 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -25,6 +23,8 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 
@@ -35,42 +35,38 @@ import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
  * @param color Color of the animated stroke.
  * @param strokeWidth Width of the animated stroke.
  * @param animationDuration Duration of one full loop of the animation in milliseconds.
+ * @param repeat Whether the segment keeps circling. `false` plays one pass and then settles on the full
+ * outline, for places where the controller is an illustration rather than a sign that something is
+ * loading.
  */
 @Composable
 fun ControllerLoadingAnimation(
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.primary,
     strokeWidth: Dp = 4.dp,
-    animationDuration: Int = 2000
+    animationDuration: Int = 2000,
+    repeat: Boolean = true
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "controllerLoading")
     val backgroundGhostColor = color.copy(alpha = 0.4f)
 
-    // Head of the segment (leading edge)
-    val headProgress by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(animationDuration, easing = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "headProgress"
-    )
+    // Head of the segment (leading edge) and tail (trailing edge). The tail starts slow and ends fast, so
+    // it catches up with the head.
+    val headProgress = remember { Animatable(0f) }
+    val tailProgress = remember { Animatable(0f) }
+    // How much of the full outline is lit once a single pass has finished. Never moves while looping.
+    val settledProgress = remember { Animatable(0f) }
 
-    // Tail of the segment (trailing edge)
-    val tailProgress by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = animationDuration,
-                // Tail starts slow and ends fast to catch up with the head
-                easing = CubicBezierEasing(0.3f, 0f, 0.8f, 0.15f)
-            ),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "tailProgress"
-    )
+    LaunchedEffect(animationDuration, repeat) {
+        do {
+            headProgress.snapTo(0f)
+            tailProgress.snapTo(0f)
+            coroutineScope {
+                launch { headProgress.animateTo(1f, tween(animationDuration, easing = HeadEasing)) }
+                launch { tailProgress.animateTo(1f, tween(animationDuration, easing = TailEasing)) }
+            }
+        } while (repeat)
+        settledProgress.animateTo(1f, tween(SETTLE_DURATION_MILLIS))
+    }
 
     Canvas(modifier = modifier) {
         val margin = 0.05f
@@ -89,18 +85,14 @@ fun ControllerLoadingAnimation(
 
         // Calculate start and end distances on the path
         // Removed minLength to allow the segment to compress completely at start/end
-        val startDistance = (tailProgress * totalLength)
-        val endDistance = (headProgress * totalLength)
+        val startDistance = (tailProgress.value * totalLength)
+        val endDistance = (headProgress.value * totalLength)
 
+        // Empty while the tail has not left the start or has caught up with the head. Drawing the
+        // wrapped-around segment there instead lit the whole outline for a frame.
         val segmentPath = Path()
-
         if (startDistance < endDistance) {
             pathMeasure.getSegment(startDistance, endDistance, segmentPath, true)
-        } else {
-            // This case handles the "stretch" beyond the loop if we were rotating, 
-            // but here ensure it's a clean reset
-            pathMeasure.getSegment(startDistance, totalLength, segmentPath, true)
-            pathMeasure.getSegment(0f, endDistance, segmentPath, true)
         }
 
         // Draw the background "ghost" details
@@ -186,8 +178,28 @@ fun ControllerLoadingAnimation(
                 join = StrokeJoin.Round
             )
         )
+
+        // Where a single pass comes to rest: the whole outline, faded in once the sweep is over.
+        if (settledProgress.value > 0f) {
+            drawPath(
+                path = path,
+                color = color.copy(alpha = settledProgress.value),
+                style = Stroke(
+                    width = strokeWidth.toPx(),
+                    cap = StrokeCap.Round,
+                    join = StrokeJoin.Round
+                )
+            )
+        }
     }
 }
+
+private val HeadEasing = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)
+
+// Tail starts slow and ends fast to catch up with the head.
+private val TailEasing = CubicBezierEasing(0.3f, 0f, 0.8f, 0.15f)
+
+private const val SETTLE_DURATION_MILLIS = 400
 
 /**
  * Creates a [Path] representing a game controller outline, scaled to the given [size].
@@ -239,6 +251,23 @@ private fun createControllerPath(size: Size): Path {
 
     path.close()
     return path
+}
+
+@QuestLogPreviews
+@Composable
+private fun ControllerLoadingAnimationSinglePassPreview() {
+    QuestLogTheme {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            ControllerLoadingAnimation(
+                modifier = Modifier.size(200.dp),
+                color = MaterialTheme.colorScheme.primary,
+                repeat = false
+            )
+        }
+    }
 }
 
 @QuestLogPreviews

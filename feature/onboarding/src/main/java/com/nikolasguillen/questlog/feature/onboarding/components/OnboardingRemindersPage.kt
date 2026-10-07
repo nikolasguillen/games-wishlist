@@ -2,6 +2,8 @@ package com.nikolasguillen.questlog.feature.onboarding.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -9,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.feature.onboarding.R
 import com.nikolasguillen.questlog.feature.onboarding.mapper.toInfoUiModel
 import com.nikolasguillen.questlog.feature.onboarding.model.ReminderStepState
@@ -30,7 +33,10 @@ internal fun OnboardingRemindersPage(
             Button(onClick = onAllowClick, modifier = Modifier.fillMaxWidth()) {
                 Text(text = stringResource(R.string.onboarding_reminders_allow))
             }
-            TextButton(onClick = onNotNowClick) {
+            TextButton(
+                onClick = onNotNowClick,
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.appColors.textOnSurface)
+            ) {
                 Text(text = stringResource(R.string.onboarding_reminders_not_now))
             }
         }

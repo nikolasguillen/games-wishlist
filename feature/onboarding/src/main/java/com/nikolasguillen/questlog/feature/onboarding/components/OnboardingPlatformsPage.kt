@@ -25,9 +25,10 @@ import com.nikolasguillen.questlog.core.ui.model.PlatformPickerItemUiModel
 import com.nikolasguillen.questlog.feature.onboarding.R
 
 /**
- * The owned-platforms step. The search field is pinned; the headline, body and caption are the list's
- * first items in `Success`, so at a large font size they scroll away instead of leaving the rows no room.
- * The other states have nothing long to scroll, so the same text is drawn statically above their message.
+ * The owned-platforms step. The headline and the search field are pinned, in that order; the body and the
+ * caption are the list's first items in `Success`, so at a large font size they scroll away instead of
+ * leaving the rows no room. The other states have nothing long to scroll, so the same text is drawn
+ * statically above their message.
  *
  * The body, which says the choice can be made later in Settings, is on screen in every state — including
  * the offline one, where it is what tells the user they are not stuck.
@@ -43,9 +44,18 @@ internal fun OnboardingPlatformsPage(
     modifier: Modifier = Modifier
 ) {
     val spacing = MaterialTheme.spacing
-    val header: @Composable () -> Unit = { PlatformsHeader(selectedCount = selectedCount) }
+    val intro: @Composable () -> Unit = { PlatformsIntro(selectedCount = selectedCount) }
 
     Column(modifier = modifier.fillMaxSize()) {
+        Text(
+            text = stringResource(R.string.onboarding_platforms_headline),
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .padding(horizontal = spacing.extraLarge)
+                .padding(top = spacing.large, bottom = spacing.medium)
+                .semantics { heading() }
+        )
         PlatformSearchField(
             state = searchFieldState,
             onClearQuery = onClearQuery,
@@ -57,11 +67,11 @@ internal fun OnboardingPlatformsPage(
                 onToggle = onToggle,
                 onClearQuery = onClearQuery,
                 onRetry = onRetry,
-                header = header,
+                header = intro,
                 modifier = Modifier.weight(1f)
             )
         } else {
-            header()
+            intro()
             PlatformPickerList(
                 state = pickerState,
                 onToggle = onToggle,
@@ -74,7 +84,7 @@ internal fun OnboardingPlatformsPage(
 }
 
 @Composable
-private fun PlatformsHeader(selectedCount: Int, modifier: Modifier = Modifier) {
+private fun PlatformsIntro(selectedCount: Int, modifier: Modifier = Modifier) {
     val spacing = MaterialTheme.spacing
     Column(
         verticalArrangement = Arrangement.spacedBy(spacing.medium),
@@ -82,12 +92,6 @@ private fun PlatformsHeader(selectedCount: Int, modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .padding(horizontal = spacing.extraLarge, vertical = spacing.large)
     ) {
-        Text(
-            text = stringResource(R.string.onboarding_platforms_headline),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.semantics { heading() }
-        )
         Text(
             text = stringResource(R.string.onboarding_platforms_body),
             style = MaterialTheme.typography.bodyLarge,
