@@ -19,6 +19,15 @@
         <item quantity="other">Suggestions and release dates are filtered to these %1$d platforms.</item>
     </plurals>
 
+    <string name="onboarding_reminders_headline">Get a heads-up on release day</string>
+    <string name="onboarding_reminders_body">QuestLog can notify you the day a saved game comes out. You choose which games, and Android will ask for permission next.</string>
+    <string name="onboarding_reminders_granted_headline">Reminders are available</string>
+    <string name="onboarding_reminders_granted_body">Turn on a reminder for any saved game, from Radar or from its page.</string>
+    <string name="onboarding_reminders_declined_headline">Reminders are off</string>
+    <string name="onboarding_reminders_declined_body">You won\'t get release-day reminders for now. You can turn them on any time in Settings.</string>
+    <string name="onboarding_reminders_allow">Allow notifications</string>
+    <string name="onboarding_reminders_not_now">Not now</string>
+
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_next">Next</string>

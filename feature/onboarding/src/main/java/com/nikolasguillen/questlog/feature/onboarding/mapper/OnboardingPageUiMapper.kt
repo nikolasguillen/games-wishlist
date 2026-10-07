@@ -3,29 +3,33 @@ package com.nikolasguillen.questlog.feature.onboarding.mapper
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Search
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.onboarding.R
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingInfoPageUiModel
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingPage
+import com.nikolasguillen.questlog.feature.onboarding.model.ReminderStepState
 
 /**
  * The pages this launch shows, in order.
  *
- * Both parameters are the device facts the setup pages depend on. The platforms step does not use them,
- * so they are accepted ahead of the reminders page that will.
+ * The reminders page is last, and only when asking could change something: the device has a runtime
+ * notification permission at all, and notifications cannot be delivered yet.
  */
-@Suppress("UNUSED_PARAMETER")
 internal fun buildOnboardingPages(
     requiresRuntimePermission: Boolean,
     canDeliver: Boolean
-): List<OnboardingPage> = listOf(
-    OnboardingPage.Welcome,
-    OnboardingPage.Discover,
-    OnboardingPage.Lists,
-    OnboardingPage.Radar,
-    OnboardingPage.Platforms
-)
+): List<OnboardingPage> = buildList {
+    add(OnboardingPage.Welcome)
+    add(OnboardingPage.Discover)
+    add(OnboardingPage.Lists)
+    add(OnboardingPage.Radar)
+    add(OnboardingPage.Platforms)
+    if (requiresRuntimePermission && !canDeliver) add(OnboardingPage.Reminders)
+}
 
 /** The informational content of [this], or `null` for a page that is not purely informational. */
 internal fun OnboardingPage.toInfoUiModel(): OnboardingInfoPageUiModel? = when (this) {
@@ -54,4 +58,28 @@ internal fun OnboardingPage.toInfoUiModel(): OnboardingInfoPageUiModel? = when (
     )
 
     OnboardingPage.Platforms -> null
+
+    // Its content depends on the step, so it is built by ReminderStepState.toInfoUiModel().
+    OnboardingPage.Reminders -> null
+}
+
+/** What the reminders page shows for each state of its step. */
+internal fun ReminderStepState.toInfoUiModel(): OnboardingInfoPageUiModel = when (this) {
+    ReminderStepState.Undecided -> OnboardingInfoPageUiModel(
+        headline = UiText.StringResource(R.string.onboarding_reminders_headline),
+        body = UiText.StringResource(R.string.onboarding_reminders_body),
+        icon = Icons.Default.Notifications
+    )
+
+    ReminderStepState.Granted -> OnboardingInfoPageUiModel(
+        headline = UiText.StringResource(R.string.onboarding_reminders_granted_headline),
+        body = UiText.StringResource(R.string.onboarding_reminders_granted_body),
+        icon = Icons.Default.NotificationsActive
+    )
+
+    ReminderStepState.Declined -> OnboardingInfoPageUiModel(
+        headline = UiText.StringResource(R.string.onboarding_reminders_declined_headline),
+        body = UiText.StringResource(R.string.onboarding_reminders_declined_body),
+        icon = Icons.Default.NotificationsOff
+    )
 }

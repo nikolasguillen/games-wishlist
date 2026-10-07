@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,11 +38,14 @@ import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingInfoPageUi
  *
  * The column scrolls, so a large font size or a short screen never hides the text; the illustration is
  * sized as a fraction of the width rather than in dp, so it is the thing that gives way first.
+ *
+ * @param actions Optional content below the body — the reminders page puts its two buttons here.
  */
 @Composable
 internal fun OnboardingInfoPage(
     page: OnboardingInfoPageUiModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    actions: @Composable ColumnScope.() -> Unit = {}
 ) {
     val spacing = MaterialTheme.spacing
     val shape = MaterialTheme.shapes.extraLarge
@@ -91,6 +95,7 @@ internal fun OnboardingInfoPage(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
+        actions()
     }
 }
 

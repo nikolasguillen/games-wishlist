@@ -240,7 +240,7 @@ and land on Search. Relaunch and confirm no flow. Quickstart scenarios 1, 2, 8, 
 
 ### 5d. Reminders step in the flow
 
-- [ ] T062 [US3] Extend `FTEST/OnboardingViewModelTest.kt`. Cases:
+- [X] T062 [US3] Extend `FTEST/OnboardingViewModelTest.kt`. Cases:
   - `Reminders` is last in the list when `requiresRuntimePermission = true, canDeliver = false`;
   - it is absent when `requiresRuntimePermission = false`, and absent when `canDeliver = true` (FR-018);
   - `AllowNotificationsClicked` emits `RequestNotificationPermission`;
@@ -248,26 +248,26 @@ and land on Search. Relaunch and confirm no flow. Quickstart scenarios 1, 2, 8, 
   - `NotNowClicked` gives `Declined` without emitting `RequestNotificationPermission`;
   - `Declined` followed by `PermissionStateChanged(canDeliver = true)` gives `Granted`, while `PermissionStateChanged(false)` changes nothing;
   - finishing from `Declined` still emits `Finished`.
-- [ ] T063 [P] [US3] Create `FEATURE/model/ReminderStepState.kt`: `@Immutable internal sealed interface ReminderStepState` with `data object Undecided`, `Granted`, `Declined`.
-- [ ] T064 [P] [US3] Add `data object Reminders` to `FEATURE/model/OnboardingPage.kt`. Run after T054.
-- [ ] T065 [P] [US3] Add `val reminderStep: ReminderStepState = ReminderStepState.Undecided` to `FEATURE/model/OnboardingUiState.kt`. Run after T055.
-- [ ] T066 [P] [US3] Add `AllowNotificationsClicked`, `NotNowClicked`, `data class NotificationPermissionResult(val granted: Boolean)` and `data class PermissionStateChanged(val canDeliver: Boolean)` to `FEATURE/model/OnboardingUiEvent.kt`. Run after T056.
-- [ ] T067 [P] [US3] Add `data object RequestNotificationPermission` to `FEATURE/model/OnboardingUiEffect.kt`.
-- [ ] T068 [P] [US3] Add an optional `onResult: (granted: Boolean) -> Unit = {}` parameter to `rememberNotificationPermissionState()` in `core/ui/.../core/ui/util/NotificationPermission.kt`. Invoke it at the end of the launcher callback, after `canDeliver` and `isPermanentlyDenied` are updated. Use `rememberUpdatedState` so a changing lambda never re-creates the launcher. Document it in the KDoc. The four existing callers must compile unchanged. In the same commit, if `core/ui/CLAUDE.md` lists the helper, mention the optional `onResult`.
-- [ ] T069 [US3] Update `buildOnboardingPages` in `FEATURE/mapper/OnboardingPageUiMapper.kt` to append `Reminders` last only when `requiresRuntimePermission && !canDeliver`. Depends on T058, T064.
-- [ ] T070 [US3] Update `FEATURE/OnboardingViewModel.kt`:
+- [X] T063 [P] [US3] Create `FEATURE/model/ReminderStepState.kt`: `@Immutable internal sealed interface ReminderStepState` with `data object Undecided`, `Granted`, `Declined`.
+- [X] T064 [P] [US3] Add `data object Reminders` to `FEATURE/model/OnboardingPage.kt`. Run after T054.
+- [X] T065 [P] [US3] Add `val reminderStep: ReminderStepState = ReminderStepState.Undecided` to `FEATURE/model/OnboardingUiState.kt`. Run after T055.
+- [X] T066 [P] [US3] Add `AllowNotificationsClicked`, `NotNowClicked`, `data class NotificationPermissionResult(val granted: Boolean)` and `data class PermissionStateChanged(val canDeliver: Boolean)` to `FEATURE/model/OnboardingUiEvent.kt`. Run after T056.
+- [X] T067 [P] [US3] Add `data object RequestNotificationPermission` to `FEATURE/model/OnboardingUiEffect.kt`.
+- [X] T068 [P] [US3] Add an optional `onResult: (granted: Boolean) -> Unit = {}` parameter to `rememberNotificationPermissionState()` in `core/ui/.../core/ui/util/NotificationPermission.kt`. Invoke it at the end of the launcher callback, after `canDeliver` and `isPermanentlyDenied` are updated. Use `rememberUpdatedState` so a changing lambda never re-creates the launcher. Document it in the KDoc. The four existing callers must compile unchanged. In the same commit, if `core/ui/CLAUDE.md` lists the helper, mention the optional `onResult`.
+- [X] T069 [US3] Update `buildOnboardingPages` in `FEATURE/mapper/OnboardingPageUiMapper.kt` to append `Reminders` last only when `requiresRuntimePermission && !canDeliver`. Depends on T058, T064.
+- [X] T070 [US3] Update `FEATURE/OnboardingViewModel.kt`:
   - `AllowNotificationsClicked` sends `RequestNotificationPermission`;
   - `NotNowClicked` sets `Declined`;
   - `NotificationPermissionResult` sets `Granted` or `Declined`;
   - `PermissionStateChanged(true)` moves `Declined` to `Granted`, and nothing else changes.
   - Depends on T059, T062, T063, T065, T066, T067.
-- [ ] T071 [P] [US3] Add to `feature/onboarding/.../strings.xml` the three reminders states, each at most one headline and two sentences:
+- [X] T071 [P] [US3] Add to `feature/onboarding/.../strings.xml` the three reminders states, each at most one headline and two sentences:
   - Undecided: explains that QuestLog can tell the user on the day a saved game comes out, that reminders are chosen per game, and that the system will ask for permission next. Actions: "Allow notifications" and "Not now".
   - Granted: confirms reminders are available.
   - Declined: says reminders are off and can be changed later from Settings.
   - Plus `onboarding_reminders_allow`, `onboarding_reminders_not_now`, and "Get started" reused.
-- [ ] T072 [US3] Create `FEATURE/components/OnboardingRemindersPage.kt` rendering the three `ReminderStepState`s from T071. `Undecided` shows the primary "Allow notifications" and the secondary "Not now". `Granted` and `Declined` show only text, because the bottom bar's "Get started" ends the flow. Callbacks only. The headline carries `semantics { heading() }` (FR-015). Add a preview per state. Depends on T063, T071.
-- [ ] T073 [US3] In `FEATURE/OnboardingScreen.kt`:
+- [X] T072 [US3] Create `FEATURE/components/OnboardingRemindersPage.kt` rendering the three `ReminderStepState`s from T071. `Undecided` shows the primary "Allow notifications" and the secondary "Not now". `Granted` and `Declined` show only text, because the bottom bar's "Get started" ends the flow. Callbacks only. The headline carries `semantics { heading() }` (FR-015). Add a preview per state. Depends on T063, T071.
+- [X] T073 [US3] In `FEATURE/OnboardingScreen.kt`:
   - pass `onResult = { onEvent(NotificationPermissionResult(it)) }` to the `rememberNotificationPermissionState()` call that T024 introduced;
   - render `OnboardingRemindersPage` for `Reminders`;
   - on `RequestNotificationPermission`, call `permissionState.request()` unless `permissionState.isPermanentlyDenied`, in which case send `NotificationPermissionResult(false)` directly (research R8), and never open system settings from the flow;

@@ -35,6 +35,7 @@ import com.nikolasguillen.questlog.core.ui.util.rememberNotificationPermissionSt
 import com.nikolasguillen.questlog.feature.onboarding.components.OnboardingBottomBar
 import com.nikolasguillen.questlog.feature.onboarding.components.OnboardingInfoPage
 import com.nikolasguillen.questlog.feature.onboarding.components.OnboardingPlatformsPage
+import com.nikolasguillen.questlog.feature.onboarding.components.OnboardingRemindersPage
 import com.nikolasguillen.questlog.feature.onboarding.mapper.toInfoUiModel
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingContentState
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingPage
@@ -53,7 +54,12 @@ fun OnboardingScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val permissionState = rememberNotificationPermissionState()
+    val permissionState = rememberNotificationPermissionState(
+        onResult = { granted ->
+            viewModel.onEvent(OnboardingUiEvent.NotificationPermissionResult(granted))
+        }
+    )
+    val latestPermissionState = rememberUpdatedState(permissionState)
     // The effect below never restarts once launched, so it must read the latest callback rather than the
     // one captured on first composition.
     val latestOnFinish by rememberUpdatedState(onFinish)
@@ -74,9 +80,25 @@ fun OnboardingScreen(
             viewModel.uiEffect.collect { effect ->
                 when (effect) {
                     OnboardingUiEffect.Finished -> latestOnFinish()
+
+                    OnboardingUiEffect.RequestNotificationPermission -> {
+                        val permission = latestPermissionState.value
+                        if (permission.isPermanentlyDenied) {
+                            // The system will not show its dialog again, and sending the user to system
+                            // settings is not this flow's job: it explains instead, so this is a decline.
+                            viewModel.onEvent(OnboardingUiEvent.NotificationPermissionResult(granted = false))
+                        } else {
+                            permission.request()
+                        }
+                    }
                 }
             }
         }
+    }
+
+    // Notifications switched on from system settings while the flow is open settle a declined step.
+    LaunchedEffect(permissionState.canDeliver) {
+        viewModel.onEvent(OnboardingUiEvent.PermissionStateChanged(permissionState.canDeliver))
     }
 
     OnboardingContent(
@@ -160,6 +182,12 @@ private fun OnboardingPager(
                     onRetry = { onEvent(OnboardingUiEvent.RetryPlatformSync) }
                 )
 
+                OnboardingPage.Reminders -> OnboardingRemindersPage(
+                    step = state.reminderStep,
+                    onAllowClick = { onEvent(OnboardingUiEvent.AllowNotificationsClicked) },
+                    onNotNowClick = { onEvent(OnboardingUiEvent.NotNowClicked) }
+                )
+
                 else -> page.toInfoUiModel()?.let { OnboardingInfoPage(page = it) }
             }
         }
@@ -192,7 +220,8 @@ private fun OnboardingContentReadyPreview() {
                         OnboardingPage.Discover,
                         OnboardingPage.Lists,
                         OnboardingPage.Radar,
-                        OnboardingPage.Platforms
+                        OnboardingPage.Platforms,
+                        OnboardingPage.Reminders
                     )
                 )
             ),

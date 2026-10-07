@@ -14,6 +14,7 @@ import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingContentSta
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingPage
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingUiEffect
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingUiEvent
+import com.nikolasguillen.questlog.feature.onboarding.model.ReminderStepState
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -113,10 +114,10 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun `resolving the device facts builds the page list ending with the platforms step`() = runTest(testDispatcher) {
+    fun `resolving the device facts builds the tour and the platforms step`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 
-        viewModel.resolveFacts()
+        viewModel.resolveFacts(requiresRuntimePermission = false)
         advanceUntilIdle()
 
         assertEquals(OnboardingContentState.Ready(pagesWithoutReminders), viewModel.uiState.value.contentState)
@@ -282,4 +283,139 @@ class OnboardingViewModelTest {
             advanceUntilIdle()
             assertEquals(3, viewModel.platformNames().size)
         }
+
+    @Test
+    fun `the reminders page is last when the device needs a permission that is not granted`() =
+        runTest(testDispatcher) {
+            val viewModel = createViewModel()
+
+            viewModel.resolveFacts(requiresRuntimePermission = true, canDeliver = false)
+            advanceUntilIdle()
+
+            assertEquals(
+                OnboardingContentState.Ready(pagesWithoutReminders + OnboardingPage.Reminders),
+                viewModel.uiState.value.contentState
+            )
+        }
+
+    @Test
+    fun `the reminders page is absent when the device needs no runtime permission`() =
+        runTest(testDispatcher) {
+            val viewModel = createViewModel()
+
+            viewModel.resolveFacts(requiresRuntimePermission = false, canDeliver = false)
+            advanceUntilIdle()
+
+            assertEquals(
+                OnboardingContentState.Ready(pagesWithoutReminders),
+                viewModel.uiState.value.contentState
+            )
+        }
+
+    @Test
+    fun `the reminders page is absent when notifications can already be delivered`() =
+        runTest(testDispatcher) {
+            val viewModel = createViewModel()
+
+            viewModel.resolveFacts(requiresRuntimePermission = true, canDeliver = true)
+            advanceUntilIdle()
+
+            assertEquals(
+                OnboardingContentState.Ready(pagesWithoutReminders),
+                viewModel.uiState.value.contentState
+            )
+        }
+
+    @Test
+    fun `the reminders step starts Undecided`() = runTest(testDispatcher) {
+        assertEquals(ReminderStepState.Undecided, createViewModel().uiState.value.reminderStep)
+    }
+
+    @Test
+    fun `AllowNotificationsClicked asks the screen to show the system request`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        val effects = mutableListOf<OnboardingUiEffect>()
+        val effectJob = launch { viewModel.uiEffect.collect { effects.add(it) } }
+        advanceUntilIdle()
+
+        viewModel.onEvent(OnboardingUiEvent.AllowNotificationsClicked)
+        advanceUntilIdle()
+
+        assertEquals(listOf(OnboardingUiEffect.RequestNotificationPermission), effects)
+        assertEquals(ReminderStepState.Undecided, viewModel.uiState.value.reminderStep)
+        effectJob.cancel()
+    }
+
+    @Test
+    fun `a granted system result moves the step to Granted`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onEvent(OnboardingUiEvent.NotificationPermissionResult(granted = true))
+        advanceUntilIdle()
+
+        assertEquals(ReminderStepState.Granted, viewModel.uiState.value.reminderStep)
+    }
+
+    @Test
+    fun `a denied system result moves the step to Declined`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onEvent(OnboardingUiEvent.NotificationPermissionResult(granted = false))
+        advanceUntilIdle()
+
+        assertEquals(ReminderStepState.Declined, viewModel.uiState.value.reminderStep)
+    }
+
+    @Test
+    fun `NotNowClicked declines without ever showing the system request`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        val effects = mutableListOf<OnboardingUiEffect>()
+        val effectJob = launch { viewModel.uiEffect.collect { effects.add(it) } }
+        advanceUntilIdle()
+
+        viewModel.onEvent(OnboardingUiEvent.NotNowClicked)
+        advanceUntilIdle()
+
+        assertEquals(ReminderStepState.Declined, viewModel.uiState.value.reminderStep)
+        assertTrue(effects.isEmpty())
+        effectJob.cancel()
+    }
+
+    @Test
+    fun `granting from system settings after declining moves the step to Granted`() =
+        runTest(testDispatcher) {
+            val viewModel = createViewModel()
+            viewModel.onEvent(OnboardingUiEvent.NotNowClicked)
+
+            viewModel.onEvent(OnboardingUiEvent.PermissionStateChanged(canDeliver = false))
+            assertEquals(ReminderStepState.Declined, viewModel.uiState.value.reminderStep)
+
+            viewModel.onEvent(OnboardingUiEvent.PermissionStateChanged(canDeliver = true))
+            assertEquals(ReminderStepState.Granted, viewModel.uiState.value.reminderStep)
+        }
+
+    @Test
+    fun `a permission state change does not touch an undecided step`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onEvent(OnboardingUiEvent.PermissionStateChanged(canDeliver = true))
+
+        assertEquals(ReminderStepState.Undecided, viewModel.uiState.value.reminderStep)
+    }
+
+    @Test
+    fun `finishing from a declined step still completes the flow`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        val effects = mutableListOf<OnboardingUiEffect>()
+        val effectJob = launch { viewModel.uiEffect.collect { effects.add(it) } }
+        viewModel.onEvent(OnboardingUiEvent.NotNowClicked)
+        advanceUntilIdle()
+
+        viewModel.onEvent(OnboardingUiEvent.FinishClicked)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { completeOnboardingUseCase() }
+        assertEquals(listOf(OnboardingUiEffect.Finished), effects)
+        effectJob.cancel()
+    }
 }

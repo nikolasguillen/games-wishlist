@@ -15,6 +15,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -42,9 +43,20 @@ data class NotificationPermissionState(
     val request: () -> Unit
 )
 
+/**
+ * @param onResult Called with the outcome each time the system permission request returns, after
+ * [NotificationPermissionState.canDeliver] and [NotificationPermissionState.isPermanentlyDenied] have been
+ * updated. It is the only reliable signal of a first denial: neither of those changes then, so observing
+ * the state cannot tell "denied" from "not asked yet".
+ */
 @Composable
-fun rememberNotificationPermissionState(): NotificationPermissionState {
+fun rememberNotificationPermissionState(
+    onResult: (granted: Boolean) -> Unit = {}
+): NotificationPermissionState {
     val context = LocalContext.current
+    // The launcher below is remembered once, so it must call whatever lambda is current rather than the
+    // one captured on first composition.
+    val latestOnResult by rememberUpdatedState(onResult)
 
     var canDeliver by remember {
         mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled())
@@ -62,6 +74,7 @@ fun rememberNotificationPermissionState(): NotificationPermissionState {
                 Manifest.permission.POST_NOTIFICATIONS
             )
         }
+        latestOnResult(granted)
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current

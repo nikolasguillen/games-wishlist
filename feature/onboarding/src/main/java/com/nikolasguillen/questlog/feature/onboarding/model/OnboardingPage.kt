@@ -12,4 +12,7 @@ internal sealed interface OnboardingPage {
 
     /** The owned-platforms step. Optional, and never blocks the flow. */
     data object Platforms : OnboardingPage
+
+    /** Explains release reminders, then asks for the notification permission. Only on devices that need one. */
+    data object Reminders : OnboardingPage
 }

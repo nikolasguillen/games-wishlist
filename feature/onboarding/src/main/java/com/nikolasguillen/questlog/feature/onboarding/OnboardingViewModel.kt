@@ -16,6 +16,7 @@ import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingContentSta
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingUiEffect
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingUiEvent
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingUiState
+import com.nikolasguillen.questlog.feature.onboarding.model.ReminderStepState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -91,6 +92,16 @@ class OnboardingViewModel @Inject constructor(
             is OnboardingUiEvent.PlatformToggled -> togglePlatform(event.platformId)
             OnboardingUiEvent.ClearPlatformQuery -> textFieldState.clearText()
             OnboardingUiEvent.RetryPlatformSync -> syncCatalog()
+            OnboardingUiEvent.AllowNotificationsClicked -> {
+                viewModelScope.launch { _uiEffect.send(OnboardingUiEffect.RequestNotificationPermission) }
+            }
+
+            OnboardingUiEvent.NotNowClicked -> setReminderStep(ReminderStepState.Declined)
+            is OnboardingUiEvent.NotificationPermissionResult -> setReminderStep(
+                if (event.granted) ReminderStepState.Granted else ReminderStepState.Declined
+            )
+
+            is OnboardingUiEvent.PermissionStateChanged -> onPermissionStateChanged(event.canDeliver)
             OnboardingUiEvent.FinishClicked, OnboardingUiEvent.SkipClicked -> complete()
         }
     }
@@ -110,6 +121,23 @@ class OnboardingViewModel @Inject constructor(
                         )
                     )
                 )
+            }
+        }
+    }
+
+    private fun setReminderStep(step: ReminderStepState) {
+        _uiState.update { it.copy(reminderStep = step) }
+    }
+
+    // Only a declined step can be overturned from outside the flow: the user can switch notifications on
+    // in system settings and come back. Anything else changing underneath an undecided page would be
+    // the page deciding for the user.
+    private fun onPermissionStateChanged(canDeliver: Boolean) {
+        _uiState.update { state ->
+            if (canDeliver && state.reminderStep == ReminderStepState.Declined) {
+                state.copy(reminderStep = ReminderStepState.Granted)
+            } else {
+                state
             }
         }
     }
