@@ -145,7 +145,9 @@ its first page, finish it, and confirm the user returns to where they started it
   would on any root screen) and the flow is shown again on the next launch. On later pages, back returns
   to the previous page.
 - The app's stored data is cleared, or the app is uninstalled and reinstalled: the flow is shown again,
-  as for any first launch.
+  as for any first launch. The exception is a reinstall where the system restores a backup of the app's
+  data: that user is a returning one — their settings and lists come back with it — so the flow is not
+  shown.
 - The app is opened from a release-notification link before the flow has ever been completed (only
   possible after a data clear, since reminders require a saved game): the flow is shown first; the link is
   not honoured, because the reminder it belongs to no longer exists.
