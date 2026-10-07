@@ -4,8 +4,8 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetKnownPlatformsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatformIdsUseCase
-import com.nikolasguillen.questlog.core.domain.usecase.discover.SetOwnedPlatformsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.SyncPlatformCatalogUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.discover.ToggleOwnedPlatformUseCase
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.Platform
 import com.nikolasguillen.questlog.core.ui.model.PlatformPickerContentState
@@ -38,8 +38,8 @@ import org.junit.Test
  * entry-time pinning, and the catalogue sync. The ordering and search rules themselves are covered by
  * `PlatformPickerMapperTest` in `:core:ui`.
  *
- * [storedSelection] stands in for the `owned_platforms` table: the fake [SetOwnedPlatformsUseCase]
- * writes into it and [GetSelectedPlatformIdsUseCase] reads back out of it, so a tap travels the same
+ * [storedSelection] stands in for the `owned_platforms` table: the fake [ToggleOwnedPlatformUseCase]
+ * flips a platform in it and [GetSelectedPlatformIdsUseCase] reads back out of it, so a tap travels the same
  * store-then-observe path it takes in the app. That round trip is the point — the picker holds no
  * copy of the selection, which is what lets deselecting the last platform leave every row unchecked
  * instead of the screen and the store disagreeing about what was saved.
@@ -51,7 +51,7 @@ class OwnedPlatformsViewModelTest {
 
     private val getKnownPlatformsUseCase = mockk<GetKnownPlatformsUseCase>()
     private val getSelectedPlatformIdsUseCase = mockk<GetSelectedPlatformIdsUseCase>()
-    private val setOwnedPlatformsUseCase = mockk<SetOwnedPlatformsUseCase>()
+    private val toggleOwnedPlatformUseCase = mockk<ToggleOwnedPlatformUseCase>()
     private val syncPlatformCatalogUseCase = mockk<SyncPlatformCatalogUseCase>()
 
     private val storedSelection = MutableStateFlow<Set<Int>>(emptySet())
@@ -66,7 +66,11 @@ class OwnedPlatformsViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         every { getSelectedPlatformIdsUseCase() } returns storedSelection
-        coEvery { setOwnedPlatformsUseCase(any()) } answers { storedSelection.value = firstArg() }
+        coEvery { toggleOwnedPlatformUseCase(any()) } answers {
+            val platformId = firstArg<Int>()
+            val current = storedSelection.value
+            storedSelection.value = if (platformId in current) current - platformId else current + platformId
+        }
         coEvery { syncPlatformCatalogUseCase() } returns AppResult.success(Unit)
     }
 
@@ -78,7 +82,7 @@ class OwnedPlatformsViewModelTest {
     private fun viewModel() = OwnedPlatformsViewModel(
         getKnownPlatformsUseCase = getKnownPlatformsUseCase,
         getSelectedPlatformIdsUseCase = getSelectedPlatformIdsUseCase,
-        setOwnedPlatformsUseCase = setOwnedPlatformsUseCase,
+        toggleOwnedPlatformUseCase = toggleOwnedPlatformUseCase,
         syncPlatformCatalogUseCase = syncPlatformCatalogUseCase
     )
 
@@ -151,7 +155,7 @@ class OwnedPlatformsViewModelTest {
     }
 
     @Test
-    fun `selecting a platform persists the whole new set and checks the row`() = runTest {
+    fun `tapping an unselected platform toggles it and checks the row`() = runTest {
         every { getKnownPlatformsUseCase() } returns flowOf(catalogue)
         storedSelection.value = setOf(ps5.id)
 
@@ -163,14 +167,14 @@ class OwnedPlatformsViewModelTest {
         viewModel.onEvent(OwnedPlatformsUiEvent.OnPlatformToggled(switch.id))
         advanceUntilIdle()
 
-        coVerify { setOwnedPlatformsUseCase(setOf(ps5.id, switch.id)) }
+        coVerify(exactly = 1) { toggleOwnedPlatformUseCase(switch.id) }
         val selected = states.lastSuccess().platforms.filter { it.isSelected }.map { it.id }
         assertEquals(setOf(ps5.id, switch.id), selected.toSet())
         job.cancel()
     }
 
     @Test
-    fun `deselecting the last platform stores an empty set and leaves every row unchecked`() =
+    fun `tapping the last selected platform toggles it and leaves every row unchecked`() =
         runTest {
             every { getKnownPlatformsUseCase() } returns flowOf(catalogue)
             storedSelection.value = setOf(ps5.id)
@@ -183,29 +187,11 @@ class OwnedPlatformsViewModelTest {
             viewModel.onEvent(OwnedPlatformsUiEvent.OnPlatformToggled(ps5.id))
             advanceUntilIdle()
 
-            coVerify { setOwnedPlatformsUseCase(emptySet()) }
+            coVerify(exactly = 1) { toggleOwnedPlatformUseCase(ps5.id) }
             assertTrue(states.lastSuccess().platforms.none { it.isSelected })
             assertEquals(0, states.last().selectedCount)
             job.cancel()
         }
-
-    @Test
-    fun `two taps in quick succession both survive`() = runTest {
-        every { getKnownPlatformsUseCase() } returns flowOf(catalogue)
-        storedSelection.value = emptySet()
-
-        val viewModel = viewModel()
-        val states = mutableListOf<OwnedPlatformsUiState>()
-        val job = collectStates(viewModel, states)
-        advanceUntilIdle()
-
-        viewModel.onEvent(OwnedPlatformsUiEvent.OnPlatformToggled(ps5.id))
-        viewModel.onEvent(OwnedPlatformsUiEvent.OnPlatformToggled(switch.id))
-        advanceUntilIdle()
-
-        assertEquals(setOf(ps5.id, switch.id), storedSelection.value)
-        job.cancel()
-    }
 
     @Test
     fun `typing in the search field narrows the list`() = runTest {

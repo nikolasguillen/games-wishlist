@@ -22,7 +22,7 @@ interface GameRepository {
      *
      * [platformIds] restricts the shelf to games released on at least one of those platforms. An empty
      * set means no restriction at all: nothing is substituted for it. A platform-selection change
-     * invalidates every cached lane — see [setOwnedPlatforms].
+     * invalidates every cached lane — see [toggleOwnedPlatform].
      */
     suspend fun getPopularGames(platformIds: Set<Int>): AppResult<List<Game>>
 
@@ -109,11 +109,12 @@ interface GameRepository {
     /** The platforms the user picked. Empty means no platform filter, not "unknown". */
     fun getOwnedPlatformIds(): Flow<Set<Int>>
     /**
-     * Replaces the selection wholesale; an empty [platformIds] turns the filter off. Also clears every
-     * cached generic Discover lane ([getPopularGames], [getUpcomingGames]) before applying the new
-     * selection, so a cached lane can never be served for a platform selection it was not fetched under.
+     * Adds [platformId] to the owned platforms, or removes it if it is already owned; removing the last
+     * one turns the platform filter off. Also clears every cached generic Discover lane
+     * ([getPopularGames], [getUpcomingGames]) before applying the change, so a cached lane can never be
+     * served for a platform selection it was not fetched under.
      */
-    suspend fun setOwnedPlatforms(platformIds: Set<Int>)
+    suspend fun toggleOwnedPlatform(platformId: Int)
 
     /** The ids of games with a release reminder enabled, for cheap membership checks against a game list. */
     fun getReleaseNotificationGameIds(): Flow<Set<Int>>

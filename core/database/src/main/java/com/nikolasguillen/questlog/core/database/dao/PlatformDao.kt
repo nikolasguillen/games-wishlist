@@ -32,18 +32,29 @@ interface PlatformDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOwnedPlatform(owned: OwnedPlatformEntity)
 
-    @Query("DELETE FROM owned_platforms")
-    suspend fun clearOwnedPlatforms()
+    @Query("SELECT EXISTS(SELECT 1 FROM owned_platforms WHERE platformId = :platformId)")
+    suspend fun isOwned(platformId: Int): Boolean
+
+    @Query("DELETE FROM owned_platforms WHERE platformId = :platformId")
+    suspend fun deleteOwnedPlatform(platformId: Int)
 
     /**
-     * Replaces the whole selection. The rows are keyed by platform, not by a stable id of their own,
-     * so a deselected platform has to be deleted rather than overwritten — a REPLACE insert alone
-     * would leave it behind. An empty [platformIds] is a valid selection meaning "no platform filter",
-     * not a missing one.
+     * Flips one platform: owned becomes not owned and the other way round. The rows are keyed by
+     * platform, not by a stable id of their own, so a deselected platform has to be deleted rather than
+     * overwritten — a REPLACE insert alone would leave it behind.
+     *
+     * The read and the write share one transaction, and Room serialises write transactions, so two taps
+     * in quick succession each see the other's committed result instead of both reading the same
+     * pre-tap state and the second overwriting the first. That guarantee used to be a lock inside one
+     * ViewModel; here it holds for every caller. Leaving the table empty is a valid selection meaning
+     * "no platform filter", not a missing one.
      */
     @Transaction
-    suspend fun setOwnedPlatforms(platformIds: Set<Int>) {
-        clearOwnedPlatforms()
-        platformIds.forEach { insertOwnedPlatform(OwnedPlatformEntity(it)) }
+    suspend fun toggleOwnedPlatform(platformId: Int) {
+        if (isOwned(platformId)) {
+            deleteOwnedPlatform(platformId)
+        } else {
+            insertOwnedPlatform(OwnedPlatformEntity(platformId))
+        }
     }
 }

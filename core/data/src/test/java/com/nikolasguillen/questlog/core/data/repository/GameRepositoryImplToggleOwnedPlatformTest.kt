@@ -14,11 +14,11 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 /**
- * Covers [GameRepositoryImpl.setOwnedPlatforms]: a platform-selection change must clear the whole
+ * Covers [GameRepositoryImpl.toggleOwnedPlatform]: a platform-selection change must clear the whole
  * Discover lane cache **before** the new selection is applied, so a cached lane can never be served for
  * a platform selection it was not fetched under (FR-002, research.md D5).
  */
-class GameRepositoryImplSetOwnedPlatformsTest {
+class GameRepositoryImplToggleOwnedPlatformTest {
 
     private val platformDao = mockk<PlatformDao>(relaxed = true)
     private val discoverCacheDao = mockk<DiscoverCacheDao>(relaxed = true)
@@ -35,12 +35,12 @@ class GameRepositoryImplSetOwnedPlatformsTest {
     )
 
     @Test
-    fun `the lane cache is cleared before the new platform selection is applied`() = runTest {
-        repository.setOwnedPlatforms(setOf(48, 130))
+    fun `the lane cache is cleared before the platform is toggled`() = runTest {
+        repository.toggleOwnedPlatform(48)
 
         coVerifyOrder {
             discoverCacheDao.clearAll()
-            platformDao.setOwnedPlatforms(setOf(48, 130))
+            platformDao.toggleOwnedPlatform(48)
         }
     }
 }

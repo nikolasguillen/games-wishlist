@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetKnownPlatformsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatformIdsUseCase
-import com.nikolasguillen.questlog.core.domain.usecase.discover.SetOwnedPlatformsUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.discover.ToggleOwnedPlatformUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.SyncPlatformCatalogUseCase
 import com.nikolasguillen.questlog.core.ui.mapper.toPlatformPickerContentState
 import com.nikolasguillen.questlog.feature.settings.model.OwnedPlatformsUiEvent
@@ -21,26 +21,17 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 @HiltViewModel
 class OwnedPlatformsViewModel @Inject constructor(
     getKnownPlatformsUseCase: GetKnownPlatformsUseCase,
     private val getSelectedPlatformIdsUseCase: GetSelectedPlatformIdsUseCase,
-    private val setOwnedPlatformsUseCase: SetOwnedPlatformsUseCase,
+    private val toggleOwnedPlatformUseCase: ToggleOwnedPlatformUseCase,
     private val syncPlatformCatalogUseCase: SyncPlatformCatalogUseCase
 ) : ViewModel() {
 
     internal val textFieldState = TextFieldState()
-
-    /**
-     * Serialises the read-modify-write below. Each tap stores the whole set, so two taps in quick
-     * succession would otherwise both read the pre-first-tap selection and the second would drop the
-     * first.
-     */
-    private val selectionWriteLock = Mutex()
 
     /**
      * The selection as it stood when the screen opened, kept only to float those rows to the top.
@@ -95,21 +86,13 @@ class OwnedPlatformsViewModel @Inject constructor(
     }
 
     /**
-     * Persists on every tap: the picker has no confirm step, so there is nothing to commit later.
-     * The stored selection is re-read rather than taken from [uiState], so the write is applied to
-     * what is actually saved instead of to what was last rendered — which a search query narrows.
+     * Persists on every tap: the picker has no confirm step, so there is nothing to commit later. The
+     * flip happens atomically in the data layer, so the ViewModel needs no lock of its own and a tap
+     * never depends on what was last rendered — which a search query narrows.
      */
     private fun togglePlatform(platformId: Int) {
         viewModelScope.launch {
-            selectionWriteLock.withLock {
-                val current = getSelectedPlatformIdsUseCase().first()
-                val updated = if (platformId in current) {
-                    current - platformId
-                } else {
-                    current + platformId
-                }
-                setOwnedPlatformsUseCase(updated)
-            }
+            toggleOwnedPlatformUseCase(platformId)
         }
     }
 }

@@ -623,14 +623,14 @@ class GameRepositoryImpl @Inject constructor(
     }
 
     /**
-     * Clears the whole Discover lane cache before applying the new selection, so a cached lane can never
+     * Clears the whole Discover lane cache before applying the change, so a cached lane can never
      * be served for a platform selection it was not fetched under. Order matters: a crash between the two
      * calls costs at most one unnecessary refetch, and can never leave a cache built for the previous
      * selection reachable.
      */
-    override suspend fun setOwnedPlatforms(platformIds: Set<Int>) {
+    override suspend fun toggleOwnedPlatform(platformId: Int) {
         discoverCacheDao.clearAll()
-        platformDao.setOwnedPlatforms(platformIds)
+        platformDao.toggleOwnedPlatform(platformId)
     }
 
     private suspend fun saveGameLocal(game: Game) {

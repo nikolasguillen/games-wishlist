@@ -28,7 +28,7 @@ import java.io.IOException
 
 /**
  * Covers the cache-first behaviour of the two generic Discover lanes ([GameRepositoryImpl.getPopularGames],
- * [GameRepositoryImpl.getUpcomingGames]) and the cache invalidation on [GameRepositoryImpl.setOwnedPlatforms]:
+ * [GameRepositoryImpl.getUpcomingGames]) and the cache invalidation on [GameRepositoryImpl.toggleOwnedPlatform]:
  * serving a fresh cached lane with no network call and in the stored order (FR-001, FR-003), falling
  * through to the network on a miss or a stale entry and persisting the result (FR-004, FR-009), treating
  * each lane's freshness independently (FR-005), and falling back to a stale cached copy instead of
