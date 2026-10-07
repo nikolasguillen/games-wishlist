@@ -164,7 +164,7 @@ and land on Search. Relaunch and confirm no flow. Quickstart scenarios 1, 2, 8, 
 - [X] T029 [US2] Add `data object SkipClicked` to `FEATURE/model/OnboardingUiEvent.kt` and route it through the same guarded `complete()` in `FEATURE/OnboardingViewModel.kt`.
 - [X] T030 [P] [US2] Add `onboarding_skip` to `feature/onboarding/src/main/res/values/strings.xml`.
 - [X] T031 [US2] In `FEATURE/OnboardingScreen.kt`, add a "Skip" text button in the top end corner, visible on every page including the last (FR-004), sending `SkipClicked`. It sits inside the safe-drawing insets and stays reachable at large font sizes. Add a preview with it. Depends on T029, T030.
-- [ ] T032 [US2] Run `./gradlew :feature:onboarding:testDebugUnitTest --console=plain -q`, then walk quickstart scenario 3 (skip, relaunch).
+- [X] T032 [US2] Run `./gradlew :feature:onboarding:testDebugUnitTest --console=plain -q`, then walk quickstart scenario 3 (skip, relaunch).
 
 **Checkpoint**: US1 and US2 both work. This is the shippable MVP.
 
@@ -290,7 +290,7 @@ and land on Search. Relaunch and confirm no flow. Quickstart scenarios 1, 2, 8, 
 - [X] T075 [P] [US4] Add `settings_show_welcome_tour` and a short subtitle string to `feature/settings/src/main/res/values/strings.xml`.
 - [X] T076 [US4] In `feature/settings/.../SettingsScreen.kt` add `onShowWelcomeTourClick: () -> Unit` to `SettingsScreen` and `SettingsContent`, and a `SettingsRow` with a suitable icon (e.g. `Icons.Default.School` or `Icons.Outlined.Explore`) at the top of the "App" group, before the translation-model row. Update every `SettingsContent(...)` preview call to pass `onShowWelcomeTourClick = {}`. Depends on T075.
 - [X] T077 [US4] In the `SettingsRoute` branch of `app/.../QuestLogNavDisplay.kt` pass `onShowWelcomeTourClick = { if (backStack.lastOrNull() != OnboardingRoute) backStack.add(OnboardingRoute) }`. Depends on T076.
-- [ ] T078 [US4] Verify quickstart scenario 7 and the replay rules:
+- [X] T078 [US4] Verify quickstart scenario 7 and the replay rules:
   - on replay, `backStack.size > 1`, so `onFinish` pops to Settings;
   - the platforms step shows the current picks first;
   - the reminders page is absent when notifications are already on;
