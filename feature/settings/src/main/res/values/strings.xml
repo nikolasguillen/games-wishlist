@@ -20,6 +20,8 @@
     <string name="settings_translation_model_confirm_action">Continue</string>
     <string name="settings_translation_model_wifi_required_title">Wi-Fi required</string>
     <string name="settings_translation_model_wifi_required_message">The offline translation model is several gigabytes. It can only download over Wi-Fi — connect to a Wi-Fi network and try again.</string>
+    <string name="settings_show_welcome_tour">Show welcome tour</string>
+    <string name="settings_show_welcome_tour_subtitle">Replay the introduction to QuestLog.</string>
     <string name="settings_about">About</string>
 
     <string name="owned_platforms_title">Owned platforms</string>

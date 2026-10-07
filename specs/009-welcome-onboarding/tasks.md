@@ -287,9 +287,9 @@ and land on Search. Relaunch and confirm no flow. Quickstart scenarios 1, 2, 8, 
 
 ### Implementation for User Story 4
 
-- [ ] T075 [P] [US4] Add `settings_show_welcome_tour` and a short subtitle string to `feature/settings/src/main/res/values/strings.xml`.
-- [ ] T076 [US4] In `feature/settings/.../SettingsScreen.kt` add `onShowWelcomeTourClick: () -> Unit` to `SettingsScreen` and `SettingsContent`, and a `SettingsRow` with a suitable icon (e.g. `Icons.Default.School` or `Icons.Outlined.Explore`) at the top of the "App" group, before the translation-model row. Update every `SettingsContent(...)` preview call to pass `onShowWelcomeTourClick = {}`. Depends on T075.
-- [ ] T077 [US4] In the `SettingsRoute` branch of `app/.../QuestLogNavDisplay.kt` pass `onShowWelcomeTourClick = { if (backStack.lastOrNull() != OnboardingRoute) backStack.add(OnboardingRoute) }`. Depends on T076.
+- [X] T075 [P] [US4] Add `settings_show_welcome_tour` and a short subtitle string to `feature/settings/src/main/res/values/strings.xml`.
+- [X] T076 [US4] In `feature/settings/.../SettingsScreen.kt` add `onShowWelcomeTourClick: () -> Unit` to `SettingsScreen` and `SettingsContent`, and a `SettingsRow` with a suitable icon (e.g. `Icons.Default.School` or `Icons.Outlined.Explore`) at the top of the "App" group, before the translation-model row. Update every `SettingsContent(...)` preview call to pass `onShowWelcomeTourClick = {}`. Depends on T075.
+- [X] T077 [US4] In the `SettingsRoute` branch of `app/.../QuestLogNavDisplay.kt` pass `onShowWelcomeTourClick = { if (backStack.lastOrNull() != OnboardingRoute) backStack.add(OnboardingRoute) }`. Depends on T076.
 - [ ] T078 [US4] Verify quickstart scenario 7 and the replay rules:
   - on replay, `backStack.size > 1`, so `onFinish` pops to Settings;
   - the platforms step shows the current picks first;

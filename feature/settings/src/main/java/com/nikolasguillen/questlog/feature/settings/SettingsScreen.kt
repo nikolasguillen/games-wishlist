@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SportsEsports
+import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.CircularProgressIndicator
@@ -71,6 +72,7 @@ fun SettingsScreen(
     onBackClick: () -> Unit,
     onOwnedPlatformsClick: () -> Unit,
     onReleaseNotificationsClick: () -> Unit,
+    onShowWelcomeTourClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -105,6 +107,7 @@ fun SettingsScreen(
         onBackClick = onBackClick,
         onOwnedPlatformsClick = onOwnedPlatformsClick,
         onReleaseNotificationsClick = onReleaseNotificationsClick,
+        onShowWelcomeTourClick = onShowWelcomeTourClick,
         onFixNotificationPermissionClick = permissionState.request,
         modifier = modifier
     )
@@ -139,6 +142,7 @@ internal fun SettingsContent(
     onBackClick: () -> Unit,
     onOwnedPlatformsClick: () -> Unit,
     onReleaseNotificationsClick: () -> Unit,
+    onShowWelcomeTourClick: () -> Unit,
     onFixNotificationPermissionClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -223,6 +227,12 @@ internal fun SettingsContent(
             }
 
             SettingsGroup(title = stringResource(R.string.settings_group_app)) {
+                SettingsRow(
+                    icon = Icons.Outlined.Explore,
+                    title = stringResource(R.string.settings_show_welcome_tour),
+                    subtitle = stringResource(R.string.settings_show_welcome_tour_subtitle),
+                    onClick = onShowWelcomeTourClick
+                )
                 TranslationModelRow(
                     rowState = state.translationModel,
                     onDownloadClick = { onEvent(SettingsUiEvent.DownloadTranslationModel) }
@@ -324,6 +334,7 @@ private fun SettingsContentPreview() {
             onBackClick = {},
             onOwnedPlatformsClick = {},
             onReleaseNotificationsClick = {},
+            onShowWelcomeTourClick = {},
             onFixNotificationPermissionClick = {}
         )
     }
@@ -342,6 +353,7 @@ private fun SettingsContentNoFilterPreview() {
             onBackClick = {},
             onOwnedPlatformsClick = {},
             onReleaseNotificationsClick = {},
+            onShowWelcomeTourClick = {},
             onFixNotificationPermissionClick = {}
         )
     }
@@ -361,6 +373,7 @@ private fun SettingsContentTranslationDownloadablePreview() {
             onBackClick = {},
             onOwnedPlatformsClick = {},
             onReleaseNotificationsClick = {},
+            onShowWelcomeTourClick = {},
             onFixNotificationPermissionClick = {}
         )
     }
@@ -380,6 +393,7 @@ private fun SettingsContentTranslationDownloadingPreview() {
             onBackClick = {},
             onOwnedPlatformsClick = {},
             onReleaseNotificationsClick = {},
+            onShowWelcomeTourClick = {},
             onFixNotificationPermissionClick = {}
         )
     }
@@ -399,6 +413,7 @@ private fun SettingsContentTranslationReadyPreview() {
             onBackClick = {},
             onOwnedPlatformsClick = {},
             onReleaseNotificationsClick = {},
+            onShowWelcomeTourClick = {},
             onFixNotificationPermissionClick = {}
         )
     }
@@ -418,6 +433,7 @@ private fun SettingsContentTranslationFailedPreview() {
             onBackClick = {},
             onOwnedPlatformsClick = {},
             onReleaseNotificationsClick = {},
+            onShowWelcomeTourClick = {},
             onFixNotificationPermissionClick = {}
         )
     }

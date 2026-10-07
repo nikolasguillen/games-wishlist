@@ -143,6 +143,11 @@ fun QuestLogNavDisplay(
                                 backStack.add(ReleaseNotificationsRoute)
                             }
                         },
+                        onShowWelcomeTourClick = {
+                            if (backStack.lastOrNull() != OnboardingRoute) {
+                                backStack.add(OnboardingRoute)
+                            }
+                        },
                         modifier = Modifier
                             .padding(innerPadding)
                             .consumeWindowInsets(innerPadding)
