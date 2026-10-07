@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.RoundedCorner
+import android.view.View
+import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -29,16 +31,21 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.domain.usecase.settings.GetAppearanceModeUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.settings.GetOnboardingCompletedUseCase
 import com.nikolasguillen.questlog.core.model.AppearanceMode
 import com.nikolasguillen.questlog.core.navigation.GameDetailRoute
 import com.nikolasguillen.questlog.core.navigation.ListsRoute
+import com.nikolasguillen.questlog.core.navigation.OnboardingRoute
 import com.nikolasguillen.questlog.core.navigation.RadarRoute
 import com.nikolasguillen.questlog.core.navigation.SearchRoute
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -46,6 +53,13 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var getAppearanceModeUseCase: GetAppearanceModeUseCase
+
+    @Inject
+    lateinit var getOnboardingCompletedUseCase: GetOnboardingCompletedUseCase
+
+    // `null` until the stored flag has been read. The back stack's first entry is chosen from it, and
+    // rememberNavBackStack only looks at its initial key once, so nothing may compose before it is known.
+    private var onboardingCompleted by mutableStateOf<Boolean?>(null)
 
     // A release notification's PendingIntent carries a questlog://game/<id> deep link; read here (outside
     // Compose) and handed to MainContent as state, since onNewIntent -- the warm-start case -- never runs
@@ -58,6 +72,8 @@ class MainActivity : ComponentActivity() {
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
         )
         pendingDeepLinkGameId = intent.toGameDeepLinkId()
+        lifecycleScope.launch { onboardingCompleted = getOnboardingCompletedUseCase().first() }
+        holdFirstFrameUntilOnboardingKnown()
         setContent {
             val appearanceMode by getAppearanceModeUseCase()
                 .collectAsStateWithLifecycle(initialValue = AppearanceMode.SYSTEM)
@@ -67,12 +83,28 @@ class MainActivity : ComponentActivity() {
                 AppearanceMode.SYSTEM -> isSystemInDarkTheme()
             }
             QuestLogTheme(darkTheme = darkTheme) {
-                MainContent(
-                    pendingDeepLinkGameId = pendingDeepLinkGameId,
-                    onDeepLinkConsumed = { pendingDeepLinkGameId = null }
-                )
+                onboardingCompleted?.let { completed ->
+                    MainContent(
+                        pendingDeepLinkGameId = pendingDeepLinkGameId,
+                        onDeepLinkConsumed = { pendingDeepLinkGameId = null },
+                        startWithOnboarding = !completed
+                    )
+                }
             }
         }
+    }
+
+    // Keeps the system splash on screen for the few milliseconds the flag read takes, instead of drawing
+    // one empty frame (which would end the splash early and flicker) or blocking the main thread.
+    private fun holdFirstFrameUntilOnboardingKnown() {
+        val content = findViewById<View>(android.R.id.content)
+        content.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+                if (onboardingCompleted == null) return false
+                content.viewTreeObserver.removeOnPreDrawListener(this)
+                return true
+            }
+        })
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -90,11 +122,23 @@ private fun Intent.toGameDeepLinkId(): Int? {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainContent(pendingDeepLinkGameId: Int? = null, onDeepLinkConsumed: () -> Unit = {}) {
-    val backStack = rememberNavBackStack(SearchRoute as NavKey)
+fun MainContent(
+    pendingDeepLinkGameId: Int? = null,
+    onDeepLinkConsumed: () -> Unit = {},
+    startWithOnboarding: Boolean = false
+) {
+    val backStack = rememberNavBackStack(
+        (if (startWithOnboarding) OnboardingRoute else SearchRoute) as NavKey
+    )
 
     LaunchedEffect(pendingDeepLinkGameId) {
         val gameId = pendingDeepLinkGameId ?: return@LaunchedEffect
+        // The reminder this link belongs to cannot exist before the flow was ever completed, so the link is
+        // dropped rather than queued behind it.
+        if (backStack.firstOrNull() is OnboardingRoute) {
+            onDeepLinkConsumed()
+            return@LaunchedEffect
+        }
         val nextRoute = GameDetailRoute(gameId)
         if (backStack.lastOrNull() != nextRoute) {
             backStack.add(nextRoute)

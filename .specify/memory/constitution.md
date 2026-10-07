@@ -98,7 +98,7 @@ Verification means compiling and running the JVM test suites locally:
 - `./gradlew test` for the suites.
 
 The existing test source sets — `core/data`, `core/domain`, `core/network`,
-`feature/{search,radar,lists,game-detail,settings,wishlist}` and `app` — MUST stay green. New ViewModel,
+`feature/{search,radar,lists,game-detail,settings,wishlist,onboarding}` and `app` — MUST stay green. New ViewModel,
 mapper, use-case or error-mapping logic gets a test in its own module's `src/test` using JUnit4 +
 MockK + `kotlinx-coroutines-test`, mocking the use cases rather than the repository, with a
 `StandardTestDispatcher` and `Dispatchers.setMain`/`resetMain`.

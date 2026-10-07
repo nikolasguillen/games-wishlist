@@ -20,6 +20,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.nikolasguillen.questlog.core.navigation.GameDetailRoute
 import com.nikolasguillen.questlog.core.navigation.ListsRoute
+import com.nikolasguillen.questlog.core.navigation.OnboardingRoute
 import com.nikolasguillen.questlog.core.navigation.OwnedPlatformsRoute
 import com.nikolasguillen.questlog.core.navigation.RadarRoute
 import com.nikolasguillen.questlog.core.navigation.ReleaseNotificationsRoute
@@ -30,6 +31,8 @@ import com.nikolasguillen.questlog.feature.gamedetail.GameDetailScreen
 import com.nikolasguillen.questlog.feature.gamedetail.GameDetailViewModel
 import com.nikolasguillen.questlog.feature.lists.ListsScreen
 import com.nikolasguillen.questlog.feature.lists.ListsViewModel
+import com.nikolasguillen.questlog.feature.onboarding.OnboardingScreen
+import com.nikolasguillen.questlog.feature.onboarding.OnboardingViewModel
 import com.nikolasguillen.questlog.feature.radar.RadarScreen
 import com.nikolasguillen.questlog.feature.radar.RadarViewModel
 import com.nikolasguillen.questlog.feature.search.SearchScreen
@@ -203,6 +206,27 @@ fun QuestLogNavDisplay(
                             }
                         },
                         modifier = cornerClipModifier
+                    )
+                }
+
+                is OnboardingRoute -> NavEntry(key) {
+                    val vm = hiltViewModel<OnboardingViewModel>()
+                    OnboardingScreen(
+                        viewModel = vm,
+                        onFinish = {
+                            // First launch: the flow is the only entry, so Search takes its place and back
+                            // can never return into it. Replayed from Settings there is something underneath
+                            // to go back to.
+                            if (backStack.size == 1) {
+                                backStack.add(SearchRoute)
+                                backStack.removeAt(0)
+                            } else {
+                                backStack.removeLastOrNull()
+                            }
+                        },
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .consumeWindowInsets(innerPadding)
                     )
                 }
 

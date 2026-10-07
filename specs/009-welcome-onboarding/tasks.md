@@ -97,7 +97,7 @@ and land on Search. Relaunch and confirm no flow. Quickstart scenarios 1, 2, 8, 
 
 > Write these first and confirm they fail before implementing T021.
 
-- [ ] T012 [US1] Create `FTEST/OnboardingViewModelTest.kt` (KDoc header, `StandardTestDispatcher`, `Dispatchers.setMain`/`resetMain`, `mockk<CompleteOnboardingUseCase>(relaxed = true)`). Cases:
+- [X] T012 [US1] Create `FTEST/OnboardingViewModelTest.kt` (KDoc header, `StandardTestDispatcher`, `Dispatchers.setMain`/`resetMain`, `mockk<CompleteOnboardingUseCase>(relaxed = true)`). Cases:
   - the content state starts `Loading`;
   - after `NotificationFactsResolved(requiresRuntimePermission = true, canDeliver = false)` it is `Ready` with exactly `[Welcome, Discover, Lists, Radar]` (the setup pages arrive in US3);
   - a second `NotificationFactsResolved` does not rebuild the list;
@@ -107,35 +107,35 @@ and land on Search. Relaunch and confirm no flow. Quickstart scenarios 1, 2, 8, 
 
 ### Implementation for User Story 1
 
-- [ ] T013 [P] [US1] Create `FEATURE/model/OnboardingPage.kt`: `internal sealed interface OnboardingPage` with `data object Welcome`, `Discover`, `Lists`, `Radar`. The sealed file keeps its implementations together. `Platforms` and `Reminders` are added in US3.
-- [ ] T014 [P] [US1] Create `FEATURE/model/OnboardingInfoPageUiModel.kt`: `@Immutable internal data class OnboardingInfoPageUiModel(val headline: UiText, val body: UiText, val icon: ImageVector?)`. `UiText` is from `core/ui/model/UiText.kt`. A `null` icon means the page shows the controller animation instead (the Welcome page, research R10).
-- [ ] T015 [P] [US1] Create `FEATURE/model/OnboardingContentState.kt`: `@Immutable internal sealed interface OnboardingContentState` with `data object Loading` and `data class Ready(val pages: List<OnboardingPage>)`.
-- [ ] T016 [P] [US1] Create `FEATURE/model/OnboardingUiState.kt`: `@Immutable internal data class OnboardingUiState(val contentState: OnboardingContentState = OnboardingContentState.Loading)`.
-- [ ] T017 [P] [US1] Create `FEATURE/model/OnboardingUiEvent.kt`: `internal sealed interface OnboardingUiEvent` with `data class NotificationFactsResolved(val requiresRuntimePermission: Boolean, val canDeliver: Boolean)` and `data object FinishClicked`.
-- [ ] T018 [P] [US1] Create `FEATURE/model/OnboardingUiEffect.kt`: `internal sealed interface OnboardingUiEffect` with `data object Finished`.
-- [ ] T019 [P] [US1] Create `feature/onboarding/src/main/res/values/strings.xml` with: for each of the four pages a headline and a body of at most two sentences (FR-008) — what QuestLog is for; finding games with Search and the Discover suggestions; saving games into lists with a play status; following release dates in Radar with optional reminders. Also: `onboarding_next`, `onboarding_back`, `onboarding_get_started`, and `onboarding_page_position` (`Page %1$d of %2$d`, used as the indicator's content description).
-- [ ] T020 [US1] Create `FEATURE/mapper/OnboardingPageUiMapper.kt`: `internal fun buildOnboardingPages(requiresRuntimePermission: Boolean, canDeliver: Boolean): List<OnboardingPage>` returning the four info pages (both parameters are accepted now and used from US3, so that story only adds to this function), and `internal fun OnboardingPage.toInfoUiModel(): OnboardingInfoPageUiModel?` mapping each info page to its `UiText.StringResource` headline/body and a Material icon (`Search`, `Bookmarks` and `CalendarMonth` for Discover, Lists and Radar). Welcome maps to a `null` icon. Depends on T013, T014, T019.
-- [ ] T021 [US1] Create `FEATURE/OnboardingViewModel.kt`: `@HiltViewModel class OnboardingViewModel @Inject constructor(private val completeOnboardingUseCase: CompleteOnboardingUseCase)`.
+- [X] T013 [P] [US1] Create `FEATURE/model/OnboardingPage.kt`: `internal sealed interface OnboardingPage` with `data object Welcome`, `Discover`, `Lists`, `Radar`. The sealed file keeps its implementations together. `Platforms` and `Reminders` are added in US3.
+- [X] T014 [P] [US1] Create `FEATURE/model/OnboardingInfoPageUiModel.kt`: `@Immutable internal data class OnboardingInfoPageUiModel(val headline: UiText, val body: UiText, val icon: ImageVector?)`. `UiText` is from `core/ui/model/UiText.kt`. A `null` icon means the page shows the controller animation instead (the Welcome page, research R10).
+- [X] T015 [P] [US1] Create `FEATURE/model/OnboardingContentState.kt`: `@Immutable internal sealed interface OnboardingContentState` with `data object Loading` and `data class Ready(val pages: List<OnboardingPage>)`.
+- [X] T016 [P] [US1] Create `FEATURE/model/OnboardingUiState.kt`: `@Immutable internal data class OnboardingUiState(val contentState: OnboardingContentState = OnboardingContentState.Loading)`.
+- [X] T017 [P] [US1] Create `FEATURE/model/OnboardingUiEvent.kt`: `internal sealed interface OnboardingUiEvent` with `data class NotificationFactsResolved(val requiresRuntimePermission: Boolean, val canDeliver: Boolean)` and `data object FinishClicked`.
+- [X] T018 [P] [US1] Create `FEATURE/model/OnboardingUiEffect.kt`: `internal sealed interface OnboardingUiEffect` with `data object Finished`.
+- [X] T019 [P] [US1] Create `feature/onboarding/src/main/res/values/strings.xml` with: for each of the four pages a headline and a body of at most two sentences (FR-008) — what QuestLog is for; finding games with Search and the Discover suggestions; saving games into lists with a play status; following release dates in Radar with optional reminders. Also: `onboarding_next`, `onboarding_back`, `onboarding_get_started`, and `onboarding_page_position` (`Page %1$d of %2$d`, used as the indicator's content description).
+- [X] T020 [US1] Create `FEATURE/mapper/OnboardingPageUiMapper.kt`: `internal fun buildOnboardingPages(requiresRuntimePermission: Boolean, canDeliver: Boolean): List<OnboardingPage>` returning the four info pages (both parameters are accepted now and used from US3, so that story only adds to this function), and `internal fun OnboardingPage.toInfoUiModel(): OnboardingInfoPageUiModel?` mapping each info page to its `UiText.StringResource` headline/body and a Material icon (`Search`, `Bookmarks` and `CalendarMonth` for Discover, Lists and Radar). Welcome maps to a `null` icon. Depends on T013, T014, T019.
+- [X] T021 [US1] Create `FEATURE/OnboardingViewModel.kt`: `@HiltViewModel class OnboardingViewModel @Inject constructor(private val completeOnboardingUseCase: CompleteOnboardingUseCase)`.
   - It owns `_uiState: MutableStateFlow<OnboardingUiState>` exposed as `internal val uiState`, and `Channel<OnboardingUiEffect>(Channel.BUFFERED)` exposed through `receiveAsFlow()`.
   - `internal fun onEvent(event)` is an exhaustive `when`.
   - `NotificationFactsResolved` builds `Ready(buildOnboardingPages(...))` only the first time.
   - `FinishClicked` goes through a private `complete()`, which is guarded so it runs once: it calls the use case and then sends `Finished`.
   - Depends on T007, T016, T017, T018, T020. T012 must pass after this.
-- [ ] T022 [P] [US1] Create `FEATURE/components/OnboardingInfoPage.kt`: a stateless composable taking an `OnboardingInfoPageUiModel`.
+- [X] T022 [P] [US1] Create `FEATURE/components/OnboardingInfoPage.kt`: a stateless composable taking an `OnboardingInfoPageUiModel`.
   - It shows the illustration on top, sized with `fillMaxWidth(fraction)` + `aspectRatio(1f)` and framed with the existing `metallicBorder`/`rememberCoverBrush` modifiers (no `dp` literals), then the headline, then the body.
   - The illustration is the page's icon, or `ControllerLoadingAnimation` from `:core:ui` when the icon is `null` (the Welcome page). Read that component's parameters before using it, and keep it out of the loading-state meaning: it is purely decorative here, so give it no content description.
   - The column is vertically scrollable so a large font size never hides text (spec edge case).
   - The headline carries `semantics { heading() }`.
   - Add a private `@QuestLogPreviews` wrapped in `QuestLogTheme { }`.
-- [ ] T023 [P] [US1] Create `FEATURE/components/OnboardingBottomBar.kt`: Back (hidden on page 0), `CustomPagerIndicator(pagerState, …)` with a `contentDescription` from `onboarding_page_position`, and Next, which becomes "Get started" on the last page. Callbacks only (`onBack`, `onNext`, `onFinish`). Spacing from `MaterialTheme.spacing`, with a preview.
-- [ ] T024 [US1] Create `FEATURE/OnboardingScreen.kt` with a public `OnboardingScreen(viewModel, onFinish, modifier)` carrying `@Suppress("ParamsComparedByRef")`, and an `internal OnboardingContent(state, pagerState, onEvent, …)`.
+- [X] T023 [P] [US1] Create `FEATURE/components/OnboardingBottomBar.kt`: Back (hidden on page 0), `CustomPagerIndicator(pagerState, …)` with a `contentDescription` from `onboarding_page_position`, and Next, which becomes "Get started" on the last page. Callbacks only (`onBack`, `onNext`, `onFinish`). Spacing from `MaterialTheme.spacing`, with a preview.
+- [X] T024 [US1] Create `FEATURE/OnboardingScreen.kt` with a public `OnboardingScreen(viewModel, onFinish, modifier)` carrying `@Suppress("ParamsComparedByRef")`, and an `internal OnboardingContent(state, pagerState, onEvent, …)`.
   - The public part collects `uiState` with `collectAsStateWithLifecycle()`, collects effects inside `LaunchedEffect { lifecycle.repeatOnLifecycle(STARTED) { … } }` (`Finished` → `onFinish()`), and sends `NotificationFactsResolved(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU, permissionState.canDeliver)` once, where `permissionState = rememberNotificationPermissionState()` from `:core:ui`. Do not call `NotificationManagerCompat` directly: the helper already holds that check, and the module has no `androidx.core` dependency of its own.
   - `OnboardingContent` renders `LoadingPage` for `Loading`; for `Ready` it renders a `HorizontalPager` driven by `rememberPagerState { pages.size }` (swipe on), the info pages, and the bottom bar. Back/Next call `animateScrollToPage`.
   - `BackHandler(enabled = pagerState.currentPage > 0)` moves to the previous page.
   - Previews for `Loading` and `Ready`.
   - Depends on T021–T023.
-- [ ] T025 [US1] Add the `OnboardingRoute` branch to the `entryProvider` in `app/src/main/java/com/nikolasguillen/questlog/QuestLogNavDisplay.kt`: `OnboardingScreen(viewModel = hiltViewModel<OnboardingViewModel>(), onFinish = { if (backStack.size == 1) { backStack.add(SearchRoute); backStack.removeAt(0) } else { backStack.removeLastOrNull() } })`. Add the imports. Depends on T011, T024.
-- [ ] T026 [US1] Update `app/src/main/java/com/nikolasguillen/questlog/MainActivity.kt` (research R5, R6).
+- [X] T025 [US1] Add the `OnboardingRoute` branch to the `entryProvider` in `app/src/main/java/com/nikolasguillen/questlog/QuestLogNavDisplay.kt`: `OnboardingScreen(viewModel = hiltViewModel<OnboardingViewModel>(), onFinish = { if (backStack.size == 1) { backStack.add(SearchRoute); backStack.removeAt(0) } else { backStack.removeLastOrNull() } })`. Add the imports. Depends on T011, T024.
+- [X] T026 [US1] Update `app/src/main/java/com/nikolasguillen/questlog/MainActivity.kt` (research R5, R6).
   - Inject `GetOnboardingCompletedUseCase`.
   - In `onCreate`, launch in `lifecycleScope` a `first()` read into a nullable `mutableStateOf<Boolean?>`.
   - Hold the first frame with an `OnPreDrawListener` on `android.R.id.content`, which returns `false` until the value is non-null, then removes itself.
