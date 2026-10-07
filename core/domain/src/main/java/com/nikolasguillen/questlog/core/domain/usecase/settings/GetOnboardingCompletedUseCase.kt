@@ -1,0 +1,12 @@
+package com.nikolasguillen.questlog.core.domain.usecase.settings
+
+import com.nikolasguillen.questlog.core.domain.settings.OnboardingPreferenceStore
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+
+/** Whether the welcome flow has been completed or skipped, and every subsequent change. */
+class GetOnboardingCompletedUseCase @Inject constructor(
+    private val onboardingPreferenceStore: OnboardingPreferenceStore
+) {
+    operator fun invoke(): Flow<Boolean> = onboardingPreferenceStore.observeOnboardingCompleted()
+}

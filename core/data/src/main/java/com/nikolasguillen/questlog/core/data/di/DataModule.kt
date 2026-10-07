@@ -9,6 +9,7 @@ import com.nikolasguillen.questlog.core.data.repository.GameRepositoryImpl
 import com.nikolasguillen.questlog.core.data.scheduler.ReleaseNotificationSchedulerImpl
 import com.nikolasguillen.questlog.core.data.scheduler.ReleaseRefreshSchedulerImpl
 import com.nikolasguillen.questlog.core.data.settings.AppearancePreferenceStoreImpl
+import com.nikolasguillen.questlog.core.data.settings.OnboardingPreferenceStoreImpl
 import com.nikolasguillen.questlog.core.data.settings.WishlistViewModePreferenceStoreImpl
 import com.nikolasguillen.questlog.core.data.translation.GameDescriptionTranslatorImpl
 import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotificationScheduler
@@ -16,6 +17,7 @@ import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotifier
 import com.nikolasguillen.questlog.core.domain.radar.ReleaseRefreshScheduler
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.domain.settings.AppearancePreferenceStore
+import com.nikolasguillen.questlog.core.domain.settings.OnboardingPreferenceStore
 import com.nikolasguillen.questlog.core.domain.settings.WishlistViewModePreferenceStore
 import com.nikolasguillen.questlog.core.domain.translation.GameDescriptionTranslator
 import dagger.Binds
@@ -76,6 +78,12 @@ abstract class DataModule {
     abstract fun bindWishlistViewModePreferenceStore(
         wishlistViewModePreferenceStoreImpl: WishlistViewModePreferenceStoreImpl
     ): WishlistViewModePreferenceStore
+
+    @Binds
+    @Singleton
+    abstract fun bindOnboardingPreferenceStore(
+        onboardingPreferenceStoreImpl: OnboardingPreferenceStoreImpl
+    ): OnboardingPreferenceStore
 
     companion object {
         // Backs GameDescriptionTranslatorImpl's model download: it must outlive any single
