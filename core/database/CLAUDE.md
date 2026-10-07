@@ -5,9 +5,9 @@ Room persistence layer. Room 2.8.5 (the latest release — there is no Room 3) w
 
 The driver-based API (`BundledSQLiteDriver`, `androidx.sqlite`) has been available since Room 2.7.0 and is
 deliberately unused. It mainly buys KMP support and a SQLite version pinned by the app rather than by the
-device. **The project intends to migrate to KMP eventually** — when that happens, switching to the
-driver-based API is part of that work, not a standalone refactor. Until then, do not introduce
-`.setDriver(...)` piecemeal.
+device. **The project is migrating to KMP** (`specs/010-kmp-migration`) — switching to the driver-based
+API is part of that work, not a standalone refactor. Do not introduce `.setDriver(...)` outside the
+migration task that calls for it.
 
 ## Schema changes — read this first
 

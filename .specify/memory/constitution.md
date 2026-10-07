@@ -115,7 +115,8 @@ the real commands makes the verification step actionable.
 minSdk 29, Java 11, Compose BOM 2026.09.00, Hilt 2.60.1, Room 2.8.5 (KSP), Retrofit 3 + Moshi,
 Navigation 3, Coil 2, WorkManager. Every `build.gradle.kts` repeats its configuration by hand. When
 adding a module, copy `feature/search/build.gradle.kts` (feature) or `core/data/build.gradle.kts`
-(core) and register it in `settings.gradle.kts`.
+(core) and register it in `settings.gradle.kts`. This describes the repository today; the migration
+plan changes it wherever it replaces a library or a source-set layout.
 
 **Persistence**: The app is unpublished, so the database stays at `version = 1` with
 `fallbackToDestructiveMigration(true)` and no `Migration` objects. The version MUST NOT be bumped.
@@ -124,17 +125,34 @@ the same commit. No list-shaped columns. Persisting a game always goes through `
 
 **Injection**: Hilt everywhere except `:core:model` and `:core:navigation`. Routes without arguments
 use `@HiltViewModel`; routes with arguments use `@HiltViewModel(assistedFactory = ...)` +
-`@AssistedInject`. `SavedStateHandle` is not used in this project and MUST NOT be introduced.
+`@AssistedInject`. `SavedStateHandle` is not used in this project and MUST NOT be introduced. Hilt is the current state,
+not a permanent choice: the migration plan decides its replacement, and until the task that swaps it
+lands, new code keeps using Hilt.
 
 **Secrets**: `IGDB_CLIENT_ID` and `IGDB_CLIENT_SECRET` live in `local.properties` and are injected
 as `BuildConfig` fields by `core/network/build.gradle.kts`. They MUST NEVER be committed or moved
 into source.
 
-**Kotlin Multiplatform**: The owner intends to migrate to KMP with Compose Multiplatform eventually,
-but no work has started and none should. Do not restructure source sets, do not swap Retrofit for
-Ktor or Hilt for Koin, and do not move Room to the driver-based API. The rule is only to avoid
-choices that would be expensive to reverse. When a decision would be hard to undo after a KMP move,
-say so in the plan and let the owner choose.
+**Kotlin Multiplatform**: The owner has decided to migrate the whole project to KMP, with Compose
+Multiplatform for the UI. The scope is `specs/010-kmp-migration/spec.md`: iOS is the only added
+platform, and iOS launches without release reminders and on-device translation, whose entry points
+are hidden there (the iOS follow-ups are in `docs/roadmap.md`). The migration is sequenced by that
+feature's plan and tasks, not restructured ad hoc.
+
+- Android MUST build and pass its tests at every commit (`./gradlew :app:assembleDebug` and
+  `./gradlew test`). No test may be deleted or weakened to get there, and every step MUST be one the
+  work can pause on.
+- Library swaps (Retrofit to Ktor, Hilt to Koin, Room to the driver-based API with
+  `BundledSQLiteDriver`) are decided in the plan and made only in the task that calls for them.
+- The module-boundary rules in Principle I still hold after the move. Any new module or dependency
+  edge MUST be called out in Complexity Tracking.
+- `:core:model` MUST stay free of Android and Compose dependencies.
+- Platform-only capabilities (background refresh, notifications, on-device translation, splash
+  screen) MUST be reached through a contract owned by shared code, with one implementation per
+  platform. `ReleaseRefreshScheduler` and `GameDescriptionTranslator` are the existing shape.
+- New date code MUST use `kotlinx-datetime`, not `java.time`.
+
+When a decision would be hard to undo, say so in the plan and let the owner choose.
 
 ## Development Workflow
 
@@ -172,4 +190,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.0.2 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-07
+**Version**: 1.1.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08

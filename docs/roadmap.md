@@ -28,6 +28,16 @@ user does not edit them by hand. Do not add a row before the thing it configures
 Fold the taste profile into the timeline: saved games get the visual accent, suggestions sit in a minor
 tone alongside them.
 
+## iOS follow-ups after the multiplatform migration
+
+Spec `specs/010-kmp-migration` ships iOS without these two features; their entry points are hidden there.
+Both already sit behind a contract in shared code, so each is a new iOS implementation and nothing else.
+
+- **Release reminders on iOS**: an iOS implementation of `ReleaseRefreshScheduler` (background refresh),
+  local notifications and their permission prompt, and the Settings rows that configure them.
+- **On-device description translation on iOS**: an iOS implementation of `GameDescriptionTranslator`.
+  Needs a design decision first, since ML Kit's GenAI client has no iOS counterpart (see below).
+
 ## Decisions that would be expensive to reverse
 
 Per the KMP section in the root `CLAUDE.md`:

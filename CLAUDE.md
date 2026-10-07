@@ -65,7 +65,7 @@ These boundaries are load-bearing — check them before adding a dependency:
   or `:core:ai`.
 - **`:core:ai` is reachable only from `:core:data`.** It wraps ML Kit's on-device GenAI client
   (`GeminiNanoClient`) and depends on nothing but that SDK, Hilt and coroutines — not even `:core:model`.
-  A KMP move replaces it wholesale, since ML Kit GenAI has no multiplatform counterpart; see
+  The KMP migration leaves it Android-only, since ML Kit GenAI has no multiplatform counterpart; see
   `docs/roadmap.md`.
 - `:core:model` has no Android and no Compose dependency (only `kotlinx-serialization-core`). Keep it that way.
   `:core:model` and `:core:navigation` are the only modules without Hilt/KSP.
@@ -146,22 +146,31 @@ delete the rule in the same commit — do not rewrite it into a note saying the 
 a neighbouring rule already covers what is left. The same applies to `docs/tech-debt.md`: remove a
 resolved entry instead of annotating it as fixed. History belongs in commit messages.
 
-## Planned direction: Kotlin Multiplatform
+## Kotlin Multiplatform migration
 
-The owner intends to migrate this project to KMP (with Compose Multiplatform for the UI) at some point.
-No timeline, no work started — the repo is Android-only today, with zero `commonMain` source sets.
+The owner has decided to migrate the whole project to KMP, with Compose Multiplatform for the UI. The scope
+is in `specs/010-kmp-migration/spec.md`: **iOS is the only added platform** (no desktop, no web), and iOS
+launches **without** release reminders and on-device translation, whose entry points are hidden there (the
+iOS follow-ups are in `docs/roadmap.md`). The repo is still Android-only, with zero `commonMain` source
+sets; the migration is sequenced by that feature's plan and tasks, so follow them rather than restructuring
+ad hoc.
 
-**Do not start KMP restructuring, and do not swap libraries pre-emptively.** The rule is to avoid choices
-that would be expensive to reverse, not to migrate early:
+- **Android must build and pass its tests at every commit** (`./gradlew :app:assembleDebug`,
+  `./gradlew test`). Never delete or weaken a test to get there. Each step must be one you could pause on.
+- **Library swaps are decided in the plan, not on the side.** Retrofit and Hilt are JVM/Android-only (their
+  KMP counterparts would be Ktor and Koin), and Room moves to the driver-based API (`BundledSQLiteDriver`)
+  as part of the migration — see `core/database/CLAUDE.md`. Do not swap one outside the task that calls
+  for it.
+- **The module-boundary rules above still hold** after the move. A new module or dependency edge must be
+  called out explicitly.
+- Keep `:core:model` free of Android and Compose dependencies. It is the natural first candidate for
+  `commonMain`.
+- Platform-only capabilities (background refresh, notifications, on-device translation, splash screen) are
+  reached through a contract owned by shared code, with one implementation per platform — the shape
+  `ReleaseRefreshScheduler` and `GameDescriptionTranslator` already have.
+- Use `kotlinx-datetime`, not `java.time`, for any new date code.
 
-- Keep `:core:model` free of Android and Compose dependencies. It is already the most KMP-ready module and
-  the natural first candidate for `commonMain`.
-- Retrofit (`:core:network`) and Hilt are JVM/Android-only. Their KMP counterparts would be Ktor and Koin.
-  Leave both alone until the migration is actually scoped.
-- Room is on the legacy `SupportSQLiteOpenHelper` path. Moving to the driver-based API
-  (`BundledSQLiteDriver`) belongs to that migration — see `core/database/CLAUDE.md`.
-
-When a decision would be hard to undo after a KMP move, say so and let the owner choose.
+When a decision would be hard to undo, say so and let the owner choose.
 
 ## Known deviations
 
