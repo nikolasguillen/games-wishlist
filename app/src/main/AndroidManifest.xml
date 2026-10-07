@@ -20,7 +20,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:theme="@style/Theme.QuestLog">
+            android:theme="@style/Theme.QuestLog.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -4,8 +4,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.RoundedCorner
-import android.view.View
-import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -30,6 +28,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation3.runtime.NavKey
@@ -44,9 +43,15 @@ import com.nikolasguillen.questlog.core.navigation.OnboardingRoute
 import com.nikolasguillen.questlog.core.navigation.RadarRoute
 import com.nikolasguillen.questlog.core.navigation.SearchRoute
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
+
+// Long enough for the wordmark to register on a fresh launch, short enough not to feel like a wait.
+private const val MIN_SPLASH_DURATION_MS = 500L
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -67,13 +72,22 @@ class MainActivity : ComponentActivity() {
     private var pendingDeepLinkGameId by mutableStateOf<Int?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Keeps the splash on screen for the few milliseconds the flag read takes, instead of drawing one
+        // empty frame (which would end the splash early and flicker) or blocking the main thread.
+        installSplashScreen().setKeepOnScreenCondition { onboardingCompleted == null }
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
         )
         pendingDeepLinkGameId = intent.toGameDeepLinkId()
-        lifecycleScope.launch { onboardingCompleted = getOnboardingCompletedUseCase().first() }
-        holdFirstFrameUntilOnboardingKnown()
+        lifecycleScope.launch {
+            // The minimum runs alongside the read, so it only delays a launch the read would have finished
+            // sooner. It is skipped on recreation (rotation, night-mode change): no splash covers that one,
+            // and holding the first frame would blank the screen.
+            val completed = async { getOnboardingCompletedUseCase().first() }
+            if (savedInstanceState == null) delay(MIN_SPLASH_DURATION_MS.milliseconds)
+            onboardingCompleted = completed.await()
+        }
         setContent {
             val appearanceMode by getAppearanceModeUseCase()
                 .collectAsStateWithLifecycle(initialValue = AppearanceMode.SYSTEM)
@@ -92,19 +106,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-
-    // Keeps the system splash on screen for the few milliseconds the flag read takes, instead of drawing
-    // one empty frame (which would end the splash early and flicker) or blocking the main thread.
-    private fun holdFirstFrameUntilOnboardingKnown() {
-        val content = findViewById<View>(android.R.id.content)
-        content.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
-            override fun onPreDraw(): Boolean {
-                if (onboardingCompleted == null) return false
-                content.viewTreeObserver.removeOnPreDrawListener(this)
-                return true
-            }
-        })
     }
 
     override fun onNewIntent(intent: Intent) {

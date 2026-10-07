@@ -7,4 +7,8 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <!-- Splash: BackgroundLight / BackgroundDark and the gold ramp from :core:designsystem, which the
+         splash theme cannot read because it resolves before any Compose code runs. -->
+    <color name="splash_background">#FFFAFAFA</color>
+    <color name="splash_logo">#FFA68024</color>
 </resources>
