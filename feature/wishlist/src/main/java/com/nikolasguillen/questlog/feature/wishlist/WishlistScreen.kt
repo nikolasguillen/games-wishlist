@@ -1,9 +1,12 @@
 package com.nikolasguillen.questlog.feature.wishlist
 
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.LazyLayoutScrollScope
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FilterAltOff
@@ -54,6 +57,36 @@ import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiState
 import java.io.File
 import kotlinx.coroutines.launch
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
+
+/**
+ * Scrolls smoothly back to the first item in a single animation.
+ *
+ * `animateScrollToItem` is not used because it estimates the distance to an off-screen item as if every grid
+ * line held two items, while the header, the options row, the section headers and every list-view row take a
+ * whole line. The estimate falls short, so the scroll settles, re-estimates and starts again.
+ *
+ * Here the real distance is measured first: scrolling inside one [scroll] session lays items out without
+ * drawing a frame in between, and each `scrollBy` returns how far it actually went. A top within one viewport
+ * is animated all the way; a farther one is first jumped to one viewport below it, as `animateScrollToItem`
+ * itself teleports over long distances.
+ */
+private suspend fun LazyGridState.animateScrollToTop() {
+    val maxDistance = layoutInfo.viewportSize.height.toFloat()
+    var distance = 0f
+    scroll {
+        val distanceToTop = -scrollBy(-maxDistance)
+        distance = if (distanceToTop < maxDistance) {
+            scrollBy(distanceToTop)
+            distanceToTop
+        } else {
+            LazyLayoutScrollScope(this@animateScrollToTop, this).snapToItem(0)
+            scrollBy(maxDistance)
+        }
+    }
+    animateScrollBy(-distance)
+    // The measured distance can be off by a fraction of a pixel, which would leave the header a sliver short.
+    scrollToItem(0)
+}
 
 // viewModel is the same instance for the route's whole lifetime, so ref-comparison skips correctly.
 @Suppress("ParamsComparedByRef")
@@ -132,7 +165,7 @@ internal fun WishlistContent(
             // position, so those states are excluded here rather than left to the scroll test alone.
             ScrollToTopFab(
                 visible = state.contentState is WishlistContentState.Success && showScrollToTop,
-                onClick = { scope.launch { gridState.animateScrollToItem(0) } }
+                onClick = { scope.launch { gridState.animateScrollToTop() } }
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
