@@ -49,11 +49,11 @@ suggesting a command.
 
 ## Module graph and dependency rules
 
-17 modules, all under the `com.nikolasguillen.questlog.*` namespace. Sources live in `src/main/java/`.
+18 modules, all under the `com.nikolasguillen.questlog.*` namespace. Sources live in `src/main/java/`.
 
 ```
 :app  →  everything
-:feature:{search, radar, game-detail, lists, wishlist, settings}
+:feature:{search, radar, game-detail, lists, wishlist, settings, onboarding}
 :core:{common, model, network, database, data, domain, ui, designsystem, navigation, ai}
 ```
 

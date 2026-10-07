@@ -52,10 +52,10 @@ The constitution edits form one PATCH amendment. The first one (T004) bumps `Ver
 
 **Purpose**: Create the new module and make it buildable.
 
-- [ ] T001 Create `feature/onboarding/build.gradle.kts` by copying `feature/search/build.gradle.kts` and changing only the `namespace` to `com.nikolasguillen.questlog.feature.onboarding`. Keep the dependencies exactly: `:core:common`, `:core:model`, `:core:domain`, `:core:ui`, `:core:navigation`, `:core:designsystem`. Do not add `:core:data`, `:core:network`, `:core:database`, `:core:ai` or `:feature:*`. Also create the empty source directories `feature/onboarding/src/main/java/com/nikolasguillen/questlog/feature/onboarding/` and `feature/onboarding/src/test/java/com/nikolasguillen/questlog/feature/onboarding/`.
-- [ ] T002 Add `include(":feature:onboarding")` to `settings.gradle.kts` after `include(":feature:settings")`, and `implementation(project(":feature:onboarding"))` to `app/build.gradle.kts` after the `:feature:settings` line.
-- [ ] T003 [P] Add `onboarding` to the `SCOPES` list in `.githooks/commit-msg` (line 6), so commits scoped `onboarding` are accepted.
-- [ ] T004 [P] Update the documentation for the new module, in the same commit as T001–T003 (constitution Governance):
+- [X] T001 Create `feature/onboarding/build.gradle.kts` by copying `feature/search/build.gradle.kts` and changing only the `namespace` to `com.nikolasguillen.questlog.feature.onboarding`. Keep the dependencies exactly: `:core:common`, `:core:model`, `:core:domain`, `:core:ui`, `:core:navigation`, `:core:designsystem`. Do not add `:core:data`, `:core:network`, `:core:database`, `:core:ai` or `:feature:*`. Also create the empty source directories `feature/onboarding/src/main/java/com/nikolasguillen/questlog/feature/onboarding/` and `feature/onboarding/src/test/java/com/nikolasguillen/questlog/feature/onboarding/`.
+- [X] T002 Add `include(":feature:onboarding")` to `settings.gradle.kts` after `include(":feature:settings")`, and `implementation(project(":feature:onboarding"))` to `app/build.gradle.kts` after the `:feature:settings` line.
+- [X] T003 [P] Add `onboarding` to the `SCOPES` list in `.githooks/commit-msg` (line 6), so commits scoped `onboarding` are accepted.
+- [X] T004 [P] Update the documentation for the new module, in the same commit as T001–T003 (constitution Governance):
   - root `CLAUDE.md`: "17 modules" becomes 18, and `onboarding` joins the `:feature:{…}` list in the module graph and in the sentence naming feature modules;
   - `feature/CLAUDE.md`: add `feature/onboarding` to the "Applies to" list;
   - `docs/tech-debt.md`: "all 17 module build files" becomes 18;

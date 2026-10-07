@@ -4,7 +4,7 @@
 
 ### I. Module Boundaries Are Load-Bearing (NON-NEGOTIABLE)
 
-The project is 17 modules under `com.nikolasguillen.questlog.*`, and the dependency graph between
+The project is 18 modules under `com.nikolasguillen.questlog.*`, and the dependency graph between
 them is a design decision, not an accident of history.
 
 - `feature/*` MUST depend only on `:core:common`, `:core:model`, `:core:domain`, `:core:ui`,
@@ -172,4 +172,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.0.1 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-06
+**Version**: 1.0.2 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-07

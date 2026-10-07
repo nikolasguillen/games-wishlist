@@ -3,7 +3,7 @@
 # Enable once per clone:  git config core.hooksPath .githooks
 
 TYPES='feat|fix|refactor|perf|docs|test|style|build|chore'
-SCOPES='search|radar|game-detail|lists|wishlist|settings|common|model|network|database|data|domain|ui|designsystem|navigation|ai|app|deps|docs'
+SCOPES='search|radar|game-detail|lists|wishlist|settings|onboarding|common|model|network|database|data|domain|ui|designsystem|navigation|ai|app|deps|docs'
 MAX_LEN=72
 
 # First line that is not a comment (git strips '#' lines from the final message).

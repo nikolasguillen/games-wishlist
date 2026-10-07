@@ -55,7 +55,7 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
 ## Infrastructure
 
 - **No convention plugins**: no `build-logic`, no `buildSrc`. `compileSdk = 37`, `minSdk = 29` and Java 11
-  are repeated by hand in all 17 module build files.
+  are repeated by hand in all 18 module build files.
 - **No CI** (`.github/` does not exist) and **no static analysis** (no detekt, ktlint, spotless,
   `.editorconfig`, or `lint {}` block).
 - **Test coverage gaps**: no tests at all for `:core:database` DAOs or `:core:ui`

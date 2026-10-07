@@ -57,6 +57,7 @@ dependencies {
     implementation(project(":feature:lists"))
     implementation(project(":feature:wishlist"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:onboarding"))
 
     implementation(libs.hilt.android)
     implementation(libs.hiltNavCompose)
