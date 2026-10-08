@@ -55,7 +55,7 @@ DataStore (same file on Android). There are no schema changes. One iOS-only pref
 
 **Testing**:
 
-- **Existing suites**: the 48 JUnit4 + MockK + `kotlinx-coroutines-test` suites move unchanged to each module's `androidHostTest`.
+- **Existing suites**: the 48 JUnit4 + MockK + `kotlinx-coroutines-test` test files move to each module's `androidHostTest` with no assertion changed. A few get type-only edits, all named in `tasks.md` and audited in its final verification: an extra constructor argument, `RequestBody` → `String`, `File` → `String`, and `R` → `Res` handles.
 - **New host tests** cover the date pipeline, compact numbers, connectivity classification, the reminders-unavailable branches of four ViewModels, and Koin `verify()`.
 - **`commonTest`** (`kotlin.test`) is used only for new mock-free tests.
 - **iOS** is validated manually (`quickstart.md`); there is no XCTest suite.
@@ -108,7 +108,7 @@ Checked against constitution v1.1.0.
 | **IV.** Theme resolved once; no `isSystemInDarkTheme()` in components | ✅ Pass | The resolution moves from `MainActivity` into `QuestLogRoot` (`:shared`), still once. Wording update in the constitution (Phase G) |
 | **IV.** Exactly one `GameRepository` implementation | ✅ Pass | Unchanged, in `commonMain` |
 | **V.** No dependency on CI, lint gates or formatters | ✅ Pass | All checks are local commands (quickstart) |
-| **V.** Existing suites stay green; new logic gets JUnit4 + MockK tests | ✅ Pass | Suites move to `androidHostTest` unchanged. The task names change (`testAndroidHostTest`), and the commands are updated in Phase C |
+| **V.** Existing suites stay green; new logic gets JUnit4 + MockK tests | ✅ Pass | Suites move to `androidHostTest` with no assertion changed (type-only edits are listed in `tasks.md`). The task names change (`testAndroidHostTest`), and the commands are updated in Phase C |
 | **V.** "no `build-logic` or `buildSrc`" | ⚠️ Justified change | Convention plugins for 17 KMP modules (research R3). Approved by the owner on 2026-10-08; see Complexity Tracking |
 | **Persistence**: `version = 1`, destructive fallback, no list-shaped columns, `GameDao.saveGame` path | ✅ Pass | No entity change. The schema is re-exported only if Room's output differs |
 | **Injection**: Hilt everywhere | ✅ Pass (by v1.1.0) | The swap to Koin is decided here and made in Phase B's tasks. `SavedStateHandle` is still not introduced |
@@ -146,13 +146,11 @@ work can pause after any commit. `/speckit-tasks` turns each phase into tasks.
    - **Dates and numbers**: `java.time` → `kotlinx-datetime` behind `DateUtils`; `String.format` and `Locale` replaced (R7).
    - **Text**: `HtmlCompat` → a small common parser for `<b>`/`<i>`/`<u>` (research R8).
    - **Plain values replace platform types**:
-     - `File` → path strings in UI models;
-     - `UUID` → `kotlin.uuid.Uuid`;
-     - `TimeUnit` → `kotlin.time`.
+     - `File` → path strings in UI models. (`UUID` and `TimeUnit` stay in the Android-only classes that use them.)
    - **Classes become interfaces**: `AppVersionProvider`, `NetworkStatusProvider` and `WishlistCoverImageStorage`.
    - **`RepositoryErrorMapper`**: the `java.net` checks are isolated in one function.
    - **`shadowglow`** → `Modifier.dropShadow`.
-   - **New contracts**: `ReleaseRemindersAvailability` (Android binding `true`, with the five ViewModel gates and their tests), and `DefaultWishlistSeed`.
+   - **New contracts**: `ReleaseRemindersAvailability` (Android binding `true`, with the four ViewModel gates and their tests). `DefaultWishlistSeed` arrives with the database conversion in Phase C.
 2. **Hilt → Koin**: Koin modules and `verify()` are added beside Hilt, then everything switches and Hilt is removed. This includes the two assisted ViewModels and the WorkManager workers (R4).
 3. **Retrofit + Moshi → Ktor + kotlinx.serialization**, OkHttp engine; credentials via `buildconfig` (R5).
 4. **Room on `BundledSQLiteDriver`** with the Room Gradle plugin; DataStore created by path (R6). Verify the Android update path (quickstart).

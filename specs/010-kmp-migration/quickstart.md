@@ -8,7 +8,7 @@ success criteria. There is no CI, so every check here is run locally (constituti
 | | Android checks | iOS checks |
 |---|---|---|
 | OS | macOS or Windows | macOS only |
-| Tools | JDK 21 toolchain (Gradle downloads it), Android SDK 37 | Xcode (current stable) with an iOS 16+ simulator; optionally a device with a free provisioning profile |
+| Tools | JDK 21 toolchain (Gradle downloads it), Android SDK 37 | Xcode (current stable) with an iOS 16+ simulator (a physical device is not required) |
 | Secrets | `IGDB_CLIENT_ID` / `IGDB_CLIENT_SECRET` in `local.properties` (as today) | same file, which the iOS framework build reads too |
 
 On Windows, use `.\gradlew.bat` in place of `./gradlew`. The iOS tasks are skipped there

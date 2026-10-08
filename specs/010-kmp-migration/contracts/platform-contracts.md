@@ -182,7 +182,7 @@ internal expect fun Throwable.isConnectivityFailure(): Boolean
 | Concern | Android (`:app`) | iOS (`iosApp/`) |
 |---|---|---|
 | Entry point | `MainActivity` → `setContent { QuestLogRoot(displayCornerRadius = …, onReady = …) }` | `ContentView` → `MainViewController()` |
-| DI start | `QuestLogApp.onCreate` → `startKoin { androidContext(this); workManagerFactory(); modules(sharedModules + androidPlatformModules) }` | `MainViewController()` → idempotent `initKoin(iosPlatformModules)` |
+| DI start | `QuestLogApp.onCreate` → `initKoin(isDebugBuild = BuildConfig.DEBUG, androidPlatformModules)`, with `androidContext(this)` and `workManagerFactory()` | `MainViewController()` → idempotent `initKoin(isDebugBuild = Platform.isDebugBinary, iosPlatformModules)` |
 | Splash | `core-splashscreen`, held until the start route is known (unchanged) | `LaunchScreen` storyboard with the app logo |
 | Periodic refresh kick-off | `QuestLogApp` calls `schedulePeriodicRefresh()` (unchanged) | `MainViewController()` calls `schedulePeriodicRefresh()` once per launch |
 | Display corner radius | `RoundedCorner` probe (unchanged) | Fixed default passed by `MainViewController()` |

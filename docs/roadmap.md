@@ -37,6 +37,8 @@ Both already sit behind a contract in shared code, so each is a new iOS implemen
   local notifications and their permission prompt, and the Settings rows that configure them.
 - **On-device description translation on iOS**: an iOS implementation of `GameDescriptionTranslator`.
   Needs a design decision first, since ML Kit's GenAI client has no iOS counterpart (see below).
+- **iOS distribution**: installing on a physical device (development team), signing and provisioning, and
+  TestFlight. Spec 010 verifies on the simulator only.
 
 ## Decisions that would be expensive to reverse
 

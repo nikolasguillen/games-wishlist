@@ -14,6 +14,8 @@
 
 - Q: Which additional platforms are in scope? → A: iOS only. Desktop and web are out of scope for this
   feature.
+- Q: Must iOS be installable on a physical device in this feature? → A: No. It is verified on the iOS
+  simulator. Device install, signing and TestFlight are a follow-up in `docs/roadmap.md`.
 - Q: Must on-device translation and release reminders reach parity on iOS before it ships? → A: No. iOS
   launches without both and their entry points are hidden there. Implementing them for iOS is deferred
   follow-up work and must stay on record (see FR-008 and the Assumptions).
@@ -22,7 +24,7 @@
 
 <!--
   The "users" of this feature are the people who use QuestLog (existing Android users, and the new
-  audience on the additional platform(s)) and the owner, who maintains the code. A migration has no new
+  audience on iOS) and the owner, who maintains the code. A migration has no new
   screens: its value is that the same app, with the same behaviour, exists on more than one platform
   from one body of shared code, without breaking what already works.
 -->
@@ -67,21 +69,21 @@ they differ (back navigation, system appearance, permissions prompts).
 **Why this priority**: This is the reason for the migration. It is P2 only because it must not start
 until Story 1's safety net exists, and because it is delivered in slices (see Story 3).
 
-**Independent Test**: Install the app on a device of the additional platform, sign in to nothing (the app
+**Independent Test**: Run the app on an iOS simulator, sign in to nothing (the app
 has no account), search for a game, save it to a list, restart the app, and confirm the game is still
 there and appears in Radar if it has a release date.
 
 **Acceptance Scenarios**:
 
-1. **Given** a fresh install on the additional platform, **When** the user opens the app, **Then** they see
+1. **Given** a fresh install on iOS, **When** the user opens the app, **Then** they see
    the welcome flow once and then land on the normal start screen, exactly as on Android.
-2. **Given** the app on the additional platform with network access, **When** the user searches for a
+2. **Given** the app on iOS with network access, **When** the user searches for a
    game and saves it to a list, **Then** it appears in that list and survives closing and reopening the
    app.
 3. **Given** the system is set to dark appearance and the user has chosen "follow system", **When** the app
    is opened, **Then** it renders in the dark scheme; changing the app's own appearance setting overrides
    the system.
-4. **Given** a feature that cannot work identically on the additional platform, **When** the user reaches
+4. **Given** a feature that cannot work identically on iOS, **When** the user reaches
    it, **Then** the app either offers the platform's equivalent or hides the entry point — it never shows a
    broken or dead control.
 
@@ -149,13 +151,13 @@ that shared code compiles and that its tests still pass without touching shared 
   release date was stored in? Radar's timeline must show the same day on both platforms for the same
   game.
 - What happens to the IGDB credentials, which are injected at build time from a git-ignored local file? A
-  build for the additional platform must obtain them the same way, and they must never end up committed
+  build for iOS must obtain them the same way, and they must never end up committed
   or in shared source.
-- How are strings, icons and fonts that are today Android resources shown on the additional platform,
-  including every existing translation of the app's text?
+- How are strings, icons and fonts that are today Android resources shown on iOS, including every existing
+  translation of the app's text (today, English only)?
 - What happens when a screen's behaviour depends on a platform-native gesture (for example the Android
-  system back gesture) that the additional platform does not have?
-- What if a library the project relies on has no equivalent on the additional platform? The capability
+  system back gesture) that iOS does not have?
+- What if a library the project relies on has no equivalent on iOS? The capability
   must be listed as an exception (FR-008), not silently dropped.
 
 ## Requirements *(mandatory)*
@@ -164,8 +166,9 @@ that shared code compiles and that its tests still pass without touching shared 
 
 - **FR-001**: The app MUST continue to ship on Android with feature parity to the pre-migration build:
   every shipped screen, setting, notification and background behaviour keeps working as it does today.
-- **FR-002**: The app MUST be installable and usable on iOS, in addition to Android. No other platform
-  (desktop, web) is in scope.
+- **FR-002**: The app MUST run on iOS, verified on the iOS simulator, in addition to Android. Installing on a
+  physical device, code signing and store distribution are out of scope for this feature and are recorded in
+  `docs/roadmap.md`. No other platform (desktop, web) is in scope.
 - **FR-003**: Business logic MUST live in code shared across platforms: domain models, use cases,
   repository contracts and implementations, mappers, error mapping, and the logic that drives each
   screen. Only genuinely platform-specific behaviour (see FR-007) may live outside it.
@@ -173,24 +176,22 @@ that shared code compiles and that its tests still pass without touching shared 
   (colors, typography, spacing tokens, light and dark schemes, user-selectable appearance) on every
   supported platform.
 - **FR-005**: All user-visible text MUST come from a single shared set of strings, in every language the
-  app already supports, on every supported platform. No display text may be hardcoded in a model, mapper
+  app already supports (today, English), on every supported platform. No display text may be hardcoded in a model, mapper
   or screen.
 - **FR-006**: The existing module-boundary rules MUST still hold after the migration: feature modules
   depend only on the common, model, domain, UI, navigation and design-system modules; the AI module is
   reachable only from the data module; only the app module knows about navigation. Any new module or
   dependency edge MUST be called out and justified explicitly.
 - **FR-007**: Capabilities that exist on only some platforms (background release refresh, release
-  notifications and their permission prompt, on-device description translation, splash screen, secure
-  build-time credential injection) MUST be reached from shared code through a contract owned by shared
-  code, with one implementation per platform.
+  notifications and their permission prompt, on-device description translation, splash screen) MUST be
+  reached from shared code through a contract owned by shared code, with one implementation per platform.
 - **FR-008**: When a platform cannot provide a capability, the app MUST either provide that platform's
   equivalent or hide the entry point for it; it MUST NOT show a control that cannot work. The set of
   capabilities affected and the chosen behaviour for each MUST be recorded. For the first iOS release,
   on-device description translation and release reminders (including their permission prompt and any
   release-date refresh that runs while the app is closed) are NOT required. Their entry points MUST be
   hidden on iOS, and the Settings rows that configure them MUST NOT appear there. Release dates shown in
-  Radar MUST still stay current while the app is in use. Both deferred features remain Android-only until they are
-  implemented for iOS in follow-up work, which MUST be kept on record (FR-016).
+  Radar MUST still stay current while the app is in use. Both remain Android-only until implemented for iOS (FR-016).
 - **FR-016**: The deferred iOS work for on-device translation and for release reminders MUST stay
   recorded in `docs/roadmap.md` as planned features (it is, under "iOS follow-ups after the multiplatform
   migration"), so the gap is a tracked decision and not something forgotten. Each entry is deleted only
@@ -235,7 +236,7 @@ that shared code compiles and that its tests still pass without touching shared 
   removed or disabled.
 - **SC-002**: 100% of the screens and flows listed in the parity baseline behave identically on Android
   after the migration, verified by a manual walkthrough with no regressions logged.
-- **SC-003**: A new user on each supported additional platform can install the app, complete the welcome
+- **SC-003**: A new user on iOS can launch the app, complete the welcome
   flow, find a game, save it to a list and see it still saved after restarting the app, in under 3
   minutes.
 - **SC-004**: At least 90% of the application's non-UI logic and of its screen logic is written once and
@@ -249,7 +250,7 @@ that shared code compiles and that its tests still pass without touching shared 
 
 ## Assumptions
 
-- "The additional platform" throughout this spec means iOS. Release reminders and on-device translation
+- Release reminders and on-device translation
   are deliberately absent from the first iOS release and are tracked as follow-up work (FR-008, FR-016).
   The contracts from FR-007 exist for them from day one, so adding the iOS implementations later does not
   touch shared code.

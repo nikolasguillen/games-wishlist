@@ -158,7 +158,7 @@ Both commits leave Android green.
 - **Plugins**: `ContentNegotiation` with `kotlinx.serialization` JSON (`ignoreUnknownKeys = true`), and `Logging` (debug builds).
 - **DTOs**: the 12 Moshi DTOs swap `@JsonClass`/`@Json(name=)` for `@Serializable`/`@SerialName`.
 - **Service**: `IgdbApiService` keeps its contract (methods return bare `List<T>`, throw on failure), implemented over `HttpClient`.
-- **Request bodies change type.** Today every method takes OkHttp's `RequestBody`, so OkHttp leaks into `:core:data` (10 `toRequestBody(...)` call sites in `GameRepositoryImpl`) and into four existing test files that mock `searchGames(any<RequestBody>())`. The Ktor service takes the Apicalypse query as a plain `String` (sent as `text/plain`). This is the one place where existing tests must be edited. The edit is limited to the body type (`RequestBody` → `String`, and `asText()` helpers deleted), and every assertion on the query text stays as it is.
+- **Request bodies change type.** Today every method takes OkHttp's `RequestBody`, so OkHttp leaks into `:core:data` (9 `toRequestBody(...)` call sites in `GameRepositoryImpl`) and into four existing test files that mock `searchGames(any<RequestBody>())`. The Ktor service takes the Apicalypse query as a plain `String` (sent as `text/plain`). This is the one place where existing tests must be edited. The edit is limited to the body type (`RequestBody` → `String`, and `asText()` helpers deleted), and every assertion on the query text stays as it is.
 - **Errors**: `IgdbHttpErrorInterceptor` becomes a Ktor `HttpResponseValidator` that throws the same `IgdbHttpException` for every non-2xx response. Ktor's own `ResponseException` never leaves `:core:network` (Principle II).
 - **Clock**: `ElapsedRealtimeSource` stays a seam (`IgdbAuthManagerTest` already fakes it) with a per-platform production binding: `SystemClock.elapsedRealtime()` on Android, and a clock that includes sleep time on iOS (`mach_continuous_time`). `TimeSource.Monotonic` is **not** used, because on Android it is `System.nanoTime()`, which stops during deep sleep. That is the exact failure the KDoc on `ElapsedRealtimeSource` and `IgdbAuthManager` warns about (an expired token judged still fresh).
 
@@ -317,7 +317,7 @@ part of the refresh deferred with reminders is the run that happens while the ap
 
 **Decision**:
 
-- **Existing tests move unchanged** to each KMP module's `androidHostTest` source set: JUnit4, MockK and `kotlinx-coroutines-test`. Their content is not rewritten (FR-011, FR-012).
+- **Existing tests move** to each KMP module's `androidHostTest` source set: JUnit4, MockK and `kotlinx-coroutines-test`. No assertion is rewritten (FR-011, FR-012); the only edits are type-only ones named in `tasks.md` (an extra constructor argument, `RequestBody` → `String`, `File` → `String`, `R` → `Res` handles).
 - **Added tests** cover:
   - the new common code paths: the date pipeline, the number formatter, the reminders-unavailable branches and `RepositoryErrorMapper`'s connectivity mapping;
   - the Koin graph via `verify()`.
