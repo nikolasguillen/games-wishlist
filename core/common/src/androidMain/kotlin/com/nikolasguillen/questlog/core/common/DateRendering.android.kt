@@ -6,13 +6,10 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
-// The only locale-dependent step of DateUtils. Everything else is plain date arithmetic, so this is the one
-// place that needs a platform: month and weekday names come from the device locale's own data.
-
-internal fun renderLocalDate(date: LocalDate, pattern: String): String =
+internal actual fun renderLocalDate(date: LocalDate, pattern: String): String =
     date.toJavaLocalDate().format(DateTimeFormatter.ofPattern(pattern, Locale.getDefault()))
 
-internal fun renderLocalDate(date: LocalDate, style: DateStyle): String =
+internal actual fun renderLocalDate(date: LocalDate, style: DateStyle): String =
     date.toJavaLocalDate().format(DateTimeFormatter.ofLocalizedDate(style.toFormatStyle()).withLocale(Locale.getDefault()))
 
 private fun LocalDate.toJavaLocalDate(): java.time.LocalDate = java.time.LocalDate.of(year, month.number, day)

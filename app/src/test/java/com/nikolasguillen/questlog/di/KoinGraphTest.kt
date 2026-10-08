@@ -2,7 +2,7 @@ package com.nikolasguillen.questlog.di
 
 import android.content.Context
 import androidx.work.WorkerParameters
-import com.nikolasguillen.questlog.core.common.di.commonModule
+import com.nikolasguillen.questlog.core.common.di.commonPlatformModule
 import com.nikolasguillen.questlog.core.data.di.dataModule
 import com.nikolasguillen.questlog.core.database.di.databaseModule
 import com.nikolasguillen.questlog.core.domain.di.domainModule
@@ -22,7 +22,7 @@ class KoinGraphTest {
     fun `every dependency in the graph is declared`() {
         // verify() checks one module at a time, and these depend on each other, so they are checked as one.
         module {
-            includes(commonModule, domainModule, networkModule, databaseModule, dataModule, viewModelModule)
+            includes(commonPlatformModule, domainModule, networkModule, databaseModule, dataModule, viewModelModule)
         }.verify(extraTypes = listOf(Context::class, WorkerParameters::class, Int::class, Long::class))
     }
 }

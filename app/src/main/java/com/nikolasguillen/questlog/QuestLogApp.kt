@@ -2,7 +2,7 @@ package com.nikolasguillen.questlog
 
 import android.app.Application
 import androidx.work.Configuration
-import com.nikolasguillen.questlog.core.common.di.commonModule
+import com.nikolasguillen.questlog.core.common.di.commonPlatformModule
 import com.nikolasguillen.questlog.core.data.di.dataModule
 import com.nikolasguillen.questlog.core.database.di.databaseModule
 import com.nikolasguillen.questlog.core.domain.di.domainModule
@@ -28,7 +28,7 @@ class QuestLogApp : Application(), Configuration.Provider {
         super.onCreate()
         startKoin {
             androidContext(this@QuestLogApp)
-            modules(commonModule, domainModule, networkModule, databaseModule, dataModule, viewModelModule)
+            modules(commonPlatformModule, domainModule, networkModule, databaseModule, dataModule, viewModelModule)
         }
         releaseRefreshScheduler.schedulePeriodicRefresh()
     }
