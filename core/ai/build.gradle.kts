@@ -1,7 +1,5 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.google.devtools.ksp)
-    alias(libs.plugins.hilt)
 }
 
 android {
@@ -24,9 +22,6 @@ android {
 
 dependencies {
     implementation(libs.mlkit.genai.prompt)
-
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
 
     implementation(libs.kotlinx.coroutines.android)
 

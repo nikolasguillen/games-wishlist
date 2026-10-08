@@ -42,25 +42,21 @@ import com.nikolasguillen.questlog.core.navigation.ListsRoute
 import com.nikolasguillen.questlog.core.navigation.OnboardingRoute
 import com.nikolasguillen.questlog.core.navigation.RadarRoute
 import com.nikolasguillen.questlog.core.navigation.SearchRoute
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
 import kotlin.time.Duration.Companion.milliseconds
 
 // Long enough for the wordmark to register on a fresh launch, short enough not to feel like a wait.
 private const val MIN_SPLASH_DURATION_MS = 500L
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var getAppearanceModeUseCase: GetAppearanceModeUseCase
+    private val getAppearanceModeUseCase: GetAppearanceModeUseCase by inject()
 
-    @Inject
-    lateinit var getOnboardingCompletedUseCase: GetOnboardingCompletedUseCase
+    private val getOnboardingCompletedUseCase: GetOnboardingCompletedUseCase by inject()
 
     // `null` until the stored flag has been read. The back stack's first entry is chosen from it, and
     // rememberNavBackStack only looks at its initial key once, so nothing may compose before it is known.

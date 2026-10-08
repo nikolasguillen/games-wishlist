@@ -3,13 +3,8 @@ package com.nikolasguillen.questlog.core.common
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
-import javax.inject.Singleton
-
-@Singleton
-internal class NetworkStatusProviderImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+internal class NetworkStatusProviderImpl(
+    private val context: Context
 ) : NetworkStatusProvider {
 
     override val isUnmeteredNetworkAvailable: Boolean

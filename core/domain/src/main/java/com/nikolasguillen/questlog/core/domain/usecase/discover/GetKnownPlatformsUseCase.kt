@@ -3,7 +3,6 @@ package com.nikolasguillen.questlog.core.domain.usecase.discover
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.model.Platform
 import kotlinx.coroutines.flow.Flow
-import javax.inject.Inject
 
 /**
  * Use case to list the platforms the "My platforms" picker can offer.
@@ -13,7 +12,7 @@ import javax.inject.Inject
  * last sync — it is never empty for a user who has saved games, and empty for a new user only until
  * the first sync lands.
  */
-class GetKnownPlatformsUseCase @Inject constructor(
+class GetKnownPlatformsUseCase(
     private val repository: GameRepository
 ) {
     operator fun invoke(): Flow<List<Platform>> {

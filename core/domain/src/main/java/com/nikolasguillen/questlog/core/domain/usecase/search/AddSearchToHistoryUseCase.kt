@@ -1,12 +1,11 @@
 package com.nikolasguillen.questlog.core.domain.usecase.search
 
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
-import javax.inject.Inject
 
 /**
  * Use case to add a query string to the local search history.
  */
-class AddSearchToHistoryUseCase @Inject constructor(
+class AddSearchToHistoryUseCase(
     private val repository: GameRepository
 ) {
     /**

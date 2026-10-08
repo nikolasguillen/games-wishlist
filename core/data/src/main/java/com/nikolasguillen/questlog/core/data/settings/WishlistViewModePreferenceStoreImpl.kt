@@ -8,7 +8,6 @@ import com.nikolasguillen.questlog.core.domain.settings.WishlistViewModePreferen
 import com.nikolasguillen.questlog.core.model.WishlistViewMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
 
 private val WISHLIST_VIEW_MODE_KEY = intPreferencesKey("wishlist_view_mode")
 
@@ -17,7 +16,7 @@ private val WISHLIST_VIEW_MODE_KEY = intPreferencesKey("wishlist_view_mode")
  * [com.nikolasguillen.questlog.core.data.di.DataModule] so this class stays a plain function of an injected
  * [DataStore], directly unit-testable with a temp-file-backed instance.
  */
-class WishlistViewModePreferenceStoreImpl @Inject constructor(
+class WishlistViewModePreferenceStoreImpl(
     private val settingsDataStore: DataStore<Preferences>
 ) : WishlistViewModePreferenceStore {
 

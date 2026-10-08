@@ -1,7 +1,5 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.google.devtools.ksp)
-    alias(libs.plugins.hilt)
 }
 
 android {
@@ -25,9 +23,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     // Part of DateUtils' public surface: parseIsoDate and timestampToLocalDate return its LocalDate.
     api(libs.kotlinx.datetime)
-    implementation(libs.hilt.android)
     implementation(libs.koin.core)
-    ksp(libs.hilt.compiler)
 
     testImplementation(libs.junit)
 }

@@ -3,12 +3,11 @@ package com.nikolasguillen.questlog.core.domain.usecase.list
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.WishlistIcon
-import javax.inject.Inject
 
 /**
  * Use case to create a new custom game list.
  */
-class CreateListUseCase @Inject constructor(
+class CreateListUseCase(
     private val repository: GameRepository
 ) {
     /**

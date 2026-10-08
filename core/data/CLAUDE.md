@@ -6,7 +6,7 @@ refresh. This is the **error boundary** of the app: exceptions stop here and bec
 ## Repository
 
 `GameRepositoryImpl` implements `GameRepository` (the interface lives in `core/domain/repository/`) and is
-bound with `@Binds @Singleton` in `di/DataModule.kt`. There is one repository for search, history, detail,
+registered as a `singleOf` bound to the interface in `di/DataKoin.kt`. There is one repository for search, history, detail,
 wishlist, lists, the Discover shelves, the platform catalogue and Radar's release dates — do not add a
 second one without discussing it.
 
@@ -87,13 +87,13 @@ owns the prompt text, and `TranslationArtifactSanitizer.kt` (`String.stripTransl
 what a small on-device model leaves behind. Keep them out of the translator — they are the parts worth
 unit-testing without a device.
 
-`DataModule` also `@Provides` an application-scoped `CoroutineScope` for this feature only: the model
+`dataModule` also registers an application-scoped `CoroutineScope` for this feature only: the model
 download has to outlive the `SettingsViewModel` that started it, or leaving the screen would cancel it.
 
 ## Background work
 
 Radar's release dates refresh through WorkManager, wired here: `worker/ReleaseDatesRefreshWorker` is a
-`@HiltWorker` that does nothing but call `RefreshReleaseDatesUseCase` and map a failure to `Result.retry()`,
+plain `CoroutineWorker`, registered with `workerOf` in `dataModule`, that does nothing but call `RefreshReleaseDatesUseCase` and map a failure to `Result.retry()`,
 and `scheduler/ReleaseRefreshSchedulerImpl` implements `core/domain/radar/ReleaseRefreshScheduler` over it.
 
 Both enqueues are **unique with a `KEEP` policy**, for two different reasons, and both are load-bearing:
@@ -101,5 +101,5 @@ the periodic one is re-requested from `Application.onCreate()` on every launch a
 window, and the immediate one collapses the burst of requests that several saves in a row produce. Read the
 `// KEEP:` comments before changing either policy.
 
-The `HiltWorkerFactory` half lives in `:app` (`QuestLogApp` implements `Configuration.Provider`), which is
-also where `schedulePeriodicRefresh()` is called from.
+The worker-factory half lives in `:app`: `QuestLogApp` implements `Configuration.Provider` and hands WorkManager a
+`KoinWorkerFactory`, and it is also where `schedulePeriodicRefresh()` is called from.

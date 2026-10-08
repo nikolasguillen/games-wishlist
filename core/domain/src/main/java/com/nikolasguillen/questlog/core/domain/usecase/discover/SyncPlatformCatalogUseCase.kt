@@ -2,7 +2,6 @@ package com.nikolasguillen.questlog.core.domain.usecase.discover
 
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.model.AppResult
-import javax.inject.Inject
 
 /**
  * Use case to refresh IGDB's platform catalogue into the local cache.
@@ -13,7 +12,7 @@ import javax.inject.Inject
  * Callers are expected to fire this and keep rendering from the cache: the result is worth surfacing
  * only when there is nothing cached to fall back on.
  */
-class SyncPlatformCatalogUseCase @Inject constructor(
+class SyncPlatformCatalogUseCase(
     private val repository: GameRepository
 ) {
     suspend operator fun invoke(): AppResult<Unit> {

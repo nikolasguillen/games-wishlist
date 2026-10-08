@@ -1,8 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.google.devtools.ksp)
-    alias(libs.plugins.hilt)
 }
 
 android {
@@ -39,11 +37,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.activity.compose)
-    implementation(libs.hiltNavCompose)
     implementation(libs.coil.compose)
-    
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)

@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
-    alias(libs.plugins.hilt)
 }
 
 android {
@@ -58,14 +57,10 @@ dependencies {
     implementation(project(":feature:wishlist"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:onboarding"))
-
-    implementation(libs.hilt.android)
-    implementation(libs.hiltNavCompose)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.workmanager)
     implementation(libs.koin.compose)
     implementation(libs.koin.compose.viewmodel)
-    ksp(libs.hilt.compiler)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.adaptive)
@@ -88,7 +83,6 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.work.runtime.ktx)
-    implementation(libs.androidx.hilt.work)
     implementation(libs.coil.compose)
     implementation(libs.converter.moshi)
     implementation(libs.kotlinx.coroutines.android)

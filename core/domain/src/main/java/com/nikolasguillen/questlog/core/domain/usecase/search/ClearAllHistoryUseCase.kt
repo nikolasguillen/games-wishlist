@@ -1,12 +1,11 @@
 package com.nikolasguillen.questlog.core.domain.usecase.search
 
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
-import javax.inject.Inject
 
 /**
  * Use case to clear the entire local search history.
  */
-class ClearAllHistoryUseCase @Inject constructor(
+class ClearAllHistoryUseCase(
     private val repository: GameRepository
 ) {
     /**

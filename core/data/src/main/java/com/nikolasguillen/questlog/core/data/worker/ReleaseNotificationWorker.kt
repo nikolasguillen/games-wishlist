@@ -1,12 +1,9 @@
 package com.nikolasguillen.questlog.core.data.worker
 
 import android.content.Context
-import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.nikolasguillen.questlog.core.domain.usecase.notification.DeliverReleaseNotificationUseCase
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
 
 private const val GAME_ID_KEY = "gameId"
 
@@ -15,10 +12,9 @@ private const val GAME_ID_KEY = "gameId"
  * [gameId]: [DeliverReleaseNotificationUseCase] re-verifies eligibility at fire time, so a stale schedule
  * declining to post is correct behavior, not a failure to retry.
  */
-@HiltWorker
-class ReleaseNotificationWorker @AssistedInject constructor(
-    @Assisted context: Context,
-    @Assisted params: WorkerParameters,
+class ReleaseNotificationWorker(
+    context: Context,
+    params: WorkerParameters,
     private val deliverReleaseNotificationUseCase: DeliverReleaseNotificationUseCase
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {

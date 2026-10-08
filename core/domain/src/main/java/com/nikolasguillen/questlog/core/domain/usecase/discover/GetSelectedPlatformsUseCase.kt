@@ -4,7 +4,6 @@ import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.model.Platform
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import javax.inject.Inject
 
 /**
  * Use case to resolve the user's platform selection into full [Platform]s, for callers that need to
@@ -16,7 +15,7 @@ import javax.inject.Inject
  * nor explain, and because it did nothing at all for the brand-new user it was supposed to help.
  * Use [GetSelectedPlatformIdsUseCase] when the ids are enough.
  */
-class GetSelectedPlatformsUseCase @Inject constructor(
+class GetSelectedPlatformsUseCase(
     private val repository: GameRepository
 ) {
     /**

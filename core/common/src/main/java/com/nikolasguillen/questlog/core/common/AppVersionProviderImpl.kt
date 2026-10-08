@@ -3,9 +3,6 @@ package com.nikolasguillen.questlog.core.common
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Reads the installed version name once at construction, so callers never need to touch [Context] or
@@ -14,8 +11,7 @@ import javax.inject.Singleton
  * The lookup cannot fail for the app's own package, but the platform declares it as throwing, so a miss
  * degrades to an empty version rather than crashing whatever reads it.
  */
-@Singleton
-internal class AppVersionProviderImpl @Inject constructor(@ApplicationContext context: Context) : AppVersionProvider {
+internal class AppVersionProviderImpl(context: Context) : AppVersionProvider {
 
     override val versionName: String = context.packageManager.versionNameOf(context.packageName)
 }

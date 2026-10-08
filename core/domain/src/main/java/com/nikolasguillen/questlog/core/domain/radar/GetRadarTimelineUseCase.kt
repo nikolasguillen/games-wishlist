@@ -8,7 +8,6 @@ import com.nikolasguillen.questlog.core.model.RadarTimelineSection
 import com.nikolasguillen.questlog.core.model.ReleaseBucket
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import javax.inject.Inject
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -18,7 +17,7 @@ import kotlin.time.Instant
  * [ReleaseBucket.TBA] sorts alphabetically instead, since it has no date to sort by, and
  * [ReleaseBucket.RECENTLY_RELEASED] sorts descending, so the most recently released game leads.
  */
-class GetRadarTimelineUseCase @Inject constructor(
+class GetRadarTimelineUseCase(
     private val gameRepository: GameRepository,
     private val getSelectedPlatformIdsUseCase: GetSelectedPlatformIdsUseCase
 ) {

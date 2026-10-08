@@ -8,7 +8,6 @@ import com.nikolasguillen.questlog.core.domain.settings.AppearancePreferenceStor
 import com.nikolasguillen.questlog.core.model.AppearanceMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
 
 private val APPEARANCE_MODE_KEY = intPreferencesKey("appearance_mode")
 
@@ -17,7 +16,7 @@ private val APPEARANCE_MODE_KEY = intPreferencesKey("appearance_mode")
  * rather than built here, so this class stays a plain function of an injected [DataStore] — directly
  * unit-testable with a temp-file-backed instance, no Android `Context`/Robolectric required.
  */
-class AppearancePreferenceStoreImpl @Inject constructor(
+class AppearancePreferenceStoreImpl(
     private val settingsDataStore: DataStore<Preferences>
 ) : AppearancePreferenceStore {
 

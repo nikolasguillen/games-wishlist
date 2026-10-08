@@ -3,8 +3,6 @@ package com.nikolasguillen.questlog.core.network
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -13,8 +11,7 @@ import kotlin.time.Duration.Companion.seconds
  * The token is kept in memory only. It is cheap to request again on the next process start, and writing it
  * to disk would mean persisting a credential the app can always re-derive.
  */
-@Singleton
-internal class IgdbAuthManager @Inject constructor(
+internal class IgdbAuthManager(
     private val authService: IgdbAuthService,
     private val elapsedRealtimeSource: ElapsedRealtimeSource
 ) {

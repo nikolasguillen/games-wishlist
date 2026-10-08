@@ -1,7 +1,5 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.google.devtools.ksp)
-    alias(libs.plugins.hilt)
 }
 
 android {
@@ -28,19 +26,15 @@ dependencies {
     implementation(project(":core:ai"))
 
     implementation(libs.okhttp)
-    implementation(libs.hilt.android)
     implementation(libs.koin.core)
     implementation(libs.koin.android)
-    ksp(libs.hilt.compiler)
 
     implementation(libs.kotlinx.coroutines.android)
 
     implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.androidx.work.runtime.ktx)
-    implementation(libs.androidx.hilt.work)
     implementation(libs.koin.androidx.workmanager)
-    ksp(libs.androidx.hilt.compiler)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

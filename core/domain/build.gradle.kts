@@ -1,7 +1,5 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.google.devtools.ksp)
-    alias(libs.plugins.hilt)
 }
 
 android {
@@ -22,10 +20,7 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:model"))
-    
-    implementation(libs.hilt.android)
     implementation(libs.koin.core)
-    ksp(libs.hilt.compiler)
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.datetime)

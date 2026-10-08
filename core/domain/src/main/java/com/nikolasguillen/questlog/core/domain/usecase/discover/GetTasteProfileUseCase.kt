@@ -8,7 +8,6 @@ import com.nikolasguillen.questlog.core.model.TasteProfile
 import com.nikolasguillen.questlog.core.model.TasteSignal
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
 
 /**
  * How many of the most recently opened games get the recency nudge.
@@ -28,7 +27,7 @@ private const val RECENTLY_VIEWED_BONUS = 0.1
  * nothing gets [TasteProfile.EMPTY], which callers should read as "fall back to generic content"
  * rather than "this user likes nothing".
  */
-class GetTasteProfileUseCase @Inject constructor(
+class GetTasteProfileUseCase(
     private val repository: GameRepository
 ) {
     /**

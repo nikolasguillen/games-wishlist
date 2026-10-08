@@ -2,14 +2,13 @@ package com.nikolasguillen.questlog.core.domain.usecase
 
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.model.Game
-import javax.inject.Inject
 
 /**
  * Use case to update an existing game's details in the local storage.
  *
  * This includes personal user data such as notes, priority, and wishlist status.
  */
-class UpdateGameUseCase @Inject constructor(
+class UpdateGameUseCase(
     private val repository: GameRepository
 ) {
     /**

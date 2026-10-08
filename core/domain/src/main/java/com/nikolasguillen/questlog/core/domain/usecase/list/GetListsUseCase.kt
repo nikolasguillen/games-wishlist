@@ -4,7 +4,6 @@ import com.nikolasguillen.questlog.core.domain.model.WishlistSummary
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import javax.inject.Inject
 
 /**
  * Use case to retrieve all custom user-defined game lists, each with whether it is the default.
@@ -12,7 +11,7 @@ import javax.inject.Inject
  * Provides a continuous stream of lists stored in the local database. It re-emits when the default
  * wishlist changes, so the overview is already correct when the user comes back from changing it.
  */
-class GetListsUseCase @Inject constructor(
+class GetListsUseCase(
     private val repository: GameRepository
 ) {
     /**

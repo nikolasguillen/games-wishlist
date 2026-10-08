@@ -4,7 +4,6 @@ import com.nikolasguillen.questlog.core.domain.release.canSetStatus
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.model.Game
 import com.nikolasguillen.questlog.core.model.GameStatus
-import javax.inject.Inject
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -16,7 +15,7 @@ import kotlin.time.Instant
  * always allowed, including a status the game no longer qualifies for because its release slipped after
  * the user picked it.
  */
-class SetGameStatusUseCase @Inject constructor(
+class SetGameStatusUseCase(
     private val repository: GameRepository
 ) {
     /**

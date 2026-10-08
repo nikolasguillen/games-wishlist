@@ -27,10 +27,6 @@ import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiEffect
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiEvent
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiState
 import com.nikolasguillen.questlog.feature.gamedetail.model.WishlistSelectorState
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -44,10 +40,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
-
-@HiltViewModel(assistedFactory = GameDetailViewModel.Factory::class)
-class GameDetailViewModel @AssistedInject constructor(
-    @Assisted private val gameId: Int,
+class GameDetailViewModel(
+    private val gameId: Int,
     getGameDetailUseCase: GetGameDetailUseCase,
     private val refreshGameDetailUseCase: RefreshGameDetailUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
@@ -289,10 +283,5 @@ class GameDetailViewModel @AssistedInject constructor(
             game.name
         )
         _uiEffect.trySend(GameDetailUiEffect.ShareGame(message))
-    }
-
-    @AssistedFactory
-    interface Factory {
-        fun create(gameId: Int): GameDetailViewModel
     }
 }

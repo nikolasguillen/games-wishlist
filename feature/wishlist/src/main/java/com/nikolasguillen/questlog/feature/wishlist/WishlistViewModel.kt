@@ -23,10 +23,6 @@ import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiEffect
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistStatusFilter
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiEvent
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiState
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,10 +33,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-
-@HiltViewModel(assistedFactory = WishlistViewModel.Factory::class)
-class WishlistViewModel @AssistedInject constructor(
-    @Assisted private val listId: Long,
+class WishlistViewModel(
+    private val listId: Long,
     getWishlistDetailUseCase: GetWishlistDetailUseCase,
     private val deleteListUseCase: DeleteListUseCase,
     private val removeGameFromListUseCase: RemoveGameFromListUseCase,
@@ -179,10 +173,5 @@ class WishlistViewModel @AssistedInject constructor(
         viewModelScope.launch {
             removeGameFromListUseCase(gameId, listId)
         }
-    }
-
-    @AssistedFactory
-    interface Factory {
-        fun create(listId: Long): WishlistViewModel
     }
 }

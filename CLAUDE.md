@@ -3,8 +3,8 @@
 Modular Android app for tracking a videogame wishlist, backed by the IGDB API.
 
 Kotlin 2.4.10 · AGP 9.4.1 · Gradle 9.7.1 (JVM toolchain 21) · compileSdk/targetSdk 37 · minSdk 29 · Java 11
-Jetpack Compose (BOM 2026.09.00) · Hilt 2.60.1 · Room 2.8.5 (KSP) · Retrofit 3 + Moshi · Navigation 3
-Coil 2 · WorkManager + `androidx.hilt.work` (Radar's release-date refresh)
+Jetpack Compose (BOM 2026.09.00) · Koin 4.2.2 · Room 2.8.5 (KSP) · Retrofit 3 + Moshi · Navigation 3
+Coil 2 · WorkManager + `koin-androidx-workmanager` (Radar's release-date refresh)
 
 ## Git
 
@@ -64,11 +64,10 @@ These boundaries are load-bearing — check them before adding a dependency:
   `:core:navigation`, `:core:designsystem`. **Never** on `:core:data`, `:core:network`, `:core:database`,
   or `:core:ai`.
 - **`:core:ai` is reachable only from `:core:data`.** It wraps ML Kit's on-device GenAI client
-  (`GeminiNanoClient`) and depends on nothing but that SDK, Hilt and coroutines — not even `:core:model`.
+  (`GeminiNanoClient`) and depends on nothing but that SDK and coroutines — not even `:core:model`.
   The KMP migration leaves it Android-only, since ML Kit GenAI has no multiplatform counterpart; see
   `docs/roadmap.md`.
 - `:core:model` has no Android and no Compose dependency (only `kotlinx-serialization-core`). Keep it that way.
-  `:core:model` and `:core:navigation` are the only modules without Hilt/KSP.
 - **There is no `build-logic` or `buildSrc`.** Every `build.gradle.kts` repeats `compileSdk = 37`,
   `minSdk = 29`, and Java 11 by hand. When adding a module, copy `feature/search/build.gradle.kts`
   (feature) or `core/data/build.gradle.kts` (core) and register it in `settings.gradle.kts`.
@@ -157,8 +156,8 @@ ad hoc.
 
 - **Android must build and pass its tests at every commit** (`./gradlew :app:assembleDebug`,
   `./gradlew test`). Never delete or weaken a test to get there. Each step must be one you could pause on.
-- **Library swaps are decided in the plan, not on the side.** Retrofit and Hilt are JVM/Android-only (their
-  KMP counterparts would be Ktor and Koin), and Room moves to the driver-based API (`BundledSQLiteDriver`)
+- **Library swaps are decided in the plan, not on the side.** Retrofit is JVM-only (its KMP counterpart is
+  Ktor), and Room moves to the driver-based API (`BundledSQLiteDriver`)
   as part of the migration — see `core/database/CLAUDE.md`. Do not swap one outside the task that calls
   for it.
 - **The module-boundary rules above still hold** after the move. A new module or dependency edge must be

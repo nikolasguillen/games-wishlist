@@ -4,12 +4,11 @@ import com.nikolasguillen.questlog.core.domain.model.CoverImageUpdate
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.WishlistIcon
-import javax.inject.Inject
 
 /**
  * Use case to edit the details of an existing custom game list.
  */
-class UpdateListUseCase @Inject constructor(
+class UpdateListUseCase(
     private val repository: GameRepository
 ) {
     /**

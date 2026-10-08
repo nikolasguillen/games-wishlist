@@ -1,12 +1,11 @@
 package com.nikolasguillen.questlog.core.domain.usecase.list
 
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
-import javax.inject.Inject
 
 /**
  * Use case to delete a custom game list.
  */
-class DeleteListUseCase @Inject constructor(
+class DeleteListUseCase(
     private val repository: GameRepository
 ) {
     /**

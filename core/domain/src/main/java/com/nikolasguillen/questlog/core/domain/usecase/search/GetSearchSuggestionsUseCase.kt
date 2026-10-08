@@ -3,13 +3,12 @@ package com.nikolasguillen.questlog.core.domain.usecase.search
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.SearchSuggestion
-import javax.inject.Inject
 
 /**
  * Use case to fetch search suggestions based on a partial query.
  * Combines local search history and remote game suggestions from IGDB.
  */
-class GetSearchSuggestionsUseCase @Inject constructor(
+class GetSearchSuggestionsUseCase(
     private val repository: GameRepository
 ) {
     suspend fun getLocalSuggestions(query: String): List<SearchSuggestion> {

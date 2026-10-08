@@ -18,10 +18,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.util.Locale
-import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
 
-class GameDescriptionTranslatorImpl @Inject constructor(
+class GameDescriptionTranslatorImpl(
     private val geminiNanoClient: GeminiNanoClient,
     private val translationDao: TranslationDao,
     private val downloadScope: CoroutineScope

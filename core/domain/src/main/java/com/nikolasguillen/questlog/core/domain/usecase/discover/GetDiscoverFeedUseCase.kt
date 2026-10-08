@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import javax.inject.Inject
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 import kotlin.time.Clock
@@ -100,7 +99,7 @@ private const val NEUTRAL_RATING = 75.0
  * via [DiscoverFeed.hasStaleRecommendations] rather than refetched, leaving the decision to ask the
  * network again to the caller — see [refresh].
  */
-class GetDiscoverFeedUseCase @Inject constructor(
+class GetDiscoverFeedUseCase(
     private val repository: GameRepository,
     private val getSelectedPlatformIds: GetSelectedPlatformIdsUseCase,
     private val getTasteProfile: GetTasteProfileUseCase

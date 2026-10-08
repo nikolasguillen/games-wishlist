@@ -11,7 +11,6 @@ import com.nikolasguillen.questlog.feature.settings.model.ReleaseNotificationsCo
 import com.nikolasguillen.questlog.feature.settings.model.ReleaseNotificationsUiEffect
 import com.nikolasguillen.questlog.feature.settings.model.ReleaseNotificationsUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.ReleaseNotificationsUiState
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,10 +18,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-
-@HiltViewModel
-class ReleaseNotificationsViewModel @Inject constructor(
+class ReleaseNotificationsViewModel(
     getSavedGamesUseCase: GetSavedGamesUseCase,
     getReleaseNotificationGameIdsUseCase: GetReleaseNotificationGameIdsUseCase,
     getSelectedPlatformIdsUseCase: GetSelectedPlatformIdsUseCase,

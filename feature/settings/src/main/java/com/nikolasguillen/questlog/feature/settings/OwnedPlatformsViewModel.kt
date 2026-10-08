@@ -13,7 +13,6 @@ import com.nikolasguillen.questlog.core.ui.mapper.toPlatformPickerContentState
 import com.nikolasguillen.questlog.core.ui.util.UiConstants
 import com.nikolasguillen.questlog.feature.settings.model.OwnedPlatformsUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.OwnedPlatformsUiState
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,10 +23,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-
-@HiltViewModel
-class OwnedPlatformsViewModel @Inject constructor(
+class OwnedPlatformsViewModel(
     getKnownPlatformsUseCase: GetKnownPlatformsUseCase,
     private val getSelectedPlatformIdsUseCase: GetSelectedPlatformIdsUseCase,
     private val toggleOwnedPlatformUseCase: ToggleOwnedPlatformUseCase,

@@ -11,8 +11,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Thin wrapper around ML Kit's GenAI Prompt API, the only place in the app that talks to Gemini Nano.
@@ -20,8 +18,7 @@ import javax.inject.Singleton
  * The client is process-scoped and never closed: [Generation.getClient] hands out a handle to the
  * on-device model shared by every app on the device, not a resource this app owns.
  */
-@Singleton
-class GeminiNanoClient @Inject constructor() {
+class GeminiNanoClient() {
 
     private val model: GenerativeModel by lazy { Generation.getClient() }
 

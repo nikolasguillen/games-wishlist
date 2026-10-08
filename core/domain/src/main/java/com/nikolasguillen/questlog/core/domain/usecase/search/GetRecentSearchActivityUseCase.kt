@@ -6,14 +6,13 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Composite Use Case that combines search history queries and recently viewed games
  * into a single stream of activity.
  */
-class GetRecentSearchActivityUseCase @Inject constructor(
+class GetRecentSearchActivityUseCase(
     private val repository: GameRepository
 ) {
     /**

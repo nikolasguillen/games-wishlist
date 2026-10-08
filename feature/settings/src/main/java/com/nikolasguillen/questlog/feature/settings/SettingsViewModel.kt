@@ -19,7 +19,6 @@ import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEffect
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiState
 import com.nikolasguillen.questlog.feature.settings.model.TranslationModelRowState
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,10 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-
-@HiltViewModel
-class SettingsViewModel @Inject constructor(
+class SettingsViewModel(
     appVersionProvider: AppVersionProvider,
     private val getSelectedPlatformsUseCase: GetSelectedPlatformsUseCase,
     private val downloadTranslationModelUseCase: DownloadTranslationModelUseCase,

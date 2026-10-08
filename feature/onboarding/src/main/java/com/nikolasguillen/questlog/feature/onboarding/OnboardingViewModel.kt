@@ -19,7 +19,6 @@ import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingUiEffect
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingUiEvent
 import com.nikolasguillen.questlog.feature.onboarding.model.OnboardingUiState
 import com.nikolasguillen.questlog.feature.onboarding.model.ReminderStepState
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -32,10 +31,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-
-@HiltViewModel
-class OnboardingViewModel @Inject constructor(
+class OnboardingViewModel(
     getKnownPlatformsUseCase: GetKnownPlatformsUseCase,
     private val getSelectedPlatformIdsUseCase: GetSelectedPlatformIdsUseCase,
     private val toggleOwnedPlatformUseCase: ToggleOwnedPlatformUseCase,

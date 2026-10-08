@@ -12,7 +12,6 @@ import com.nikolasguillen.questlog.feature.radar.model.RadarContentState
 import com.nikolasguillen.questlog.feature.radar.model.RadarUiEffect
 import com.nikolasguillen.questlog.feature.radar.model.RadarUiEvent
 import com.nikolasguillen.questlog.feature.radar.model.RadarUiState
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,10 +19,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-
-@HiltViewModel
-class RadarViewModel @Inject constructor(
+class RadarViewModel(
     getRadarTimelineUseCase: GetRadarTimelineUseCase,
     getReleaseNotificationGameIdsUseCase: GetReleaseNotificationGameIdsUseCase,
     private val setReleaseNotificationEnabledUseCase: SetReleaseNotificationEnabledUseCase,

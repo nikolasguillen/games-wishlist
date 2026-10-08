@@ -51,7 +51,6 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
-import javax.inject.Inject
 
 /**
  * The autocomplete dropdown shows at most four games — with the keyboard open there is no room for
@@ -173,7 +172,7 @@ private const val RADAR_REFRESH_CONCURRENCY = 3
  */
 private const val DISCOVER_LANE_CACHE_TTL = 6 * 60 * 60 * 1000L
 
-class GameRepositoryImpl @Inject constructor(
+class GameRepositoryImpl(
     private val apiService: IgdbApiService,
     private val gameDao: GameDao,
     private val listDao: ListDao,

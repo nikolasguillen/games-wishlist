@@ -10,13 +10,11 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
 import com.nikolasguillen.questlog.core.data.R
 import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotifier
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 
 private const val CHANNEL_ID = "release_notifications"
 
-class ReleaseNotifierImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+class ReleaseNotifierImpl(
+    private val context: Context
 ) : ReleaseNotifier {
 
     override fun canDeliver(): Boolean =

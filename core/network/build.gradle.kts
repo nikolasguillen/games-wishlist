@@ -3,7 +3,6 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.google.devtools.ksp)
-    alias(libs.plugins.hilt)
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
 }
 
@@ -50,10 +49,8 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
     implementation(libs.kotlinx.serialization.core)
-    
-    implementation(libs.hilt.android)
     implementation(libs.koin.core)
-    ksp(libs.hilt.compiler)
+    implementation(libs.kotlinx.coroutines.core)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

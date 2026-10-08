@@ -4,7 +4,6 @@ import com.nikolasguillen.questlog.core.domain.model.WishlistDetail
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import javax.inject.Inject
 
 /**
  * Use case to observe a wishlist's details — its metadata, the games it contains, and whether it is the
@@ -12,7 +11,7 @@ import javax.inject.Inject
  *
  * Emits `null` when [listId] no longer exists (e.g. the list was deleted while observed).
  */
-class GetWishlistDetailUseCase @Inject constructor(
+class GetWishlistDetailUseCase(
     private val repository: GameRepository
 ) {
     operator fun invoke(listId: Long): Flow<WishlistDetail?> {

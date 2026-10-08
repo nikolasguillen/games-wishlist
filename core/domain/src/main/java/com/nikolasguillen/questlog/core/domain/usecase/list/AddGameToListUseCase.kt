@@ -1,12 +1,11 @@
 package com.nikolasguillen.questlog.core.domain.usecase.list
 
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
-import javax.inject.Inject
 
 /**
  * Use case to associate a game with a specific custom list.
  */
-class AddGameToListUseCase @Inject constructor(
+class AddGameToListUseCase(
     private val repository: GameRepository
 ) {
     /**

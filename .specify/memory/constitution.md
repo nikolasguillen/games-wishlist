@@ -11,7 +11,7 @@ them is a design decision, not an accident of history.
   `:core:navigation` and `:core:designsystem`. A feature module MUST NEVER depend on `:core:data`,
   `:core:network`, `:core:database` or `:core:ai`.
 - `:core:ai` MUST be reachable only from `:core:data`. It wraps ML Kit's on-device GenAI client and
-  depends on nothing beyond that SDK, Hilt and coroutines.
+  depends on nothing beyond that SDK and coroutines.
 - `:core:model` MUST stay free of Android and Compose dependencies. It is the most KMP-ready module
   and the natural first candidate for `commonMain`.
 - `:app` is the only module that knows about navigation. Feature modules own no nav graph, no nav
@@ -112,7 +112,7 @@ the real commands makes the verification step actionable.
 ## Additional Constraints
 
 **Platform**: Kotlin 2.4.10, AGP 9.4.1, Gradle 9.7.1 (JVM toolchain 21), compileSdk/targetSdk 37,
-minSdk 29, Java 11, Compose BOM 2026.09.00, Hilt 2.60.1, Room 2.8.5 (KSP), Retrofit 3 + Moshi,
+minSdk 29, Java 11, Compose BOM 2026.09.00, Koin 4.2.2, Room 2.8.5 (KSP), Retrofit 3 + Moshi,
 Navigation 3, Coil 2, WorkManager. Every `build.gradle.kts` repeats its configuration by hand. When
 adding a module, copy `feature/search/build.gradle.kts` (feature) or `core/data/build.gradle.kts`
 (core) and register it in `settings.gradle.kts`. This describes the repository today; the migration
@@ -123,11 +123,10 @@ plan changes it wherever it replaces a library or a source-set layout.
 An entity change regenerates the exported schema under `core/database/schemas/` and commits it in
 the same commit. No list-shaped columns. Persisting a game always goes through `GameDao.saveGame`.
 
-**Injection**: Hilt everywhere except `:core:model` and `:core:navigation`. Routes without arguments
-use `@HiltViewModel`; routes with arguments use `@HiltViewModel(assistedFactory = ...)` +
-`@AssistedInject`. `SavedStateHandle` is not used in this project and MUST NOT be introduced. Hilt is the current state,
-not a permanent choice: the migration plan decides its replacement, and until the task that swaps it
-lands, new code keeps using Hilt.
+**Injection**: Koin, with each layer exposing one module and every ViewModel registered with `viewModelOf` in
+`:app`'s `ViewModelKoin.kt`. Feature modules do not depend on Koin. A route with an argument takes it as the
+ViewModel's first constructor parameter, supplied with `parametersOf`. `SavedStateHandle` is not used in this
+project and MUST NOT be introduced. `KoinGraphTest` MUST stay green: it proves every dependency is declared.
 
 **Secrets**: `IGDB_CLIENT_ID` and `IGDB_CLIENT_SECRET` live in `local.properties` and are injected
 as `BuildConfig` fields by `core/network/build.gradle.kts`. They MUST NEVER be committed or moved
@@ -142,8 +141,7 @@ feature's plan and tasks, not restructured ad hoc.
 - Android MUST build and pass its tests at every commit (`./gradlew :app:assembleDebug` and
   `./gradlew test`). No test may be deleted or weakened to get there, and every step MUST be one the
   work can pause on.
-- Library swaps (Retrofit to Ktor, Hilt to Koin, Room to the driver-based API with
-  `BundledSQLiteDriver`) are decided in the plan and made only in the task that calls for them.
+- Library swaps (Retrofit to Ktor, Room to the driver-based API with `BundledSQLiteDriver`) are decided in the plan and made only in the task that calls for them.
 - The module-boundary rules in Principle I still hold after the move. Any new module or dependency
   edge MUST be called out in Complexity Tracking.
 - `:core:model` MUST stay free of Android and Compose dependencies.
@@ -190,4 +188,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.1.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08
+**Version**: 1.2.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08

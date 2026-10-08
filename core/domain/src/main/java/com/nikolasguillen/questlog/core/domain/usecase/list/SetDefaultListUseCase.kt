@@ -1,12 +1,11 @@
 package com.nikolasguillen.questlog.core.domain.usecase.list
 
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
-import javax.inject.Inject
 
 /**
  * Use case to choose which wishlist is the default.
  */
-class SetDefaultListUseCase @Inject constructor(
+class SetDefaultListUseCase(
     private val repository: GameRepository
 ) {
     /**

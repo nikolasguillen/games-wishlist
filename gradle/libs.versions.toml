@@ -38,14 +38,10 @@ okhttp = "5.5.0"
 moshiKotlinCodegen = "1.15.2"
 datastorePreferences = "1.2.1"
 material = "1.14.0"
-hilt = "2.60.1"
-hiltNavigationCompose = "1.4.0"
 mockk = "1.14.11"
 mlkitGenaiPrompt = "1.0.0-beta4"
 shadowGlow = "2.0.0"
 androidxWorkRuntimeKtx = "2.11.2"
-androidxHiltWork = "1.4.0"
-androidxHiltCompiler = "1.4.0"
 kotlinxDatetime = "0.8.0"
 composeMultiplatform = "1.12.1"
 koin = "4.2.2"
@@ -105,15 +101,10 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 moshi-kotlin-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-codegen", version.ref = "moshiKotlinCodegen" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
-hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
-hiltNavCompose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 mlkit-genai-prompt = { group = "com.google.mlkit", name = "genai-prompt", version.ref = "mlkitGenaiPrompt" }
 shadowglow = { group = "me.trishiraj", name = "shadowglow", version.ref = "shadowGlow" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "androidxWorkRuntimeKtx" }
-androidx-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "androidxHiltWork" }
-androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "androidxHiltCompiler" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
 koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
@@ -148,7 +139,6 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "googleDevtoolsKsp" }
 jetbrains-kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "jetbrainsKotlinPluginSerialization" }
-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 jetbrains-kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 jetbrains-compose = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }

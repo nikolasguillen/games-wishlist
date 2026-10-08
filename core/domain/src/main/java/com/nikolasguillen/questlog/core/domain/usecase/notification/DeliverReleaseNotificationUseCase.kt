@@ -7,7 +7,6 @@ import com.nikolasguillen.questlog.core.model.DatePrecision
 import kotlinx.coroutines.flow.first
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import javax.inject.Inject
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -20,7 +19,7 @@ import kotlin.time.Instant
  *
  * @return `true` if a notification was posted, `false` if this call correctly declined to.
  */
-class DeliverReleaseNotificationUseCase @Inject constructor(
+class DeliverReleaseNotificationUseCase(
     private val repository: GameRepository,
     private val notifier: ReleaseNotifier
 ) {

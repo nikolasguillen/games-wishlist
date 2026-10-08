@@ -50,7 +50,6 @@ import com.nikolasguillen.questlog.feature.search.model.SearchUiEvent
 import com.nikolasguillen.questlog.feature.search.model.SearchUiState
 import com.nikolasguillen.questlog.feature.search.model.SortBottomSheetState
 import com.nikolasguillen.questlog.feature.search.model.SortingUiModel
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -66,7 +65,6 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
 private val SUGGESTIONS_DEBOUNCE = 300.milliseconds
@@ -78,8 +76,7 @@ private val SUGGESTIONS_DEBOUNCE = 300.milliseconds
 private const val MIN_SUGGESTION_QUERY_LENGTH = 3
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@HiltViewModel
-class SearchViewModel @Inject constructor(
+class SearchViewModel(
     private val searchGamesUseCase: SearchGamesUseCase,
     private val addSearchToHistoryUseCase: AddSearchToHistoryUseCase,
     private val getRecentSearchActivityUseCase: GetRecentSearchActivityUseCase,

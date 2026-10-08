@@ -29,7 +29,7 @@ Do not add error *handling* here — no retries, no recovery, no result types.
 The one thing this module does do is **translate**: `IgdbHttpErrorInterceptor` turns every non-2xx
 response into an `IgdbHttpException`, which `:core:data` matches with a plain `is`. That is what keeps
 Retrofit out of `:core:data`, and it is the seam that would survive a swap to another HTTP client. The
-interceptor is registered **first** in `provideOkHttpClient` so `HttpLoggingInterceptor` still dumps the
+interceptor is registered **first** on the `OkHttpClient` in `di/NetworkKoin.kt` so `HttpLoggingInterceptor` still dumps the
 failed response before the exception replaces it.
 
 ## DTOs
@@ -42,7 +42,7 @@ failed response before the exception replaces it.
 
 - `IgdbAuthService` is a separate Retrofit interface with a hardcoded absolute URL
   (`@POST("https://id.twitch.tv/oauth2/token")`).
-- `IgdbAuthManager` is a `@Singleton` caching the token in memory behind a `Mutex`, which also serves as
+- `IgdbAuthManager` is a Koin `single` caching the token in memory behind a `Mutex`, which also serves as
   the single-flight guard: parallel requests on a cold cache mint one token, not one each. The token is
   never persisted.
 - Expiry comes from `expiresIn` minus a 60 s margin, read through **`ElapsedRealtimeSource`** — a
@@ -56,14 +56,13 @@ failed response before the exception replaces it.
 - There is no recovery from a 401 on a token IGDB rejects early (revoked server-side): it stays cached
   until it expires or the process dies. An OkHttp `Authenticator` calling back into the manager is the fix
   if that ever shows up in practice.
-- `NetworkModule`, `IgdbAuthManager` and `ElapsedRealtimeSource` are `internal`: nothing outside this
-  module references them. Hilt is fine with an `internal` module — the Java it generates in `:app` does not
-  see Kotlin visibility — but a `public` `@Provides` function cannot return an `internal` type, so the
-  module has to stay `internal` for as long as those types are.
-- The DI cycle (client needs auth, auth needs a client) is broken two ways in `di/NetworkModule.kt`:
-  `dagger.Lazy<IgdbAuthManager>` in the interceptor, and a **second inline Retrofit instance** built inside
-  `provideIgdbAuthService` so the auth call does not go through the auth interceptor. Keep both if you
-  touch that module.
+- `IgdbAuthManager` and `ElapsedRealtimeSource` are `internal`: nothing outside this module references
+  them. `networkModule` (`di/NetworkKoin.kt`) is public because `:app` loads it; its definitions may still
+  use the internal types.
+- The DI cycle (client needs auth, auth needs a client) is broken two ways in `di/NetworkKoin.kt`: the
+  interceptor resolves `IgdbAuthManager` lazily (`by inject()`), and the auth service is a **second inline
+  Retrofit instance** so the auth call does not go through the auth interceptor. Keep both if you touch
+  that module.
 
 ## Build config
 

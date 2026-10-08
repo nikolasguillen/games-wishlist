@@ -3,7 +3,6 @@ package com.nikolasguillen.questlog.core.domain.usecase.search
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.SearchResult
-import javax.inject.Inject
 
 /**
  * Use case to search for games using a text query.
@@ -14,7 +13,7 @@ import javax.inject.Inject
  * It extracts unique platforms from the resulting games and sorts them by their
  * occurrence frequency to provide the most relevant filter chips to the user.
  */
-class SearchGamesUseCase @Inject constructor(
+class SearchGamesUseCase(
     private val repository: GameRepository
 ) {
     /**

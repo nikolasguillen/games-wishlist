@@ -3,12 +3,11 @@ package com.nikolasguillen.questlog.core.domain.usecase
 import com.nikolasguillen.questlog.core.domain.radar.ReleaseRefreshScheduler
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.model.Game
-import javax.inject.Inject
 
 /**
  * Use case to toggle the wishlist status of a game.
  */
-class ToggleWishlistUseCase @Inject constructor(
+class ToggleWishlistUseCase(
     private val repository: GameRepository,
     private val releaseRefreshScheduler: ReleaseRefreshScheduler
 ) {

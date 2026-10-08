@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
@@ -45,6 +44,8 @@ import com.nikolasguillen.questlog.feature.settings.SettingsScreen
 import com.nikolasguillen.questlog.feature.settings.SettingsViewModel
 import com.nikolasguillen.questlog.feature.wishlist.WishlistScreen
 import com.nikolasguillen.questlog.feature.wishlist.WishlistViewModel
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Suppress("ParamsComparedByRef")
 @Composable
@@ -66,7 +67,7 @@ fun QuestLogNavDisplay(
         entryProvider = { key ->
             when (key) {
                 is SearchRoute -> NavEntry(key) {
-                    val vm = hiltViewModel<SearchViewModel>()
+                    val vm = koinViewModel<SearchViewModel>()
                     SearchScreen(
                         viewModel = vm,
                         onGameClick = { gameId: Int ->
@@ -87,7 +88,7 @@ fun QuestLogNavDisplay(
                 }
 
                 is RadarRoute -> NavEntry(key) {
-                    val vm = hiltViewModel<RadarViewModel>()
+                    val vm = koinViewModel<RadarViewModel>()
                     RadarScreen(
                         viewModel = vm,
                         onGameClick = { gameId: Int ->
@@ -108,7 +109,7 @@ fun QuestLogNavDisplay(
                 }
 
                 is ListsRoute -> NavEntry(key) {
-                    val vm = hiltViewModel<ListsViewModel>()
+                    val vm = koinViewModel<ListsViewModel>()
                     ListsScreen(
                         viewModel = vm,
                         onListClick = { listId: Long ->
@@ -129,7 +130,7 @@ fun QuestLogNavDisplay(
                 }
 
                 is SettingsRoute -> NavEntry(key) {
-                    val vm = hiltViewModel<SettingsViewModel>()
+                    val vm = koinViewModel<SettingsViewModel>()
                     SettingsScreen(
                         viewModel = vm,
                         onBackClick = { backStack.removeLastOrNull() },
@@ -155,7 +156,7 @@ fun QuestLogNavDisplay(
                 }
 
                 is OwnedPlatformsRoute -> NavEntry(key) {
-                    val vm = hiltViewModel<OwnedPlatformsViewModel>()
+                    val vm = koinViewModel<OwnedPlatformsViewModel>()
                     OwnedPlatformsScreen(
                         viewModel = vm,
                         onBackClick = { backStack.removeLastOrNull() },
@@ -166,7 +167,7 @@ fun QuestLogNavDisplay(
                 }
 
                 is ReleaseNotificationsRoute -> NavEntry(key) {
-                    val vm = hiltViewModel<ReleaseNotificationsViewModel>()
+                    val vm = koinViewModel<ReleaseNotificationsViewModel>()
                     ReleaseNotificationsScreen(
                         viewModel = vm,
                         onBackClick = { backStack.removeLastOrNull() },
@@ -177,11 +178,7 @@ fun QuestLogNavDisplay(
                 }
 
                 is WishlistRoute -> NavEntry(key) {
-                    val vm = hiltViewModel<WishlistViewModel, WishlistViewModel.Factory>(
-                        creationCallback = { factory ->
-                            factory.create(key.listId)
-                        }
-                    )
+                    val vm = koinViewModel<WishlistViewModel> { parametersOf(key.listId) }
 
                     WishlistScreen(
                         viewModel = vm,
@@ -196,11 +193,7 @@ fun QuestLogNavDisplay(
                 }
 
                 is GameDetailRoute -> NavEntry(key) {
-                    val vm = hiltViewModel<GameDetailViewModel, GameDetailViewModel.Factory>(
-                        creationCallback = { factory ->
-                            factory.create(key.gameId)
-                        }
-                    )
+                    val vm = koinViewModel<GameDetailViewModel> { parametersOf(key.gameId) }
                     GameDetailScreen(
                         viewModel = vm,
                         onBackClick = { backStack.removeLastOrNull() },
@@ -215,7 +208,7 @@ fun QuestLogNavDisplay(
                 }
 
                 is OnboardingRoute -> NavEntry(key) {
-                    val vm = hiltViewModel<OnboardingViewModel>()
+                    val vm = koinViewModel<OnboardingViewModel>()
                     OnboardingScreen(
                         viewModel = vm,
                         onFinish = {

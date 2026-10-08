@@ -6,7 +6,6 @@ import com.nikolasguillen.questlog.core.domain.radar.resolveReleaseDates
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.model.DatePrecision
 import kotlinx.coroutines.flow.first
-import javax.inject.Inject
 import kotlin.time.Clock
 
 /**
@@ -16,7 +15,7 @@ import kotlin.time.Clock
  * [SetReleaseNotificationEnabledUseCase] (one game, right after a toggle) and from the periodic release
  * date refresh worker (every opt-in, after a successful refresh — this is what satisfies FR-007).
  */
-class SyncReleaseNotificationsUseCase @Inject constructor(
+class SyncReleaseNotificationsUseCase(
     private val repository: GameRepository,
     private val scheduler: ReleaseNotificationScheduler
 ) {

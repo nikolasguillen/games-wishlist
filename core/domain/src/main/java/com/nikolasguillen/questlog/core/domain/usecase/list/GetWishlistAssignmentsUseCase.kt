@@ -4,13 +4,12 @@ import com.nikolasguillen.questlog.core.domain.model.WishlistAssignment
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import javax.inject.Inject
 
 /**
  * Use case to retrieve all available wishlist lists with an indication of whether
  * a specific game is already assigned to each list.
  */
-class GetWishlistAssignmentsUseCase @Inject constructor(
+class GetWishlistAssignmentsUseCase(
     private val repository: GameRepository
 ) {
     /**

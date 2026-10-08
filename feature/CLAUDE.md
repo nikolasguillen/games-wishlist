@@ -83,26 +83,28 @@ Two state-pipeline shapes coexist; both are fine, pick the one that matches the 
 
 This is the easiest thing to get wrong.
 
-**Route without arguments** → standard Hilt:
+A ViewModel is a plain class; its constructor parameters are its dependencies. Feature modules do not
+depend on Koin and own no DI module: every ViewModel is registered in `app/.../di/ViewModelKoin.kt` with
+`viewModelOf(::XViewModel)`.
+
+**Route without arguments** → nothing else to write:
 
 ```kotlin
-@HiltViewModel
-class SearchViewModel @Inject constructor(...) : ViewModel()
+class SearchViewModel(...) : ViewModel()
 ```
 
-**Route with arguments** → assisted injection, *not* `SavedStateHandle`:
+**Route with arguments** → the argument is the *first constructor parameter*, *not* `SavedStateHandle`:
 
 ```kotlin
-@HiltViewModel(assistedFactory = WishlistViewModel.Factory::class)
-class WishlistViewModel @AssistedInject constructor(
-    @Assisted private val listId: Long,
+class WishlistViewModel(
+    private val listId: Long,
     getWishlistDetailUseCase: GetWishlistDetailUseCase,
     ...
-) : ViewModel() {
-    @AssistedFactory
-    interface Factory { fun create(listId: Long): WishlistViewModel }
-}
+) : ViewModel()
 ```
+
+The route supplies it when it obtains the ViewModel (see Navigation below); Koin takes the value from
+`parametersOf` before it looks for a binding of that type.
 
 **`SavedStateHandle` is not used anywhere in this project — do not introduce it.**
 Reference: `feature/wishlist/WishlistViewModel.kt`.
@@ -117,8 +119,9 @@ Adding a route means two edits, both outside the feature module:
 1. A `@Serializable` `data object`/`data class` implementing `GameNavKey : NavKey` in
    `core/navigation/Routes.kt`.
 2. A branch in the single `entryProvider` inside `app/.../QuestLogNavDisplay.kt`, obtaining the ViewModel with
-   `hiltViewModel<X>()` or, for assisted VMs,
-   `hiltViewModel<X, X.Factory>(creationCallback = { it.create(key.someId) })`.
+   `koinViewModel<X>()` or, for a route with an argument,
+   `koinViewModel<X> { parametersOf(key.someId) }`. A new ViewModel also needs a `viewModelOf` line in
+   `ViewModelKoin.kt`; `KoinGraphTest` fails if a dependency is not declared.
 
 Navigation is plain backstack mutation (`backStack.add(route)` / `backStack.removeLastOrNull()`), always
 guarded by `if (backStack.lastOrNull() != nextRoute)`.

@@ -7,7 +7,6 @@ import androidx.datastore.preferences.core.edit
 import com.nikolasguillen.questlog.core.domain.settings.OnboardingPreferenceStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
 
 private val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed")
 
@@ -19,7 +18,7 @@ private val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_complet
  * The flag lives outside Room on purpose: the database is destructively migrated while the app is
  * unpublished, and a wiped schema must not show the welcome flow again.
  */
-class OnboardingPreferenceStoreImpl @Inject constructor(
+class OnboardingPreferenceStoreImpl(
     private val settingsDataStore: DataStore<Preferences>
 ) : OnboardingPreferenceStore {
 

@@ -1,12 +1,11 @@
 package com.nikolasguillen.questlog.core.domain.usecase.search
 
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
-import javax.inject.Inject
 
 /**
  * Use case to remove a specific item from the local search history.
  */
-class DeleteSearchHistoryItemUseCase @Inject constructor(
+class DeleteSearchHistoryItemUseCase(
     private val repository: GameRepository
 ) {
     /**

@@ -6,13 +6,11 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.util.Size
 import androidx.core.net.toUri
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 import java.util.UUID
-import javax.inject.Inject
 import kotlin.math.roundToInt
 
 /**
@@ -24,8 +22,8 @@ import kotlin.math.roundToInt
  * enough for the largest place a cover is shown, and re-encoded so the file extension
  * always matches its actual content.
  */
-class WishlistCoverImageStorageImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+class WishlistCoverImageStorageImpl(
+    private val context: Context
 ) : WishlistCoverImageStorage {
 
     private val coversDir: File get() = File(context.filesDir, COVERS_DIR_NAME)

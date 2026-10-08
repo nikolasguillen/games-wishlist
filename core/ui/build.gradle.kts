@@ -1,8 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.google.devtools.ksp)
-    alias(libs.plugins.hilt)
 }
 
 
@@ -48,9 +46,6 @@ dependencies {
     api(libs.haze)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
-
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
 
     testImplementation(libs.junit)
 }
