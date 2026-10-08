@@ -43,7 +43,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
-    implementation(libs.shadowglow)
     implementation(libs.haze.blur)
 
     testImplementation(libs.junit)

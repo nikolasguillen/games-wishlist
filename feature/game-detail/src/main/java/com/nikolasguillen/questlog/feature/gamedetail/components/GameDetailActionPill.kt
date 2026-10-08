@@ -25,10 +25,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
@@ -43,7 +44,6 @@ import dev.chrisbanes.haze.blur.HazeColorEffect
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
-import me.trishiraj.shadowglow.shadowGlow
 
 private val PILL_WIDTH = 220.dp
 private val PILL_HEIGHT = 76.dp
@@ -119,7 +119,7 @@ private fun PillBackground(
 
     Box(
         modifier = modifier
-            .pillGlow(color = MaterialTheme.colorScheme.primary, borderRadius = PILL_HEIGHT / 2)
+            .pillGlow(color = MaterialTheme.colorScheme.primary)
             .size(width = PILL_WIDTH, height = PILL_HEIGHT)
             .clip(CircleShape)
             .hazeBlur(
@@ -174,14 +174,10 @@ private fun PillMainAction(onClick: () -> Unit) {
 /**
  * The pill's shared glow: centered, with no offset.
  */
-private fun Modifier.pillGlow(color: Color, borderRadius: Dp): Modifier =
-    shadowGlow(
-        color = color,
-        borderRadius = borderRadius,
-        blurRadius = GLOW_BLUR_RADIUS,
-        offsetX = 0.dp,
-        offsetY = 0.dp,
-        spread = GLOW_BLUR_SPREAD
+private fun Modifier.pillGlow(color: Color): Modifier =
+    dropShadow(
+        shape = CircleShape,
+        shadow = Shadow(radius = GLOW_BLUR_RADIUS, spread = GLOW_BLUR_SPREAD, color = color)
     )
 
 private val PREVIEW_WIDTH = 320.dp

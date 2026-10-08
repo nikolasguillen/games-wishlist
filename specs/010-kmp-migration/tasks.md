@@ -161,7 +161,8 @@ the one platform that already works (research R14). Nothing is converted to KMP 
 
 ### B7 — Remove the Android-only glow (research R8)
 
-- [ ] T050 In `feature/game-detail/src/main/java/QL/feature/gamedetail/components/GameDetailActionPill.kt` replace `me.trishiraj.shadowglow.shadowGlow` (`pillGlow`, lines ~177–184) with Compose's `Modifier.dropShadow(…)` using the same colour, blur radius `GLOW_BLUR_RADIUS` and spread `GLOW_BLUR_SPREAD`; remove `shadowglow` from `feature/game-detail/build.gradle.kts` and from `gradle/libs.versions.toml`. Compare the pill against the Phase 1 screenshots in light and dark. **If the result is visibly different, stop and ask the owner** before accepting it (FR-001). Commit: `refactor(game-detail): replace shadowglow with a compose drop shadow`
+- [X] T050 In `feature/game-detail/src/main/java/QL/feature/gamedetail/components/GameDetailActionPill.kt` replace `me.trishiraj.shadowglow.shadowGlow` (`pillGlow`, lines ~177–184) with Compose's `Modifier.dropShadow(…)` using the same colour, blur radius `GLOW_BLUR_RADIUS` and spread `GLOW_BLUR_SPREAD`; remove `shadowglow` from `feature/game-detail/build.gradle.kts` and from `gradle/libs.versions.toml`. Compare the pill against the Phase 1 screenshots in light and dark. **If the result is visibly different, stop and ask the owner** before accepting it (FR-001). Commit: `refactor(game-detail): replace shadowglow with a compose drop shadow`
+  - _Compared on the emulator, pill region of the game-detail screen before and after: largest per-channel difference 7 (light) and 9 (dark), on 0 and 450 of 312,000 pixels. Not visibly different._
 
 **Checkpoint (Phase 2)**: Android builds on Hilt-free, Retrofit-free, Coil-2-free code; every gate check and `KoinGraphTest` pass; the update-path check passed; parity rows 1–11 pass. The project is still Android-only and nothing is a KMP module yet
 
