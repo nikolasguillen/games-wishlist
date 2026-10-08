@@ -17,5 +17,13 @@ gradlePlugin {
             id = "questlog.kmp.library"
             implementationClass = "KmpLibraryConventionPlugin"
         }
+        register("kmpCompose") {
+            id = "questlog.kmp.compose"
+            implementationClass = "KmpComposeConventionPlugin"
+        }
+        register("kmpFeature") {
+            id = "questlog.kmp.feature"
+            implementationClass = "KmpFeatureConventionPlugin"
+        }
     }
 }

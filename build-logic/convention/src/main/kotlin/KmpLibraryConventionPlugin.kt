@@ -36,9 +36,6 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
         }
     }
 
-    private fun Project.questLogNamespace(): String =
-        "com.nikolasguillen.questlog." + path.removePrefix(":").split(':').joinToString(".") { it.replace("-", "") }
-
     private companion object {
         const val COMPILE_SDK = 37
         const val MIN_SDK = 29
