@@ -186,9 +186,10 @@ that shared code compiles and that its tests still pass without touching shared 
 - **FR-008**: When a platform cannot provide a capability, the app MUST either provide that platform's
   equivalent or hide the entry point for it; it MUST NOT show a control that cannot work. The set of
   capabilities affected and the chosen behaviour for each MUST be recorded. For the first iOS release,
-  on-device description translation and release reminders (including their permission prompt and the
-  background release refresh behind them) are NOT required: their entry points MUST be hidden on iOS, and
-  the Settings rows that configure them MUST NOT appear there. Both remain Android-only until they are
+  on-device description translation and release reminders (including their permission prompt and any
+  release-date refresh that runs while the app is closed) are NOT required. Their entry points MUST be
+  hidden on iOS, and the Settings rows that configure them MUST NOT appear there. Release dates shown in
+  Radar MUST still stay current while the app is in use. Both deferred features remain Android-only until they are
   implemented for iOS in follow-up work, which MUST be kept on record (FR-016).
 - **FR-016**: The deferred iOS work for on-device translation and for release reminders MUST stay
   recorded in `docs/roadmap.md` as planned features (it is, under "iOS follow-ups after the multiplatform
