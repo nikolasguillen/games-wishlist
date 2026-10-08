@@ -21,6 +21,10 @@ gradlePlugin {
             id = "questlog.kmp.compose"
             implementationClass = "KmpComposeConventionPlugin"
         }
+        register("androidApplication") {
+            id = "questlog.android.application"
+            implementationClass = "AndroidApplicationConventionPlugin"
+        }
         register("kmpFeature") {
             id = "questlog.kmp.feature"
             implementationClass = "KmpFeatureConventionPlugin"
