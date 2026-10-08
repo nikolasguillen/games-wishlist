@@ -5,6 +5,7 @@ import androidx.compose.foundation.text.input.clearText
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nikolasguillen.questlog.core.domain.notification.ReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetKnownPlatformsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatformIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.SyncPlatformCatalogUseCase
@@ -39,7 +40,8 @@ class OnboardingViewModel @Inject constructor(
     private val getSelectedPlatformIdsUseCase: GetSelectedPlatformIdsUseCase,
     private val toggleOwnedPlatformUseCase: ToggleOwnedPlatformUseCase,
     private val syncPlatformCatalogUseCase: SyncPlatformCatalogUseCase,
-    private val completeOnboardingUseCase: CompleteOnboardingUseCase
+    private val completeOnboardingUseCase: CompleteOnboardingUseCase,
+    private val releaseRemindersAvailability: ReleaseRemindersAvailability
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OnboardingUiState())
@@ -124,6 +126,7 @@ class OnboardingViewModel @Inject constructor(
                 state.copy(
                     contentState = OnboardingContentState.Ready(
                         buildOnboardingPages(
+                            remindersAvailable = releaseRemindersAvailability.isAvailable,
                             requiresRuntimePermission = event.requiresRuntimePermission,
                             canDeliver = event.canDeliver
                         )

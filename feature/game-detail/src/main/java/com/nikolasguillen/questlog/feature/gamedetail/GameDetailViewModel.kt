@@ -10,6 +10,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.UpdateGameUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.AddGameToListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.GetWishlistAssignmentsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.RemoveGameFromListUseCase
+import com.nikolasguillen.questlog.core.domain.notification.ReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.SetReleaseNotificationEnabledUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.GetTranslationModelStatusUseCase
@@ -58,8 +59,12 @@ class GameDetailViewModel @AssistedInject constructor(
     private val translateGameDescriptionUseCase: TranslateGameDescriptionUseCase,
     private val getTranslationModelStatusUseCase: GetTranslationModelStatusUseCase,
     getReleaseNotificationGameIdsUseCase: GetReleaseNotificationGameIdsUseCase,
-    private val setReleaseNotificationEnabledUseCase: SetReleaseNotificationEnabledUseCase
+    private val setReleaseNotificationEnabledUseCase: SetReleaseNotificationEnabledUseCase,
+    releaseRemindersAvailability: ReleaseRemindersAvailability
 ) : ViewModel() {
+
+    // Fixed for the life of the process: a platform without reminders never offers the banner or its control.
+    private val remindersAvailable = releaseRemindersAvailability.isAvailable
 
     // Single source of truth: reactively observes local storage. Mutations write through the
     // use cases below and this flow picks the change back up -- no manually mirrored copy.
@@ -97,6 +102,7 @@ class GameDetailViewModel @AssistedInject constructor(
                 when {
                     game != null -> GameDetailContentState.Success(
                         game.toUiModel(isNotificationEnabled = gameId in notificationIds, now = Clock.System.now())
+                            .let { model -> if (remindersAvailable) model else model.copy(isNotificationAvailable = false) }
                     )
                     error != null -> GameDetailContentState.Error(error)
                     else -> GameDetailContentState.Loading
@@ -169,6 +175,7 @@ class GameDetailViewModel @AssistedInject constructor(
     }
 
     private fun toggleReleaseNotification() {
+        if (!remindersAvailable) return
         val successState = _uiState.value.contentState as? GameDetailContentState.Success ?: return
         val wasEnabled = successState.game.isNotificationEnabled
         val gameName = successState.game.name

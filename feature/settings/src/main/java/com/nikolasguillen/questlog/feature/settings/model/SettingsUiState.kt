@@ -22,6 +22,8 @@ import com.nikolasguillen.questlog.core.ui.model.UiText
  * @property notificationPermission The system notification permission's state, as reflected in the
  * "Notifications" group. Starts [NotificationPermissionRowState.Granted] so the row is absent until the
  * composition-only permission read reports otherwise, rather than flashing "blocked" on every launch.
+ * @property releaseRemindersAvailable Whether the platform offers release reminders at all. When `false`
+ * the whole Notifications group is left out, since none of its rows could work.
  * @property appearanceMode The user's current Appearance selection, reflected by the segmented control in
  * the App group. Starts `SYSTEM`, matching the persisted default.
  */
@@ -32,5 +34,6 @@ internal data class SettingsUiState(
     val translationModel: TranslationModelRowState = TranslationModelRowState.Hidden,
     val releaseNotificationCount: Int = 0,
     val notificationPermission: NotificationPermissionRowState = NotificationPermissionRowState.Granted,
+    val releaseRemindersAvailable: Boolean = true,
     val appearanceMode: AppearanceMode = AppearanceMode.SYSTEM
 )

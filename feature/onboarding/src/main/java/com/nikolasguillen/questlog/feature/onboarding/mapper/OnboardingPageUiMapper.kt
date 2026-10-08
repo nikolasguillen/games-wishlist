@@ -16,10 +16,12 @@ import com.nikolasguillen.questlog.feature.onboarding.model.ReminderStepState
 /**
  * The pages this launch shows, in order.
  *
- * The reminders page is last, and only when asking could change something: the device has a runtime
- * notification permission at all, and notifications cannot be delivered yet.
+ * The reminders page is last, and only when asking could change something: the platform offers release
+ * reminders at all, the device has a runtime notification permission, and notifications cannot be
+ * delivered yet.
  */
 internal fun buildOnboardingPages(
+    remindersAvailable: Boolean,
     requiresRuntimePermission: Boolean,
     canDeliver: Boolean
 ): List<OnboardingPage> = buildList {
@@ -28,7 +30,7 @@ internal fun buildOnboardingPages(
     add(OnboardingPage.Lists)
     add(OnboardingPage.Radar)
     add(OnboardingPage.Platforms)
-    if (requiresRuntimePermission && !canDeliver) add(OnboardingPage.Reminders)
+    if (remindersAvailable && requiresRuntimePermission && !canDeliver) add(OnboardingPage.Reminders)
 }
 
 /** The informational content of [this], or `null` for a page that is not purely informational. */

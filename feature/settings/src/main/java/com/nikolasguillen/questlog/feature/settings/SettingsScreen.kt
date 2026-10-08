@@ -202,7 +202,7 @@ internal fun SettingsContent(
                 )
             }
 
-            SettingsGroup(title = stringResource(R.string.settings_group_notifications)) {
+            if (state.releaseRemindersAvailable) SettingsGroup(title = stringResource(R.string.settings_group_notifications)) {
                 SettingsRow(
                     icon = Icons.Default.Notifications,
                     title = stringResource(R.string.settings_release_notifications),

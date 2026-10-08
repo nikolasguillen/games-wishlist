@@ -4,7 +4,10 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import com.nikolasguillen.questlog.core.data.local.WishlistCoverImageStorage
+import com.nikolasguillen.questlog.core.data.local.WishlistCoverImageStorageImpl
 import com.nikolasguillen.questlog.core.data.notification.ReleaseNotifierImpl
+import com.nikolasguillen.questlog.core.data.notification.StaticReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.data.repository.GameRepositoryImpl
 import com.nikolasguillen.questlog.core.data.scheduler.ReleaseNotificationSchedulerImpl
 import com.nikolasguillen.questlog.core.data.scheduler.ReleaseRefreshSchedulerImpl
@@ -14,6 +17,7 @@ import com.nikolasguillen.questlog.core.data.settings.WishlistViewModePreference
 import com.nikolasguillen.questlog.core.data.translation.GameDescriptionTranslatorImpl
 import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotificationScheduler
 import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotifier
+import com.nikolasguillen.questlog.core.domain.notification.ReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.domain.radar.ReleaseRefreshScheduler
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.domain.settings.AppearancePreferenceStore
@@ -68,6 +72,11 @@ abstract class DataModule {
     ): ReleaseNotifier
 
     @Binds
+    abstract fun bindWishlistCoverImageStorage(
+        wishlistCoverImageStorageImpl: WishlistCoverImageStorageImpl
+    ): WishlistCoverImageStorage
+
+    @Binds
     @Singleton
     abstract fun bindAppearancePreferenceStore(
         appearancePreferenceStoreImpl: AppearancePreferenceStoreImpl
@@ -86,6 +95,11 @@ abstract class DataModule {
     ): OnboardingPreferenceStore
 
     companion object {
+        // Android has release reminders (WorkManager + notifications), so every reminder entry point shows.
+        @Provides
+        fun provideReleaseRemindersAvailability(): ReleaseRemindersAvailability =
+            StaticReleaseRemindersAvailability(isAvailable = true)
+
         // Backs GameDescriptionTranslatorImpl's model download: it must outlive any single
         // SettingsViewModel so leaving the Settings screen does not cancel a download in flight.
         @Provides

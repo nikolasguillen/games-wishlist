@@ -9,6 +9,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.UpdateGameUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.AddGameToListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.GetWishlistAssignmentsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.RemoveGameFromListUseCase
+import com.nikolasguillen.questlog.core.domain.notification.ReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.SetReleaseNotificationEnabledUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.GetTranslationModelStatusUseCase
@@ -46,6 +47,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -106,7 +108,7 @@ class GameDetailViewModelTest {
         url = url
     )
 
-    private fun gameDetailViewModel(gameId: Int = GAME_ID) = GameDetailViewModel(
+    private fun gameDetailViewModel(gameId: Int = GAME_ID, remindersAvailable: Boolean = true) = GameDetailViewModel(
         gameId = gameId,
         getGameDetailUseCase = getGameDetailUseCase,
         refreshGameDetailUseCase = refreshGameDetailUseCase,
@@ -119,14 +121,15 @@ class GameDetailViewModelTest {
         translateGameDescriptionUseCase = translateGameDescriptionUseCase,
         getTranslationModelStatusUseCase = getTranslationModelStatusUseCase,
         getReleaseNotificationGameIdsUseCase = getReleaseNotificationGameIdsUseCase,
-        setReleaseNotificationEnabledUseCase = setReleaseNotificationEnabledUseCase
+        setReleaseNotificationEnabledUseCase = setReleaseNotificationEnabledUseCase,
+        releaseRemindersAvailability = mockk<ReleaseRemindersAvailability> { every { isAvailable } returns remindersAvailable }
     )
 
     // uiState is a plain MutableStateFlow, updated by coroutines launched unconditionally from init --
     // advanceUntilIdle alone is enough to drive them, no external subscriber needed to activate anything.
-    private fun TestScope.createViewModel(game: Game = testGame()): GameDetailViewModel {
+    private fun TestScope.createViewModel(game: Game = testGame(), remindersAvailable: Boolean = true): GameDetailViewModel {
         every { getGameDetailUseCase(game.id) } returns flowOf(game)
-        return gameDetailViewModel(game.id).also { advanceUntilIdle() }
+        return gameDetailViewModel(game.id, remindersAvailable).also { advanceUntilIdle() }
     }
 
     private fun GameDetailViewModel.successState(): GameDetailContentState.Success =
@@ -462,6 +465,30 @@ class GameDetailViewModelTest {
         val content = viewModel.successState()
         assertTrue(content.game.isNotificationEnabled)
         assertTrue(content.game.isNotificationAvailable)
+    }
+
+    @Test
+    fun `a platform without release reminders leaves the banner and its control out`() = runTest(testDispatcher) {
+        every { getReleaseNotificationGameIdsUseCase() } returns flowOf(emptySet())
+        val viewModel = createViewModel(testGame(status = GameStatus.PLAYING), remindersAvailable = false)
+
+        assertFalse(viewModel.successState().game.isNotificationAvailable)
+    }
+
+    @Test
+    fun `ToggleReleaseNotification does nothing on a platform without release reminders`() = runTest(testDispatcher) {
+        every { getReleaseNotificationGameIdsUseCase() } returns flowOf(emptySet())
+        val viewModel = createViewModel(testGame(), remindersAvailable = false)
+        val effects = mutableListOf<GameDetailUiEffect>()
+        val effectJob = launch { viewModel.uiEffect.collect { effects.add(it) } }
+        advanceUntilIdle()
+
+        viewModel.onEvent(GameDetailUiEvent.ToggleReleaseNotification)
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { setReleaseNotificationEnabledUseCase(any(), any()) }
+        assertEquals(emptyList<GameDetailUiEffect>(), effects)
+        effectJob.cancel()
     }
 
     private companion object {

@@ -3,6 +3,7 @@ package com.nikolasguillen.questlog.feature.radar
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nikolasguillen.questlog.core.domain.radar.GetRadarTimelineUseCase
+import com.nikolasguillen.questlog.core.domain.notification.ReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.SetReleaseNotificationEnabledUseCase
 import com.nikolasguillen.questlog.core.ui.model.UiText
@@ -25,8 +26,12 @@ import javax.inject.Inject
 class RadarViewModel @Inject constructor(
     getRadarTimelineUseCase: GetRadarTimelineUseCase,
     getReleaseNotificationGameIdsUseCase: GetReleaseNotificationGameIdsUseCase,
-    private val setReleaseNotificationEnabledUseCase: SetReleaseNotificationEnabledUseCase
+    private val setReleaseNotificationEnabledUseCase: SetReleaseNotificationEnabledUseCase,
+    releaseRemindersAvailability: ReleaseRemindersAvailability
 ) : ViewModel() {
+
+    // Fixed for the life of the process: a platform without reminders never shows a bell or asks for permission.
+    private val remindersAvailable = releaseRemindersAvailability.isAvailable
 
     // Tracks the latest known opt-in set so onEvent can flip a toggle without waiting for the next
     // emission -- the source of truth for isNotificationEnabled always stays this use case's Flow.
@@ -48,13 +53,14 @@ class RadarViewModel @Inject constructor(
                 RadarContentState.Empty
             } else {
                 RadarContentState.Success(uiSections)
-            }
+            },
+            releaseRemindersAvailable = remindersAvailable
         )
     }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = RadarUiState()
+            initialValue = RadarUiState(releaseRemindersAvailable = remindersAvailable)
         )
 
     internal fun onEvent(event: RadarUiEvent) {
@@ -64,6 +70,7 @@ class RadarViewModel @Inject constructor(
     }
 
     private fun toggleReleaseNotification(gameId: Int) {
+        if (!remindersAvailable) return
         val wasEnabled = gameId in notificationEnabledGameIds
         val gameTitle = findGameTitle(gameId)
         viewModelScope.launch {
