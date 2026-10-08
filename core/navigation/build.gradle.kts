@@ -1,24 +1,18 @@
 plugins {
-    alias(libs.plugins.android.library)
+    id("questlog.kmp.library")
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
 }
 
-android {
-    namespace = "com.nikolasguillen.questlog.core.navigation"
-    compileSdk = 37
-
-    defaultConfig {
-        minSdk = 29
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.androidx.navigation3.runtime)
+            implementation(libs.kotlinx.serialization.core)
+        }
+        getByName("androidHostTest").dependencies {
+            implementation(libs.junit)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlin.reflect)
+        }
     }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-}
-
-dependencies {
-    implementation(libs.androidx.navigation3.runtime)
-    implementation(libs.androidx.navigation3.ui)
-    implementation(libs.kotlinx.serialization.core)
 }

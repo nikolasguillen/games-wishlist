@@ -114,11 +114,13 @@ Reference: `feature/wishlist/WishlistViewModel.kt`.
 Screens never navigate. They receive lambdas (`onGameClick: (Int) -> Unit`, `onBack: () -> Unit`).
 There are no per-feature DI modules and no per-feature nav entry providers.
 
-Adding a route means two edits, both outside the feature module:
+Adding a route means three edits, all outside the feature module:
 
 1. A `@Serializable` `data object`/`data class` implementing `GameNavKey : NavKey` in
    `core/navigation/Routes.kt`.
-2. A branch in the single `entryProvider` inside `app/.../QuestLogNavDisplay.kt`, obtaining the ViewModel with
+2. A `subclass(...)` line for it in `core/navigation/GameNavSavedStateConfiguration.kt`: iOS cannot restore a
+   back stack without it, and `RoutesSerializationTest` fails when the line is missing.
+3. A branch in the single `entryProvider` inside `app/.../QuestLogNavDisplay.kt`, obtaining the ViewModel with
    `koinViewModel<X>()` or, for a route with an argument,
    `koinViewModel<X> { parametersOf(key.someId) }`. A new ViewModel also needs a `viewModelOf` line in
    `ViewModelKoin.kt`; `KoinGraphTest` fails if a dependency is not declared.

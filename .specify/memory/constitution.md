@@ -16,9 +16,9 @@ them is a design decision, not an accident of history.
   and the natural first candidate for `commonMain`.
 - `:app` is the only module that knows about navigation. Feature modules own no nav graph, no nav
   entry provider and no per-feature DI module; screens receive lambdas and never navigate
-  themselves. Adding a route means two edits outside the feature: a `NavKey` in
-  `core/navigation/Routes.kt` and a branch in the single `entryProvider` in
-  `app/.../QuestLogNavDisplay.kt`.
+  themselves. Adding a route means three edits outside the feature: a `NavKey` in
+  `core/navigation/Routes.kt`, its `subclass(...)` line in `GameNavSavedStateConfiguration.kt`, and a branch
+  in the single `entryProvider` in `app/.../QuestLogNavDisplay.kt`.
 
 A plan that requires a new edge in this graph MUST say so explicitly and justify it in its
 Complexity Tracking section. Silently adding the dependency is a constitution violation.
@@ -190,4 +190,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.2.4 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08
+**Version**: 1.2.5 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08

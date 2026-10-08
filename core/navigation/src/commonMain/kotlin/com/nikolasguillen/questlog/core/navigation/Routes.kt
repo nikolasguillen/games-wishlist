@@ -3,6 +3,11 @@ package com.nikolasguillen.questlog.core.navigation
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
+/**
+ * Every destination in the app. Adding a route takes three edits outside its feature: a subclass here, its
+ * `subclass(...)` line in [GameNavSavedStateConfiguration] (the non-Android targets cannot restore a back
+ * stack without it) and a branch in the single `entryProvider`.
+ */
 @Serializable
 sealed interface GameNavKey : NavKey
 
