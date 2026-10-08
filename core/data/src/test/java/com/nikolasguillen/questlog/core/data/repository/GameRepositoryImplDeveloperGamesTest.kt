@@ -13,8 +13,6 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
-import okhttp3.RequestBody
-import okio.Buffer
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -60,16 +58,15 @@ class GameRepositoryImplDeveloperGamesTest {
         gameEngines = null
     )
 
-    private fun RequestBody.asText(): String = Buffer().also { writeTo(it) }.readUtf8()
 
     @Test
     fun `filters on the developer and carries no rating-count floor`() = runTest {
-        val body = slot<RequestBody>()
+        val body = slot<String>()
         coEvery { apiService.searchGames(capture(body)) } returns listOf(igdbGame(1))
 
         repository.getGamesByDeveloper(companyId = 50, platformIds = setOf(48))
 
-        val query = body.captured.asText()
+        val query = body.captured
         assertTrue(query.contains("involved_companies.company = (50)"))
         assertTrue(query.contains("platforms = (48)"))
         // Unlike getGamesByGenre, no floor: an unreleased title from a followed studio has no ratings
@@ -80,11 +77,11 @@ class GameRepositoryImplDeveloperGamesTest {
 
     @Test
     fun `an empty selection drops the platform clause instead of filtering on nothing`() = runTest {
-        val body = slot<RequestBody>()
+        val body = slot<String>()
         coEvery { apiService.searchGames(capture(body)) } returns listOf(igdbGame(1))
 
         repository.getGamesByDeveloper(companyId = 50, platformIds = emptySet())
 
-        assertFalse(body.captured.asText().contains("platforms ="))
+        assertFalse(body.captured.contains("platforms ="))
     }
 }

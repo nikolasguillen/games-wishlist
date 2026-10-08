@@ -25,7 +25,6 @@ dependencies {
     implementation(project(":core:database"))
     implementation(project(":core:ai"))
 
-    implementation(libs.okhttp)
     implementation(libs.koin.core)
     implementation(libs.koin.android)
 

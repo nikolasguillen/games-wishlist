@@ -1,6 +1,6 @@
 package com.nikolasguillen.questlog.core.network.model
 
-import com.squareup.moshi.JsonClass
+import kotlinx.serialization.Serializable
 
 /**
  * Represents a game engine.
@@ -8,7 +8,7 @@ import com.squareup.moshi.JsonClass
  * @property id Internal IGDB unique identifier.
  * @property name The name of the engine (e.g., "Unreal Engine 5").
  */
-@JsonClass(generateAdapter = true)
+@Serializable
 data class IgdbGameEngine(
     val id: Int,
     val name: String

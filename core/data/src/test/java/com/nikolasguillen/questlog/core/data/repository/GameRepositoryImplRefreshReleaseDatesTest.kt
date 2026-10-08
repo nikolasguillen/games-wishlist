@@ -16,8 +16,6 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
-import okhttp3.RequestBody
-import okio.Buffer
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -43,15 +41,14 @@ class GameRepositoryImplRefreshReleaseDatesTest {
         coverImageStorage = mockk<WishlistCoverImageStorage>(relaxed = true)
     )
 
-    private fun RequestBody.asText(): String = Buffer().also { writeTo(it) }.readUtf8()
 
-    private fun idsInBody(body: RequestBody): List<String> =
-        Regex("""game = \(([^)]*)\)""").find(body.asText())!!.groupValues[1].split(",")
+    private fun idsInBody(query: String): List<String> =
+        Regex("""game = \(([^)]*)\)""").find(query)!!.groupValues[1].split(",")
 
     @Test
     fun `45 saved game ids are chunked into 3 requests of at most 20`() = runTest {
         coEvery { gameDao.getSavedGameIds() } returns (1..45).toList()
-        val bodies = mutableListOf<RequestBody>()
+        val bodies = mutableListOf<String>()
         coEvery { apiService.getReleaseDates(capture(bodies)) } returns emptyList()
 
         repository.refreshSavedGameReleaseDates()

@@ -1,7 +1,7 @@
 package com.nikolasguillen.questlog.core.network.model
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * One popularity signal for a game from IGDB's Popularity API (`/popularity_primitives`), the
@@ -14,8 +14,8 @@ import com.squareup.moshi.JsonClass
  * @property value The popularity score; higher is more popular. Only meaningful relative to other
  *   rows fetched by the same query.
  */
-@JsonClass(generateAdapter = true)
+@Serializable
 data class IgdbPopularityPrimitive(
-    @Json(name = "game_id") val gameId: Int,
+    @SerialName("game_id") val gameId: Int,
     val value: Double
 )

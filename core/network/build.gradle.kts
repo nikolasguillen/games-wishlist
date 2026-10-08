@@ -2,7 +2,6 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
 }
 
@@ -33,25 +32,23 @@ android {
     }
 }
 
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xannotation-default-target=param-property")
-    }
-}
-
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:model"))
     
-    implementation(libs.retrofit)
-    implementation(libs.converter.moshi)
-    ksp(libs.moshi.kotlin.codegen)
     implementation(libs.okhttp)
-    implementation(libs.logging.interceptor)
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.koin.core)
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.client.logging)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.io.core)
 
     testImplementation(libs.junit)
+    testImplementation(libs.ktor.client.mock)
     testImplementation(libs.kotlinx.coroutines.test)
 }

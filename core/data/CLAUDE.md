@@ -37,10 +37,12 @@ look like mistakes but are deliberate:
 
 - It **rethrows `CancellationException`** before mapping anything, so coroutine cancellation is not
   swallowed into a `RepositoryError`.
-- It matches `IgdbHttpException` — **`:core:network`'s own type, not Retrofit's `HttpException`** — so
-  that `:core:data` never depends on Retrofit. Keep it that way: Retrofit is JVM-only and this is the
-  module a KMP move would want in `commonMain`. `RepositoryErrorMapperTest.kt` covers the behaviour.
-  `IgdbHttpException` extends `IOException`, so its branch has to stay **above** the catch-all.
+- It matches `IgdbHttpException`, `IgdbTimeoutException` and `IgdbConnectivityException` — **`:core:network`'s
+  own types, never the HTTP client's** — so that `:core:data` does not depend on Ktor. Keep it that way: a
+  transport failure worth telling apart is translated in `:core:network`. The platform's own connectivity
+  and timeout exceptions are named in `isConnectivityFailure()` / `isTimeoutFailure()`, the only places
+  here that do. `RepositoryErrorMapperTest.kt` covers the behaviour. The network module's exceptions extend
+  `IOException`, so their branches have to stay **above** the catch-all.
 
 Mapped cases: `UnknownHostException` / `ConnectException` / `SocketException` → `NoNetwork`,
 `SocketTimeoutException` → `RequestTimeout`, `IgdbHttpException` → `Http(code, message)`, everything else

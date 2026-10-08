@@ -1,7 +1,7 @@
 package com.nikolasguillen.questlog.core.network.model
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * A single row from IGDB's `release_dates` endpoint, used by the Radar release-date refresh to backfill
@@ -17,11 +17,11 @@ import com.squareup.moshi.JsonClass
  * yields no value at all, which read back as "exact date" and produced a made-up day for year-only
  * releases. The scalar values themselves are unchanged.
  */
-@JsonClass(generateAdapter = true)
+@Serializable
 data class IgdbReleaseDateEntry(
     val id: Int,
     val game: Int,
     val platform: IgdbPlatform?,
     val date: Long?,
-    @Json(name = "date_format") val dateFormat: Int?
+    @SerialName("date_format") val dateFormat: Int?
 )

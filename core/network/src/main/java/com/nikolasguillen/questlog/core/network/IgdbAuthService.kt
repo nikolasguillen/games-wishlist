@@ -1,14 +1,12 @@
 package com.nikolasguillen.questlog.core.network
 
 import com.nikolasguillen.questlog.core.network.model.IgdbAuthResponse
-import retrofit2.http.POST
-import retrofit2.http.Query
 
-interface IgdbAuthService {
-    @POST("https://id.twitch.tv/oauth2/token")
+/** Twitch's client-credentials endpoint, which issues the token IGDB expects. */
+internal interface IgdbAuthService {
     suspend fun getAccessToken(
-        @Query("client_id") clientId: String,
-        @Query("client_secret") clientSecret: String,
-        @Query("grant_type") grantType: String = "client_credentials"
+        clientId: String,
+        clientSecret: String,
+        grantType: String = "client_credentials"
     ): IgdbAuthResponse
 }

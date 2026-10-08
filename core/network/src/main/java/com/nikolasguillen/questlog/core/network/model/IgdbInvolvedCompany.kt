@@ -1,6 +1,6 @@
 package com.nikolasguillen.questlog.core.network.model
 
-import com.squareup.moshi.JsonClass
+import kotlinx.serialization.Serializable
 
 /**
  * Junction model for companies involved in a game's production.
@@ -10,7 +10,7 @@ import com.squareup.moshi.JsonClass
  * @property developer True if the company acted as a developer for this game.
  * @property publisher True if the company acted as a publisher for this game.
  */
-@JsonClass(generateAdapter = true)
+@Serializable
 data class IgdbInvolvedCompany(
     val id: Int,
     val company: IgdbCompany,

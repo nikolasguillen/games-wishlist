@@ -20,7 +20,6 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
-import okhttp3.RequestBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -107,7 +106,7 @@ class GameRepositoryImplDiscoverCacheTest {
 
         assertEquals(AppResult.success(listOf(5, 1, 9)), result.map { games -> games.map { it.id } })
         coVerify(exactly = 0) { apiService.getPopularityPrimitives(any()) }
-        coVerify(exactly = 0) { apiService.searchGames(any<RequestBody>()) }
+        coVerify(exactly = 0) { apiService.searchGames(any<String>()) }
     }
 
     @Test
@@ -117,7 +116,7 @@ class GameRepositoryImplDiscoverCacheTest {
             primitive(gameId = 3, value = 90.0),
             primitive(gameId = 1, value = 50.0)
         )
-        coEvery { apiService.searchGames(any<RequestBody>()) } returns listOf(igdbGame(1), igdbGame(3))
+        coEvery { apiService.searchGames(any<String>()) } returns listOf(igdbGame(1), igdbGame(3))
         val entriesSlot = slot<List<DiscoverLaneEntryEntity>>()
         coEvery {
             discoverCacheDao.replaceLane(
@@ -157,7 +156,7 @@ class GameRepositoryImplDiscoverCacheTest {
         val staleTimestamp = System.currentTimeMillis() - 7 * 60 * 60 * 1000L // older than the 6h TTL
         coEvery { discoverCacheDao.getLaneFetchedAt(DiscoverLane.POPULAR_THIS_MONTH) } returns staleTimestamp
         coEvery { apiService.getPopularityPrimitives(any()) } returns listOf(primitive(gameId = 1, value = 50.0))
-        coEvery { apiService.searchGames(any<RequestBody>()) } returns listOf(igdbGame(1))
+        coEvery { apiService.searchGames(any<String>()) } returns listOf(igdbGame(1))
         stubReplaceLane()
 
         val result = repository.getPopularGames(emptySet())
@@ -178,7 +177,7 @@ class GameRepositoryImplDiscoverCacheTest {
 
         coEvery { discoverCacheDao.getLaneFetchedAt(DiscoverLane.MOST_ANTICIPATED) } returns null
         coEvery { apiService.getPopularityPrimitives(any()) } returns listOf(primitive(gameId = 2, value = 50.0))
-        coEvery { apiService.searchGames(any<RequestBody>()) } returns listOf(igdbGame(2))
+        coEvery { apiService.searchGames(any<String>()) } returns listOf(igdbGame(2))
         stubReplaceLane()
 
         repository.getPopularGames(emptySet())
@@ -186,7 +185,7 @@ class GameRepositoryImplDiscoverCacheTest {
 
         // Only the stale/missing MOST_ANTICIPATED lane touched the network -- POPULAR_THIS_MONTH was fresh.
         coVerify(exactly = 1) { apiService.getPopularityPrimitives(any()) }
-        coVerify(exactly = 1) { apiService.searchGames(any<RequestBody>()) }
+        coVerify(exactly = 1) { apiService.searchGames(any<String>()) }
     }
 
     @Test

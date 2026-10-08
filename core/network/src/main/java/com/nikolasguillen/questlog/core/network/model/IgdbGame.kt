@@ -1,7 +1,7 @@
 package com.nikolasguillen.questlog.core.network.model
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Main game model returned by the IGDB API.
@@ -30,26 +30,26 @@ import com.squareup.moshi.JsonClass
  * @property remakes List of remakes of this game.
  * @property remasters List of remasters of this game.
  */
-@JsonClass(generateAdapter = true)
+@Serializable
 data class IgdbGame(
     val id: Int,
     val name: String,
     val summary: String?,
-    @Json(name = "game_type") val gameType: Int?,
-    @Json(name = "first_release_date") val firstReleaseDate: Long?,
+    @SerialName("game_type") val gameType: Int?,
+    @SerialName("first_release_date") val firstReleaseDate: Long?,
     val cover: IgdbCover?,
-    @Json(name = "total_rating") val totalRating: Double?,
-    @Json(name = "total_rating_count") val totalRatingCount: Int?,
-    @Json(name = "aggregated_rating") val aggregatedRating: Double?,
+    @SerialName("total_rating") val totalRating: Double?,
+    @SerialName("total_rating_count") val totalRatingCount: Int?,
+    @SerialName("aggregated_rating") val aggregatedRating: Double?,
     val hypes: Int?,
     val url: String?,
     val platforms: List<IgdbPlatform>?,
-    @Json(name = "release_dates") val releaseDates: List<IgdbReleaseDate>?,
+    @SerialName("release_dates") val releaseDates: List<IgdbReleaseDate>?,
     val genres: List<IgdbGenre>?,
-    @Json(name = "involved_companies") val involvedCompanies: List<IgdbInvolvedCompany>?,
-    @Json(name = "game_engines") val gameEngines: List<IgdbGameEngine>?,
-    @Json(name = "parent_game") val parentGame: IgdbGame? = null,
-    @Json(name = "dlcs") val dlcList: List<IgdbGame>? = null,
+    @SerialName("involved_companies") val involvedCompanies: List<IgdbInvolvedCompany>?,
+    @SerialName("game_engines") val gameEngines: List<IgdbGameEngine>?,
+    @SerialName("parent_game") val parentGame: IgdbGame? = null,
+    @SerialName("dlcs") val dlcList: List<IgdbGame>? = null,
     val expansions: List<IgdbGame>? = null,
     val remakes: List<IgdbGame>? = null,
     val remasters: List<IgdbGame>? = null,

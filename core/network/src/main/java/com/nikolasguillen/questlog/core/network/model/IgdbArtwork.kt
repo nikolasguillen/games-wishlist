@@ -1,6 +1,6 @@
 package com.nikolasguillen.questlog.core.network.model
 
-import com.squareup.moshi.JsonClass
+import kotlinx.serialization.Serializable
 
 /**
  * Represents a game's artwork or screenshot image reference.
@@ -8,7 +8,7 @@ import com.squareup.moshi.JsonClass
  * @property id Internal IGDB unique identifier.
  * @property url The URL of the image. Usually starts with "//", needs "https:" protocol prefix.
  */
-@JsonClass(generateAdapter = true)
+@Serializable
 data class IgdbArtwork(
     val id: Int,
     val url: String?

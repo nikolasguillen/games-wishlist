@@ -1,6 +1,6 @@
 package com.nikolasguillen.questlog.core.network.model
 
-import com.squareup.moshi.JsonClass
+import kotlinx.serialization.Serializable
 
 /**
  * Represents a company in the gaming industry.
@@ -8,7 +8,7 @@ import com.squareup.moshi.JsonClass
  * @property id Internal IGDB unique identifier for the company.
  * @property name The official name of the company.
  */
-@JsonClass(generateAdapter = true)
+@Serializable
 data class IgdbCompany(
     val id: Int,
     val name: String

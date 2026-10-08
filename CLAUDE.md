@@ -3,7 +3,7 @@
 Modular Android app for tracking a videogame wishlist, backed by the IGDB API.
 
 Kotlin 2.4.10 · AGP 9.4.1 · Gradle 9.7.1 (JVM toolchain 21) · compileSdk/targetSdk 37 · minSdk 29 · Java 11
-Jetpack Compose (BOM 2026.09.00) · Koin 4.2.2 · Room 2.8.5 (KSP) · Retrofit 3 + Moshi · Navigation 3
+Jetpack Compose (BOM 2026.09.00) · Koin 4.2.2 · Room 2.8.5 (KSP) · Ktor 3 + kotlinx.serialization · Navigation 3
 Coil 2 · WorkManager + `koin-androidx-workmanager` (Radar's release-date refresh)
 
 ## Git
@@ -156,8 +156,7 @@ ad hoc.
 
 - **Android must build and pass its tests at every commit** (`./gradlew :app:assembleDebug`,
   `./gradlew test`). Never delete or weaken a test to get there. Each step must be one you could pause on.
-- **Library swaps are decided in the plan, not on the side.** Retrofit is JVM-only (its KMP counterpart is
-  Ktor), and Room moves to the driver-based API (`BundledSQLiteDriver`)
+- **Library swaps are decided in the plan, not on the side.** Room moves to the driver-based API (`BundledSQLiteDriver`)
   as part of the migration — see `core/database/CLAUDE.md`. Do not swap one outside the task that calls
   for it.
 - **The module-boundary rules above still hold** after the move. A new module or dependency edge must be

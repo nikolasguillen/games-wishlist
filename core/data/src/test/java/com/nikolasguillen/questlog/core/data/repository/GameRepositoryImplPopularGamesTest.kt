@@ -16,8 +16,6 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
-import okhttp3.RequestBody
-import okio.Buffer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -67,7 +65,6 @@ class GameRepositoryImplPopularGamesTest {
         gameEngines = null
     )
 
-    private fun RequestBody.asText(): String = Buffer().also { writeTo(it) }.readUtf8()
 
     @Test
     fun `getPopularGames restores the popularity ranking the hydrate call loses`() = runTest {
@@ -78,7 +75,7 @@ class GameRepositoryImplPopularGamesTest {
             primitive(gameId = 2, value = 10.0)
         )
         // ...but /games hydrates them in its own (id) order.
-        coEvery { apiService.searchGames(any<RequestBody>()) } returns listOf(
+        coEvery { apiService.searchGames(any<String>()) } returns listOf(
             igdbGame(1), igdbGame(2), igdbGame(3)
         )
 
@@ -93,7 +90,7 @@ class GameRepositoryImplPopularGamesTest {
             primitive(gameId = 7, value = 80.0),
             primitive(gameId = 4, value = 30.0)
         )
-        coEvery { apiService.searchGames(any<RequestBody>()) } returns listOf(igdbGame(4), igdbGame(7))
+        coEvery { apiService.searchGames(any<String>()) } returns listOf(igdbGame(4), igdbGame(7))
 
         val result = repository.getUpcomingGames(emptySet())
 
@@ -107,34 +104,34 @@ class GameRepositoryImplPopularGamesTest {
         val result = repository.getPopularGames(emptySet())
 
         assertEquals(AppResult.success(emptyList<Int>()), result.map { games -> games.map { it.id } })
-        coVerify(exactly = 0) { apiService.searchGames(any<RequestBody>()) }
+        coVerify(exactly = 0) { apiService.searchGames(any<String>()) }
     }
 
     @Test
     fun `the selected platforms narrow the hydrate call and not the ranking call`() = runTest {
-        val rankingBody = slot<RequestBody>()
-        val hydrateBody = slot<RequestBody>()
+        val rankingBody = slot<String>()
+        val hydrateBody = slot<String>()
         coEvery { apiService.getPopularityPrimitives(capture(rankingBody)) } returns
             listOf(primitive(gameId = 1, value = 50.0))
         coEvery { apiService.searchGames(capture(hydrateBody)) } returns listOf(igdbGame(1))
 
         repository.getPopularGames(setOf(48, 130))
 
-        assertTrue(hydrateBody.captured.asText().contains("platforms = (48,130)"))
+        assertTrue(hydrateBody.captured.contains("platforms = (48,130)"))
         // The Popularity API has no platform field, so pushing the filter down there would 400.
-        assertFalse(rankingBody.captured.asText().contains("platforms"))
+        assertFalse(rankingBody.captured.contains("platforms"))
     }
 
     @Test
     fun `getPopularGames's release filter carries no TBD escape hatch`() = runTest {
-        val hydrateBody = slot<RequestBody>()
+        val hydrateBody = slot<String>()
         coEvery { apiService.getPopularityPrimitives(any()) } returns
             listOf(primitive(gameId = 1, value = 50.0))
         coEvery { apiService.searchGames(capture(hydrateBody)) } returns listOf(igdbGame(1))
 
         repository.getPopularGames(emptySet())
 
-        val query = hydrateBody.captured.asText()
+        val query = hydrateBody.captured
         assertTrue(query.contains("first_release_date != null & first_release_date <="))
         // The undated-but-pending admission rule is upcoming-lane only -- FR-007 forbids it here.
         assertFalse(query.contains("release_dates.date_format"))
@@ -142,14 +139,14 @@ class GameRepositoryImplPopularGamesTest {
 
     @Test
     fun `getUpcomingGames admits an undated game with a pending release_dates entry`() = runTest {
-        val hydrateBody = slot<RequestBody>()
+        val hydrateBody = slot<String>()
         coEvery { apiService.getPopularityPrimitives(any()) } returns
             listOf(primitive(gameId = 1, value = 50.0))
         coEvery { apiService.searchGames(capture(hydrateBody)) } returns listOf(igdbGame(1))
 
         repository.getUpcomingGames(setOf(48))
 
-        val query = hydrateBody.captured.asText()
+        val query = hydrateBody.captured
         // The future-date branch is untouched...
         assertTrue(query.contains("(first_release_date > "))
         // ...and the new TBD branch is OR'd into it...
@@ -161,7 +158,7 @@ class GameRepositoryImplPopularGamesTest {
 
     @Test
     fun `the TBD branch only applies to games with no first_release_date at all`() = runTest {
-        val hydrateBody = slot<RequestBody>()
+        val hydrateBody = slot<String>()
         coEvery { apiService.getPopularityPrimitives(any()) } returns
             listOf(primitive(gameId = 1, value = 50.0))
         coEvery { apiService.searchGames(capture(hydrateBody)) } returns listOf(igdbGame(1))
@@ -172,18 +169,18 @@ class GameRepositoryImplPopularGamesTest {
         // with a past first_release_date satisfies neither this branch nor the future-date one, so a
         // stale TBD marker on an already-released game can't resurrect it into the shelf.
         assertTrue(
-            hydrateBody.captured.asText().contains("first_release_date = null & release_dates.date_format")
+            hydrateBody.captured.contains("first_release_date = null & release_dates.date_format")
         )
     }
 
     @Test
     fun `getGamesByGenre filters on the genre and floors the rating count`() = runTest {
-        val body = slot<RequestBody>()
+        val body = slot<String>()
         coEvery { apiService.searchGames(capture(body)) } returns listOf(igdbGame(1))
 
         repository.getGamesByGenre(genreId = 12, platformIds = setOf(48))
 
-        val query = body.captured.asText()
+        val query = body.captured
         assertTrue(query.contains("genres = (12)"))
         assertTrue(query.contains("platforms = (48)"))
         // Without the floor, `sort total_rating desc` hands the shelf to single-review curiosities.
@@ -193,12 +190,12 @@ class GameRepositoryImplPopularGamesTest {
 
     @Test
     fun `getGamesByGenre bounds the pool to a recent release window`() = runTest {
-        val body = slot<RequestBody>()
+        val body = slot<String>()
         coEvery { apiService.searchGames(capture(body)) } returns listOf(igdbGame(1))
 
         repository.getGamesByGenre(genreId = 12, platformIds = emptySet())
 
-        val windowStart = body.captured.asText()
+        val windowStart = body.captured
             .substringAfter("first_release_date > ")
             .takeWhile { it.isDigit() }
             .toLong()
@@ -211,7 +208,7 @@ class GameRepositoryImplPopularGamesTest {
 
     @Test
     fun `getGamesByGenre needs no ranking call of its own`() = runTest {
-        coEvery { apiService.searchGames(any<RequestBody>()) } returns listOf(igdbGame(1))
+        coEvery { apiService.searchGames(any<String>()) } returns listOf(igdbGame(1))
 
         repository.getGamesByGenre(genreId = 12, platformIds = emptySet())
 
@@ -220,13 +217,13 @@ class GameRepositoryImplPopularGamesTest {
 
     @Test
     fun `an empty selection drops the platform clause instead of filtering on nothing`() = runTest {
-        val hydrateBody = slot<RequestBody>()
+        val hydrateBody = slot<String>()
         coEvery { apiService.getPopularityPrimitives(any()) } returns
             listOf(primitive(gameId = 1, value = 50.0))
         coEvery { apiService.searchGames(capture(hydrateBody)) } returns listOf(igdbGame(1))
 
         repository.getUpcomingGames(emptySet())
 
-        assertFalse(hydrateBody.captured.asText().contains("platforms ="))
+        assertFalse(hydrateBody.captured.contains("platforms ="))
     }
 }

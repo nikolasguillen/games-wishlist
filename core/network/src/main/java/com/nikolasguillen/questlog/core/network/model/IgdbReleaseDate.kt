@@ -1,7 +1,7 @@
 package com.nikolasguillen.questlog.core.network.model
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Represents a release date for a game on a specific platform.
@@ -14,10 +14,10 @@ import com.squareup.moshi.JsonClass
  * yields no value at all, which read back as "exact date" and produced a made-up day for year-only
  * releases. The scalar values themselves are unchanged.
  */
-@JsonClass(generateAdapter = true)
+@Serializable
 data class IgdbReleaseDate(
     val id: Int,
     val date: Long?,
     val platform: IgdbPlatform?,
-    @Json(name = "date_format") val dateFormat: Int?
+    @SerialName("date_format") val dateFormat: Int?
 )

@@ -49,8 +49,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
 
 /**
  * The autocomplete dropdown shows at most four games — with the keyboard open there is no room for
@@ -192,8 +190,7 @@ class GameRepositoryImpl(
                 where game_type != ($excludedIds) & version_parent = null;
                 limit 500;
             """.trimIndent()
-            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
-            val response = apiService.searchGames(body)
+            val response = apiService.searchGames(queryText)
             AppResult.success(response.map { it.toGame() })
         } catch (e: Exception) {
             AppResult.failure(e.toRepositoryError())
@@ -209,8 +206,7 @@ class GameRepositoryImpl(
                 sort hypes desc;
                 limit $SUGGESTIONS_LIMIT;
             """.trimIndent()
-            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
-            val response = apiService.searchGames(body)
+            val response = apiService.searchGames(queryText)
             AppResult.success(response.map { it.toGame() })
         } catch (e: Exception) {
             AppResult.failure(e.toRepositoryError())
@@ -313,8 +309,7 @@ class GameRepositoryImpl(
                 sort total_rating desc;
                 limit $RECOMMENDED_POOL_LIMIT;
             """.trimIndent()
-            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
-            AppResult.success(apiService.searchGames(body).map { it.toGame() })
+            AppResult.success(apiService.searchGames(queryText).map { it.toGame() })
         } catch (e: Exception) {
             AppResult.failure(e.toRepositoryError())
         }
@@ -334,8 +329,7 @@ class GameRepositoryImpl(
                 sort first_release_date desc;
                 limit $DEVELOPER_POOL_LIMIT;
             """.trimIndent()
-            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
-            AppResult.success(apiService.searchGames(body).map { it.toGame() })
+            AppResult.success(apiService.searchGames(queryText).map { it.toGame() })
         } catch (e: Exception) {
             AppResult.failure(e.toRepositoryError())
         }
@@ -372,8 +366,7 @@ class GameRepositoryImpl(
                 sort value desc;
                 limit $poolLimit;
             """.trimIndent()
-            val primitivesBody = primitivesQuery.toRequestBody("text/plain".toMediaTypeOrNull())
-            val rankedIds = apiService.getPopularityPrimitives(primitivesBody).map { it.gameId }
+            val rankedIds = apiService.getPopularityPrimitives(primitivesQuery).map { it.gameId }
             if (rankedIds.isEmpty()) return AppResult.success(emptyList())
 
             val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
@@ -401,8 +394,7 @@ class GameRepositoryImpl(
                 where id = ($idList) & game_type != ($excludedIds) & version_parent = null & cover != null & $releaseFilter$platformFilter;
                 limit $poolLimit;
             """.trimIndent()
-            val gamesBody = gamesQuery.toRequestBody("text/plain".toMediaTypeOrNull())
-            val games = apiService.searchGames(gamesBody).map { it.toGame() }
+            val games = apiService.searchGames(gamesQuery).map { it.toGame() }
 
             // /games returns ids in its own order; restore the popularity ranking.
             val rankByGameId = rankedIds.withIndex().associate { (index, id) -> id to index }
@@ -462,8 +454,7 @@ class GameRepositoryImpl(
                     dlcs.name, dlcs.cover.url, expansions.name, expansions.cover.url, remakes.name, remakes.cover.url, remasters.name, remasters.cover.url, parent_game.name, parent_game.cover.url, artworks.url, screenshots.url;
                     where id = $id;
                 """.trimIndent()
-                val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
-                val networkGame = apiService.getGameDetail(body).first()
+                val networkGame = apiService.getGameDetail(queryText).first()
                 networkGame.toGame().copy(isWishlisted = isWishlisted, detailsFetchedAt = System.currentTimeMillis())
             }
 
@@ -576,8 +567,7 @@ class GameRepositoryImpl(
                                 sort date asc;
                                 limit 500;
                             """.trimIndent()
-                            val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
-                            apiService.getReleaseDates(body)
+                            apiService.getReleaseDates(queryText)
                         }
                     }
                 }.awaitAll().flatten()
@@ -603,8 +593,7 @@ class GameRepositoryImpl(
                     limit $PLATFORM_PAGE_LIMIT;
                     offset $offset;
                 """.trimIndent()
-                val body = queryText.toRequestBody("text/plain".toMediaTypeOrNull())
-                val page = apiService.getPlatforms(body)
+                val page = apiService.getPlatforms(queryText)
                 if (page.isEmpty()) break
 
                 platformDao.insertPlatforms(page.map { it.toPlatform().toEntity() })

@@ -1,11 +1,11 @@
 package com.nikolasguillen.questlog.core.network.model
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-@JsonClass(generateAdapter = true)
+@Serializable
 data class IgdbAuthResponse(
-    @Json(name = "access_token") val accessToken: String,
-    @Json(name = "expires_in") val expiresIn: Long,
-    @Json(name = "token_type") val tokenType: String
+    @SerialName("access_token") val accessToken: String,
+    @SerialName("expires_in") val expiresIn: Long,
+    @SerialName("token_type") val tokenType: String
 )

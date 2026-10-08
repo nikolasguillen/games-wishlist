@@ -1,7 +1,7 @@
 package com.nikolasguillen.questlog.core.network.model
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Represents a gaming platform.
@@ -13,12 +13,12 @@ import com.squareup.moshi.JsonClass
  * @property category Numerical category of the platform (1: Console, 2: Arcade, etc).
  * @property platformFamily Numerical ID of the platform family (1: PlayStation, 2: Xbox, 5: Nintendo).
  */
-@JsonClass(generateAdapter = true)
+@Serializable
 data class IgdbPlatform(
     val id: Int,
     val abbreviation: String?,
     val name: String,
     val generation: Int?,
     val category: Int?,
-    @Json(name = "platform_family") val platformFamily: Int?
+    @SerialName("platform_family") val platformFamily: Int?
 )
