@@ -94,9 +94,11 @@ A plan MUST NEVER depend on a pipeline, a lint gate or a formatter that does not
 
 Verification means compiling and running the JVM test suites locally:
 
-- `./gradlew :<module>:compileDebugKotlin` for a single-module change.
+- `./gradlew :<module>:compileDebugKotlin` for a single-module change (`compileCommonMainKotlinMetadata` in a
+  multiplatform module).
 - `./gradlew :app:assembleDebug` when the change spans modules or touches DI wiring.
-- `./gradlew test` for the suites.
+- `./gradlew test` for the suites. A root `test` task makes it include every multiplatform module's
+  `testAndroidHostTest`.
 
 The existing test source sets — `core/data`, `core/domain`, `core/network`, `core/ui`,
 `feature/{search,radar,lists,game-detail,settings,wishlist,onboarding}` and `app` — MUST stay green. New ViewModel,
@@ -190,4 +192,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.2.5 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08
+**Version**: 1.2.6 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08

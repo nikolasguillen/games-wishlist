@@ -51,7 +51,7 @@ On Windows, use `.\gradlew.bat` in place of `./gradlew`. The iOS tasks are skipp
 
 ```bash
 ./gradlew :app:assembleDebug
-./gradlew test            # or the aggregate the Phase C task settles on (research R11)
+./gradlew test            # includes every multiplatform module's testAndroidHostTest (root aggregate)
 ```
 
 Both must pass, and the reported test count must be ≥ the Phase 0 count. From Phase C onwards, also run

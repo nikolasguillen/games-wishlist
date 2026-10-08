@@ -6,3 +6,16 @@ plugins {
     alias(libs.plugins.google.devtools.ksp) apply false
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization) apply false
 }
+
+// A multiplatform module has no `test` task: its JVM tests are `testAndroidHostTest`. This root task keeps
+// `./gradlew test` meaning "every module's unit tests" while modules are converted one by one. It is not
+// `allTests`, which would also run the iOS simulator tests and skip the Android modules not yet converted.
+tasks.register("test") {
+    group = "verification"
+    description = "Runs the Android host tests of every multiplatform module."
+    subprojects.forEach { module ->
+        module.pluginManager.withPlugin("org.jetbrains.kotlin.multiplatform") {
+            dependsOn(module.tasks.named("testAndroidHostTest"))
+        }
+    }
+}

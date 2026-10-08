@@ -30,10 +30,16 @@ with `git config core.hooksPath .githooks`.
 
 ```bash
 ./gradlew :app:assembleDebug                                    # full debug build
-./gradlew :feature:search:compileDebugKotlin --console=plain -q  # fast single-module check
+./gradlew :feature:search:compileDebugKotlin --console=plain -q  # fast single-module check (Android module)
+./gradlew :core:domain:compileCommonMainKotlinMetadata -q       # fast check of a multiplatform module's commonMain
 ./gradlew test                                                   # all JVM unit tests
-./gradlew :core:data:testDebugUnitTest --console=plain -q        # single-module tests
+./gradlew :core:data:testDebugUnitTest --console=plain -q        # single-module tests (Android module)
+./gradlew :core:domain:testAndroidHostTest --console=plain -q    # single-module tests (multiplatform module)
 ```
+
+`./gradlew test` covers both kinds: a root `test` task depends on every multiplatform module's
+`testAndroidHostTest`. `allTests` is not the project's command — it also runs the iOS simulator tests and
+skips the Android modules that are not converted yet.
 
 Prefer a single-module `compileDebugKotlin` for quick feedback; only run `:app:assembleDebug` when the
 change spans modules or touches DI wiring.
