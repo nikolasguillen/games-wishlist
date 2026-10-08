@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     
     implementation(libs.hilt.android)
+    implementation(libs.koin.core)
     ksp(libs.hilt.compiler)
 
     testImplementation(libs.junit)

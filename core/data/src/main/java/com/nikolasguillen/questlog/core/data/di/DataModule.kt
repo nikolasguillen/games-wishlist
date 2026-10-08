@@ -3,7 +3,6 @@ package com.nikolasguillen.questlog.core.data.di
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
 import com.nikolasguillen.questlog.core.data.local.WishlistCoverImageStorage
 import com.nikolasguillen.questlog.core.data.local.WishlistCoverImageStorageImpl
 import com.nikolasguillen.questlog.core.data.notification.ReleaseNotifierImpl
@@ -34,8 +33,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import javax.inject.Singleton
-
-private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 @Module
 @InstallIn(SingletonComponent::class)

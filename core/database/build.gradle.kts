@@ -35,5 +35,7 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     
     implementation(libs.hilt.android)
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
     ksp(libs.hilt.compiler)
 }

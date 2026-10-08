@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":core:model"))
     
     implementation(libs.hilt.android)
+    implementation(libs.koin.core)
     ksp(libs.hilt.compiler)
 
     implementation(libs.kotlinx.coroutines.android)

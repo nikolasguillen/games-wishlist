@@ -29,6 +29,8 @@ dependencies {
 
     implementation(libs.okhttp)
     implementation(libs.hilt.android)
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
     ksp(libs.hilt.compiler)
 
     implementation(libs.kotlinx.coroutines.android)
@@ -37,6 +39,7 @@ dependencies {
 
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.hilt.work)
+    implementation(libs.koin.androidx.workmanager)
     ksp(libs.androidx.hilt.compiler)
 
     testImplementation(libs.junit)
