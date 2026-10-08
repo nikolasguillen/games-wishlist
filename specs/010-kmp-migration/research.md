@@ -158,8 +158,9 @@ Both commits leave Android green.
 - **Plugins**: `ContentNegotiation` with `kotlinx.serialization` JSON (`ignoreUnknownKeys = true`), and `Logging` (debug builds).
 - **DTOs**: the 12 Moshi DTOs swap `@JsonClass`/`@Json(name=)` for `@Serializable`/`@SerialName`.
 - **Service**: `IgdbApiService` keeps its contract (methods return bare `List<T>`, throw on failure), implemented over `HttpClient`.
+- **Request bodies change type.** Today every method takes OkHttp's `RequestBody`, so OkHttp leaks into `:core:data` (10 `toRequestBody(...)` call sites in `GameRepositoryImpl`) and into four existing test files that mock `searchGames(any<RequestBody>())`. The Ktor service takes the Apicalypse query as a plain `String` (sent as `text/plain`). This is the one place where existing tests must be edited. The edit is limited to the body type (`RequestBody` → `String`, and `asText()` helpers deleted), and every assertion on the query text stays as it is.
 - **Errors**: `IgdbHttpErrorInterceptor` becomes a Ktor `HttpResponseValidator` that throws the same `IgdbHttpException` for every non-2xx response. Ktor's own `ResponseException` never leaves `:core:network` (Principle II).
-- **Clock**: `ElapsedRealtimeSource` (`SystemClock`) becomes `TimeSource.Monotonic`, behind the same small seam `IgdbAuthManagerTest` already fakes.
+- **Clock**: `ElapsedRealtimeSource` stays a seam (`IgdbAuthManagerTest` already fakes it) with a per-platform production binding: `SystemClock.elapsedRealtime()` on Android, and a clock that includes sleep time on iOS (`mach_continuous_time`). `TimeSource.Monotonic` is **not** used, because on Android it is `System.nanoTime()`, which stops during deep sleep. That is the exact failure the KDoc on `ElapsedRealtimeSource` and `IgdbAuthManager` warns about (an expired token judged still fresh).
 
 **Error mapping (`RepositoryErrorMapper`)**: the `java.net` checks become a per-platform `Throwable.isConnectivityFailure()`:
 
@@ -214,7 +215,7 @@ Both commits leave Android green.
 **Decision**:
 
 - **Dates**: `java.time` disappears from shared code. `DateUtils`, `GetDiscoverFeedUseCase` and `GameUiMapper` use `kotlinx-datetime` (0.8.0, already in the catalog and already the roadmap's rule).
-- **`DateUtils` keeps its public API** (`formatUnixTimestamp(seconds, pattern)`, `formatIsoDate(...)`, `parseIsoDate(...)`, …). Its 11 call sites in the mappers stay unchanged.
+- **`DateUtils` keeps its function names and its 11 call sites.** The `Locale` parameters go (no caller passes one; the device locale is always used), and `FormatStyle` becomes `DateStyle`.
 - **Localized rendering** needs the device locale's month and weekday names, which have no common API. It goes through one `internal expect fun` in `:core:common`:
   - the inputs are either a Unicode date pattern or a `DateStyle` enum that replaces `java.time`'s `FormatStyle`;
   - **Android**: `DateTimeFormatter.ofPattern(pattern, Locale.getDefault())` / `ofLocalizedDate(style)`. This is exactly today's output, so the existing mapper tests pin it.
@@ -249,7 +250,7 @@ Library replacements:
 | Today | After | Notes |
 |---|---|---|
 | Coil 2 (`io.coil-kt:coil-compose`) | Coil 3 (`io.coil-kt.coil3:coil-compose` + `coil-network-ktor3`) | Pin the latest 3.x compatible with CMP 1.12. `File` models become path strings |
-| `HtmlCompat` + spans | `AnnotatedString.fromHtml` (Compose UI text, common) | Covers the bold/underline spans `HtmlUtils` builds today |
+| `HtmlCompat` + spans | A small hand-written parser in `HtmlUtils.kt` for `<b>`, `<i>` and `<u>` | The only caller is one string, `remove_history_item_message`, which uses `<b>`. Writing the parser avoids depending on whether `AnnotatedString.fromHtml` is available in common code, and a host test pins the output |
 | `androidx.activity.compose.BackHandler` | CMP's common back handler (`BackHandler` from `ui-backhandler` or `NavigationBackHandler`, whichever CMP 1.12 marks stable) | 2 call sites |
 | `me.trishiraj:shadowglow` | Compose `Modifier.dropShadow(...)` | 1 call site (`GameDetailActionPill`); compare visually against the baseline |
 | `material-icons-core` / `-extended` (BOM) | `org.jetbrains.compose.material:material-icons-*:1.7.3` | Frozen upstream but published for iOS; replacing icons is out of scope |

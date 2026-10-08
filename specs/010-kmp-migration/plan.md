@@ -56,7 +56,7 @@ DataStore (same file on Android). There are no schema changes. One iOS-only pref
 **Testing**:
 
 - **Existing suites**: the 48 JUnit4 + MockK + `kotlinx-coroutines-test` suites move unchanged to each module's `androidHostTest`.
-- **New host tests** cover the date pipeline, compact numbers, connectivity classification, the reminders-unavailable branches of five ViewModels, and Koin `verify()`.
+- **New host tests** cover the date pipeline, compact numbers, connectivity classification, the reminders-unavailable branches of four ViewModels, and Koin `verify()`.
 - **`commonTest`** (`kotlin.test`) is used only for new mock-free tests.
 - **iOS** is validated manually (`quickstart.md`); there is no XCTest suite.
 
@@ -144,7 +144,7 @@ work can pause after any commit. `/speckit-tasks` turns each phase into tasks.
 
 1. **Platform-neutral code**:
    - **Dates and numbers**: `java.time` → `kotlinx-datetime` behind `DateUtils`; `String.format` and `Locale` replaced (R7).
-   - **Text**: `HtmlCompat` → `AnnotatedString.fromHtml`.
+   - **Text**: `HtmlCompat` → a small common parser for `<b>`/`<i>`/`<u>` (research R8).
    - **Plain values replace platform types**:
      - `File` → path strings in UI models;
      - `UUID` → `kotlin.uuid.Uuid`;
@@ -160,14 +160,10 @@ work can pause after any commit. `/speckit-tasks` turns each phase into tasks.
 
 ### Phase C — Non-UI modules to KMP (leaf-first)
 
-- Add `build-logic/` with the `questlog.kmp.library` convention (R3).
-- Convert, in order: `:core:model`, `:core:navigation` (JetBrains Navigation 3 + `SavedStateConfiguration`), `:core:common`, `:core:domain`, `:core:network` (Darwin engine), `:core:database` (per-target KSP, constructor), `:core:data`.
-- `:core:data` takes the iOS actuals from `contracts/platform-contracts.md`:
-  - in-process refresh scheduler;
-  - no-op reminder implementations;
-  - `UNSUPPORTED` translator;
-  - cover storage and connectivity check.
+- Add `build-logic/` with the `questlog.kmp.library` convention (R3). The convention declares the `android`, `iosArm64` and `iosSimulatorArm64` targets from the start, but the iOS platform source sets are **not compiled until Phase F**: until then `expect` declarations have only their Android `actual`.
+- Convert, in order: `:core:model`, `:core:navigation` (JetBrains Navigation 3 + `SavedStateConfiguration`), `:core:common`, `:core:domain`, `:core:network`, `:core:database` (Room constructor, builder factory), `:core:data` (Android-only code moves to `androidMain`).
 - Tests move to `androidHostTest` with `git mv`.
+- Each module is checked with its Android host tests and with `compileCommonMainKotlinMetadata`, which catches a JVM-only API in `commonMain` before iOS exists. On Windows, a grep for `java.`, `javax.` and `android.` imports in `commonMain` stands in for it.
 - The first conversion settles the test command (R11) and updates `CLAUDE.md` and constitution Principle V in the same commit.
 
 ### Phase D — UI modules to Compose Multiplatform
@@ -190,9 +186,16 @@ work can pause after any commit. `/speckit-tasks` turns each phase into tasks.
 
 ### Phase F — iOS
 
-- Configure `:shared`'s `QuestLogShared` static framework and `MainViewController()`.
-- Create `iosApp/` (SwiftUI host, launch screen, icons, Info.plist, iOS 16 deployment target).
-- Run the iOS walkthrough. Fix the issues it finds in shared code unless they are shell-only.
+1. **Enable the iOS source sets, leaf-first**, in the same order as Phase C then D. For each module, add its `iosMain` actuals from `contracts/platform-contracts.md` and compile it for `iosSimulatorArm64`. `:core:data` takes the larger share:
+   - in-process refresh scheduler;
+   - no-op reminder implementations;
+   - `UNSUPPORTED` translator;
+   - cover storage and connectivity check.
+2. Configure `:shared`'s `QuestLogShared` static framework and `MainViewController()`.
+3. Create `iosApp/` (SwiftUI host, launch screen, icons, Info.plist, iOS 16 deployment target).
+4. Run the iOS walkthrough. Fix the issues it finds in shared code unless they are shell-only.
+
+Android is complete and releasable before this phase starts, so Phases A–E are the stopping point if iOS has to wait.
 
 ### Phase G — Documentation and governance sweep
 

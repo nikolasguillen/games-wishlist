@@ -62,14 +62,14 @@ interface NetworkStatusProvider { val isUnmeteredNetworkAvailable: Boolean }
 
 ```kotlin
 interface WishlistCoverImageStorage {
-    suspend fun persist(source: PickedImage): String?   // absolute path of the stored, downscaled image
+    suspend fun persist(source: String): String?   // absolute path of the stored, downscaled image
     suspend fun delete(path: String)
 }
 ```
 
 | | Android | iOS |
 |---|---|---|
-| Decode + downscale | `ImageDecoder` to the existing max dimension (unchanged) | `UIImage` from the picked data, scaled to the same max dimension |
+| Decode + downscale | `ImageDecoder` from the content `Uri` string, to the existing max dimension (unchanged) | `UIImage(contentsOfFile:)` from the temporary file path, scaled to the same max dimension; the temporary file is deleted afterwards |
 | Location | The current internal files subdirectory (unchanged) | `Application Support/<same subdirectory name>` |
 | File name | `UUID` (via `kotlin.uuid.Uuid`) | same |
 
@@ -87,25 +87,25 @@ interface ReleaseRemindersAvailability { val isAvailable: Boolean }
 |---|---|
 | `true` | `false` |
 
-**Consumers**: `SettingsViewModel`, `ReleaseNotificationsViewModel`, `GameDetailViewModel`,
-`OnboardingViewModel`, `RadarViewModel`. Each one injects it directly, as for any other dependency, and
+**Consumers**: `SettingsViewModel`, `GameDetailViewModel`, `OnboardingViewModel`, `RadarViewModel`.
+`ReleaseNotificationsViewModel` is not a consumer: its screen is only reachable from the Settings row that
+the flag already removes. Each one injects it directly, as for any other dependency, and
 gets a host test that sets it to `false` and asserts the entry point is absent from the UiState.
 
-### `PickedImage` + `rememberCoverImagePicker` — `:core:ui`
+### `rememberCoverImagePicker` — `:core:ui`
 
 ```kotlin
-// commonMain — value handed from the picker to the ViewModel to the storage
-class PickedImage(val bytes: ByteArray)
-
+// `source` is an opaque reference that the same platform's WishlistCoverImageStorage understands. It is
+// what CoverImageUpdate.Replace(sourceUri) already carries today, so no domain type changes.
 @Composable
-expect fun rememberCoverImagePicker(onPicked: (PickedImage?) -> Unit): CoverImagePickerLauncher
+expect fun rememberCoverImagePicker(onPicked: (source: String?) -> Unit): CoverImagePickerLauncher
 
 interface CoverImagePickerLauncher { fun launch() }
 ```
 
 | Android | iOS |
 |---|---|
-| `PickVisualMedia(ImageOnly)` launcher; reads the picked `Uri` into bytes off the main thread (same user flow as today) | `PHPickerViewController` (one image, images only), presented from the current `UIViewController`; loads `UIImage` data |
+| `PickVisualMedia(ImageOnly)` launcher; `source` is the picked content `Uri` string (exactly today's value) | `PHPickerViewController` (one image, images only), presented from the current `UIViewController`; the picked image is copied to a temporary file and `source` is that file's absolute path |
 
 **Ownership**: the composable owns only launching and returning the result. The ViewModel decides what
 to do with it (Principle III).

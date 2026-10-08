@@ -54,16 +54,18 @@ On Windows, use `.\gradlew.bat` in place of `./gradlew`. The iOS tasks are skipp
 ./gradlew test            # or the aggregate the Phase C task settles on (research R11)
 ```
 
-Both must pass, and the reported test count must be ≥ the Phase 0 count. From Phase C onwards, also
-run this on macOS:
+Both must pass, and the reported test count must be ≥ the Phase 0 count. From Phase C onwards, also run
+this on every converted module (on Windows, use the grep guard instead):
 
 ```bash
-./gradlew :core:model:compileKotlinIosSimulatorArm64      # replace with the module just converted
+./gradlew :core:model:compileCommonMainKotlinMetadata      # replace with the module just converted
+grep -rnE "^import (java|javax|android)\." <module>/src/commonMain   # must print nothing
 ```
 
-From Phase F onwards, the iOS check is the whole framework:
+From Phase F onwards, each module is also compiled for iOS, and the whole app links:
 
 ```bash
+./gradlew :core:model:compileKotlinIosSimulatorArm64       # replace with the module just enabled
 ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
 ```
 
@@ -77,7 +79,7 @@ From Phase F onwards, the iOS check is the whole framework:
 | B — Koin | `./gradlew :app:testDebugUnitTest` (Koin `verify()` lives here until `:shared` exists) | `verify()` passes; the app launches and every screen opens; WorkManager workers still run (`adb shell dumpsys jobscheduler \| grep questlog` shows the periodic job) |
 | B — Ktor | Parity rows 2, 3, 4, 11 | Same results; an invalid token is still refreshed once; airplane mode shows the network error, not an unknown error |
 | B — Room driver / DataStore paths | "Android update path" below | Data and settings survive |
-| C — non-UI modules to KMP | iOS compile for each converted module | Compiles; host tests moved, not edited (`git diff -M --stat` shows renames) |
+| C — non-UI modules to KMP | `compileCommonMainKotlinMetadata` for each converted module | Compiles; host tests moved, not edited (`git diff -M --stat` shows renames) |
 | D — UI to Compose Multiplatform | Parity rows 1–10 in light and dark, compared with the Phase 0 screenshots | No visual or behavioural regression; the `GameDetailActionPill` glow is compared side by side |
 | E — `:shared` root | Parity row 9 (deep link), row 10 (back) | Same |
 | F — iOS app | "iOS walkthrough" below | All rows pass |
