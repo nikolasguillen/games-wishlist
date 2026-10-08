@@ -89,7 +89,7 @@ The inventory exists precisely so it does not have to be rediscovered.
 
 ### V. Verification Is Local, Not Automated
 
-There is no CI, no detekt, ktlint, spotless or `.editorconfig`, and no `build-logic` or `buildSrc`.
+There is no CI, no detekt, ktlint, spotless or `.editorconfig`.
 A plan MUST NEVER depend on a pipeline, a lint gate or a formatter that does not exist.
 
 Verification means compiling and running the JVM test suites locally:
@@ -112,12 +112,13 @@ the real commands makes the verification step actionable.
 
 ## Additional Constraints
 
-**Platform**: Kotlin 2.4.10, AGP 9.4.1, Gradle 9.7.1 (JVM toolchain 21), compileSdk/targetSdk 37,
+**Platform**: Kotlin 2.4.20, AGP 9.4.1, Gradle 9.7.1 (JVM toolchain 21), compileSdk/targetSdk 37,
 minSdk 29, Java 11, Compose BOM 2026.09.00, Koin 4.2.2, Room 2.8.5 (KSP, bundled SQLite driver), Ktor 3 + kotlinx.serialization,
-Navigation 3, Coil 3, WorkManager. Every `build.gradle.kts` repeats its configuration by hand. When
-adding a module, copy `feature/search/build.gradle.kts` (feature) or `core/data/build.gradle.kts`
-(core) and register it in `settings.gradle.kts`. This describes the repository today; the migration
-plan changes it wherever it replaces a library or a source-set layout.
+Navigation 3, Coil 3, WorkManager. Build configuration is shared through the convention plugins in
+`build-logic/`: a module applies the one that matches its kind and takes its namespace, `compileSdk`,
+`minSdk` and Java version from it. Modules the migration has not reached yet still repeat them by hand;
+copy a converted one when adding a module, and register it in `settings.gradle.kts`. This describes the
+repository today; the migration plan changes it wherever it replaces a library or a source-set layout.
 
 **Persistence**: The app is unpublished, so the database stays at `version = 1` with
 `fallbackToDestructiveMigration(true)` and no `Migration` objects. The version MUST NOT be bumped.
@@ -189,4 +190,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.2.3 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08
+**Version**: 1.2.4 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08

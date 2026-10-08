@@ -2,7 +2,7 @@
 
 Modular Android app for tracking a videogame wishlist, backed by the IGDB API.
 
-Kotlin 2.4.10 · AGP 9.4.1 · Gradle 9.7.1 (JVM toolchain 21) · compileSdk/targetSdk 37 · minSdk 29 · Java 11
+Kotlin 2.4.20 · AGP 9.4.1 · Gradle 9.7.1 (JVM toolchain 21) · compileSdk/targetSdk 37 · minSdk 29 · Java 11
 Jetpack Compose (BOM 2026.09.00) · Koin 4.2.2 · Room 2.8.5 (KSP, bundled SQLite driver) · Ktor 3 + kotlinx.serialization · Navigation 3
 Coil 3 · WorkManager + `koin-androidx-workmanager` (Radar's release-date refresh)
 
@@ -68,9 +68,11 @@ These boundaries are load-bearing — check them before adding a dependency:
   The KMP migration leaves it Android-only, since ML Kit GenAI has no multiplatform counterpart; see
   `docs/roadmap.md`.
 - `:core:model` has no Android and no Compose dependency (only `kotlinx-serialization-core`). Keep it that way.
-- **There is no `build-logic` or `buildSrc`.** Every `build.gradle.kts` repeats `compileSdk = 37`,
-  `minSdk = 29`, and Java 11 by hand. When adding a module, copy `feature/search/build.gradle.kts`
-  (feature) or `core/data/build.gradle.kts` (core) and register it in `settings.gradle.kts`.
+- **Build configuration lives in `build-logic/` convention plugins** (`questlog.kmp.library`, …). A module
+  applies the plugin that matches its kind and declares only its own dependencies: the namespace,
+  `compileSdk = 37`, `minSdk = 29` and Java 11 come from the plugin, never from the module. The migration is
+  converting modules one by one (`specs/010-kmp-migration`); a module that still repeats them by hand is not
+  yet converted, so copy a converted one. Register a new module in `settings.gradle.kts`.
 
 ## Data flow
 
