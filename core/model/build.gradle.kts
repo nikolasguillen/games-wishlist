@@ -1,22 +1,12 @@
 plugins {
-    alias(libs.plugins.android.library)
+    id("questlog.kmp.library")
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
 }
 
-android {
-    namespace = "com.nikolasguillen.questlog.core.model"
-    compileSdk = 37
-
-    defaultConfig {
-        minSdk = 29
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.kotlinx.serialization.core)
+        }
     }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-}
-
-dependencies {
-    implementation(libs.kotlinx.serialization.core)
 }
