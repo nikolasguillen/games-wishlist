@@ -7,6 +7,7 @@ import com.nikolasguillen.questlog.core.data.di.dataModule
 import com.nikolasguillen.questlog.core.database.di.databaseModule
 import com.nikolasguillen.questlog.core.domain.di.domainModule
 import com.nikolasguillen.questlog.core.network.di.networkModule
+import com.nikolasguillen.questlog.core.network.di.networkPlatformModule
 import org.junit.Test
 import org.koin.dsl.module
 import org.koin.test.verify.verify
@@ -22,7 +23,12 @@ class KoinGraphTest {
     fun `every dependency in the graph is declared`() {
         // verify() checks one module at a time, and these depend on each other, so they are checked as one.
         module {
-            includes(commonPlatformModule, domainModule, networkModule, databaseModule, dataModule, viewModelModule)
-        }.verify(extraTypes = listOf(Context::class, WorkerParameters::class, Int::class, Long::class))
+            includes(
+                commonPlatformModule, domainModule, networkModule, networkPlatformModule, databaseModule, dataModule,
+                interimModule, viewModelModule
+            )
+        }.verify(extraTypes = listOf(
+            Context::class, WorkerParameters::class, Int::class, Long::class, Boolean::class
+        ))
     }
 }

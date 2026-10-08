@@ -1,6 +1,7 @@
 # CLAUDE.md — core:network
 
-IGDB client. Ktor 3 (OkHttp engine) + kotlinx.serialization.
+IGDB client. Ktor 3 + kotlinx.serialization, in `commonMain`; the HTTP engine is per platform (OkHttp on
+Android).
 
 ## IGDB speaks apicalypse, not REST
 
@@ -58,7 +59,7 @@ Ktor over there. `CancellationException` is never translated.
 - The main client's `IgdbAuth` step adds `Client-ID` and the bearer token to every request. The token call is
   a suspend call inside the step, so nothing blocks a thread.
 - Expiry comes from `expiresIn` minus a 60 s margin, read through **`ElapsedRealtimeSource`** — a
-  `fun interface` bound in `di/NetworkKoin.kt` to `SystemClock.elapsedRealtime()`. Do not inline that call
+  `fun interface` bound by each platform's `networkPlatformModule` (`SystemClock.elapsedRealtime()` on Android). Do not inline that call
   back into the manager: it is stubbed in JVM unit tests, and the seam is what `IgdbAuthManagerTest` drives to
   simulate expiry. Do not switch it to the wall clock or to `System.nanoTime()` or `TimeSource.Monotonic`
   either — the first can jump in both directions, the others stop counting while the device sleeps.
@@ -69,10 +70,13 @@ Ktor over there. `CancellationException` is never translated.
   until it expires or the process dies. Refreshing and retrying on a 401 from the auth step is the fix if
   that ever shows up in practice.
 - `IgdbAuthManager`, `IgdbAuthService` and `ElapsedRealtimeSource` are `internal`: nothing outside this
-  module references them. `networkModule` (`di/NetworkKoin.kt`) is public because `:app` loads it; its
-  definitions may still use the internal types.
-- Logging is `LogLevel.BODY` on debug builds only, with the `Authorization` and `Client-ID` headers masked;
-  on release the plugin stays installed but silent.
+  module references them. `networkModule` (`di/NetworkKoin.kt`) and `networkPlatformModule` are public because
+  the app root loads them; their definitions may still use the internal types. The engine is a Koin `factory`
+  binding in `networkPlatformModule`, so each client owns its own, and adding a platform means adding that
+  module's `actual` with its engine and its clock — nothing in `commonMain` changes.
+- Logging is `LogLevel.BODY` only when `NetworkConfig.logBodies` is true — the app binds it from its own
+  debug flag — with the `Authorization` and `Client-ID` headers masked; otherwise the plugin stays installed but
+  silent.
 
 ## Tests
 
@@ -82,5 +86,7 @@ the template for anything new here — there is no need for a network or a mock 
 
 ## Build config
 
-Credentials come from `local.properties` via `buildConfigField` in this module's `build.gradle.kts`
-(`IGDB_CLIENT_ID`, `IGDB_CLIENT_SECRET`).
+Credentials come from `local.properties` and reach the code as `internal object IgdbCredentials`
+(`IGDB_CLIENT_ID`, `IGDB_CLIENT_SECRET`), which the `buildconfig` plugin generates into `commonMain` under
+`build/` from this module's `build.gradle.kts`. The generated file is never committed; do not copy a value
+into source.

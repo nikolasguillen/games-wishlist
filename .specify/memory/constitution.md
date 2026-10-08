@@ -132,9 +132,9 @@ the same commit. No list-shaped columns. Persisting a game always goes through `
 ViewModel's first constructor parameter, supplied with `parametersOf`. `SavedStateHandle` is not used in this
 project and MUST NOT be introduced. `KoinGraphTest` MUST stay green: it proves every dependency is declared.
 
-**Secrets**: `IGDB_CLIENT_ID` and `IGDB_CLIENT_SECRET` live in `local.properties` and are injected
-as `BuildConfig` fields by `core/network/build.gradle.kts`. They MUST NEVER be committed or moved
-into source.
+**Secrets**: `IGDB_CLIENT_ID` and `IGDB_CLIENT_SECRET` live in `local.properties` and are generated
+into `internal object IgdbCredentials` (under `build/`) by `core/network/build.gradle.kts`. They MUST NEVER
+be committed or moved into source.
 
 **Kotlin Multiplatform**: The owner has decided to migrate the whole project to KMP, with Compose
 Multiplatform for the UI. The scope is `specs/010-kmp-migration/spec.md`: iOS is the only added
@@ -192,4 +192,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.2.6 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08
+**Version**: 1.2.7 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08

@@ -37,3 +37,6 @@ generated/
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Kotlin Gradle plugin session files
+.kotlin/

@@ -1,6 +1,6 @@
 package com.nikolasguillen.questlog.core.network
 
-import java.io.IOException
+import kotlinx.io.IOException
 
 /**
  * Raised when the device cannot reach IGDB at all: no connection, a failed lookup, a refused connect.

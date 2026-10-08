@@ -1,6 +1,6 @@
 package com.nikolasguillen.questlog.core.network
 
-import java.io.IOException
+import kotlinx.io.IOException
 
 /**
  * Raised when an IGDB request does not complete in time, whichever HTTP engine was waiting.

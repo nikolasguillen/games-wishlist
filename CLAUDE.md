@@ -50,8 +50,9 @@ suggesting a command.
 
 - **No detekt, ktlint, spotless, or CI are configured.** Do not propose a lint gate that does not exist.
 - Never edit anything under `**/build/generated/**`.
-- IGDB credentials (`IGDB_CLIENT_ID`, `IGDB_CLIENT_SECRET`) live in `local.properties` and are injected as
-  `BuildConfig` fields by `core/network/build.gradle.kts`. Never commit them or move them into source.
+- IGDB credentials (`IGDB_CLIENT_ID`, `IGDB_CLIENT_SECRET`) live in `local.properties` and are generated into
+  `internal object IgdbCredentials` (under `build/`, never committed) by `core/network/build.gradle.kts`.
+  Never commit them or move them into source.
 
 ## Module graph and dependency rules
 

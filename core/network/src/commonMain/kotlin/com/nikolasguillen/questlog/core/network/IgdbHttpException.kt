@@ -1,6 +1,6 @@
 package com.nikolasguillen.questlog.core.network
 
-import java.io.IOException
+import kotlinx.io.IOException
 
 /**
  * Raised when IGDB answers a request with a non-2xx status.

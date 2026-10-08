@@ -8,6 +8,8 @@ import com.nikolasguillen.questlog.core.database.di.databaseModule
 import com.nikolasguillen.questlog.core.domain.di.domainModule
 import com.nikolasguillen.questlog.core.domain.radar.ReleaseRefreshScheduler
 import com.nikolasguillen.questlog.core.network.di.networkModule
+import com.nikolasguillen.questlog.core.network.di.networkPlatformModule
+import com.nikolasguillen.questlog.di.interimModule
 import com.nikolasguillen.questlog.di.viewModelModule
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
@@ -28,7 +30,10 @@ class QuestLogApp : Application(), Configuration.Provider {
         super.onCreate()
         startKoin {
             androidContext(this@QuestLogApp)
-            modules(commonPlatformModule, domainModule, networkModule, databaseModule, dataModule, viewModelModule)
+            modules(
+                commonPlatformModule, domainModule, networkModule, networkPlatformModule, databaseModule, dataModule,
+                interimModule, viewModelModule
+            )
         }
         releaseRefreshScheduler.schedulePeriodicRefresh()
     }

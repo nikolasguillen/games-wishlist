@@ -1,8 +1,9 @@
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.android.library)
+    id("questlog.kmp.library")
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
+    alias(libs.plugins.buildconfig)
 }
 
 val localProps = Properties().also { props ->
@@ -10,45 +11,39 @@ val localProps = Properties().also { props ->
     if (f.exists()) f.inputStream().use { props.load(it) }
 }
 
-android {
-    namespace = "com.nikolasguillen.questlog.core.network"
-    compileSdk = 37
-
-    defaultConfig {
-        minSdk = 29
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        buildConfigField("String", "IGDB_CLIENT_ID", "\"${localProps.getProperty("IGDB_CLIENT_ID") ?: ""}\"")
-        buildConfigField("String", "IGDB_CLIENT_SECRET", "\"${localProps.getProperty("IGDB_CLIENT_SECRET") ?: ""}\"")
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    
-    buildFeatures {
-        buildConfig = true
-    }
+// Generates `internal object IgdbCredentials` into commonMain's generated sources, under build/. The values come
+// from local.properties and the generated file is never committed.
+buildConfig {
+    packageName("com.nikolasguillen.questlog.core.network")
+    className("IgdbCredentials")
+    useKotlinOutput { internalVisibility = true }
+    buildConfigField("IGDB_CLIENT_ID", localProps.getProperty("IGDB_CLIENT_ID") ?: "")
+    buildConfigField("IGDB_CLIENT_SECRET", localProps.getProperty("IGDB_CLIENT_SECRET") ?: "")
 }
 
-dependencies {
-    implementation(project(":core:common"))
-    implementation(project(":core:model"))
-    
-    implementation(libs.okhttp)
-    implementation(libs.kotlinx.serialization.core)
-    implementation(libs.koin.core)
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.okhttp)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.client.logging)
-    implementation(libs.ktor.serialization.kotlinx.json)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kotlinx.io.core)
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation(project(":core:common"))
+            implementation(project(":core:model"))
 
-    testImplementation(libs.junit)
-    testImplementation(libs.ktor.client.mock)
-    testImplementation(libs.kotlinx.coroutines.test)
+            implementation(libs.kotlinx.serialization.core)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.koin.core)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.kotlinx.io.core)
+        }
+        androidMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
+        }
+        androidHostTest.dependencies {
+            implementation(libs.junit)
+            implementation(libs.ktor.client.mock)
+            implementation(libs.kotlinx.coroutines.test)
+        }
+    }
 }

@@ -34,8 +34,8 @@ internal class IgdbAuthManager(
 
     private suspend fun fetchToken(): String? = try {
         val response = authService.getAccessToken(
-            clientId = BuildConfig.IGDB_CLIENT_ID,
-            clientSecret = BuildConfig.IGDB_CLIENT_SECRET
+            clientId = IgdbCredentials.IGDB_CLIENT_ID,
+            clientSecret = IgdbCredentials.IGDB_CLIENT_SECRET
         )
         accessToken = response.accessToken
         val lifetimeMillis = response.expiresIn.coerceAtLeast(0).seconds.inWholeMilliseconds
