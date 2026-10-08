@@ -194,4 +194,45 @@ class GameDetailUiMapperTest {
 
         assertFalse(game.toUiModel(isNotificationEnabled = false, now = now).isNotificationAvailable)
     }
+
+    private fun hypesLabelFor(count: Int): UiText? =
+        Game(id = 1, name = "Cindergate", hypes = count)
+            .toUiModel(isNotificationEnabled = false, now = now)
+            .rating?.hypes
+
+    @Test
+    fun `large counts are abbreviated to one decimal, rounding half up, with the same thresholds as ever`() {
+        val expected = mapOf(
+            1 to "1",
+            999 to "999",
+            1_000 to "1.0K",
+            1_049 to "1.0K",
+            1_050 to "1.1K",
+            1_150 to "1.2K",
+            1_250 to "1.3K",
+            1_350 to "1.4K",
+            999_949 to "999.9K",
+            // Still on the K branch, so it prints four digits instead of rolling over to "1.0M".
+            999_950 to "1000.0K",
+            999_999 to "1000.0K",
+            1_000_000 to "1.0M",
+            1_049_999 to "1.0M",
+            1_050_000 to "1.1M",
+            2_340_000 to "2.3M",
+            Int.MAX_VALUE to "2147.5M"
+        )
+
+        expected.forEach { (count, text) ->
+            assertEquals("hypes = $count", UiText.DynamicString(text), hypesLabelFor(count))
+        }
+    }
+
+    @Test
+    fun `the rating count is abbreviated the same way as the hypes`() {
+        val rating = Game(id = 1, name = "Cindergate", ratingCount = 12_500)
+            .toUiModel(isNotificationEnabled = false, now = now)
+            .rating
+
+        assertEquals(UiText.DynamicString("12.5K"), rating?.ratingCount)
+    }
 }

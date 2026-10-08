@@ -13,7 +13,7 @@ import com.nikolasguillen.questlog.feature.radar.R
 import com.nikolasguillen.questlog.feature.radar.model.RadarEntryUiModel
 import com.nikolasguillen.questlog.feature.radar.model.RadarEntryUiModel.DateLabelStyle
 import com.nikolasguillen.questlog.feature.radar.model.RadarSectionUiModel
-import java.util.Locale
+import kotlinx.datetime.number
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
 internal fun List<RadarTimelineSection>.toUiModel(notificationEnabledGameIds: Set<Int>): List<RadarSectionUiModel> {
@@ -66,7 +66,7 @@ private fun RadarEntry.resolveDateLabel(bucket: ReleaseBucket): DateLabel {
 
         DatePrecision.QUARTER -> {
             val localDate = DateUtils.timestampToLocalDate(date)
-            val quarter = (localDate.monthValue - 1) / 3 + 1
+            val quarter = (localDate.month.number - 1) / 3 + 1
             DateLabel(
                 primary = UiText.StringResource(R.string.radar_quarter_format, quarter, localDate.year),
                 style = DateLabelStyle.PILL_ACCENT
@@ -98,7 +98,7 @@ private fun RadarEntry.resolveDateLabel(bucket: ReleaseBucket): DateLabel {
  * [java.time.format.DateTimeFormatter] (Italian's "set", "lun"). Capitalized to read consistently with the
  * rest of the Radar UI regardless of device locale.
  */
-private fun String.capitalizedFirst(): String = replaceFirstChar { it.titlecase(Locale.getDefault()) }
+private fun String.capitalizedFirst(): String = replaceFirstChar { it.titlecase() }
 
 private fun ReleaseBucket.toLabelUiText(): UiText = when (this) {
     ReleaseBucket.RECENTLY_RELEASED -> UiText.StringResource(R.string.radar_bucket_recently_released)

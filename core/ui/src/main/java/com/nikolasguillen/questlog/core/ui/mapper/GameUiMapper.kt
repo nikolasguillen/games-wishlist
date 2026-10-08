@@ -8,8 +8,8 @@ import com.nikolasguillen.questlog.core.ui.R
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.core.ui.util.UiConstants
-import java.time.format.DateTimeFormatter
-import java.util.Locale
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.format.MonthNames
 import kotlin.math.roundToInt
 
 /**
@@ -70,6 +70,10 @@ fun Platform.getShortLabel(): String {
     }
 }
 
+// Always English, whatever the device language: the card's date format is an English sentence with an
+// ordinal suffix ("Mar 1st, 2024"), so localized month names would read wrong inside it.
+private val ENGLISH_MONTH_ABBREVIATION = LocalDate.Format { monthName(MonthNames.ENGLISH_ABBREVIATED) }
+
 private fun getOrdinalSuffixRes(day: Int): Int {
     if (day in 11..13) return R.string.suffix_th
     return when (day % 10) {
@@ -92,8 +96,8 @@ fun Game.toGameItem(isSaved: Boolean = false): GameItemUiModel {
     val formattedReleaseDate = releaseDate?.let { dateString ->
         try {
             val date = DateUtils.parseIsoDate(dateString) ?: return@let null
-            val month = date.format(DateTimeFormatter.ofPattern("MMM", Locale.ENGLISH))
-            val day = date.dayOfMonth
+            val month = ENGLISH_MONTH_ABBREVIATION.format(date)
+            val day = date.day
             val yearVal = date.year
             val suffixRes = getOrdinalSuffixRes(day)
 

@@ -27,7 +27,7 @@ import com.nikolasguillen.questlog.feature.gamedetail.model.PlatformReleaseDateU
 import com.nikolasguillen.questlog.feature.gamedetail.model.PriorityUiModel
 import com.nikolasguillen.questlog.feature.gamedetail.model.RatingUiModel
 import com.nikolasguillen.questlog.feature.gamedetail.model.RelatedGamesUiModel
-import java.util.Locale
+import kotlinx.datetime.number
 import kotlin.time.Instant
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
@@ -182,7 +182,7 @@ private fun formatPlatformReleaseDate(date: Long?, precision: DatePrecision): Ui
         DatePrecision.YEAR_ONLY -> UiText.DynamicString(DateUtils.formatUnixTimestamp(date, "yyyy"))
         DatePrecision.QUARTER -> {
             val localDate = DateUtils.timestampToLocalDate(date)
-            val quarter = (localDate.monthValue - 1) / 3 + 1
+            val quarter = (localDate.month.number - 1) / 3 + 1
             UiText.StringResource(R.string.quarter_format, quarter, localDate.year)
         }
         DatePrecision.YEAR_MONTH -> UiText.DynamicString(DateUtils.formatUnixTimestamp(date, "MMM yyyy"))
@@ -206,10 +206,16 @@ private fun formatMainReleaseDate(isoDate: String?): UiText {
 
 private fun formatLargeNumber(number: Int): String {
     return when {
-        number >= 1_000_000 -> String.format(Locale.US, "%.1fM", number / 1_000_000.0)
-        number >= 1_000 -> String.format(Locale.US, "%.1fK", number / 1_000.0)
+        number >= 1_000_000 -> "${roundedToTenths(number, 1_000_000)}M"
+        number >= 1_000 -> "${roundedToTenths(number, 1_000)}K"
         else -> number.toString()
     }
+}
+
+/** `number / divisor` to one decimal place, rounding half up, in plain integer arithmetic. */
+private fun roundedToTenths(number: Int, divisor: Int): String {
+    val tenths = (number.toLong() * 10 + divisor / 2) / divisor
+    return "${tenths / 10}.${tenths % 10}"
 }
 
 internal fun GameStatus.toUiModel(selected: Boolean, enabled: Boolean): GameStatusUiModel {

@@ -1,9 +1,5 @@
 package com.nikolasguillen.questlog.core.ui.util
 
-import android.graphics.Typeface
-import android.text.Spanned
-import android.text.style.StyleSpan
-import android.text.style.UnderlineSpan
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.res.stringResource
@@ -13,40 +9,56 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.core.text.HtmlCompat
 
-/**
- * Converts a string with HTML tags into an [AnnotatedString].
- * Useful for displaying styled text from string resources in Compose.
- */
-fun String.parseHtml(): AnnotatedString {
-    val spanned = HtmlCompat.fromHtml(this, HtmlCompat.FROM_HTML_MODE_LEGACY)
-    return spanned.toAnnotatedString()
+private val TAG = Regex("<(/?)([biu])>", RegexOption.IGNORE_CASE)
+
+private fun styleOf(tag: String): SpanStyle = when (tag.lowercase()) {
+    "b" -> SpanStyle(fontWeight = FontWeight.Bold)
+    "i" -> SpanStyle(fontStyle = FontStyle.Italic)
+    else -> SpanStyle(textDecoration = TextDecoration.Underline)
 }
 
 /**
- * Extension to convert [Spanned] to [AnnotatedString], preserving basic styles like Bold, Italic, and Underline.
+ * Converts a string with `<b>`, `<i>` and `<u>` tags into an [AnnotatedString]. Useful for displaying
+ * styled text from string resources in Compose.
+ *
+ * Tags may nest. Anything that is not a matched pair of those three tags - another tag, an unclosed or an
+ * unopened one, a stray `<` - is kept as literal text, so a string is never silently shortened.
  */
-fun Spanned.toAnnotatedString(): AnnotatedString = buildAnnotatedString {
-    val spanned = this@toAnnotatedString
-    append(spanned.toString())
-    getSpans(0, length, Any::class.java).forEach { span ->
-        val start = getSpanStart(span)
-        val end = getSpanEnd(span)
-        when (span) {
-            is StyleSpan -> when (span.style) {
-                Typeface.BOLD -> addStyle(SpanStyle(fontWeight = FontWeight.Bold), start, end)
-                Typeface.ITALIC -> addStyle(SpanStyle(fontStyle = FontStyle.Italic), start, end)
-                Typeface.BOLD_ITALIC -> addStyle(
-                    SpanStyle(fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic),
-                    start,
-                    end
-                )
+fun String.parseHtml(): AnnotatedString {
+    val source = this
+
+    // Pair every opening tag with the closing tag that ends it. A closing tag with no opener is left alone,
+    // and an opener that gets skipped by a mismatched closer is dropped from the stack, so it stays literal.
+    val open = ArrayDeque<MatchResult>()
+    val pairs = mutableListOf<Pair<MatchResult, MatchResult>>()
+    for (match in TAG.findAll(source)) {
+        val name = match.groupValues[2].lowercase()
+        if (match.groupValues[1].isEmpty()) {
+            open.addLast(match)
+        } else {
+            val index = open.indexOfLast { it.groupValues[2].lowercase() == name }
+            if (index >= 0) {
+                pairs += open[index] to match
+                while (open.size > index) open.removeLast()
             }
-            is UnderlineSpan -> addStyle(
-                SpanStyle(textDecoration = TextDecoration.Underline),
-                start,
-                end
+        }
+    }
+
+    // The tags of a pair are removed from the text; spans are then re-anchored to the shortened text.
+    val removed = pairs.flatMap { listOf(it.first.range, it.second.range) }.sortedBy { it.first }
+    fun shortened(sourceIndex: Int): Int = sourceIndex - removed.filter { it.last < sourceIndex }.sumOf { it.count() }
+
+    val text = buildString {
+        source.forEachIndexed { index, char -> if (removed.none { index in it }) append(char) }
+    }
+    return buildAnnotatedString {
+        append(text)
+        pairs.forEach { (opening, closing) ->
+            addStyle(
+                styleOf(opening.groupValues[2]),
+                shortened(opening.range.last + 1),
+                shortened(closing.range.first)
             )
         }
     }

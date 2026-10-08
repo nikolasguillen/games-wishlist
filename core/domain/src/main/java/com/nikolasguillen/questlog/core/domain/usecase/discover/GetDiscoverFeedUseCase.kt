@@ -21,8 +21,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import java.time.LocalDate
 import javax.inject.Inject
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
+import kotlin.time.Clock
 
 /**
  * Saved games below which the taste profile is not trusted to recommend anything. A profile built from
@@ -257,12 +259,9 @@ class GetDiscoverFeedUseCase @Inject constructor(
         return unreleased.sortedByDescending { it.hypes } + rest.rankedByWeightedRating()
     }
 
-    // DateUtils is java.time-backed, which the KMP section of the root CLAUDE.md rules out for date
-    // math going forward -- fine for this single comparison since core/common/DateUtils.kt is the
-    // thing a KMP move rewrites wholesale anyway, but worth flagging rather than passing silently.
     private fun Game.isUnreleased(): Boolean {
         val date = DateUtils.parseIsoDate(releaseDate) ?: return false
-        return date.isAfter(LocalDate.now())
+        return date > Clock.System.todayIn(TimeZone.currentSystemDefault())
     }
 
     private fun List<Game>.ids(): Set<Int> = mapTo(mutableSetOf()) { it.id }

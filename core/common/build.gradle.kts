@@ -23,6 +23,10 @@ dependencies {
     implementation(project(":core:model"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
+    // Part of DateUtils' public surface: parseIsoDate and timestampToLocalDate return its LocalDate.
+    api(libs.kotlinx.datetime)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+
+    testImplementation(libs.junit)
 }

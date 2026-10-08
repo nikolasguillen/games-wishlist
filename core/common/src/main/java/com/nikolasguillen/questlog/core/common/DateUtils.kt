@@ -1,14 +1,11 @@
 package com.nikolasguillen.questlog.core.common
 
-import com.nikolasguillen.questlog.core.common.DateUtils.formatUnixTimestamp
-import com.nikolasguillen.questlog.core.common.DateUtils.isYearOnlyPlaceholder
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
-import java.util.Locale
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.Month
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Instant
 
 /**
  * Universal date utility for formatting dates across the application.
@@ -17,47 +14,34 @@ import java.util.Locale
 object DateUtils {
 
     /**
-     * Formats a Unix timestamp (in seconds) to a localized string.
+     * Formats a Unix timestamp (in seconds) to a localized string in the device locale.
      * @param timestampSeconds The timestamp in seconds.
-     * @param style The [FormatStyle] to use (default is MEDIUM).
-     * @param locale The [Locale] to use (default is device locale).
+     * @param style The [DateStyle] to use (default is MEDIUM).
      */
     fun formatUnixTimestamp(
         timestampSeconds: Long,
-        style: FormatStyle = FormatStyle.MEDIUM,
-        locale: Locale = Locale.getDefault()
-    ): String {
-        val instant = Instant.ofEpochSecond(timestampSeconds)
-        val formatter = DateTimeFormatter.ofLocalizedDate(style).withLocale(locale)
-        return instant.atZone(ZoneId.systemDefault()).toLocalDate().format(formatter)
-    }
+        style: DateStyle = DateStyle.MEDIUM
+    ): String = renderLocalDate(timestampToLocalDate(timestampSeconds), style)
 
     /**
-     * Formats a Unix timestamp (in seconds) using a specific pattern.
+     * Formats a Unix timestamp (in seconds) using a specific pattern, in the device locale.
      */
     fun formatUnixTimestamp(
         timestampSeconds: Long,
-        pattern: String,
-        locale: Locale = Locale.getDefault()
-    ): String {
-        val instant = Instant.ofEpochSecond(timestampSeconds)
-        val formatter = DateTimeFormatter.ofPattern(pattern, locale)
-        return instant.atZone(ZoneId.systemDefault()).toLocalDate().format(formatter)
-    }
+        pattern: String
+    ): String = renderLocalDate(timestampToLocalDate(timestampSeconds), pattern)
 
     /**
-     * Formats an ISO-8601 date string (yyyy-MM-dd) to a localized string.
+     * Formats an ISO-8601 date string (yyyy-MM-dd) to a localized string. Input that is not a date comes back
+     * unchanged.
      */
     fun formatIsoDate(
         isoDate: String?,
-        style: FormatStyle = FormatStyle.MEDIUM,
-        locale: Locale = Locale.getDefault()
+        style: DateStyle = DateStyle.MEDIUM
     ): String? {
         if (isoDate.isNullOrEmpty()) return null
         return try {
-            val date = LocalDate.parse(isoDate)
-            val formatter = DateTimeFormatter.ofLocalizedDate(style).withLocale(locale)
-            date.format(formatter)
+            renderLocalDate(LocalDate.parse(isoDate), style)
         } catch (_: Exception) {
             isoDate
         }
@@ -88,12 +72,12 @@ object DateUtils {
     }
 
     /**
-     * Converts a Unix timestamp to [LocalDate].
+     * Converts a Unix timestamp to [LocalDate] in the device time zone.
      */
     fun timestampToLocalDate(timestampSeconds: Long): LocalDate {
-        return Instant.ofEpochSecond(timestampSeconds)
-            .atZone(ZoneId.systemDefault())
-            .toLocalDate()
+        return Instant.fromEpochSeconds(timestampSeconds)
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+            .date
     }
 
     /**
@@ -102,7 +86,7 @@ object DateUtils {
      * round-trips to the previous or next day.
      */
     fun isoDateToEpochSeconds(isoDate: String?): Long? =
-        parseIsoDate(isoDate)?.atStartOfDay(ZoneId.systemDefault())?.toEpochSecond()
+        parseIsoDate(isoDate)?.atStartOfDayIn(TimeZone.currentSystemDefault())?.epochSeconds
 
     /**
      * IGDB's placeholder for "only the year is known": when a release date has no month or day, IGDB fills
@@ -112,7 +96,7 @@ object DateUtils {
      */
     fun isYearOnlyPlaceholder(isoDate: String?): Boolean {
         val date = parseIsoDate(isoDate) ?: return false
-        return date.monthValue == 12 && date.dayOfMonth == 31
+        return date.month == Month.DECEMBER && date.day == 31
     }
 
     /**
@@ -123,7 +107,7 @@ object DateUtils {
      */
     fun isYearOnlyPlaceholder(timestampSeconds: Long?): Boolean {
         if (timestampSeconds == null) return false
-        val date = Instant.ofEpochSecond(timestampSeconds).atZone(ZoneOffset.UTC).toLocalDate()
-        return date.monthValue == 12 && date.dayOfMonth == 31
+        val date = Instant.fromEpochSeconds(timestampSeconds).toLocalDateTime(TimeZone.UTC).date
+        return date.month == Month.DECEMBER && date.day == 31
     }
 }

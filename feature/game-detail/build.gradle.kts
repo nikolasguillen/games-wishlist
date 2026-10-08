@@ -36,6 +36,7 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
     implementation(project(":core:designsystem"))
+    implementation(libs.kotlinx.datetime)
     
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
