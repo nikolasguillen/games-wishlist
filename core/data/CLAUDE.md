@@ -10,9 +10,15 @@ The repository, the common mappers, the three preference stores, `RepositoryErro
 `androidMain`: `worker/`, `scheduler/`, `notification/ReleaseNotifierImpl`, `translation/` (with
 `mapper/TranslationMapper.kt`, which names ML Kit's types), `local/WishlistCoverImageStorageImpl` and this
 module's `strings.xml`. `:core:ai` is an `androidMain` dependency only. Each platform's bindings are in its
-`dataPlatformModule` (`expect`, with the Android `actual` in `di/DataPlatformModule.android.kt`); the common
-`dataModule` binds only what needs no platform API. A new Android-only class goes in `androidMain` with its
+`dataPlatformModule` (`expect`, with the Android `actual` in `di/DataPlatformModule.android.kt` and the iOS one in
+`iosMain`); the common `dataModule` binds only what needs no platform API. A new Android-only class goes in `androidMain` with its
 binding in the `actual` module; shared code reaches it through an interface in `:core:domain`.
+
+iOS has no background job runner, no reminders and no on-device translator, so its `dataPlatformModule` binds
+`InProcessReleaseRefreshScheduler` (refresh at launch if the last successful one is 24h old, and when the saved
+set changes; one run at a time; the timestamp is written only after a success), no-op reminder classes,
+`StaticReleaseRemindersAvailability(false)` and `UnsupportedGameDescriptionTranslator`. All of these are in
+`commonMain` and unit-tested on the JVM.
 
 ## Repository
 
@@ -52,7 +58,10 @@ look like mistakes but are deliberate:
   own types, never the HTTP client's** — so that `:core:data` does not depend on Ktor. Keep it that way: a
   transport failure worth telling apart is translated in `:core:network`. The platform's own connectivity
   and timeout exceptions are named in `isConnectivityFailure()` / `isTimeoutFailure()`, `expect` functions
-  whose Android `actual`s (`RepositoryErrorMapper.android.kt`) are the only places here that do. `RepositoryErrorMapperTest.kt` covers the behaviour. The network module's exceptions extend
+  whose Android `actual`s (`RepositoryErrorMapper.android.kt`) are the only places here that name a platform
+  type; the iOS `actual`s just test for `IgdbConnectivityException` and `IgdbTimeoutException`, because
+  `:core:network` has already translated the Darwin engine's `NSError`s. `RepositoryErrorMapperTest.kt` covers the
+  behaviour. The network module's exceptions extend
   `IOException`, so their branches have to stay **above** the catch-all.
 
 Mapped cases on Android: `UnknownHostException` / `ConnectException` / `SocketException` → `NoNetwork`,

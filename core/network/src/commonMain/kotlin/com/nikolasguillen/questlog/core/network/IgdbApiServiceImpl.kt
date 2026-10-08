@@ -27,8 +27,8 @@ internal class IgdbApiServiceImpl(private val client: HttpClient) : IgdbApiServi
 
     override suspend fun getReleaseDates(query: String): List<IgdbReleaseDateEntry> = post("release_dates", query)
 
-    // The client's own timeout types stop here: callers recognise IgdbTimeoutException instead, so no layer
-    // above this module needs to know which HTTP client is underneath.
+    // The client's own failure types stop here: callers recognise IgdbTimeoutException and IgdbConnectivityException
+    // instead, so no layer above this module needs to know which HTTP client is underneath.
     private suspend inline fun <reified T> post(endpoint: String, query: String): List<T> = try {
         client.post("$IGDB_API_BASE_URL$endpoint") {
             contentType(ContentType.Text.Plain)
@@ -40,5 +40,9 @@ internal class IgdbApiServiceImpl(private val client: HttpClient) : IgdbApiServi
         throw IgdbTimeoutException(e)
     } catch (e: KtorSocketTimeoutException) {
         throw IgdbTimeoutException(e)
+    } catch (e: Exception) {
+        // Whatever this platform's engine reports in its own terms. Anything else, cancellation included, goes
+        // on unchanged.
+        throw e.toPlatformTransportFailure() ?: e
     }
 }

@@ -1,7 +1,7 @@
 # CLAUDE.md — core:network
 
 IGDB client. Ktor 3 + kotlinx.serialization, in `commonMain`; the HTTP engine is per platform (OkHttp on
-Android).
+Android, Darwin on iOS).
 
 ## IGDB speaks apicalypse, not REST
 
@@ -34,7 +34,11 @@ The one thing this module does do is **translate**, so that no HTTP-client type 
 - `IgdbTimeoutException` — the client's `HttpRequestTimeoutException`, `ConnectTimeoutException` and
   `SocketTimeoutException`, caught in `IgdbApiServiceImpl`.
 - `IgdbConnectivityException` — for an engine whose "device is offline" failures can only be told apart
-  in here. The OkHttp engine reports them as `java.net` exceptions, which `:core:data` matches itself.
+  in here. The OkHttp engine reports them as `java.net` exceptions, which `:core:data` matches itself. The Darwin
+  engine wraps an `NSError` in Ktor's `DarwinHttpRequestException`, so `toPlatformTransportFailure()` (`expect`, in
+  `PlatformTransportFailure.kt`) turns the `NSURLErrorDomain` codes for "not connected", "cannot find or connect to
+  host", "connection lost" and "DNS lookup failed" into this type, and "timed out" into `IgdbTimeoutException`.
+  `IgdbApiServiceImpl` applies it to anything that is not already one of this module's exceptions.
 
 A new transport failure that `:core:data` should tell apart gets a new exception **here**, not a dependency on
 Ktor over there. `CancellationException` is never translated.

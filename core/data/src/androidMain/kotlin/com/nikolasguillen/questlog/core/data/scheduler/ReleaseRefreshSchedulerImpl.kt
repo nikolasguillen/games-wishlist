@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit
 
 private const val RELEASE_DATES_REFRESH_WORK_NAME = "release_dates_refresh"
 private const val IMMEDIATE_REFRESH_WORK_NAME = "release_dates_refresh_now"
-private const val RELEASE_DATES_REFRESH_INTERVAL_HOURS = 24L
 
 class ReleaseRefreshSchedulerImpl(
     private val context: Context
@@ -23,7 +22,7 @@ class ReleaseRefreshSchedulerImpl(
     // survive untouched rather than restart its 24h window each time the app is opened.
     override fun schedulePeriodicRefresh() {
         val request = PeriodicWorkRequestBuilder<ReleaseDatesRefreshWorker>(
-            RELEASE_DATES_REFRESH_INTERVAL_HOURS, TimeUnit.HOURS
+            RELEASE_DATES_REFRESH_INTERVAL.inWholeHours, TimeUnit.HOURS
         )
             .setConstraints(
                 Constraints.Builder()

@@ -40,6 +40,9 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
         }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
+        }
         androidHostTest.dependencies {
             implementation(libs.junit)
             implementation(libs.ktor.client.mock)

@@ -100,7 +100,8 @@ gets a host test that sets it to `false` and asserts the entry point is absent f
 @Composable
 expect fun rememberCoverImagePicker(onPicked: (source: String?) -> Unit): CoverImagePickerLauncher
 
-interface CoverImagePickerLauncher { fun launch() }
+// A class rather than an interface: the launcher is only ever created by the platform's `actual`.
+class CoverImagePickerLauncher(private val onLaunch: () -> Unit) { fun launch() = onLaunch() }
 ```
 
 | Android | iOS |
@@ -116,7 +117,8 @@ to do with it (Principle III).
 @Composable
 expect fun rememberTextSharer(): TextSharer
 
-fun interface TextSharer { fun share(text: String) }
+// A class, like the picker's launcher: only the platform's `actual` creates one.
+class TextSharer(private val onShare: (text: String) -> Unit) { fun share(text: String) = onShare(text) }
 ```
 
 | Android | iOS |
@@ -162,27 +164,32 @@ internal expect fun formatLocalDate(date: LocalDate, style: DateStyle): String
 `DateUtils`'s public functions keep their names and parameters. Only the style parameter's type changes,
 from `FormatStyle` to `DateStyle`.
 
-### Connectivity classification — `:core:data`
+### Connectivity classification — `:core:data` and `:core:network`
 
 ```kotlin
+// :core:data
 internal expect fun Throwable.isConnectivityFailure(): Boolean
+internal expect fun Throwable.isTimeoutFailure(): Boolean
+
+// :core:network
+internal expect fun Throwable.toPlatformTransportFailure(): Throwable?
 ```
 
-| Android | iOS |
-|---|---|
-| `UnknownHostException`, `ConnectException`, `SocketException`, `SocketTimeoutException` (moved from `RepositoryErrorMapper`) | `DarwinHttpRequestException` whose `NSError.domain == NSURLErrorDomain` and whose code is one of: not connected, cannot find/connect to host, network connection lost, timed out, DNS lookup failed |
+| | Android | iOS |
+|---|---|---|
+| `:core:network` `toPlatformTransportFailure()` | `null`: OkHttp's failures are `java.net` types | A `DarwinHttpRequestException` whose `NSError.domain == NSURLErrorDomain` becomes `IgdbTimeoutException` (timed out) or `IgdbConnectivityException` (not connected, cannot find/connect to host, connection lost, DNS lookup failed); anything else is `null` |
+| `:core:data` `isConnectivityFailure()` / `isTimeoutFailure()` | `UnknownHostException`, `ConnectException`, `SocketException` / `SocketTimeoutException`, and the network module's two exception types | The network module's two exception types |
 
-`RepositoryErrorMapper` stays in `commonMain`. Before calling this function, it:
-
-- rethrows `CancellationException` first;
-- handles `IgdbHttpException`, `HttpRequestTimeoutException` and `kotlinx.io.IOException` in common code.
+The Darwin engine's exception is a Ktor type, and `:core:data` must not depend on Ktor, so the
+`NSError` translation is in `:core:network`, which already owns every Ktor-to-own-exception step.
+`RepositoryErrorMapper` stays in `commonMain` and rethrows `CancellationException` first.
 
 ## Platform shell (not contracts)
 
 | Concern | Android (`:app`) | iOS (`iosApp/`) |
 |---|---|---|
-| Entry point | `MainActivity` → `setContent { QuestLogRoot(displayCornerRadius = …, onReady = …) }` | `ContentView` → `MainViewController()` |
-| DI start | `QuestLogApp.onCreate` → `initKoin(isDebugBuild = BuildConfig.DEBUG, androidPlatformModules)`, with `androidContext(this)` and `workManagerFactory()` | `MainViewController()` → idempotent `initKoin(isDebugBuild = Platform.isDebugBinary, iosPlatformModules)` |
+| Entry point | `MainActivity` → `setContent { QuestLogRoot(pendingDeepLinkGameId, onDeepLinkConsumed, displayCornerRadius) }`; the splash is held by `MainActivity` itself until `RootViewModel` has the onboarding flag | `ContentView` → `MainViewController()` |
+| DI start | `QuestLogApp.onCreate` → `initKoin(isDebugBuild = BuildConfig.DEBUG) { androidContext(this) }`; the WorkManager factory is the `Application`'s `Configuration.Provider` | `MainViewController()` → idempotent `initKoin(isDebugBuild = …)`; the iOS bindings are the `expect` platform modules' `iosMain` actuals, which `initKoin` already lists |
 | Splash | `core-splashscreen`, held until the start route is known (unchanged) | `LaunchScreen` storyboard with the app logo |
 | Periodic refresh kick-off | `QuestLogApp` calls `schedulePeriodicRefresh()` (unchanged) | `MainViewController()` calls `schedulePeriodicRefresh()` once per launch |
 | Display corner radius | `RoundedCorner` probe (unchanged) | Fixed default passed by `MainViewController()` |
