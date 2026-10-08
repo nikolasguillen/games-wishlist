@@ -1,8 +1,5 @@
 package com.nikolasguillen.questlog.core.designsystem.theme
 
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -11,18 +8,9 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
-
-private tailrec fun Context.findActivity(): Activity? = when (this) {
-    is Activity -> this
-    is ContextWrapper -> baseContext.findActivity()
-    else -> null
-}
 
 /**
  * The resolved light/dark flag [QuestLogTheme] was actually composed with — not the raw
@@ -148,15 +136,7 @@ fun QuestLogTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composab
         )
     }
 
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val activity = view.context.findActivity() ?: return@SideEffect
-            val insetsController = WindowCompat.getInsetsController(activity.window, view)
-            insetsController.isAppearanceLightStatusBars = !darkTheme
-            insetsController.isAppearanceLightNavigationBars = !darkTheme
-        }
-    }
+    SystemBarsAppearance(darkTheme)
 
     CompositionLocalProvider(
         LocalSpacing provides Spacing(),

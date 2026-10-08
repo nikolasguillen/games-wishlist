@@ -5,6 +5,13 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.google.devtools.ksp) apply false
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization) apply false
+    // The multiplatform plugins are applied by the convention plugins in build-logic; declaring them here puts
+    // them on the build's plugin classpath once, at one version.
+    alias(libs.plugins.jetbrains.kotlin.multiplatform) apply false
+    alias(libs.plugins.android.kotlin.multiplatform.library) apply false
+    alias(libs.plugins.jetbrains.compose) apply false
+    alias(libs.plugins.androidx.room) apply false
+    alias(libs.plugins.buildconfig) apply false
 }
 
 // A multiplatform module has no `test` task: its JVM tests are `testAndroidHostTest`. This root task keeps
