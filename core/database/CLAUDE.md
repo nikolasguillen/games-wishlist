@@ -1,18 +1,17 @@
 # CLAUDE.md — core:database
 
-Room persistence layer. Room 2.8.5 (the latest release — there is no Room 3) with KSP, on the **legacy
-`SupportSQLiteOpenHelper` path**: `Room.databaseBuilder(...)` without `.setDriver(...)`.
+Room persistence layer. Room 2.8.5 (the latest release — there is no Room 3) with KSP, on the driver-based
+API: `BundledSQLiteDriver` (`androidx.sqlite:sqlite-bundled`), set in `di/DatabaseKoin.kt`, with queries on
+`Dispatchers.IO`. The SQLite version is the app's own, not the device's, and the same code runs on iOS.
 
-The driver-based API (`BundledSQLiteDriver`, `androidx.sqlite`) has been available since Room 2.7.0 and is
-deliberately unused. It mainly buys KMP support and a SQLite version pinned by the app rather than by the
-device. **The project is migrating to KMP** (`specs/010-kmp-migration`) — switching to the driver-based
-API is part of that work, not a standalone refactor. Do not introduce `.setDriver(...)` outside the
-migration task that calls for it.
+**Do not use the `SupportSQLiteOpenHelper` types** — `SupportSQLiteDatabase`, `openHelper`,
+`SupportSQLiteQuery`, `@RawQuery` over them. They have no iOS counterpart; raw SQL goes through
+`SQLiteConnection` (`androidx.sqlite`).
 
 ## Schema changes — read this first
 
 **The app is not published. Until the owner says it is, the database stays at `version = 1`, there are no
-`Migration` objects, and `DatabaseModule` keeps `.fallbackToDestructiveMigration(true)`.** An entity change
+`Migration` objects, and `databaseModule` keeps `.fallbackToDestructiveMigration(true)`.** An entity change
 just recreates the database on the next launch, and losing the local data is accepted.
 
 So when you change an entity:
@@ -74,7 +73,7 @@ is how the comma-joined `artworks`/`engines` columns happened in the first place
 - Type converters live in a single `util/Converters.kt` (`class Converters`, `@TypeConverter` pairs named
   `fromX`/`toX`), registered via `@TypeConverters(Converters::class)` on the database class.
 - This module owns `res/values/strings.xml`: the default wishlist's name and description, inserted with
-  `db.execSQL("INSERT INTO wishlists ...")` from `RoomDatabase.Callback.onCreate`, followed by the
+  `connection.execSQL("INSERT INTO wishlists ...")` from `RoomDatabase.Callback.onCreate(SQLiteConnection)`, followed by the
   `default_wishlist` pointer row. That seed is the only writer of the row.
 - `DATABASE_NAME` is a `const val` in the database class's companion object.
 

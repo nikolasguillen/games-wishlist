@@ -2,11 +2,14 @@ package com.nikolasguillen.questlog.core.database.di
 
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.sqlite.SQLiteConnection
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import androidx.sqlite.execSQL
 import com.nikolasguillen.questlog.core.database.QuestLogDatabase
 import com.nikolasguillen.questlog.core.database.R
 import com.nikolasguillen.questlog.core.database.util.Converters
 import com.nikolasguillen.questlog.core.model.WishlistIcon
+import kotlinx.coroutines.Dispatchers
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -18,18 +21,20 @@ val databaseModule = module {
             QuestLogDatabase::class.java,
             QuestLogDatabase.DATABASE_NAME
         )
+            .setDriver(BundledSQLiteDriver())
+            .setQueryCoroutineContext(Dispatchers.IO)
             .addCallback(object : RoomDatabase.Callback() {
-                override fun onCreate(db: SupportSQLiteDatabase) {
-                    super.onCreate(db)
+                override fun onCreate(connection: SQLiteConnection) {
+                    super.onCreate(connection)
                     val defaultName = context.getString(R.string.default_wishlist_name)
                     val defaultDescription =
                         context.getString(R.string.default_wishlist_description)
                     val defaultIcon = Converters().fromWishlistIcon(WishlistIcon.HEART)
-                    db.execSQL(
+                    connection.execSQL(
                         "INSERT INTO wishlists (name, description, icon) VALUES ('$defaultName', '$defaultDescription', '$defaultIcon')"
                     )
                     // The only writer of the pointer row: it has to exist before anything reads the default.
-                    db.execSQL(
+                    connection.execSQL(
                         "INSERT INTO default_wishlist (id, listId) VALUES (0, last_insert_rowid())"
                     )
                 }

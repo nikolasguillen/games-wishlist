@@ -113,7 +113,7 @@ the real commands makes the verification step actionable.
 ## Additional Constraints
 
 **Platform**: Kotlin 2.4.10, AGP 9.4.1, Gradle 9.7.1 (JVM toolchain 21), compileSdk/targetSdk 37,
-minSdk 29, Java 11, Compose BOM 2026.09.00, Koin 4.2.2, Room 2.8.5 (KSP), Ktor 3 + kotlinx.serialization,
+minSdk 29, Java 11, Compose BOM 2026.09.00, Koin 4.2.2, Room 2.8.5 (KSP, bundled SQLite driver), Ktor 3 + kotlinx.serialization,
 Navigation 3, Coil 2, WorkManager. Every `build.gradle.kts` repeats its configuration by hand. When
 adding a module, copy `feature/search/build.gradle.kts` (feature) or `core/data/build.gradle.kts`
 (core) and register it in `settings.gradle.kts`. This describes the repository today; the migration
@@ -142,7 +142,7 @@ feature's plan and tasks, not restructured ad hoc.
 - Android MUST build and pass its tests at every commit (`./gradlew :app:assembleDebug` and
   `./gradlew test`). No test may be deleted or weakened to get there, and every step MUST be one the
   work can pause on.
-- Library swaps (Room to the driver-based API with `BundledSQLiteDriver`) are decided in the plan and made only in the task that calls for them.
+- Library swaps are decided in the plan and made only in the task that calls for them.
 - The module-boundary rules in Principle I still hold after the move. Any new module or dependency
   edge MUST be called out in Complexity Tracking.
 - `:core:model` MUST stay free of Android and Compose dependencies.
@@ -189,4 +189,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.2.1 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08
+**Version**: 1.2.2 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08

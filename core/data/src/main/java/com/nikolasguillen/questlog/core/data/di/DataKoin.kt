@@ -1,9 +1,9 @@
 package com.nikolasguillen.questlog.core.data.di
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.preferencesDataStoreFile
 import com.nikolasguillen.questlog.core.ai.GeminiNanoClient
 import com.nikolasguillen.questlog.core.data.local.WishlistCoverImageStorage
 import com.nikolasguillen.questlog.core.data.local.WishlistCoverImageStorageImpl
@@ -37,8 +37,6 @@ import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
-internal val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
-
 val dataModule = module {
     singleOf(::GameRepositoryImpl) { bind<GameRepository>() }
     singleOf(::GameDescriptionTranslatorImpl) { bind<GameDescriptionTranslator>() }
@@ -61,7 +59,11 @@ val dataModule = module {
     // SettingsViewModel so leaving the Settings screen does not cancel a download in flight.
     single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
 
-    single<DataStore<Preferences>> { androidContext().settingsDataStore }
+    // The same file the `preferencesDataStore("settings")` delegate used, so an installed app keeps its settings.
+    single<DataStore<Preferences>> {
+        val context = androidContext()
+        PreferenceDataStoreFactory.create { context.preferencesDataStoreFile("settings") }
+    }
 
     workerOf(::ReleaseDatesRefreshWorker)
     workerOf(::ReleaseNotificationWorker)

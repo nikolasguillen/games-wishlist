@@ -31,6 +31,7 @@ dependencies {
     
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.sqlite.bundled)
     ksp(libs.androidx.room.compiler)
     implementation(libs.koin.core)
     implementation(libs.koin.android)
