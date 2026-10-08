@@ -2,21 +2,11 @@ package com.nikolasguillen.questlog
 
 import android.app.Application
 import androidx.work.Configuration
-import com.nikolasguillen.questlog.core.common.di.commonPlatformModule
-import com.nikolasguillen.questlog.core.data.di.dataModule
-import com.nikolasguillen.questlog.core.data.di.dataPlatformModule
-import com.nikolasguillen.questlog.core.database.di.databaseModule
-import com.nikolasguillen.questlog.core.database.di.databasePlatformModule
-import com.nikolasguillen.questlog.core.domain.di.domainModule
 import com.nikolasguillen.questlog.core.domain.radar.ReleaseRefreshScheduler
-import com.nikolasguillen.questlog.core.network.di.networkModule
-import com.nikolasguillen.questlog.core.network.di.networkPlatformModule
-import com.nikolasguillen.questlog.di.interimModule
-import com.nikolasguillen.questlog.di.viewModelModule
+import com.nikolasguillen.questlog.shared.di.initKoin
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.workmanager.factory.KoinWorkerFactory
-import org.koin.core.context.startKoin
 
 class QuestLogApp : Application(), Configuration.Provider {
 
@@ -30,12 +20,8 @@ class QuestLogApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        startKoin {
+        initKoin(isDebugBuild = BuildConfig.DEBUG) {
             androidContext(this@QuestLogApp)
-            modules(
-                commonPlatformModule, domainModule, networkModule, networkPlatformModule, databaseModule,
-                databasePlatformModule, dataModule, dataPlatformModule, interimModule, viewModelModule
-            )
         }
         releaseRefreshScheduler.schedulePeriodicRefresh()
     }

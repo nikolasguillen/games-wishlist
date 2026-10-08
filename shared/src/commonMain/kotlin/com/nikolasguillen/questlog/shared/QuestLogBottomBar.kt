@@ -1,4 +1,4 @@
-package com.nikolasguillen.questlog
+package com.nikolasguillen.questlog.shared
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -11,7 +11,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.nikolasguillen.questlog.core.designsystem.theme.AppComponentsColors
@@ -20,6 +19,11 @@ import com.nikolasguillen.questlog.core.navigation.ListsRoute
 import com.nikolasguillen.questlog.core.navigation.RadarRoute
 import com.nikolasguillen.questlog.core.navigation.SearchRoute
 import com.nikolasguillen.questlog.core.navigation.WishlistRoute
+import com.nikolasguillen.questlog.shared.resources.Res
+import com.nikolasguillen.questlog.shared.resources.lists_nav_bar_item
+import com.nikolasguillen.questlog.shared.resources.radar_nav_bar_item
+import com.nikolasguillen.questlog.shared.resources.search_nav_bar_item
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun QuestLogBottomBar(
@@ -43,10 +47,10 @@ fun QuestLogBottomBar(
             icon = {
                 Icon(
                     Icons.Default.Search,
-                    contentDescription = stringResource(R.string.search_nav_bar_item)
+                    contentDescription = stringResource(Res.string.search_nav_bar_item)
                 )
             },
-            label = { Text(stringResource(R.string.search_nav_bar_item)) },
+            label = { Text(stringResource(Res.string.search_nav_bar_item)) },
             colors = AppComponentsColors.navBarItemColors
         )
         NavigationBarItem(
@@ -59,10 +63,10 @@ fun QuestLogBottomBar(
             icon = {
                 Icon(
                     Icons.Default.Radar,
-                    contentDescription = stringResource(R.string.radar_nav_bar_item)
+                    contentDescription = stringResource(Res.string.radar_nav_bar_item)
                 )
             },
-            label = { Text(stringResource(R.string.radar_nav_bar_item)) },
+            label = { Text(stringResource(Res.string.radar_nav_bar_item)) },
             colors = AppComponentsColors.navBarItemColors
         )
         NavigationBarItem(
@@ -75,10 +79,10 @@ fun QuestLogBottomBar(
             icon = {
                 Icon(
                     Icons.AutoMirrored.Filled.List,
-                    contentDescription = stringResource(R.string.lists_nav_bar_item)
+                    contentDescription = stringResource(Res.string.lists_nav_bar_item)
                 )
             },
-            label = { Text(stringResource(R.string.lists_nav_bar_item)) },
+            label = { Text(stringResource(Res.string.lists_nav_bar_item)) },
             colors = AppComponentsColors.navBarItemColors
         )
     }

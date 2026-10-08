@@ -1,4 +1,4 @@
-package com.nikolasguillen.questlog.di
+package com.nikolasguillen.questlog.shared.di
 
 import com.nikolasguillen.questlog.feature.gamedetail.GameDetailViewModel
 import com.nikolasguillen.questlog.feature.lists.ListsViewModel
@@ -9,16 +9,18 @@ import com.nikolasguillen.questlog.feature.settings.OwnedPlatformsViewModel
 import com.nikolasguillen.questlog.feature.settings.ReleaseNotificationsViewModel
 import com.nikolasguillen.questlog.feature.settings.SettingsViewModel
 import com.nikolasguillen.questlog.feature.wishlist.WishlistViewModel
+import com.nikolasguillen.questlog.shared.RootViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 /**
- * Feature modules own no DI module, so every ViewModel is registered here.
+ * Feature modules own no DI module, so every ViewModel is registered here, next to the app root's own.
  *
  * [GameDetailViewModel] and [WishlistViewModel] take their route argument (a game id, a list id) as their
  * first constructor parameter; the caller supplies it with `koinViewModel { parametersOf(id) }`.
  */
 val viewModelModule = module {
+    viewModelOf(::RootViewModel)
     viewModelOf(::SearchViewModel)
     viewModelOf(::RadarViewModel)
     viewModelOf(::ListsViewModel)

@@ -4,23 +4,24 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.sqlite.execSQL
-import com.nikolasguillen.questlog.core.database.DefaultWishlistSeed
+import com.nikolasguillen.questlog.core.database.DefaultWishlistSeedProvider
 import com.nikolasguillen.questlog.core.database.QuestLogDatabase
 import com.nikolasguillen.questlog.core.database.util.Converters
 import com.nikolasguillen.questlog.core.model.WishlistIcon
 import org.koin.dsl.module
 
 /**
- * Needs a `DefaultWishlistSeed` from the app, and `databasePlatformModule` for the platform's database file.
+ * Needs a `DefaultWishlistSeedProvider` from the app, and `databasePlatformModule` for the platform's database file.
  */
 val databaseModule = module {
     single {
-        val seed = get<DefaultWishlistSeed>()
+        val seedProvider = get<DefaultWishlistSeedProvider>()
         get<RoomDatabase.Builder<QuestLogDatabase>>()
             .setDriver(BundledSQLiteDriver())
             .addCallback(object : RoomDatabase.Callback() {
                 override fun onCreate(connection: SQLiteConnection) {
                     super.onCreate(connection)
+                    val seed = seedProvider.provide()
                     val defaultIcon = Converters().fromWishlistIcon(WishlistIcon.HEART)
                     connection.execSQL(
                         "INSERT INTO wishlists (name, description, icon) VALUES ('${seed.name}', '${seed.description}', '$defaultIcon')"

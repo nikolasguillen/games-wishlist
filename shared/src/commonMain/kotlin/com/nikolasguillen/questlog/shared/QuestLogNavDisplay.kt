@@ -1,6 +1,5 @@
-package com.nikolasguillen.questlog
+package com.nikolasguillen.questlog.shared
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -52,7 +51,7 @@ import org.koin.core.parameter.parametersOf
 fun QuestLogNavDisplay(
     backStack: NavBackStack<NavKey>,
     innerPadding: PaddingValues,
-    @SuppressLint("ModifierParameter") cornerClipModifier: Modifier,
+    cornerClipModifier: Modifier,
     modifier: Modifier = Modifier
 ) {
     NavDisplay(

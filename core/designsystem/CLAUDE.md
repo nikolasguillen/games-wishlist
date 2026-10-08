@@ -11,7 +11,7 @@ Theme tokens only, seven files under `theme/`. No composables beyond `QuestLogTh
   `darkColorScheme` and `lightColorScheme`, plus a matching light/dark `AppColors` instance. There is no
   dynamic color. The default follows the system, which is what previews rely on. The app itself always
   passes `darkTheme` explicitly, because the manual-vs-system `AppearanceMode` resolution happens in the
-  caller; see `AppearanceMode` in `:core:model` and `MainActivity`'s `setContent`.
+  caller; see `AppearanceMode` in `:core:model` and `QuestLogRoot` in `:shared`.
 - **`MaterialTheme.spacing`** (`Spacing.kt`) — `default 0`, `extraSmall 2`, `small 4`, `smallMedium 6`,
   `medium 8`, `mediumLarge 12`, `large 16`, `extraLarge 24`, `doubleLarge 32` dp.
   Need a value that is not there? Add a token here rather than hardcoding a new `dp` in a composable.

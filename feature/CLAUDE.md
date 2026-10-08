@@ -87,7 +87,7 @@ Two state-pipeline shapes coexist; both are fine, pick the one that matches the 
 This is the easiest thing to get wrong.
 
 A ViewModel is a plain class; its constructor parameters are its dependencies. Feature modules do not
-depend on Koin and own no DI module: every ViewModel is registered in `app/.../di/ViewModelKoin.kt` with
+depend on Koin and own no DI module: every ViewModel is registered in `shared/.../di/ViewModelModule.kt` with
 `viewModelOf(::XViewModel)`.
 
 **Route without arguments** → nothing else to write:
@@ -123,10 +123,10 @@ Adding a route means three edits, all outside the feature module:
    `core/navigation/Routes.kt`.
 2. A `subclass(...)` line for it in `core/navigation/GameNavSavedStateConfiguration.kt`: iOS cannot restore a
    back stack without it, and `RoutesSerializationTest` fails when the line is missing.
-3. A branch in the single `entryProvider` inside `app/.../QuestLogNavDisplay.kt`, obtaining the ViewModel with
+3. A branch in the single `entryProvider` inside `shared/.../QuestLogNavDisplay.kt`, obtaining the ViewModel with
    `koinViewModel<X>()` or, for a route with an argument,
    `koinViewModel<X> { parametersOf(key.someId) }`. A new ViewModel also needs a `viewModelOf` line in
-   `ViewModelKoin.kt`; `KoinGraphTest` fails if a dependency is not declared.
+   `ViewModelModule.kt`; `KoinGraphTest` (in `:shared`) fails if a dependency is not declared.
 
 Navigation is plain backstack mutation (`backStack.add(route)` / `backStack.removeLastOrNull()`), always
 guarded by `if (backStack.lastOrNull() != nextRoute)`.

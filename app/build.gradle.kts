@@ -1,7 +1,5 @@
 plugins {
     id("questlog.android.application")
-    alias(libs.plugins.google.devtools.ksp)
-    alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
 }
 
 android {
@@ -32,58 +30,26 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:common"))
-    implementation(project(":core:model"))
-    implementation(project(":core:network"))
-    implementation(project(":core:database"))
-    implementation(project(":core:data"))
+    // Everything shared - the screens, the navigation, the DI assembly - is in :shared; :app is the Android entry
+    // point around it.
+    implementation(project(":shared"))
     implementation(project(":core:domain"))
-    implementation(project(":core:ui"))
-    implementation(project(":core:designsystem"))
-    implementation(project(":core:navigation"))
-    implementation(project(":feature:radar"))
-    implementation(project(":feature:search"))
-    implementation(project(":feature:game-detail"))
-    implementation(project(":feature:lists"))
-    implementation(project(":feature:wishlist"))
-    implementation(project(":feature:settings"))
-    implementation(project(":feature:onboarding"))
+
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.workmanager)
-    implementation(libs.koin.compose)
-    implementation(libs.koin.compose.viewmodel)
+    implementation(libs.androidx.work.runtime.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.compose.adaptive)
-    implementation(libs.androidx.compose.adaptive.layout)
-    implementation(libs.androidx.compose.adaptive.navigation3)
-    implementation(libs.androidx.compose.material.icons.core)
-    implementation(libs.androidx.compose.material.icons.extended)
-    implementation(libs.androidx.compose.material3.versioned)
     implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
-    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
-    implementation(libs.androidx.navigation3.runtime)
-    implementation(libs.androidx.navigation3.ui)
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.work.runtime.ktx)
+    // Coil finds its network fetcher on the classpath, so the engine that fetches covers is chosen here.
     implementation(libs.coil3.network.ktor3)
     implementation(libs.ktor.client.okhttp)
-    implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.kotlinx.serialization.core)
     implementation(libs.material)
     testImplementation(libs.androidx.core)
     testImplementation(libs.junit)
-    testImplementation(libs.koin.test)
-    testImplementation(libs.koin.test.junit4)
-    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -91,5 +57,4 @@ dependencies {
     androidTestImplementation(libs.androidx.runner)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
-    ksp(libs.androidx.room.compiler)
 }

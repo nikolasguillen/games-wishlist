@@ -4,7 +4,7 @@
 
 ### I. Module Boundaries Are Load-Bearing (NON-NEGOTIABLE)
 
-The project is 18 modules under `com.nikolasguillen.questlog.*`, and the dependency graph between
+The project is 19 modules under `com.nikolasguillen.questlog.*`, and the dependency graph between
 them is a design decision, not an accident of history.
 
 - `feature/*` MUST depend only on `:core:common`, `:core:model`, `:core:domain`, `:core:ui`,
@@ -14,11 +14,12 @@ them is a design decision, not an accident of history.
   depends on nothing beyond that SDK and coroutines.
 - `:core:model` MUST stay free of Android and Compose dependencies. It is the most KMP-ready module
   and the natural first candidate for `commonMain`.
-- `:app` is the only module that knows about navigation. Feature modules own no nav graph, no nav
+- `:shared` is the only module that knows about navigation (`:app` hosts it on Android and holds no routes).
+  Feature modules own no nav graph, no nav
   entry provider and no per-feature DI module; screens receive lambdas and never navigate
   themselves. Adding a route means three edits outside the feature: a `NavKey` in
   `core/navigation/Routes.kt`, its `subclass(...)` line in `GameNavSavedStateConfiguration.kt`, and a branch
-  in the single `entryProvider` in `app/.../QuestLogNavDisplay.kt`.
+  in the single `entryProvider` in `shared/.../QuestLogNavDisplay.kt`.
 
 A plan that requires a new edge in this graph MUST say so explicitly and justify it in its
 Complexity Tracking section. Silently adding the dependency is a constitution violation.
@@ -77,7 +78,7 @@ The shared layer already covers most of what a new screen needs. Check it before
   added there, never inlined at the call site.
 - Colors and typography come from `MaterialTheme.appColors` and `AppTypography`.
 - The app has a light and a dark scheme, chosen by the user's `AppearanceMode` (system, light or
-  dark) and resolved once in `MainActivity`. There is no dynamic color. Below `QuestLogTheme`, read
+  dark) and resolved once in `QuestLogRoot`. There is no dynamic color. Below `QuestLogTheme`, read
   `MaterialTheme.isDarkTheme` rather than re-deriving light/dark (no `isSystemInDarkTheme()` calls in
   components).
 - Shared UI constants belong in `UiConstants`, not inline in a composable.
@@ -129,7 +130,7 @@ the same commit. No list-shaped columns. Persisting a game always goes through `
 
 **Injection**: Koin, with each layer exposing one module (plus an `expect` platform module where it needs a
 platform API) and every ViewModel registered with `viewModelOf` in
-`:app`'s `ViewModelKoin.kt`. Feature modules do not depend on Koin. A route with an argument takes it as the
+`:shared`'s `ViewModelModule.kt`. Feature modules do not depend on Koin. A route with an argument takes it as the
 ViewModel's first constructor parameter, supplied with `parametersOf`. `SavedStateHandle` is not used in this
 project and MUST NOT be introduced. `KoinGraphTest` MUST stay green: it proves every dependency is declared.
 
@@ -193,4 +194,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.2.9 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08
+**Version**: 1.3.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08

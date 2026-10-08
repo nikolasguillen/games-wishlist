@@ -25,6 +25,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "Quest Log"
 include(":app")
+include(":shared")
 include(":core:common")
 include(":core:model")
 include(":core:network")

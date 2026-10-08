@@ -56,17 +56,20 @@ suggesting a command.
 
 ## Module graph and dependency rules
 
-18 modules, all under the `com.nikolasguillen.questlog.*` namespace. Sources live in `src/commonMain/kotlin/` and `src/androidMain/kotlin/` (`:core:ai` and `:app` keep `src/main/java/`).
+19 modules, all under the `com.nikolasguillen.questlog.*` namespace. Sources live in `src/commonMain/kotlin/` and `src/androidMain/kotlin/` (`:core:ai` and `:app` keep `src/main/java/`).
 
 ```
-:app  →  everything
+:app  →  :shared  →  everything
 :feature:{search, radar, game-detail, lists, wishlist, settings, onboarding}
 :core:{common, model, network, database, data, domain, ui, designsystem, navigation, ai}
 ```
 
 These boundaries are load-bearing — check them before adding a dependency:
 
-- **`:app` is the only module that knows about navigation.** Feature modules own no nav graph.
+- **`:shared` is the only module that knows about navigation.** It owns the back stack, the bottom bar, the single
+  `entryProvider` and the Koin assembly; `:app` is only the Android entry point around it (the activity, the
+  `Application`, the manifest). Feature modules own no nav graph. `:shared` depends on every other module except
+  `:core:ai`.
 - **`feature/*` depends only on** `:core:common`, `:core:model`, `:core:domain`, `:core:ui`,
   `:core:navigation`, `:core:designsystem`. **Never** on `:core:data`, `:core:network`, `:core:database`,
   or `:core:ai`.
@@ -79,7 +82,8 @@ These boundaries are load-bearing — check them before adding a dependency:
   applies the plugin that matches its kind and declares only its own dependencies: the namespace,
   `compileSdk = 37`, `minSdk = 29` and Java 11 come from the plugin, never from the module. The migration is
   converting modules one by one (`specs/010-kmp-migration`). `:core:ai` keeps a hand-written build file on
-  purpose, being Android-only, and `:app` follows when the shared module lands. Register a new module in
+  purpose, being Android-only; `:app` applies `questlog.android.application`, because AGP 9 does not allow an
+  application module to be multiplatform. Register a new module in
   `settings.gradle.kts`.
 
 ## Data flow
@@ -139,8 +143,10 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
 | Spacing / color / typography tokens | `core/designsystem/theme/` |
 | Shared composables, reusable modifiers | `core/ui/component/`, `core/ui/util/modifiers/` |
 | Nav routes (`NavKey`) | `core/navigation/Routes.kt` |
-| Navigation entry point (`NavDisplay` + the single `entryProvider`) | `app/src/main/java/com/nikolasguillen/questlog/QuestLogNavDisplay.kt` |
-| Scaffold, bottom bar and back stack | `app/.../MainActivity.kt`, `app/.../QuestLogBottomBar.kt` |
+| Navigation entry point (`NavDisplay` + the single `entryProvider`) | `shared/src/commonMain/kotlin/com/nikolasguillen/questlog/shared/QuestLogNavDisplay.kt` |
+| Theme resolution, scaffold, bottom bar and back stack | `shared/.../QuestLogRoot.kt`, `shared/.../QuestLogBottomBar.kt` |
+| Koin assembly (`initKoin`) and every ViewModel binding | `shared/.../di/SharedKoin.kt`, `shared/.../di/ViewModelModule.kt` |
+| Splash screen, edge-to-edge, deep link parsing | `app/.../MainActivity.kt` |
 | Shared UI constants | `core/ui/util/Constants.kt` (`object UiConstants`) |
 | Network↔domain↔entity mappers | `core/data/mapper/GameMapper.kt` |
 | `GameDescriptionTranslator` | `core/domain/translation/` (impl in `core/data/translation/`) |
