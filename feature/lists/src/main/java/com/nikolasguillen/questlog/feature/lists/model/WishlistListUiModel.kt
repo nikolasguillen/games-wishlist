@@ -3,7 +3,6 @@ package com.nikolasguillen.questlog.feature.lists.model
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Immutable
 import com.nikolasguillen.questlog.core.ui.model.UiText
-import java.io.File
 
 @Immutable
 internal data class WishlistListUiModel(
@@ -14,6 +13,4 @@ internal data class WishlistListUiModel(
     val coverImagePath: String?,
     val gameCountText: UiText,
     val isDefault: Boolean
-) {
-    val coverImageFile: File? get() = coverImagePath?.let { File(it) }
-}
+)

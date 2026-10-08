@@ -50,7 +50,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
@@ -59,7 +59,6 @@ import com.nikolasguillen.questlog.core.model.WishlistIcon
 import com.nikolasguillen.questlog.core.ui.R
 import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
 import com.nikolasguillen.questlog.core.ui.model.WishlistFormUiModel
-import java.io.File
 
 /**
  * Bottom sheet with the form shared by creating and editing a wishlist. It has no create/edit mode of its
@@ -206,9 +205,7 @@ private fun CoverImagePicker(
         ) {
             if (coverImage != null) {
                 AsyncImage(
-                    // A stored cover is an absolute file path and a freshly picked one a content URI.
-                    // Wrapping the path keeps it from depending on how Coil parses a scheme-less string.
-                    model = if (coverImage.startsWith("/")) File(coverImage) else coverImage,
+                    model = coverImage,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     error = painterResource(R.drawable.placeholder),

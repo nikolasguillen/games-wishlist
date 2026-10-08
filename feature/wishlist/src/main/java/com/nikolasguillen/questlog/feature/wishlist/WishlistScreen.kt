@@ -54,7 +54,6 @@ import com.nikolasguillen.questlog.feature.wishlist.model.WishlistStatusFilter
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiEffect
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiEvent
 import com.nikolasguillen.questlog.feature.wishlist.model.WishlistUiState
-import java.io.File
 import kotlinx.coroutines.launch
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
@@ -178,7 +177,7 @@ internal fun WishlistContent(
                 title = state.listName.asString(),
                 description = state.description,
                 iconRes = state.iconRes,
-                coverImageFile = state.coverImagePath?.let(::File),
+                coverImagePath = state.coverImagePath,
                 gameCountText = state.gameCountText.asString(),
                 isDefaultList = state.isDefaultList
             )

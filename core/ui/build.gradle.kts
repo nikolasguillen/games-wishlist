@@ -42,7 +42,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     // Required for Compose Previews in Android Studio
     debugImplementation(libs.androidx.compose.ui.tooling)
-    implementation(libs.coil.compose)
+    implementation(libs.coil3.compose)
     api(libs.haze)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)

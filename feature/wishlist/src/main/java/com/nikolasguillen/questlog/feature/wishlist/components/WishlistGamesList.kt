@@ -200,7 +200,7 @@ private fun WishlistGamesListPreview(
                     title = "Couch Co-op",
                     description = "Games worth playing together.",
                     iconRes = WishlistIcon.MULTIPLAYER.toDrawableRes(),
-                    coverImageFile = null,
+                    coverImagePath = null,
                     gameCountText = "2 games",
                     isDefaultList = false
                 )

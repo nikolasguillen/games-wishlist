@@ -30,7 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
@@ -40,7 +40,6 @@ import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.lists.R
 import com.nikolasguillen.questlog.feature.lists.model.WishlistListUiModel
-import java.io.File
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
 @Composable
@@ -64,7 +63,7 @@ internal fun WishlistRow(
         ) {
             WishlistAvatar(
                 iconRes = list.iconRes,
-                coverImageFile = list.coverImageFile,
+                coverImagePath = list.coverImagePath,
                 gameCountText = list.gameCountText
             )
             Column(modifier = Modifier.weight(1f)) {
@@ -107,7 +106,7 @@ internal fun WishlistRow(
 @Composable
 private fun WishlistAvatar(
     @DrawableRes iconRes: Int,
-    coverImageFile: File?,
+    coverImagePath: String?,
     gameCountText: UiText,
     modifier: Modifier = Modifier
 ) {
@@ -119,9 +118,9 @@ private fun WishlistAvatar(
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surface)
         ) {
-            if (coverImageFile != null) {
+            if (coverImagePath != null) {
                 AsyncImage(
-                    model = coverImageFile,
+                    model = coverImagePath,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     error = painterResource(iconRes),

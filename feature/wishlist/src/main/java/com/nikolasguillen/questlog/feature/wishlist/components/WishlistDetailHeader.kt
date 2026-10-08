@@ -22,7 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
@@ -31,7 +31,6 @@ import com.nikolasguillen.questlog.core.ui.component.CustomInfoChip
 import com.nikolasguillen.questlog.core.ui.component.CustomSummaryBadge
 import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
 import com.nikolasguillen.questlog.core.ui.util.modifiers.rememberCoverBrush
-import java.io.File
 import com.nikolasguillen.questlog.core.ui.R as CoreUiR
 
 @Composable
@@ -39,7 +38,7 @@ internal fun WishlistDetailHeader(
     title: String,
     description: String?,
     @DrawableRes iconRes: Int,
-    coverImageFile: File?,
+    coverImagePath: String?,
     gameCountText: String,
     isDefaultList: Boolean,
     modifier: Modifier = Modifier
@@ -50,7 +49,7 @@ internal fun WishlistDetailHeader(
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(MaterialTheme.spacing.large)
     ) {
-        WishlistCover(iconRes = iconRes, coverImageFile = coverImageFile)
+        WishlistCover(iconRes = iconRes, coverImagePath = coverImagePath)
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
@@ -92,7 +91,7 @@ internal fun WishlistDetailHeader(
 @Composable
 private fun WishlistCover(
     @DrawableRes iconRes: Int,
-    coverImageFile: File?,
+    coverImagePath: String?,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -103,9 +102,9 @@ private fun WishlistCover(
             .background(rememberCoverBrush())
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
     ) {
-        if (coverImageFile != null) {
+        if (coverImagePath != null) {
             AsyncImage(
-                model = coverImageFile,
+                model = coverImagePath,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 error = painterResource(iconRes),
@@ -130,7 +129,7 @@ private fun WishlistDetailHeaderPreview() {
             title = "Couch Co-op",
             description = "Games worth playing together, controllers in hand.",
             iconRes = WishlistIcon.MULTIPLAYER.toDrawableRes(),
-            coverImageFile = null,
+            coverImagePath = null,
             gameCountText = "12 games",
             isDefaultList = false
         )
@@ -145,7 +144,7 @@ private fun WishlistDetailHeaderDefaultNoDescriptionPreview() {
             title = "Wishlist",
             description = null,
             iconRes = WishlistIcon.HEART.toDrawableRes(),
-            coverImageFile = null,
+            coverImagePath = null,
             gameCountText = "1 game",
             isDefaultList = true
         )

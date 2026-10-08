@@ -4,7 +4,7 @@ Modular Android app for tracking a videogame wishlist, backed by the IGDB API.
 
 Kotlin 2.4.10 · AGP 9.4.1 · Gradle 9.7.1 (JVM toolchain 21) · compileSdk/targetSdk 37 · minSdk 29 · Java 11
 Jetpack Compose (BOM 2026.09.00) · Koin 4.2.2 · Room 2.8.5 (KSP, bundled SQLite driver) · Ktor 3 + kotlinx.serialization · Navigation 3
-Coil 2 · WorkManager + `koin-androidx-workmanager` (Radar's release-date refresh)
+Coil 3 · WorkManager + `koin-androidx-workmanager` (Radar's release-date refresh)
 
 ## Git
 
