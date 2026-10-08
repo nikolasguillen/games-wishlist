@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="edit_list_action">Edit list</string>
+    <string name="edit_wishlist_sheet_title">Edit Wishlist</string>
+    <string name="delete_list_action">Delete list</string>
+    <string name="set_as_default_action">Set as default</string>
+    <string name="default_list_set_message">This is now your default list</string>
+    <string name="delete_list_dialog_title">Delete "%1$s"?</string>
+    <string name="delete_list_dialog_message">The list and its cover image will be removed. The games themselves stay in your library.</string>
+    <string name="delete_action">Delete</string>
+    <string name="wishlist_section_header">%1$s · %2$d</string>
+    <string name="no_status_section_label">No Status</string>
+    <string name="unable_to_delete_wishlist">Unable to delete the list. Please try again.</string>
+    <string name="remove_game_action">Remove game</string>
+    <string name="remove_game_dialog_title">Remove "%1$s"?</string>
+    <string name="remove_game_dialog_message">The game will be removed from this list. You can add it back at any time.</string>
+    <string name="filter_all">All</string>
+    <string name="filtered_empty_message">No games match this filter</string>
+    <string name="show_as_grid_action">Show as grid</string>
+    <string name="show_as_list_action">Show as list</string>
+    <string name="list_view_state">List view</string>
+    <string name="grid_view_state">Grid view</string>
+    <plurals name="game_count">
+        <item quantity="one">%1$d game</item>
+        <item quantity="other">%1$d games</item>
+    </plurals>
+</resources>

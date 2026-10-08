@@ -1,0 +1,160 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="rating_format">Rating: %1$d/100</string>
+    <string name="release_date_format">Released on: %1$s</string>
+    <string name="release_date_tba">TBA</string>
+    <string name="search_placeholder">Search for a game…</string>
+    <string name="developer_format">Developed by: %1$s</string>
+    <string name="publisher_format">Published by: %1$s</string>
+    <string name="platforms_format">Platforms: %1$s</string>
+    <string name="rating_not_defined">Rating: N/A</string>
+
+    <!-- Date Suffixes -->
+    <string name="suffix_st">st</string>
+    <string name="suffix_nd">nd</string>
+    <string name="suffix_rd">rd</string>
+    <string name="suffix_th">th</string>
+
+    <!-- Ordinal Date Format: Month DaySuffix, Year (e.g. May 20th, 2026) -->
+    <string name="date_ordinal_format">%1$s %2$d%3$s, %4$d</string>
+
+    <!-- Error Messages -->
+    <string name="error_no_network">No internet connection.\nCheck your network and try again.</string>
+    <string name="error_request_timeout">The request took too long.\nPlease try again.</string>
+    <string name="error_http">The server returned an error (%1$d).\nPlease try again later.</string>
+    <string name="error_file_storage">Couldn't save the file.\nPlease try again.</string>
+    <string name="error_unknown">An unexpected error occurred.\nPlease try again.</string>
+    <string name="retry">Retry</string>
+
+    <!-- Game Types -->
+    <string name="gametype_main_game">Main Game</string>
+    <string name="gametype_dlc_addon">DLC/Add-on</string>
+    <string name="gametype_expansion">Expansion</string>
+    <string name="gametype_bundle">Bundle</string>
+    <string name="gametype_standalone_expansion">Standalone Expansion</string>
+    <string name="gametype_mod">Mod</string>
+    <string name="gametype_episode">Episode</string>
+    <string name="gametype_season">Season</string>
+    <string name="gametype_remake">Remake</string>
+    <string name="gametype_remaster">Remaster</string>
+    <string name="gametype_expanded_game">Expanded Game</string>
+    <string name="gametype_port">Port</string>
+    <string name="gametype_fork">Fork</string>
+    <string name="gametype_pack">Pack / Addon</string>
+    <string name="gametype_update">Update</string>
+
+    <!-- Sorting -->
+    <string name="sort_relevance">Relevance</string>
+    <string name="sort_name">Name</string>
+    <string name="sort_rating">Rating</string>
+    <string name="sort_release_date">Release Date</string>
+    <string name="remove">Remove</string>
+    <string name="empty_list_message">No games found here.</string>
+    <string name="default_list_label">Default</string>
+    <string name="no_lists_message">No lists yet. Create one!</string>
+
+    <!-- Game Detail -->
+    <string name="game_detail_title">Game Details</string>
+    <string name="back_content_description">Back</string>
+    <string name="settings_content_description">Settings</string>
+    <string name="add_to_list_content_description">Add to List</string>
+    <string name="personal_progress_title">Personal Progress</string>
+    <string name="expand_content_description">Expand</string>
+    <string name="collapse_content_description">Collapse</string>
+    <string name="status_label">Status:</string>
+    <string name="priority_label">Priority:</string>
+    <string name="personal_notes_label">Personal Notes</string>
+    <string name="description_title">Description</string>
+    <string name="platforms_title">Platforms</string>
+    <string name="developers_title">Developers</string>
+    <string name="publishers_title">Publishers</string>
+    <string name="engines_title">Game Engines</string>
+    <string name="release_dates_title">Release Dates</string>
+    <string name="genres_title">Genres</string>
+    <string name="add_to_list">Add to list</string>
+    <string name="no_lists_found_message">No lists found. Go to 'My Lists' to create one.</string>
+    <string name="add_to_wishlist_content_description">Add to wishlist</string>
+    <string name="remove_from_wishlist_content_description">Remove from wishlist</string>
+    <string name="choose_list_content_description">Choose list</string>
+    <string name="scroll_to_top_content_description">Scroll to top</string>
+    <string name="score_title">Score</string>
+    <string name="rating_title">Rating</string>
+    <string name="hypes_title">Hypes</string>
+    <string name="rating_count_title">Ratings</string>
+    <string name="priority_low">Low</string>
+    <string name="priority_medium">Medium</string>
+    <string name="priority_high">High</string>
+
+    <!-- Game Status -->
+    <string name="status_want_to_buy">Want to buy</string>
+    <string name="status_bought">Bought</string>
+    <string name="status_playing">Playing</string>
+    <string name="status_completed">Completed</string>
+    <string name="status_dropped">Dropped</string>
+
+    <string name="appearance_light">Light</string>
+    <string name="appearance_dark">Dark</string>
+    <string name="appearance_system">Follow System</string>
+
+    <!-- Related Games -->
+    <string name="related_parent_game">Main Game</string>
+    <string name="related_dlcs">DLCs</string>
+    <string name="related_expansions">Expansions</string>
+    <string name="related_remakes">Remakes</string>
+    <string name="related_remasters">Remasters</string>
+    <string name="main_release_date_title">Release date</string>
+
+    <!-- Platform Codes (compact, max 3 characters, for icon tiles) -->
+    <string name="platform_code_ps1" tools:ignore="Typos">PS1</string>
+    <string name="platform_code_ps3">PS3</string>
+    <string name="platform_code_ps4">PS4</string>
+    <string name="platform_code_ps5">PS5</string>
+    <string name="platform_code_psp">PSP</string>
+    <string name="platform_code_psv">PSV</string>
+    <string name="platform_code_xbx">XBX</string>
+    <string name="platform_code_x360">360</string>
+    <string name="platform_code_xb1" tools:ignore="Typos">XB1</string>
+    <string name="platform_code_xsx">XSX</string>
+    <string name="platform_code_n64">N64</string>
+    <string name="platform_code_wii">WII</string>
+    <string name="platform_code_nes">NES</string>
+    <string name="platform_code_snes">SNS</string>
+    <string name="platform_code_nds">NDS</string>
+    <string name="platform_code_ngc">NGC</string>
+    <string name="platform_code_3ds">3DS</string>
+    <string name="platform_code_wiiu">WIU</string>
+    <string name="platform_code_switch">SWI</string>
+    <string name="platform_code_switch2">SW2</string>
+    <string name="platform_code_pc">PC</string>
+    <string name="platform_code_mac">MAC</string>
+    <string name="platform_code_linux">LNX</string>
+    <string name="platform_code_ios">iOS</string>
+    <string name="platform_code_android">AND</string>
+    <string name="platform_code_arcade">ARC</string>
+    <string name="platform_overflow_format">+%1$d</string>
+    <string name="apply_button">Apply</string>
+    <string name="proceed_label">Proceed</string>
+    <string name="cancel">Cancel</string>
+    <string name="add_label">Add</string>
+    <string name="save_label">Save</string>
+    <string name="got_it">Got it</string>
+    <string name="select_list_subtitle">Choose a list to add %1$s to</string>
+
+    <!-- Release notifications -->
+    <string name="enable_notification_content_description">Turn on release reminder</string>
+    <string name="disable_notification_content_description">Turn off release reminder</string>
+    <string name="notification_permission_denied_title">Notifications are off</string>
+    <string name="notification_permission_denied_message">This reminder won't arrive until notifications are enabled for QuestLog in system settings.</string>
+    <string name="notification_permission_denied_action">Open settings</string>
+    <string name="list_name_label">List name</string>
+    <string name="description_optional_label">Description (optional)</string>
+    <string name="icon_optional_label">Icon (optional)</string>
+    <string name="cover_image_optional_label">Cover image (optional)</string>
+    <string name="add_cover_image_content_description">Add cover image from gallery</string>
+    <string name="remove_cover_image_action">Remove cover image</string>
+
+    <string name="owned_platforms_search_hint">Search platforms</string>
+    <string name="owned_platforms_search_clear_content_description">Clear search</string>
+    <string name="owned_platforms_clear_search_action">Clear search</string>
+    <string name="owned_platforms_no_results">No platform matches your search.</string>
+    <string name="owned_platforms_empty">No platforms cached yet.\nCheck your connection and try again.</string>
+</resources>

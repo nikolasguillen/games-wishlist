@@ -85,13 +85,35 @@ not inline in a composable.
 
 ## UiText (`model/UiText.kt`)
 
-The localization abstraction that keeps ViewModels free of `Context`. `@Immutable sealed class UiText` with
-`DynamicString`, `StringResource(@StringRes resId, vararg args)`,
-`PluralResource(@PluralsRes resId, quantity, vararg args)` and `CompoundString(texts, separator)`.
-Two resolvers: `@Composable asString()` and `asString(context: Context)`.
+The localization abstraction that keeps ViewModels free of any platform handle. `@Immutable sealed class
+UiText` with `DynamicString`, `StringResource(res: org.jetbrains.compose.resources.StringResource, vararg args)`,
+`PluralResource(res: PluralStringResource, quantity, vararg args)` and `CompoundString(texts, separator)`.
+Two resolvers: `@Composable asString()` and `suspend resolve()` for code outside composition, such as an
+effect that shows a snackbar. They cannot share a name: a composable and a suspend function with the same
+signature are conflicting overloads.
 
 `StringResource` and `PluralResource` have **hand-written `equals`/`hashCode`/`toString`** because of the
 `vararg` array — array identity would break state comparison. If you add a case, preserve that discipline.
+
+## Resources and platform code
+
+Strings and drawables live in `src/commonMain/composeResources/` (`values/strings.xml`, `drawable/`), and the
+module's `Res` class is public: `com.nikolasguillen.questlog.core.ui.resources.Res`. Compose resources differ
+from Android's in ways that fail quietly, so:
+
+- **Every resource used needs its own import** (`import ...core.ui.resources.retry`); `Res.string.retry` alone
+  does not resolve.
+- **Write quotes plainly** (`won't`, `Delete "%1$s"?`). A backslash-escaped `\'` is printed with its
+  backslash. `\n` works.
+- **Format arguments are positional only: `%1$s`, `%1$d`.** `%1s` is printed literally.
+- **Vector drawables take literal colours** (`#FFFFFFFF`), not `@android:color/...`: the parser throws at the
+  first composition. Gradient fills (`aapt:attr`) work.
+
+What cannot be common sits behind `expect` with its Android `actual` in `androidMain`:
+`rememberNotificationPermissionState` and `NotificationPermissionDeniedDialog` (the permission and the system
+notification settings), `rememberCoverImagePicker` (the image picker; it hands back a source string, a content
+URI on Android), `rememberTextSharer` (the share sheet) and `fullScreenDialogProperties`. A common file never
+imports `android.*` or `androidx.activity.*`.
 
 ## Mappers (`mapper/`)
 

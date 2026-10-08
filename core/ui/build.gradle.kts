@@ -1,51 +1,35 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.compose)
+    id("questlog.kmp.compose")
 }
 
-
-android {
-    namespace = "com.nikolasguillen.questlog.core.ui"
-    compileSdk = 37
-
-    defaultConfig {
-        minSdk = 29
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    buildFeatures {
-        compose = true
-    }
+compose.resources {
+    // Other modules read this module's strings and drawables, so its Res class is public.
+    publicResClass = true
 }
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
+        freeCompilerArgs.add("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
     }
-}
 
-dependencies {
-    implementation(project(":core:common"))
-    implementation(project(":core:model"))
-    implementation(project(":core:designsystem"))
-    implementation(libs.kotlinx.datetime)
-    
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.material3.versioned)
-    api(libs.androidx.compose.material.icons.core)
-    api(libs.androidx.compose.material.icons.extended)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    // Required for Compose Previews in Android Studio
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    implementation(libs.coil3.compose)
-    api(libs.haze)
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.core.ktx)
+    sourceSets {
+        commonMain.dependencies {
+            implementation(project(":core:common"))
+            implementation(project(":core:model"))
+            implementation(project(":core:designsystem"))
+            implementation(libs.kotlinx.datetime)
 
-    testImplementation(libs.junit)
+            api(libs.jetbrains.material.icons.core)
+            api(libs.jetbrains.material.icons.extended)
+            implementation(libs.coil3.compose)
+            api(libs.haze)
+        }
+        androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.core.ktx)
+        }
+        androidHostTest.dependencies {
+            implementation(libs.junit)
+        }
+    }
 }

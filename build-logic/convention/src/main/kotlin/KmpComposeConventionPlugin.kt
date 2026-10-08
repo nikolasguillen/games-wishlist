@@ -27,6 +27,12 @@ class KmpComposeConventionPlugin : Plugin<Project> {
                 targets.withType<KotlinMultiplatformAndroidLibraryTarget>().configureEach {
                     androidResources { enable = true }
                 }
+                // The Android target runs the Jetpack Material 3 the catalog pins (the app pins the same one), which
+                // is newer than the alpha the multiplatform artifact is built on. Compiling against it keeps the
+                // compile classpath equal to the runtime one.
+                sourceSets.getByName("androidMain").dependencies {
+                    implementation(lib("androidx-compose-material3-versioned"))
+                }
                 sourceSets.getByName("commonMain").dependencies {
                     implementation(lib("jetbrains-compose-runtime"))
                     implementation(lib("jetbrains-compose-foundation"))

@@ -1,0 +1,36 @@
+<resources>
+    <string name="onboarding_welcome_headline">Your game wishlist, in one place</string>
+    <string name="onboarding_welcome_body">QuestLog keeps track of the games you want to play, and tells you when they come out.</string>
+
+    <string name="onboarding_discover_headline">Find your next game</string>
+    <string name="onboarding_discover_body">Search the whole catalogue, or let Discover suggest games based on the ones you have saved.</string>
+
+    <string name="onboarding_lists_headline">Save games into lists</string>
+    <string name="onboarding_lists_body">Keep as many lists as you like, and give each game a play status to keep track of your backlog.</string>
+
+    <string name="onboarding_radar_headline">Never miss a release</string>
+    <string name="onboarding_radar_body">Radar shows when your saved games come out. Turn on a reminder for any of them.</string>
+
+    <string name="onboarding_platforms_headline">Which platforms do you own?</string>
+    <string name="onboarding_platforms_body">Pick the ones you play on. It's optional, and you can change it any time in Settings.</string>
+    <string name="onboarding_platforms_none_selected">Nothing selected — suggestions and release dates are not filtered by platform.</string>
+    <plurals name="onboarding_platforms_filtering">
+        <item quantity="one">Suggestions and release dates are filtered to this platform.</item>
+        <item quantity="other">Suggestions and release dates are filtered to these %1$d platforms.</item>
+    </plurals>
+
+    <string name="onboarding_reminders_headline">Get a heads-up on release day</string>
+    <string name="onboarding_reminders_body">QuestLog can notify you the day a saved game comes out. You choose which games, and Android will ask for permission next.</string>
+    <string name="onboarding_reminders_granted_headline">Reminders are available</string>
+    <string name="onboarding_reminders_granted_body">Turn on a reminder for any saved game, from Radar or from its page.</string>
+    <string name="onboarding_reminders_declined_headline">Reminders are off</string>
+    <string name="onboarding_reminders_declined_body">You won't get release-day reminders for now. You can turn them on any time in Settings.</string>
+    <string name="onboarding_reminders_allow">Allow notifications</string>
+    <string name="onboarding_reminders_not_now">Not now</string>
+
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_get_started">Get started</string>
+    <string name="onboarding_page_position">Page %1$d of %2$d</string>
+</resources>

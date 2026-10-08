@@ -7,17 +7,20 @@ Read the root `CLAUDE.md` first for the module dependency rules.
 ## Module layout
 
 ```
-feature/<name>/src/main/java/com/nikolasguillen/questlog/feature/<name>/
+feature/<name>/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/<name>/
   <Name>Screen.kt         public screen + internal stateless content + private @Preview
   <Name>ViewModel.kt
   components/             sub-composables, one logical unit per file
   mapper/                 internal top-level extension functions
   model/                  UiState, UiEvent, UiEffect, ContentState, *UiModel — one type per file
-  res/values/strings.xml  per-feature strings
+feature/<name>/src/commonMain/composeResources/values/strings.xml   per-feature strings
+feature/<name>/src/androidHostTest/kotlin/...                      the JVM tests
 ```
 
-The directory `feature/game-detail` maps to the package `feature.gamedetail` (no hyphen). Feature build
-files are copy-paste identical — copy `feature/search/build.gradle.kts` when adding a module.
+The directory `feature/game-detail` maps to the package `feature.gamedetail` (no hyphen). A feature's
+build file applies `questlog.kmp.feature`, which supplies the six allowed `:core:*` modules, Compose and the test
+libraries, and lists only what that feature adds on top (Coil, `kotlinx-datetime`, haze, the back handler).
+Copy `feature/onboarding/build.gradle.kts` when adding a module.
 
 ## Screen structure
 
@@ -130,14 +133,19 @@ guarded by `if (backStack.lastOrNull() != nextRoute)`.
 
 ## Resources and visibility
 
-- Each feature owns its `strings.xml`, imported as a bare `R`. Cross-module resources are always imported
-  with an alias: `import com.nikolasguillen.questlog.core.ui.R as CoreUiR`.
+- Each feature owns its `strings.xml`, and its `Res` is imported bare
+  (`...feature.<name>.resources.Res`). Cross-module resources are always imported with an alias:
+  `import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes`. Each resource used also needs its
+  own import (`import ...resources.retry`) — the accessors are extension properties. The quirks of Compose
+  resources (quotes, `%1$s`, vector colours) are in `core/ui/CLAUDE.md`.
+- Android-only calls (`Intent`, `Context`, permissions, pickers) do not appear in a feature: they sit behind
+  an `expect` in `:core:ui` — `rememberTextSharer()`, `rememberNotificationPermissionState()` and the like.
 - Default to `internal` for anything local to the feature: UiState, UiEvent, mappers, sub-composables,
   `uiState`, `onEvent`. Only the screen entry point and the ViewModel class need to be public.
 
 ## Tests
 
-`src/test/`, JUnit4 + MockK + `kotlinx-coroutines-test`. Mock the use cases directly, never the repository.
+`src/androidHostTest/` (run with `./gradlew :feature:<name>:testAndroidHostTest`), JUnit4 + MockK + `kotlinx-coroutines-test`. Mock the use cases directly, never the repository.
 Standard setup: `StandardTestDispatcher`, `Dispatchers.setMain(...)` in `@Before` / `resetMain()` in
 `@After`, `advanceUntilIdle()` after triggering an event. Give each test class a KDoc header explaining
-what it covers. Reference: `feature/search/src/test/.../SearchViewModelTest.kt`.
+what it covers. Reference: `feature/search/src/androidHostTest/.../SearchViewModelTest.kt`.

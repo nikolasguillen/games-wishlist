@@ -102,7 +102,7 @@ Verification means compiling and running the JVM test suites locally:
 
 The existing test source sets — `core/data`, `core/domain`, `core/network`, `core/ui`,
 `feature/{search,radar,lists,game-detail,settings,wishlist,onboarding}` and `app` — MUST stay green. New ViewModel,
-mapper, use-case or error-mapping logic gets a test in its own module's `src/test` using JUnit4 +
+mapper, use-case or error-mapping logic gets a test in its own module's test source set (`src/androidHostTest` in a multiplatform module) using JUnit4 +
 MockK + `kotlinx-coroutines-test`, mocking the use cases rather than the repository, with a
 `StandardTestDispatcher` and `Dispatchers.setMain`/`resetMain`.
 
@@ -115,7 +115,7 @@ the real commands makes the verification step actionable.
 ## Additional Constraints
 
 **Platform**: Kotlin 2.4.20, AGP 9.4.1, Gradle 9.7.1 (JVM toolchain 21), compileSdk/targetSdk 37,
-minSdk 29, Java 11, Compose BOM 2026.09.00, Koin 4.2.2, Room 2.8.5 (KSP, bundled SQLite driver), Ktor 3 + kotlinx.serialization,
+minSdk 29, Java 11, Compose Multiplatform 1.12.1 (Material 3 1.5.0-beta01 on Android), Koin 4.2.2, Room 2.8.5 (KSP, bundled SQLite driver), Ktor 3 + kotlinx.serialization,
 Navigation 3, Coil 3, WorkManager. Build configuration is shared through the convention plugins in
 `build-logic/`: a module applies the one that matches its kind and takes its namespace, `compileSdk`,
 `minSdk` and Java version from it. Modules the migration has not reached yet still repeat them by hand;
@@ -162,8 +162,8 @@ When a decision would be hard to undo, say so in the plan and let the owner choo
 One `data class` / `sealed interface` / `class` per file. The single exception is a sealed hierarchy
 keeping its direct implementations in the same file — `core/navigation/Routes.kt` and the
 state/event/effect files under `feature/*/model/`. UI-layer models carry the `UiModel` suffix;
-domain models stay clean. A cross-module `R` import is always aliased `<Module>R` (`CoreUiR`); a
-module's own `R` is imported bare. Default to `internal` for anything local to a module. Comments,
+domain models stay clean. A cross-module `Res` import is always aliased `<Module>Res` (`CoreUiRes`); a
+module's own `Res` is imported bare. Default to `internal` for anything local to a module. Comments,
 KDoc and all internal documentation are written in English regardless of the conversation language.
 
 `docs/tech-debt.md` lists the known deviations from these rules. Do not silently fix them while
@@ -193,4 +193,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.2.8 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08
+**Version**: 1.2.9 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08

@@ -3,7 +3,7 @@
 Modular Android app for tracking a videogame wishlist, backed by the IGDB API.
 
 Kotlin 2.4.20 · AGP 9.4.1 · Gradle 9.7.1 (JVM toolchain 21) · compileSdk/targetSdk 37 · minSdk 29 · Java 11
-Jetpack Compose (BOM 2026.09.00) · Koin 4.2.2 · Room 2.8.5 (KSP, bundled SQLite driver) · Ktor 3 + kotlinx.serialization · Navigation 3
+Compose Multiplatform 1.12.1 (Material 3: JetBrains 1.12.0-alpha03, Jetpack 1.5.0-beta01 on Android) · Koin 4.2.2 · Room 2.8.5 (KSP, bundled SQLite driver) · Ktor 3 + kotlinx.serialization · Navigation 3
 Coil 3 · WorkManager + `koin-androidx-workmanager` (Radar's release-date refresh)
 
 ## Git
@@ -56,7 +56,7 @@ suggesting a command.
 
 ## Module graph and dependency rules
 
-18 modules, all under the `com.nikolasguillen.questlog.*` namespace. Sources live in `src/main/java/`.
+18 modules, all under the `com.nikolasguillen.questlog.*` namespace. Sources live in `src/commonMain/kotlin/` and `src/androidMain/kotlin/` (`:core:ai` and `:app` keep `src/main/java/`).
 
 ```
 :app  →  everything
@@ -78,8 +78,9 @@ These boundaries are load-bearing — check them before adding a dependency:
 - **Build configuration lives in `build-logic/` convention plugins** (`questlog.kmp.library`, …). A module
   applies the plugin that matches its kind and declares only its own dependencies: the namespace,
   `compileSdk = 37`, `minSdk = 29` and Java 11 come from the plugin, never from the module. The migration is
-  converting modules one by one (`specs/010-kmp-migration`); a module that still repeats them by hand is not
-  yet converted, so copy a converted one. Register a new module in `settings.gradle.kts`.
+  converting modules one by one (`specs/010-kmp-migration`). `:core:ai` keeps a hand-written build file on
+  purpose, being Android-only, and `:app` follows when the shared module lands. Register a new module in
+  `settings.gradle.kts`.
 
 ## Data flow
 
@@ -102,11 +103,12 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
   exception does not extend to types that merely live nearby: a cross-ref, a relation POJO or a second
   model gets its own file.
 - UI-layer models carry the `UiModel` suffix. Domain models stay clean.
-- A cross-module `R` import is always aliased **`<Module>R`** — `CoreUiR` for `:core:ui`, and the same
-  shape for any other module that ends up exporting resources. Never a bare `R` or a shortened alias: the
-  point is that the reader can tell which module owns the resource. A module's **own** `R` is imported
+- A cross-module `Res` import is always aliased **`<Module>Res`** — `CoreUiRes` for `:core:ui`, and the same
+  shape for any other module that ends up exporting resources. Never a bare `Res` or a shortened alias: the
+  point is that the reader can tell which module owns the resource. A module's **own** `Res` is imported
   bare, because there is nothing to disambiguate and the alias only adds noise. `:core:ui` is currently
-  the only module whose resources are read from outside it.
+  the only module whose resources are read from outside it (its `publicResClass` is on). Every resource
+  also needs its own import; `core/ui/CLAUDE.md` lists the ways Compose resources differ from Android's.
 - **Text that can come from `strings.xml` is `UiText`** (`core/ui/model/UiText.kt`) in UiState and
   UiModels — anything formatted through a resource (`platforms_format`), given a resource fallback
   (`release_date_tba`), or derived from an enum (`GameStatus.toLabelUiText()`). A value that can only
@@ -159,9 +161,9 @@ resolved entry instead of annotating it as fixed. History belongs in commit mess
 The owner has decided to migrate the whole project to KMP, with Compose Multiplatform for the UI. The scope
 is in `specs/010-kmp-migration/spec.md`: **iOS is the only added platform** (no desktop, no web), and iOS
 launches **without** release reminders and on-device translation, whose entry points are hidden there (the
-iOS follow-ups are in `docs/roadmap.md`). The repo is still Android-only, with zero `commonMain` source
-sets; the migration is sequenced by that feature's plan and tasks, so follow them rather than restructuring
-ad hoc.
+iOS follow-ups are in `docs/roadmap.md`). Every module except `:core:ai` and `:app` is multiplatform now
+(Android target, and iOS targets that compile once Phase 4's `actual`s exist); the migration is sequenced by
+that feature's plan and tasks, so follow them rather than restructuring ad hoc.
 
 - **Android must build and pass its tests at every commit** (`./gradlew :app:assembleDebug`,
   `./gradlew test`). Never delete or weaken a test to get there. Each step must be one you could pause on.

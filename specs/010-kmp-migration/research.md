@@ -52,6 +52,7 @@ Other facts:
 
 - **Material 3 is still alpha** on the multiplatform side: `material3:1.12.0-alpha03`, based on Jetpack Material3 1.5.0-alpha22.
 - **What Android resolves**: Gradle conflict resolution should keep Android on `androidx.compose.material3:1.5.0-beta01`, which the project pins today. The task that adds CMP must confirm this with `:app:dependencies`.
+- **Resolved in practice (T080):** two `SearchBarScrollBehavior` members used by Search exist only in the beta01 Android runs. JetBrains `1.13.0-alpha02` has them but lifts all of Compose to a 1.13 alpha, which this research rejected. The Android compile classpath is pinned to beta01 and the two calls sit behind an `expect`; the iOS actual targets the alpha API.
 - **iOS gets the alpha build.** The app uses no Expressive APIs, so the gap between alpha22 and beta01 should not matter, but the iOS walkthrough is where it would show.
 
 **Alternatives considered**:
