@@ -61,12 +61,12 @@ class GetTasteProfileUseCase(
             // Publishers are deliberately not a signal: a publisher's catalogue spans genres the
             // user never chose, so it predicts far worse than the studio that made the game.
             game.genres.forEach { genre ->
-                genreScores.merge(genre.id, weight, Double::plus)
-                if (countsPositively) genreCounts.merge(genre.id, 1, Int::plus)
+                genreScores.addScore(genre.id, weight)
+                if (countsPositively) genreCounts.addCount(genre.id)
             }
             game.developers.forEach { developer ->
-                developerScores.merge(developer.id, weight, Double::plus)
-                if (countsPositively) developerCounts.merge(developer.id, 1, Int::plus)
+                developerScores.addScore(developer.id, weight)
+                if (countsPositively) developerCounts.addCount(developer.id)
             }
         }
 
@@ -121,5 +121,13 @@ class GetTasteProfileUseCase(
         val peak = values.maxOfOrNull { kotlin.math.abs(it) } ?: 0.0
         if (peak == 0.0) return emptyMap()
         return mapValues { (id, score) -> TasteSignal(weight = score / peak, count = counts[id] ?: 0) }
+    }
+
+    private fun MutableMap<Int, Double>.addScore(id: Int, weight: Double) {
+        this[id] = (this[id] ?: 0.0) + weight
+    }
+
+    private fun MutableMap<Int, Int>.addCount(id: Int) {
+        this[id] = (this[id] ?: 0) + 1
     }
 }
