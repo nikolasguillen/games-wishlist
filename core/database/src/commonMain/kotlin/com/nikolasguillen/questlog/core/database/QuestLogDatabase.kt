@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.core.database
 
+import androidx.room.ConstructedBy
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
@@ -67,6 +68,7 @@ import com.nikolasguillen.questlog.core.database.util.Converters
     exportSchema = true
 )
 @TypeConverters(Converters::class)
+@ConstructedBy(QuestLogDatabaseConstructor::class)
 abstract class QuestLogDatabase : RoomDatabase() {
     abstract fun gameDao(): GameDao
     abstract fun listDao(): ListDao

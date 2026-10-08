@@ -72,9 +72,15 @@ is how the comma-joined `artworks`/`engines` columns happened in the first place
 
 - Type converters live in a single `util/Converters.kt` (`class Converters`, `@TypeConverter` pairs named
   `fromX`/`toX`), registered via `@TypeConverters(Converters::class)` on the database class.
-- This module owns `res/values/strings.xml`: the default wishlist's name and description, inserted with
-  `connection.execSQL("INSERT INTO wishlists ...")` from `RoomDatabase.Callback.onCreate(SQLiteConnection)`, followed by the
-  `default_wishlist` pointer row. That seed is the only writer of the row.
+- The default wishlist's name and description are **not** this module's: the app supplies them as a
+  `DefaultWishlistSeed`, and `databaseModule` inserts them with `connection.execSQL("INSERT INTO wishlists
+  ...")` from `RoomDatabase.Callback.onCreate(SQLiteConnection)`, followed by the `default_wishlist` pointer
+  row. That seed is the only writer of the row. The module has no resources of its own.
+- Which database file to open is per platform: `databasePlatformModule` (`expect`) binds the
+  `RoomDatabase.Builder<QuestLogDatabase>` and its I/O dispatcher, and the common `databaseModule` adds the
+  driver, the seed and the DAOs. `QuestLogDatabaseConstructor` is `expect`: Room generates its `actual` for
+  every target, so the database class carries `@ConstructedBy`. KSP runs once per target (`kspAndroid`,
+  `kspIosArm64`, `kspIosSimulatorArm64`) in this module's `build.gradle.kts`; a new target needs its line there.
 - `DATABASE_NAME` is a `const val` in the database class's companion object.
 
 See `docs/tech-debt.md` for the known deviations in this module (missing DAO tests).

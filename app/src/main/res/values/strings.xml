@@ -3,4 +3,8 @@
     <string name="search_nav_bar_item">Search</string>
     <string name="radar_nav_bar_item">Radar</string>
     <string name="lists_nav_bar_item">Lists</string>
+
+    <!-- The default wishlist that the database seeds on its first creation -->
+    <string name="default_wishlist_name">Wishlist</string>
+    <string name="default_wishlist_description">My main game wishlist</string>
 </resources>
