@@ -127,7 +127,8 @@ repository today; the migration plan changes it wherever it replaces a library o
 An entity change regenerates the exported schema under `core/database/schemas/` and commits it in
 the same commit. No list-shaped columns. Persisting a game always goes through `GameDao.saveGame`.
 
-**Injection**: Koin, with each layer exposing one module and every ViewModel registered with `viewModelOf` in
+**Injection**: Koin, with each layer exposing one module (plus an `expect` platform module where it needs a
+platform API) and every ViewModel registered with `viewModelOf` in
 `:app`'s `ViewModelKoin.kt`. Feature modules do not depend on Koin. A route with an argument takes it as the
 ViewModel's first constructor parameter, supplied with `parametersOf`. `SavedStateHandle` is not used in this
 project and MUST NOT be introduced. `KoinGraphTest` MUST stay green: it proves every dependency is declared.
@@ -192,4 +193,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.2.7 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08
+**Version**: 1.2.8 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08

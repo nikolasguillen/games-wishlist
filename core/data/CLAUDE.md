@@ -3,10 +3,21 @@
 The single repository implementation plus all mappers, the translation engine and Radar's background
 refresh. This is the **error boundary** of the app: exceptions stop here and become typed results.
 
+## Common and Android
+
+The repository, the common mappers, the three preference stores, `RepositoryErrorMapper.kt` and
+`StaticReleaseRemindersAvailability` are in `commonMain`. Everything that touches an Android API is in
+`androidMain`: `worker/`, `scheduler/`, `notification/ReleaseNotifierImpl`, `translation/` (with
+`mapper/TranslationMapper.kt`, which names ML Kit's types), `local/WishlistCoverImageStorageImpl` and this
+module's `strings.xml`. `:core:ai` is an `androidMain` dependency only. Each platform's bindings are in its
+`dataPlatformModule` (`expect`, with the Android `actual` in `di/DataPlatformModule.android.kt`); the common
+`dataModule` binds only what needs no platform API. A new Android-only class goes in `androidMain` with its
+binding in the `actual` module; shared code reaches it through an interface in `:core:domain`.
+
 ## Repository
 
 `GameRepositoryImpl` implements `GameRepository` (the interface lives in `core/domain/repository/`) and is
-registered as a `singleOf` bound to the interface in `di/DataKoin.kt`. There is one repository for search, history, detail,
+registered as a `singleOf` bound to the interface in `di/DataKoin.kt` (`commonMain`). There is one repository for search, history, detail,
 wishlist, lists, the Discover shelves, the platform catalogue and Radar's release dates — do not add a
 second one without discussing it.
 
@@ -40,11 +51,11 @@ look like mistakes but are deliberate:
 - It matches `IgdbHttpException`, `IgdbTimeoutException` and `IgdbConnectivityException` — **`:core:network`'s
   own types, never the HTTP client's** — so that `:core:data` does not depend on Ktor. Keep it that way: a
   transport failure worth telling apart is translated in `:core:network`. The platform's own connectivity
-  and timeout exceptions are named in `isConnectivityFailure()` / `isTimeoutFailure()`, the only places
-  here that do. `RepositoryErrorMapperTest.kt` covers the behaviour. The network module's exceptions extend
+  and timeout exceptions are named in `isConnectivityFailure()` / `isTimeoutFailure()`, `expect` functions
+  whose Android `actual`s (`RepositoryErrorMapper.android.kt`) are the only places here that do. `RepositoryErrorMapperTest.kt` covers the behaviour. The network module's exceptions extend
   `IOException`, so their branches have to stay **above** the catch-all.
 
-Mapped cases: `UnknownHostException` / `ConnectException` / `SocketException` → `NoNetwork`,
+Mapped cases on Android: `UnknownHostException` / `ConnectException` / `SocketException` → `NoNetwork`,
 `SocketTimeoutException` → `RequestTimeout`, `IgdbHttpException` → `Http(code, message)`, everything else
 → `Unknown(cause)`.
 
@@ -95,7 +106,7 @@ download has to outlive the `SettingsViewModel` that started it, or leaving the 
 ## Background work
 
 Radar's release dates refresh through WorkManager, wired here: `worker/ReleaseDatesRefreshWorker` is a
-plain `CoroutineWorker`, registered with `workerOf` in `dataModule`, that does nothing but call `RefreshReleaseDatesUseCase` and map a failure to `Result.retry()`,
+plain `CoroutineWorker`, registered with `workerOf` in the Android `dataPlatformModule`, that does nothing but call `RefreshReleaseDatesUseCase` and map a failure to `Result.retry()`,
 and `scheduler/ReleaseRefreshSchedulerImpl` implements `core/domain/radar/ReleaseRefreshScheduler` over it.
 
 Both enqueues are **unique with a `KEEP` policy**, for two different reasons, and both are load-bearing:

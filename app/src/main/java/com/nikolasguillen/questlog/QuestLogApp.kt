@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.work.Configuration
 import com.nikolasguillen.questlog.core.common.di.commonPlatformModule
 import com.nikolasguillen.questlog.core.data.di.dataModule
+import com.nikolasguillen.questlog.core.data.di.dataPlatformModule
 import com.nikolasguillen.questlog.core.database.di.databaseModule
 import com.nikolasguillen.questlog.core.database.di.databasePlatformModule
 import com.nikolasguillen.questlog.core.domain.di.domainModule
@@ -33,7 +34,7 @@ class QuestLogApp : Application(), Configuration.Provider {
             androidContext(this@QuestLogApp)
             modules(
                 commonPlatformModule, domainModule, networkModule, networkPlatformModule, databaseModule,
-                databasePlatformModule, dataModule, interimModule, viewModelModule
+                databasePlatformModule, dataModule, dataPlatformModule, interimModule, viewModelModule
             )
         }
         releaseRefreshScheduler.schedulePeriodicRefresh()

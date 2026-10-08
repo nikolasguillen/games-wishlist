@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.work.WorkerParameters
 import com.nikolasguillen.questlog.core.common.di.commonPlatformModule
 import com.nikolasguillen.questlog.core.data.di.dataModule
+import com.nikolasguillen.questlog.core.data.di.dataPlatformModule
 import com.nikolasguillen.questlog.core.database.di.databaseModule
 import com.nikolasguillen.questlog.core.database.di.databasePlatformModule
 import com.nikolasguillen.questlog.core.domain.di.domainModule
@@ -26,7 +27,7 @@ class KoinGraphTest {
         module {
             includes(
                 commonPlatformModule, domainModule, networkModule, networkPlatformModule, databaseModule,
-                databasePlatformModule, dataModule, interimModule, viewModelModule
+                databasePlatformModule, dataModule, dataPlatformModule, interimModule, viewModelModule
             )
         }.verify(extraTypes = listOf(
             Context::class, WorkerParameters::class, Int::class, Long::class, Boolean::class

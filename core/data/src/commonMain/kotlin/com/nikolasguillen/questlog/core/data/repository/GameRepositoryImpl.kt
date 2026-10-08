@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlin.time.Clock
 
 /**
  * The autocomplete dropdown shows at most four games — with the keyboard open there is no room for
@@ -250,7 +251,7 @@ class GameRepositoryImpl(
         fetch: suspend () -> AppResult<List<Game>>
     ): AppResult<List<Game>> {
         val fetchedAt = discoverCacheDao.getLaneFetchedAt(lane)
-        val isFresh = fetchedAt != null && System.currentTimeMillis() - fetchedAt < DISCOVER_LANE_CACHE_TTL
+        val isFresh = fetchedAt != null && Clock.System.now().toEpochMilliseconds() - fetchedAt < DISCOVER_LANE_CACHE_TTL
         if (isFresh) {
             return AppResult.success(discoverCacheDao.getLaneGames(lane).map { it.toGame() })
         }
@@ -275,7 +276,7 @@ class GameRepositoryImpl(
     private suspend fun persistLane(lane: DiscoverLane, games: List<Game>) {
         discoverCacheDao.replaceLane(
             lane = lane,
-            fetchedAt = System.currentTimeMillis(),
+            fetchedAt = Clock.System.now().toEpochMilliseconds(),
             games = games.map { it.toCachedGameEntity() },
             entries = games.mapIndexed { position, game ->
                 DiscoverLaneEntryEntity(lane = lane, gameId = game.id, position = position)
@@ -294,7 +295,7 @@ class GameRepositoryImpl(
             val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
             val platformFilter = platformIds.toPlatformFilter()
             val windowStart =
-                System.currentTimeMillis() / 1000 - RECOMMENDED_RELEASE_WINDOW_YEARS * SECONDS_PER_YEAR
+                Clock.System.now().toEpochMilliseconds() / 1000 - RECOMMENDED_RELEASE_WINDOW_YEARS * SECONDS_PER_YEAR
             // Coarse half of the recommendation: narrow to the genre and hand back a wide, roughly
             // good pool. Ordering it properly is the caller's job -- apicalypse cannot express a
             // rating weighted by how many people voted, so sorting happens locally on the pool.
@@ -371,7 +372,7 @@ class GameRepositoryImpl(
 
             val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
             val idList = rankedIds.joinToString(",")
-            val nowSeconds = System.currentTimeMillis() / 1000
+            val nowSeconds = Clock.System.now().toEpochMilliseconds() / 1000
             val releaseFilter = if (upcomingOnly) {
                 // A game with no first_release_date is admitted only alongside an explicit TBD
                 // release_dates row -- gating on first_release_date = null is what keeps a stale TBD
@@ -409,7 +410,7 @@ class GameRepositoryImpl(
         searchHistoryDao.insert(
             SearchHistoryEntity(
                 query = query,
-                timestamp = System.currentTimeMillis()
+                timestamp = Clock.System.now().toEpochMilliseconds()
             )
         )
     }
@@ -455,11 +456,11 @@ class GameRepositoryImpl(
                     where id = $id;
                 """.trimIndent()
                 val networkGame = apiService.getGameDetail(queryText).first()
-                networkGame.toGame().copy(isWishlisted = isWishlisted, detailsFetchedAt = System.currentTimeMillis())
+                networkGame.toGame().copy(isWishlisted = isWishlisted, detailsFetchedAt = Clock.System.now().toEpochMilliseconds())
             }
 
             // Update last viewed timestamp and save local
-            val updatedGame = game.copy(lastViewedAt = System.currentTimeMillis())
+            val updatedGame = game.copy(lastViewedAt = Clock.System.now().toEpochMilliseconds())
             saveGameLocal(updatedGame)
             AppResult.success(Unit)
         } catch (e: Exception) {
