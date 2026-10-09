@@ -40,3 +40,8 @@ __pycache__/
 
 # Kotlin Gradle plugin session files
 .kotlin/
+
+# Xcode
+xcuserdata/
+iosApp/build/
+DerivedData/
