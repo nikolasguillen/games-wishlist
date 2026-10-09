@@ -153,3 +153,32 @@ deep link `questlog://game/{id}` on the **R8 release build** from a cold start (
 `:shared:linkDebugFrameworkIosSimulatorArm64` plus `compileKotlinIosArm64` pass. iOS: the walkthrough above, run on the
 code as it stands apart from the last build setting. Windows checks (T065, T090) still need the owner's Windows machine.
 No scratch file remains in `specs/010-kmp-migration/`.
+
+## Phase 8 — Convergence
+
+**T123, Android reminders on the final build** (`emulator-5554`, debug build, notifications allowed). Turning the reminder on
+from GTA VI's detail page shows the snackbar and queues a `ReleaseNotificationWorker` job next to the periodic
+`ReleaseDatesRefreshWorker` in `dumpsys jobscheduler`. The emulator's clock cannot be moved from `adb shell`, so the game's
+release date in the app's own database was set to yesterday and the queued job was forced with
+`cmd jobscheduler run -f -n androidx.work.systemjobscheduler com.nikolasguillen.questlog <id>`. Run while the date was still
+in the future, the worker correctly posted nothing; run after the edit, it posted "Grand Theft Auto VI is out today!", and
+tapping the notification opened that game's detail page. Settings shows "Release reminders · 1 game", and with the
+notification permission revoked it adds "Notifications are off — reminders won't arrive"; switching a reminder on then raises
+the system permission request. The welcome tour has five pages and the "Never miss a release" page still offers reminders.
+Everything was put back afterwards (date, opt-ins, permission). Radar's periodic refresh restores any real date on its own.
+
+**T126, iOS row 11, the 24 h refresh.** One saved game with a stale release date was seeded into the simulator's database. With
+`release_dates_last_refresh_epoch_ms` removed from `settings.preferences_pb`, the next launch replaced the date with IGDB's and
+wrote a new timestamp. A second launch inside the 24 h window, with the date made stale again, left it alone. Row 10 (search
+with the network off) is still open: it needs the Mac's network switched off, which was not done from here.
+
+**T127, iOS scrolling.** Instruments' Animation Hitches template does not record on a simulator ("Hitches is not supported on this
+platform"), so frame pacing could not be measured. The Discover shelves and the search grid were driven with swipes and kept
+every cover loaded; the risk is recorded in `docs/tech-debt.md`.
+
+**T125, older iOS runtime.** The app built for the simulator SDK and ran on an **iPhone 15 Pro, iOS 17.0** (an iOS 16 runtime
+is not installed). Row 1: fresh install, launch screen, then the five-page welcome flow without a reminders page. Row 3: after
+"Skip", a search for "hades" returned live results with covers, the favourite on Hades II's detail page saved it to the
+default list, and after killing and relaunching the app there was no welcome flow and the wishlist still held the game.
+Row 9: swiping back from the detail page returned to the previous screen. No difference from iOS 26.5 was seen. The deployment
+target (16.0) is still not run: see the iOS 16 entry in `docs/tech-debt.md`.

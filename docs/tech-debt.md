@@ -52,17 +52,19 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
   no exemption for component sizes. They came over unchanged from the create-list sheet. Resolve it by
   adding size tokens to `:core:designsystem`, or by agreeing that component sizes are exempt.
 
-- **The iOS 16 floor is untested**: the app targets iOS 16.0, but the only simulator runtimes the project has
-  been run on are iOS 26.5 and 27.0, and no physical device. The static framework links against 16.0 with a
-  version warning from a bundled ICU object (built for 18.5). Run it on an older runtime before shipping.
+- **The iOS 16 floor is untested**: the app targets iOS 16.0, but the oldest runtime it has been run on is
+  iOS 17.0 (simulator; the others are 26.5 and 27.0), and it has never run on a physical device or on iOS 16.x.
+  The static framework links against 16.0 with a version warning from a bundled ICU object (built for 18.5).
+  Run it on an iOS 16 runtime, or raise the deployment target to 17.0, before shipping.
 - **Compose Multiplatform runs ahead of the Android BOM and Material 3 is split**: on Android, Compose
   UI/runtime/foundation resolve to 1.12.1 (the BOM said 1.10) and Material 3 is pinned to androidx `1.5.0-beta01`
   by `questlog.kmp.compose`, while iOS uses JetBrains' `1.12.0-alpha03`, so the search bar needs the
   `SearchBarScrollBehaviorCompat` `expect`/`actual`. JetBrains' `1.13.0-alpha02` was rejected. Drop the pin and
   the `expect` when both sides ship the same stable Material 3.
 - **iOS scroll smoothness and the offline error path were never run**: the first frame appears within 1.4 s on a
-  simulator, but jank in the Discover shelves, the search grid and the wishlist needs a device, and a simulator
-  cannot be taken offline from here (the Darwin error mapping is unit-tested instead).
+  simulator and the Discover shelves and the search grid scroll with every cover loading, but frame pacing needs
+  a device (Instruments' Animation Hitches template refuses to record on a simulator). A simulator also cannot be
+  taken offline without switching the Mac's network off (the Darwin error mapping is unit-tested instead).
 
 ## Infrastructure
 
