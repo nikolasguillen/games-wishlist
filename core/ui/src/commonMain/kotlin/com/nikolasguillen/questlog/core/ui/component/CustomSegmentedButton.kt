@@ -45,6 +45,7 @@ fun <T> CustomSegmentedButton(
                     vertical = MaterialTheme.spacing.large
                 ),
                 label = { label(option) },
+                icon = {},
                 colors = SegmentedButtonDefaults.colors(
                     activeContainerColor = MaterialTheme.appColors.segmentedButtonSelectedColor,
                     activeContentColor = MaterialTheme.appColors.segmentedButtonSelectedContentColor,
