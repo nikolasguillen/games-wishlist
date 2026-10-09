@@ -23,6 +23,21 @@ Not verified:
 
 Counts: 71 rules checked, 64 pass, 7 violated (6 minor, 1 with a medium finding); 12 findings (0 blockers, 2 medium, 10 low); 48 of 48 platform files mapped.
 
+## Resolution
+
+Decisions taken by the owner after reading this report, and what was done on `011-kmp-architecture-audit` (the findings below stay as observed at the baseline):
+
+| Finding | Decision | Outcome |
+|---|---|---|
+| F-001, F-006, F-007, F-008, F-009, F-010 | Add the documentation fixes | Fixed in `cf903e24` (`CLAUDE.md`, constitution 1.3.3, `tech-debt.md`, `core/ui` and `core/designsystem` `CLAUDE.md`, the 010 contracts and the two open Windows task descriptions) |
+| F-005, F-011 | Recommended cleanups for the same pass | Fixed in `b74e499b` (12 catalog entries and 8 orphaned versions removed; `:shared` icons dependency; stale build comments) |
+| F-004 | Make `:core:data`'s implementation classes `internal` | Fixed in `24bf3d53` (18 declarations in 18 files). Re-verified: `./gradlew test`, `:androidApp:assembleDebug`, `:androidApp:assembleRelease`, the iOS framework link, `:core:network:iosSimulatorArm64Test` and the Xcode simulator build all pass |
+| F-002 | Merge first, check Windows afterwards | Open by decision: run `.\gradlew.bat :androidApp:assembleDebug` and `:core:domain:testAndroidHostTest` on the Windows machine and record them in `specs/010-kmp-migration/baseline.md` |
+| Minified release app | Smoke-tested by the owner | OK (the "Not verified" item above is closed) |
+| F-003, F-012 | Not decided | Left as follow-ups |
+
+Merge order: `010-kmp-migration` first, then `011-kmp-architecture-audit` (it is 010's tip plus the spec commits, the owner's two settings fixes and the commits above, so it merges without conflicts).
+
 ## Verification
 
 | Command | Status | Notes |
