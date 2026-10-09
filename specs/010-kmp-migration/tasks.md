@@ -322,7 +322,7 @@ The per-commit amendments in Phases 2–3 already corrected the library rules; t
 - [X] T119 Verify SC-004: run the two `find … | wc -l` commands in `quickstart.md` § Shared-code ratio and record the percentage; it must be at least 90%, and every file under `androidMain`/`iosMain` must implement a capability from `contracts/platform-contracts.md`
 - [X] T120 Verify SC-007: change one shared rule (for example the `24 h` refresh constant, or a bucket boundary in `ReleaseBucketResolver`) in a single edit, rebuild both apps, and confirm both reflect it; revert the change
 - [X] T121 Run `quickstart.md` end to end once more (both walkthroughs) on the final commit and remove any leftover scratch from `specs/010-kmp-migration/` that is not part of the spec set
-- [ ] T122 Run `speckit-analyze` for a cross-artifact consistency pass over spec.md, plan.md and this file before declaring the feature done
+- [X] T122 Run `speckit-analyze` for a cross-artifact consistency pass over spec.md, plan.md and this file before declaring the feature done
 
 ---
 
