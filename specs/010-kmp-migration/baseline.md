@@ -108,3 +108,18 @@ Run on the branch after Phase 5.
   `core/data/build.gradle.kts` line 27, inside `androidMain.dependencies`.
 - **`:core:model`**: no `android`, `androidx.compose` or `androidx.activity` import under `core/model/src`.
 - **Navigation 3**: no build file outside `core/navigation` and `shared` mentions it.
+
+## T116 — History sampling (SC-005)
+
+Five commits spread across Phases 2–5, each checked out in its own worktree with `local.properties` copied in,
+then `./gradlew test :app:assembleDebug`. All five built and passed.
+
+| Commit | Step | Test classes / tests | Failures |
+|---|---|---|---|
+| `459a02a4` | `refactor: replace hilt with koin` | 52 / 488 | 0 |
+| `037989b5` | `refactor(database): move room to the bundled sqlite driver` | 54 / 513 | 0 |
+| `c90dd39f` | `build: settle the unit test command for multiplatform modules` | 55 / 517 | 0 |
+| `c795d30b` | `refactor: convert the ui layer to compose multiplatform` | 55 / 517 | 0 |
+| `dc73f412` | `feat(ios): add the ios app shell` | 58 / 535 | 0 |
+
+The floor from T001 is 456 tests; every sampled commit is above it.

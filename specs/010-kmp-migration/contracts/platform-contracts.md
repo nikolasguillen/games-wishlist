@@ -153,8 +153,8 @@ internal expect fun SystemBarsAppearance(darkTheme: Boolean)
 ```kotlin
 enum class DateStyle { SHORT, MEDIUM, LONG, FULL }
 
-internal expect fun formatLocalDate(date: LocalDate, pattern: String): String
-internal expect fun formatLocalDate(date: LocalDate, style: DateStyle): String
+internal expect fun renderLocalDate(date: LocalDate, pattern: String): String
+internal expect fun renderLocalDate(date: LocalDate, style: DateStyle): String
 ```
 
 | Android | iOS |
@@ -183,6 +183,19 @@ internal expect fun Throwable.toPlatformTransportFailure(): Throwable?
 The Darwin engine's exception is a Ktor type, and `:core:data` must not depend on Ktor, so the
 `NSError` translation is in `:core:network`, which already owns every Ktor-to-own-exception step.
 `RepositoryErrorMapper` stays in `commonMain` and rethrows `CancellationException` first.
+
+### Compatibility seams found during implementation
+
+Small `expect`s that are not capabilities but keep one source set free of a platform difference. Each has a
+single `actual` per platform and no behaviour of its own to specify.
+
+| `expect` | Module | Why it exists |
+|---|---|---|
+| `fullScreenDialogProperties()` | `:core:ui` | How a dialog opts out of the platform's own insets so it can fill the screen edge to edge is a per-platform `DialogProperties` option (`decorFitsSystemWindows` on Android, `usePlatformInsets` on iOS) |
+| `SearchBarScrollBehaviorCompat` | `:feature:search` | Android is pinned to the androidx Material 3 `1.5.0-beta01` search-bar API and iOS runs JetBrains' `1.12.0-alpha03`, whose scroll-behaviour members differ. Removed when both ship the same stable release |
+| `runBlockingCompat` | `:shared` | `runBlocking` is not visible from `commonMain`; the default-wishlist seed reads Compose resources, which are suspending, from Room's synchronous creation callback on its own thread |
+| `applicationSupportDirectory()` and `TopViewController` (iOS only) | `:core:common`, `:core:ui` | Helpers the iOS `actual`s share: where Room, DataStore and cover files live, and which `UIViewController` presents the photo picker and the share sheet |
+| `TranslationPromptBuilder`, `TranslationArtifactSanitizer`, `TranslationMapper` (Android only) | `:core:data` | Parts of the Android translator; the iOS translator is `UnsupportedGameDescriptionTranslator` |
 
 ## Platform shell (not contracts)
 
