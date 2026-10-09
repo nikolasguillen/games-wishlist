@@ -15,8 +15,8 @@ plugins {
 }
 
 // A multiplatform module has no `test` task: its JVM tests are `testAndroidHostTest`. This root task keeps
-// `./gradlew test` meaning "every module's unit tests" while modules are converted one by one. It is not
-// `allTests`, which would also run the iOS simulator tests and skip the Android modules not yet converted.
+// `./gradlew test` meaning "every module's unit tests". It is not `allTests`, which would also run the iOS simulator
+// tests.
 tasks.register("test") {
     group = "verification"
     description = "Runs the Android host tests of every multiplatform module."

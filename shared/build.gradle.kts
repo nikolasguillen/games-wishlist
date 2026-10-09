@@ -41,7 +41,6 @@ kotlin {
             implementation(libs.jetbrains.lifecycle.viewmodel.compose)
             implementation(libs.jetbrains.lifecycle.runtime.compose)
             implementation(libs.jetbrains.lifecycle.viewmodel.navigation3)
-            implementation(libs.jetbrains.material.icons.extended)
             implementation(libs.kotlinx.coroutines.core)
             // Coil finds its network fetcher on the classpath; the engine that fetches covers is chosen per platform.
             implementation(libs.coil3.network.ktor3)
