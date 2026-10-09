@@ -30,7 +30,7 @@ android {
 }
 
 dependencies {
-    // Everything shared - the screens, the navigation, the DI assembly - is in :shared; :app is the Android entry
+    // Everything shared - the screens, the navigation, the DI assembly - is in :shared; :androidApp is the Android entry
     // point around it.
     implementation(project(":shared"))
     implementation(project(":core:domain"))

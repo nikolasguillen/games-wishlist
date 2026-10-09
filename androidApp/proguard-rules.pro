@@ -13,7 +13,7 @@
 #}
 
 # Keep line numbers so release crash traces can be de-obfuscated with the
-# mapping file in app/build/outputs/mapping/release/, while hiding the original
+# mapping file in androidApp/build/outputs/mapping/release/, while hiding the original
 # source file names.
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile

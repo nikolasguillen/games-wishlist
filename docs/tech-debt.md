@@ -33,7 +33,7 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
   bumped**. Before the first release: freeze the schema, decide where `Migration` objects live, and
   replace the blanket fallback. `exportSchema` is already on and the schema under `core/database/schemas/`
   is checked in, which is the starting point.
-- **Release is signed with the debug key**: `app/build.gradle.kts` still uses
+- **Release is signed with the debug key**: `androidApp/build.gradle.kts` still uses
   `signingConfigs.getByName("debug")`, so the APK cannot be distributed. Needs a real keystore read from a
   git-ignored `keystore.properties`.
 - **The Discover "More from &lt;studio&gt;" shelf misses multi-studio franchises**: IGDB gives each
@@ -76,5 +76,5 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
   `GeminiNanoClient` wraps `Generation.getClient()`, a static factory that would need static mocking to
   reach, and the logic actually worth testing (mapping ML Kit's types) is covered where it lands, in
   `:core:data`'s `GameDescriptionTranslatorImplTest`. No Compose UI tests — `ui-test-junit4` is
-  wired into `:app` but only the template `ExampleInstrumentedTest` exists. `app/src/test/ExampleUnitTest.kt`
+  wired into `:androidApp` but only the template `ExampleInstrumentedTest` exists. `androidApp/src/test/ExampleUnitTest.kt`
   is also an untouched template.

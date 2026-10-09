@@ -52,7 +52,7 @@ verifiable steps") is an invariant on every commit, plus the governance work tha
 ## Checks that gate every commit (FR-011, SC-005)
 
 ```bash
-./gradlew :app:assembleDebug
+./gradlew :androidApp:assembleDebug
 ./gradlew test                      # replaced by the settled aggregate once T060 is done
 ```
 

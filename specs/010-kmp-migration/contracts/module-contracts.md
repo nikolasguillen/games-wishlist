@@ -6,7 +6,7 @@ Principle I's rules are preserved; this file lists the only edges that change.
 ## Dependency graph after the migration
 
 ```
-:app (android.application) ──► :shared
+:androidApp (android.application) ──► :shared
 iosApp (Xcode)             ──► QuestLogShared.framework  (built from :shared)
 
 :shared ──► every :feature:*  and every :core:* except :core:ai
@@ -23,12 +23,12 @@ iosApp (Xcode)             ──► QuestLogShared.framework  (built from :shar
 
 | Edge | Before | After | Why |
 |---|---|---|---|
-| `:app` → `:feature:*`, `:core:*` | direct | **removed**. `:app` depends on `:shared`, `:core:navigation` (to turn the `questlog://game/{id}` intent into a `GameDetailRoute`) and `:core:domain` (for `QuestLogApp`'s `ReleaseRefreshScheduler` call). The workers are declared in `:core:data`'s Android Koin module, so `:app` never sees them | Navigation, scaffold and DI assembly move to `:shared` (research R2) |
-| `:shared` → features and core | did not exist | new | `:shared` takes over `:app`'s role as the module that knows navigation |
+| `:androidApp` → `:feature:*`, `:core:*` | direct | **removed**. `:androidApp` depends on `:shared`, `:core:navigation` (to turn the `questlog://game/{id}` intent into a `GameDetailRoute`) and `:core:domain` (for `QuestLogApp`'s `ReleaseRefreshScheduler` call). The workers are declared in `:core:data`'s Android Koin module, so `:androidApp` never sees them | Navigation, scaffold and DI assembly move to `:shared` (research R2) |
+| `:shared` → features and core | did not exist | new | `:shared` takes over `:androidApp`'s role as the module that knows navigation |
 | `:core:data` → `:core:ai` | `implementation` | `androidMain` `implementation` | ML Kit stays Android-only |
 
 **Navigation ownership**: `:shared` is the only module that knows navigation. It holds the single
-`entryProvider` in `QuestLogNavDisplay`. `:app` hosts `QuestLogRoot` and owns no route, no
+`entryProvider` in `QuestLogNavDisplay`. `:androidApp` hosts `QuestLogRoot` and owns no route, no
 `entryProvider` and no screen. Adding a route still means exactly two edits outside the feature:
 
 - a `NavKey` in `core/navigation/Routes.kt`, also registered in its `SavedStateConfiguration` in the same file;
@@ -47,7 +47,7 @@ iosApp (Xcode)             ──► QuestLogShared.framework  (built from :shar
 | `:core:designsystem`, `:core:ui` | Compose Multiplatform (runtime, foundation, material3, resources), material icons 1.7.3, Haze, Coil 3; `androidMain`: `activity-compose`, `core-ktx` | Koin (UI modules receive dependencies via parameters, as today) |
 | `feature/*` | as `:core:ui`, plus JetBrains `lifecycle-viewmodel-compose` / `lifecycle-runtime-compose` | Koin (ViewModels are registered in `:shared`); every module the feature rules already forbid |
 | `:shared` | everything above, plus `koin-compose`, `koin-compose-viewmodel`, `navigation3-ui`, `lifecycle-viewmodel-navigation3` (JetBrains) | — |
-| `:app` | `:shared`, `activity-compose`, `core-splashscreen`, `koin-android`, `koin-androidx-workmanager`, WorkManager | Hilt (removed) |
+| `:androidApp` | `:shared`, `activity-compose`, `core-splashscreen`, `koin-android`, `koin-androidx-workmanager`, WorkManager | Hilt (removed) |
 
 `ViewModel`s keep constructor parameters only. Koin resolves them in `:shared`, so feature modules don't
 depend on Koin. This mirrors today's rule that features own no DI module.
@@ -62,7 +62,7 @@ levels, targets or the JVM target.
 | `questlog.kmp.library` | `org.jetbrains.kotlin.multiplatform`, `com.android.kotlin.multiplatform.library` | `android { compileSdk = 37; minSdk = 29; withHostTest {} }`, JVM target 11, `iosArm64()`, `iosSimulatorArm64()`, `namespace` derived from the project path | all non-UI KMP modules |
 | `questlog.kmp.compose` | `questlog.kmp.library`, `org.jetbrains.compose`, `org.jetbrains.kotlin.plugin.compose` | `androidResources { enable = true }`, Compose Multiplatform resources (`packageOfResClass` derived from the namespace) | `:core:designsystem`, `:core:ui`, `:shared` |
 | `questlog.kmp.feature` | `questlog.kmp.compose` | `commonMain` dependencies on the six allowed `:core:*` modules and the JetBrains lifecycle artifacts; `androidHostTest` dependencies on JUnit4, MockK, `kotlinx-coroutines-test` | the 7 feature modules |
-| `questlog.android.application` | `com.android.application`, `org.jetbrains.kotlin.plugin.compose` | `compileSdk`/`minSdk`/`targetSdk`, Java 11 | `:app` |
+| `questlog.android.application` | `com.android.application`, `org.jetbrains.kotlin.plugin.compose` | `compileSdk`/`minSdk`/`targetSdk`, Java 11 | `:androidApp` |
 
 **Module-specific additions** stay in the module's own `build.gradle.kts`:
 
@@ -85,7 +85,7 @@ levels, targets or the JVM target.
 | `<module>/src/main/res/drawable/*` | `<module>/src/commonMain/composeResources/drawable/*` |
 | `core/data/src/main/res/values/strings.xml` (notification texts) | `core/data/src/androidMain/res/values/strings.xml` (Android-only) |
 | `<module>/src/test/java/...` | `<module>/src/androidHostTest/kotlin/...` |
-| `app/src/main/AndroidManifest.xml` | unchanged (the only manifest in the repo; permissions, `questlog://game` deep link, `Application`) |
+| `androidApp/src/main/AndroidManifest.xml` | unchanged (the only manifest in the repo; permissions, `questlog://game` deep link, `Application`) |
 
 Files are moved with `git mv`, so `git log --follow` keeps their history. Moving a file and changing it
 happen in separate commits wherever the change is more than an import.

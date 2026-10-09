@@ -34,11 +34,11 @@ The project is built following the highest Android development standards, with a
 ## 🏗️ Architecture and Modularization
 
 The project follows a **multi-module** structure to ensure scalability and separation of concerns. Every module
-except `:core:ai` and `:app` is multiplatform; platform code lives in `androidMain` and `iosMain` behind the
+except `:core:ai` and `:androidApp` is multiplatform; platform code lives in `androidMain` and `iosMain` behind the
 contracts shared code defines.
 
 ### App Modules
-- `:app`: The Android entry point (activity, `Application`, manifest).
+- `:androidApp`: The Android entry point (activity, `Application`, manifest).
 - `:shared`: Navigation, the app root, Koin assembly and the iOS framework `iosApp/` embeds.
 - `iosApp/`: The Xcode project that hosts the shared UI on iOS.
 

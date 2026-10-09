@@ -5,10 +5,10 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
 
 /**
- * `questlog.android.application`: the Android entry point. It owns the SDK levels and Java 11 so `:app`'s build
+ * `questlog.android.application`: the Android entry point. It owns the SDK levels and Java 11 so `:androidApp`'s build
  * file keeps only what is its own: the application id, versions, signing and shrinking.
  *
- * `:app` cannot be a multiplatform module (AGP 9 forbids it next to `com.android.application`), so everything
+ * `:androidApp` cannot be a multiplatform module (AGP 9 forbids it next to `com.android.application`), so everything
  * shared lives in `:shared`.
  */
 class AndroidApplicationConventionPlugin : Plugin<Project> {

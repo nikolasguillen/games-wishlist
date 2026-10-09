@@ -29,7 +29,7 @@ with `git config core.hooksPath .githooks`.
 ## Commands
 
 ```bash
-./gradlew :app:assembleDebug                                    # full debug build
+./gradlew :androidApp:assembleDebug                               # full debug build
 ./gradlew :feature:search:compileDebugKotlin --console=plain -q  # fast single-module check (Android module)
 ./gradlew :core:domain:compileCommonMainKotlinMetadata -q       # fast check of a multiplatform module's commonMain
 ./gradlew test                                                   # all JVM unit tests
@@ -45,11 +45,11 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -sdk iphonesimulator 
 `testAndroidHostTest`. `allTests` is not the project's command — it also runs the iOS simulator tests, which need
 a Mac.
 
-Prefer a single-module `compileDebugKotlin` for quick feedback; only run `:app:assembleDebug` when the
+Prefer a single-module `compileDebugKotlin` for quick feedback; only run `:androidApp:assembleDebug` when the
 change spans modules or touches DI wiring.
 
 This project is developed on both macOS and Windows. The commands above use the Unix wrapper; on Windows
-(PowerShell) use the batch wrapper instead — `.\gradlew.bat :app:assembleDebug`. Check the platform before
+(PowerShell) use the batch wrapper instead — `.\gradlew.bat :androidApp:assembleDebug`. Check the platform before
 suggesting a command. The iOS targets exist only on macOS (`kotlin.native.ignoreDisabledTargets`): on Windows
 Gradle skips them, and the `ios*` tasks and `xcodebuild` are Mac-only.
 
@@ -61,10 +61,10 @@ Gradle skips them, and the `ios*` tasks and `xcodebuild` are Mac-only.
 
 ## Module graph and dependency rules
 
-19 modules (plus `build-logic/` and the `iosApp/` Xcode project), all under the `com.nikolasguillen.questlog.*` namespace. Sources live in `src/commonMain/kotlin/` and `src/androidMain/kotlin/` (`:core:ai` and `:app` keep `src/main/java/`).
+19 modules (plus `build-logic/` and the `iosApp/` Xcode project), all under the `com.nikolasguillen.questlog.*` namespace. Sources live in `src/commonMain/kotlin/` and `src/androidMain/kotlin/` (`:core:ai` and `:androidApp` keep `src/main/java/`).
 
 ```
-:app  →  :shared  →  everything
+:androidApp  →  :shared  →  everything
 :feature:{search, radar, game-detail, lists, wishlist, settings, onboarding}
 :core:{common, model, network, database, data, domain, ui, designsystem, navigation, ai}
 ```
@@ -72,7 +72,7 @@ Gradle skips them, and the `ios*` tasks and `xcodebuild` are Mac-only.
 These boundaries are load-bearing — check them before adding a dependency:
 
 - **`:shared` is the only module that knows about navigation.** It owns the back stack, the bottom bar, the single
-  `entryProvider` and the Koin assembly; `:app` is only the Android entry point around it (the activity, the
+  `entryProvider` and the Koin assembly; `:androidApp` is only the Android entry point around it (the activity, the
   `Application`, the manifest). Feature modules own no nav graph. `:shared` depends on every other module except
   `:core:ai`.
 - **`feature/*` depends only on** `:core:common`, `:core:model`, `:core:domain`, `:core:ui`,
@@ -87,7 +87,7 @@ These boundaries are load-bearing — check them before adding a dependency:
   applies the plugin that matches its kind and declares only its own dependencies: the namespace,
   `compileSdk = 37`, `minSdk = 29` and Java 11 come from the plugin, never from the module. The migration is
   converting modules one by one (`specs/010-kmp-migration`). `:core:ai` keeps a hand-written build file on
-  purpose, being Android-only; `:app` applies `questlog.android.application`, because AGP 9 does not allow an
+  purpose, being Android-only; `:androidApp` applies `questlog.android.application`, because AGP 9 does not allow an
   application module to be multiplatform. Register a new module in
   `settings.gradle.kts`.
 
@@ -151,7 +151,7 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
 | Navigation entry point (`NavDisplay` + the single `entryProvider`) | `shared/src/commonMain/kotlin/com/nikolasguillen/questlog/shared/QuestLogNavDisplay.kt` |
 | Theme resolution, scaffold, bottom bar and back stack | `shared/.../QuestLogRoot.kt`, `shared/.../QuestLogBottomBar.kt` |
 | Koin assembly (`initKoin`) and every ViewModel binding | `shared/.../di/SharedKoin.kt`, `shared/.../di/ViewModelModule.kt` |
-| Splash screen, edge-to-edge, deep link parsing | `app/.../MainActivity.kt` |
+| Splash screen, edge-to-edge, deep link parsing | `androidApp/.../MainActivity.kt` |
 | iOS entry point (`MainViewController`) and the Xcode project that hosts it | `shared/src/iosMain/.../MainViewController.kt`, `iosApp/` |
 | Shared UI constants | `core/ui/util/Constants.kt` (`object UiConstants`) |
 | Network↔domain↔entity mappers | `core/data/mapper/GameMapper.kt` |
@@ -173,9 +173,9 @@ resolved entry instead of annotating it as fixed. History belongs in commit mess
 The whole project is Kotlin Multiplatform with Compose Multiplatform for the UI. **iOS is the only platform
 besides Android** (no desktop, no web), and it ships **without** release reminders and on-device translation,
 whose entry points are hidden there; the iOS follow-ups are in `docs/roadmap.md`. Every module except `:core:ai`
-and `:app` is multiplatform. The history and decisions are in `specs/010-kmp-migration`.
+and `:androidApp` is multiplatform. The history and decisions are in `specs/010-kmp-migration`.
 
-- **Android must build and pass its tests at every commit** (`./gradlew :app:assembleDebug`,
+- **Android must build and pass its tests at every commit** (`./gradlew :androidApp:assembleDebug`,
   `./gradlew test`). Never delete or weaken a test to get there.
 - **Shared code goes in `commonMain`.** Never import `android.*` or `java.*` there: dates are `kotlinx-datetime`, files and IO are `kotlinx-io`, and a string with a placeholder
   is a Compose resource with positional `%1$s`.

@@ -24,7 +24,7 @@ Measured on `develop` (main sources only, `build/` excluded):
 | `:core:ui` | 61 | 20 files read `R.*`, `HtmlCompat`, photo picker, notification permission, `UiText.asString(Context)` |
 | `:core:navigation` | 1 | Navigation 3 runtime (`NavKey`) |
 | `feature/*` (7) | 140 | `R.*` in 52 files, `LocalContext` for snackbar text (5 screens), share `Intent` (game detail), `BackHandler` (2), `shadowglow` (1) |
-| `:app` | 4 | Activity, splash, edge-to-edge, `RoundedCorner`, Hilt entry points, `QuestLogNavDisplay`, `QuestLogBottomBar` |
+| `:androidApp` | 4 | Activity, splash, edge-to-edge, `RoundedCorner`, Hilt entry points, `QuestLogNavDisplay`, `QuestLogBottomBar` |
 
 Other facts:
 
@@ -51,7 +51,7 @@ Other facts:
 **Risk to track**:
 
 - **Material 3 is still alpha** on the multiplatform side: `material3:1.12.0-alpha03`, based on Jetpack Material3 1.5.0-alpha22.
-- **What Android resolves**: Gradle conflict resolution should keep Android on `androidx.compose.material3:1.5.0-beta01`, which the project pins today. The task that adds CMP must confirm this with `:app:dependencies`.
+- **What Android resolves**: Gradle conflict resolution should keep Android on `androidx.compose.material3:1.5.0-beta01`, which the project pins today. The task that adds CMP must confirm this with `:androidApp:dependencies`.
 - **Resolved in practice (T080):** two `SearchBarScrollBehavior` members used by Search exist only in the beta01 Android runs. JetBrains `1.13.0-alpha02` has them but lifts all of Compose to a 1.13 alpha, which this research rejected. The Android compile classpath is pinned to beta01 and the two calls sit behind an `expect`; the iOS actual targets the alpha API.
 - **iOS gets the alpha build.** The app uses no Expressive APIs, so the gap between alpha22 and beta01 should not matter, but the iOS walkthrough is where it would show.
 
@@ -65,7 +65,7 @@ Other facts:
 **Decision**:
 
 - **Library modules**: all 16 except `:core:ai` become KMP libraries using `org.jetbrains.kotlin.multiplatform` + **`com.android.kotlin.multiplatform.library`**. Android settings move into `kotlin { android { … } }`.
-- **`:app` stays** a `com.android.application` module, but it shrinks to the Android entry point:
+- **`:androidApp` stays** a `com.android.application` module, but it shrinks to the Android entry point:
   - `QuestLogApp` (`Application`, Koin start, WorkManager factory);
   - `MainActivity` (splash, edge-to-edge, `setContent { QuestLogRoot(...) }`);
   - manifest, launcher icons and splash theme;
@@ -80,16 +80,16 @@ Other facts:
 
 **Rationale**:
 
-- **AGP 9 forbids it**: a module cannot apply `kotlin.multiplatform` together with `com.android.application`, and the opt-out flags are deprecated in 9.4.1 and removed in AGP 10. The navigation entry point and scaffold therefore cannot stay in `:app` if iOS is to reach them.
+- **AGP 9 forbids it**: a module cannot apply `kotlin.multiplatform` together with `com.android.application`, and the opt-out flags are deprecated in 9.4.1 and removed in AGP 10. The navigation entry point and scaffold therefore cannot stay in `:androidApp` if iOS is to reach them.
 - **Navigation stays in one place.** Moving it into `:shared` keeps "one module owns navigation, features own none". It also matches the KMP template layout, which pairs an Android app module with a shared Compose module and `iosApp/`.
 
 **Alternatives considered**:
 
-- *Keep the scaffold in `:app` and write a second, iOS-only nav graph*: rejected. It duplicates the `entryProvider`, and SC-007 (one edit per rule) would fail.
-- *Make `:app` itself KMP using the deprecated opt-outs*: rejected, because it stops building on AGP 10.
-- *Name the new module `:composeApp` and rename `:app` to `:androidApp`* (the wizard layout): rejected. Renaming `:app` touches the `applicationId` history, run configurations and every doc reference for no behaviour gain.
+- *Keep the scaffold in `:androidApp` and write a second, iOS-only nav graph*: rejected. It duplicates the `entryProvider`, and SC-007 (one edit per rule) would fail.
+- *Make `:androidApp` itself KMP using the deprecated opt-outs*: rejected, because it stops building on AGP 10.
+- *Name the new module `:composeApp` and rename `:app` to `:androidApp`* (the wizard layout): `:composeApp` was rejected, because `:shared` is not a Compose-only module. The rename of `:app` to `:androidApp` was first rejected as churn for no behaviour gain, and the owner asked for it after the migration; the `applicationId` and the namespace did not change.
 
-**Constitution impact**: Principle I says "`:app` is the only module that knows about navigation". After the move, `:shared` owns navigation and `:app` only hosts it. This is a wording amendment (see Complexity Tracking in `plan.md`).
+**Constitution impact**: Principle I says "`:androidApp` is the only module that knows about navigation". After the move, `:shared` owns navigation and `:androidApp` only hosts it. This is a wording amendment (see Complexity Tracking in `plan.md`).
 
 ## R3 — Convention plugins (`build-logic`)
 
@@ -102,7 +102,7 @@ Other facts:
   - enables `withHostTest {}`.
 - **`questlog.kmp.compose`**: adds the Compose compiler, the CMP plugin and Compose resources, with `androidResources { enable = true }`.
 - **`questlog.kmp.feature`**: applies both of the above plus the six allowed `:core:*` dependencies and the Koin ViewModel artifacts.
-- **`questlog.android.application`**: used by `:app` only.
+- **`questlog.android.application`**: used by `:androidApp` only.
 
 **Rationale**:
 
@@ -209,7 +209,7 @@ Both commits leave Android green.
 **Verification items for the tasks**:
 
 - `GameDao`'s `@Transaction` functions on `abstract class` DAOs compile for iOS. Room 2.8.4 fixed codegen for such functions, and the KMP docs show the `open suspend` form.
-- The KMP library plugin's `withHostTest` can run the 4 `:core:data` tests that touch Android types. If not, they move to the `:app` host tests unchanged.
+- The KMP library plugin's `withHostTest` can run the 4 `:core:data` tests that touch Android types. If not, they move to the `:androidApp` host tests unchanged.
 
 ## R7 — Dates and number formatting
 
@@ -282,7 +282,7 @@ Library replacements:
 | Pick a cover image | **new** `rememberCoverImagePicker` (`:core:ui`) | Photo picker (unchanged behaviour) | `PHPickerViewController` |
 | Store a cover image | `WishlistCoverImageStorage` (`:core:data`, exists) | `ImageDecoder` downscale, app files dir | `UIImage` downscale, Application Support |
 | Status-bar icon colour | **new** `SystemBarsAppearance` (`:core:designsystem`, `expect` composable) | `WindowCompat` (unchanged) | No-op in the first slice; verified in the iOS walkthrough |
-| Splash screen | none (platform shell) | `core-splashscreen` in `:app` | Launch screen in `iosApp/` |
+| Splash screen | none (platform shell) | `core-splashscreen` in `:androidApp` | Launch screen in `iosApp/` |
 | Display corner radius for the bottom bar | parameter of `QuestLogRoot` | `RoundedCorner` read in `MainActivity` | Fixed default from `iosApp` |
 
 **Hiding entry points (FR-008)**:
@@ -340,9 +340,9 @@ part of the refresh deferred with reminders is the run that happens while the ap
 
 **Platform note**: iOS builds require macOS with Xcode. On Windows, `kotlin.native.ignoreDisabledTargets=true` lets the Android build and host tests run as today.
 
-## R13 — What stays in `:app` and is not ported
+## R13 — What stays in `:androidApp` and is not ported
 
-**Stays in `:app`** as Android-only shell code:
+**Stays in `:androidApp`** as Android-only shell code:
 
 - splash screen;
 - the `RoundedCorner` probe;
@@ -350,7 +350,7 @@ part of the refresh deferred with reminders is the run that happens while the ap
 - `Application` and the WorkManager configuration;
 - launcher icons and the release signing config. The debug-key signing is a tech-debt item and is not touched.
 
-**Not touched**: the `adaptive`, `adaptive-layout` and `adaptive-navigation3` dependencies in `:app` are unused by current sources. This feature neither ports them to `:shared` nor deletes them; mention, don't fix.
+**Not touched**: the `adaptive`, `adaptive-layout` and `adaptive-navigation3` dependencies in `:androidApp` are unused by current sources. This feature neither ports them to `:shared` nor deletes them; mention, don't fix.
 
 ## R14 — Order of work (each phase leaves Android releasable)
 

@@ -13,7 +13,7 @@ Android keeps shipping unchanged throughout.
 
 - **Shared code**: every module except `:core:ai` becomes a KMP library on AGP 9's `com.android.kotlin.multiplatform.library` plugin.
 - **New `:shared` module**: the cross-platform app root. It owns the root composable, `QuestLogNavDisplay`, the bottom bar and the DI graph, and exports the iOS framework.
-- **`:app`** shrinks to the Android entry point.
+- **`:androidApp`** shrinks to the Android entry point.
 - **`iosApp/`**: a new Xcode project that hosts the framework.
 
 **Library swaps** (research R4–R6): Hilt → Koin, Retrofit + Moshi → Ktor + kotlinx.serialization,
@@ -97,8 +97,8 @@ Checked against constitution v1.1.0.
 | **I.** Feature modules depend only on the six allowed `:core:*` modules | ✅ Pass | Unchanged. Features gain no Koin dependency, because ViewModels are registered in `:shared` (contracts/module-contracts) |
 | **I.** `:core:ai` reachable only from `:core:data` | ✅ Pass | It narrows to `:core:data`'s `androidMain` |
 | **I.** `:core:model` free of Android and Compose | ✅ Pass | It becomes pure `commonMain` |
-| **I.** "`:app` is the only module that knows about navigation" | ⚠️ Justified change | Navigation moves to `:shared`, forced by AGP 9 (research R2). Still exactly one owner, and still two edits per route. Approved by the owner on 2026-10-08; see Complexity Tracking |
-| **I.** New module or edge called out | ✅ Pass | `:shared`, its edges, and `:app`'s reduced edges are listed in contracts/module-contracts |
+| **I.** "`:androidApp` is the only module that knows about navigation" | ⚠️ Justified change | Navigation moves to `:shared`, forced by AGP 9 (research R2). Still exactly one owner, and still two edits per route. Approved by the owner on 2026-10-08; see Complexity Tracking |
+| **I.** New module or edge called out | ✅ Pass | `:shared`, its edges, and `:androidApp`'s reduced edges are listed in contracts/module-contracts |
 | **II.** Exceptions stop at `:core:data`; `IgdbHttpException` is the only HTTP error crossing `:core:network` | ✅ Pass | The Ktor `HttpResponseValidator` throws `IgdbHttpException`; `ResponseException` never leaves `:core:network`. `CancellationException` is rethrown first in the common mapper |
 | **II.** `AppResult` only for network-touching repository methods | ✅ Pass | Repository signatures unchanged |
 | **III.** UI renders, ViewModels decide; UiState / UiEvent / UiEffect shape | ✅ Pass | Capability hiding is decided in ViewModels via `ReleaseRemindersAvailability`. The picker and sharer composables only launch and return |
@@ -123,7 +123,7 @@ Tracking).
 each amendment lands in the commit that makes the old rule false, not earlier:
 
 - "no `build-logic`" is amended in the first Phase C commit, which adds `build-logic/`;
-- "`:app` is the only module that knows about navigation" is amended in the Phase E commit that moves
+- "`:androidApp` is the only module that knows about navigation" is amended in the Phase E commit that moves
   `QuestLogNavDisplay` into `:shared`.
 
 **Re-check after Phase 1 design**: the result is unchanged. The design added no edge beyond those
@@ -174,13 +174,13 @@ work can pause after any commit. `/speckit-tasks` turns each phase into tasks.
   - `BackHandler`;
   - material icons 1.7.3.
 - Then convert the seven feature modules, one at a time.
-- `:app` still hosts the navigation during this phase. Android parity rows 1–10 are re-checked after each feature.
+- `:androidApp` still hosts the navigation during this phase. Android parity rows 1–10 are re-checked after each feature.
 
 ### Phase E — `:shared` app root
 
 - Create `:shared`.
 - Move `QuestLogNavDisplay`, `QuestLogBottomBar`, the scaffold and theme resolution (as `QuestLogRoot`), and the Koin assembly + `ViewModelModule`. Koin `verify()` moves to `:shared`'s host tests.
-- `:app` keeps only the Android shell: Application, Activity, splash, the deep-link → route mapping, and `RoundedCorner`.
+- `:androidApp` keeps only the Android shell: Application, Activity, splash, the deep-link → route mapping, and `RoundedCorner`.
 
 ### Phase F — iOS
 
@@ -259,7 +259,7 @@ feature/{search, radar, game-detail, lists, wishlist, settings, onboarding}/
 
 **Structure Decision**:
 
-- **`:app`** keeps its name and `applicationId`.
+- **`:androidApp`** (called `:app` until after the migration) keeps its `applicationId` and namespace.
 - **`:shared`** is the single new Gradle module and the only owner of navigation and DI assembly.
 - **`iosApp/`** lives at the root, as in JetBrains' template layout.
 - **Module names and namespaces** under `core/` and `feature/` are unchanged; only their source sets change.
@@ -269,4 +269,4 @@ feature/{search, radar, game-detail, lists, wishlist, settings, onboarding}/
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |---|---|---|
 | **`build-logic/` convention plugins**. The constitution's Platform constraint and the root `CLAUDE.md` say there is no `build-logic` and every build file repeats its configuration. **Approved by the owner on 2026-10-08.** | 17 modules each need identical KMP target, host-test, iOS and Android-library configuration. `docs/tech-debt.md` already lists the missing conventions and defers them to exactly this migration | Hand-copying ~30 lines × 17 modules makes every target change a 17-file edit and invites drift. `buildSrc` invalidates the configuration cache on every change |
-| **Navigation ownership moves from `:app` to the new `:shared`** (Principle I wording: "`:app` is the only module that knows about navigation"). **Approved by the owner on 2026-10-08.** | AGP 9 forbids KMP in a `com.android.application` module, and iOS must reach the same `entryProvider`. One owner and two edits per route are preserved | A second, iOS-only nav graph duplicates every route (SC-007 fails). The deprecated AGP opt-outs stop building on AGP 10 |
+| **Navigation ownership moves from `:androidApp` to the new `:shared`** (Principle I wording: "`:androidApp` is the only module that knows about navigation"). **Approved by the owner on 2026-10-08.** | AGP 9 forbids KMP in a `com.android.application` module, and iOS must reach the same `entryProvider`. One owner and two edits per route are preserved | A second, iOS-only nav graph duplicates every route (SC-007 fails). The deprecated AGP opt-outs stop building on AGP 10 |

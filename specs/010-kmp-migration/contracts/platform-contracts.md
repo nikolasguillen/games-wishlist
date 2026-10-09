@@ -199,7 +199,7 @@ single `actual` per platform and no behaviour of its own to specify.
 
 ## Platform shell (not contracts)
 
-| Concern | Android (`:app`) | iOS (`iosApp/`) |
+| Concern | Android (`:androidApp`) | iOS (`iosApp/`) |
 |---|---|---|
 | Entry point | `MainActivity` → `setContent { QuestLogRoot(pendingDeepLinkGameId, onDeepLinkConsumed, displayCornerRadius) }`; the splash is held by `MainActivity` itself until `RootViewModel` has the onboarding flag | `ContentView` → `MainViewController()` |
 | DI start | `QuestLogApp.onCreate` → `initKoin(isDebugBuild = BuildConfig.DEBUG) { androidContext(this) }`; the WorkManager factory is the `Application`'s `Configuration.Provider` | `MainViewController()` → idempotent `initKoin(isDebugBuild = …)`; the iOS bindings are the `expect` platform modules' `iosMain` actuals, which `initKoin` already lists |

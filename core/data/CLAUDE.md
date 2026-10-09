@@ -123,5 +123,5 @@ the periodic one is re-requested from `Application.onCreate()` on every launch a
 window, and the immediate one collapses the burst of requests that several saves in a row produce. Read the
 `// KEEP:` comments before changing either policy.
 
-The worker-factory half lives in `:app`, which is the Android-only part of the entry point: `QuestLogApp` implements `Configuration.Provider` and hands WorkManager a
+The worker-factory half lives in `:androidApp`, which is the Android-only part of the entry point: `QuestLogApp` implements `Configuration.Provider` and hands WorkManager a
 `KoinWorkerFactory`, and it is also where `schedulePeriodicRefresh()` is called from.

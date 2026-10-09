@@ -19,7 +19,7 @@ On Windows, use `.\gradlew.bat` in place of `./gradlew`. The iOS tasks are skipp
 1. On `develop`, install the debug build, then run the full suite and note the count:
 
    ```bash
-   ./gradlew :app:assembleDebug
+   ./gradlew :androidApp:assembleDebug
    ./gradlew test
    ```
 
@@ -50,7 +50,7 @@ On Windows, use `.\gradlew.bat` in place of `./gradlew`. The iOS tasks are skipp
 ## Checks after every commit (FR-011, SC-005)
 
 ```bash
-./gradlew :app:assembleDebug
+./gradlew :androidApp:assembleDebug
 ./gradlew test            # includes every multiplatform module's testAndroidHostTest (root aggregate)
 ```
 
@@ -74,9 +74,9 @@ From Phase F onwards, each module is also compiled for iOS, and the whole app li
 | Phase (`plan.md`) | Extra check | Pass when |
 |---|---|---|
 | A — build foundation | `./gradlew help --configuration-cache` twice | The second run reuses the configuration cache; every module still assembles |
-| A | `./gradlew :app:dependencies --configuration releaseRuntimeClasspath` after CMP is added | `androidx.compose.material3:material3` resolves to `1.5.0-beta01`, not an alpha (research R1) |
+| A | `./gradlew :androidApp:dependencies --configuration releaseRuntimeClasspath` after CMP is added | `androidx.compose.material3:material3` resolves to `1.5.0-beta01`, not an alpha (research R1) |
 | B — platform-neutral code | `./gradlew test` | The new date and number-format host tests pass with the exact strings today's code produces |
-| B — Koin | `./gradlew :app:testDebugUnitTest` (Koin `verify()` lives here until `:shared` exists) | `verify()` passes; the app launches and every screen opens; WorkManager workers still run (`adb shell dumpsys jobscheduler \| grep questlog` shows the periodic job) |
+| B — Koin | `./gradlew :androidApp:testDebugUnitTest` (Koin `verify()` lives here until `:shared` exists) | `verify()` passes; the app launches and every screen opens; WorkManager workers still run (`adb shell dumpsys jobscheduler \| grep questlog` shows the periodic job) |
 | B — Ktor | Parity rows 2, 3, 4, 11 | Same results; an invalid token is still refreshed once; airplane mode shows the network error, not an unknown error |
 | B — Room driver / DataStore paths | "Android update path" below | Data and settings survive |
 | C — non-UI modules to KMP | `compileCommonMainKotlinMetadata` for each converted module | Compiles; host tests moved, not edited (`git diff -M --stat` shows renames) |
@@ -91,7 +91,7 @@ From Phase F onwards, each module is also compiled for iOS, and the whole app li
 2. Install the migrated debug build **over** it, without uninstalling:
 
    ```bash
-   ./gradlew :app:installDebug
+   ./gradlew :androidApp:installDebug
    ```
 
 3. Open the app. Expected:
@@ -132,7 +132,7 @@ After Phase F, from the repo root:
 
 ```bash
 find core feature shared -path '*/build' -prune -o -path '*/commonMain/*' -name '*.kt' -print | xargs cat | wc -l
-find core feature shared app -path '*/build' -prune -o \( -path '*/androidMain/*' -o -path '*/iosMain/*' -o -path 'app/src/main/*' \) -name '*.kt' -print | xargs cat | wc -l
+find core feature shared androidApp -path '*/build' -prune -o \( -path '*/androidMain/*' -o -path '*/iosMain/*' -o -path 'androidApp/src/main/*' \) -name '*.kt' -print | xargs cat | wc -l
 ```
 
 Pass when the first number is at least 90% of the sum of the two, excluding `:core:ai` (Android-only by

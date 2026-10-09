@@ -91,5 +91,5 @@ Where each module's code lives after the migration. **C** = `commonMain`, **A** 
 | `:core:ui` | kmp.compose | components, modifiers, mappers, `UiText`, resources | notification-permission UI, picker and sharer actuals | picker and sharer actuals | androidHostTest (1, moved) |
 | `feature/*` (7) | kmp.feature | all (screens, ViewModels, mappers, models, resources) | — | — | androidHostTest (12, moved) |
 | `:shared` (new) | kmp.compose | `QuestLogRoot`, `QuestLogNavDisplay`, bottom bar, Koin assembly, `ViewModelModule` | Android Koin platform module | `MainViewController()`, iOS Koin platform module | androidHostTest: Koin `verify()` |
-| `:app` | android.application | — | `QuestLogApp`, `MainActivity`, manifest, splash, icons | — | `app/src/test` (template, unchanged) |
+| `:androidApp` | android.application | — | `QuestLogApp`, `MainActivity`, manifest, splash, icons | — | `androidApp/src/test` (template, unchanged) |
 | `iosApp/` (new, Xcode) | — | — | — | Swift entry point, launch screen, Info.plist, icons | — |

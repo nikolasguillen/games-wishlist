@@ -14,7 +14,7 @@ them is a design decision, not an accident of history.
   depends on nothing beyond that SDK and coroutines.
 - `:core:model` MUST stay free of Android and Compose dependencies. It is the most KMP-ready module
   and the natural first candidate for `commonMain`.
-- `:shared` is the only module that knows about navigation (`:app` hosts it on Android and holds no routes).
+- `:shared` is the only module that knows about navigation (`:androidApp` hosts it on Android and holds no routes).
   Feature modules own no nav graph, no nav
   entry provider and no per-feature DI module; screens receive lambdas and never navigate
   themselves. Adding a route means three edits outside the feature: a `NavKey` in
@@ -97,12 +97,12 @@ Verification means compiling and running the JVM test suites locally:
 
 - `./gradlew :<module>:compileDebugKotlin` for a single-module change (`compileCommonMainKotlinMetadata` in a
   multiplatform module).
-- `./gradlew :app:assembleDebug` when the change spans modules or touches DI wiring.
+- `./gradlew :androidApp:assembleDebug` when the change spans modules or touches DI wiring.
 - `./gradlew test` for the suites. A root `test` task makes it include every multiplatform module's
   `testAndroidHostTest`.
 
 The existing test source sets — `core/data`, `core/domain`, `core/network`, `core/ui`,
-`feature/{search,radar,lists,game-detail,settings,wishlist,onboarding}` and `app` — MUST stay green. New ViewModel,
+`feature/{search,radar,lists,game-detail,settings,wishlist,onboarding}` and `androidApp` — MUST stay green. New ViewModel,
 mapper, use-case or error-mapping logic gets a test in its own module's test source set (`src/androidHostTest` in a multiplatform module) using JUnit4 +
 MockK + `kotlinx-coroutines-test`, mocking the use cases rather than the repository, with a
 `StandardTestDispatcher` and `Dispatchers.setMain`/`resetMain`.
@@ -142,7 +142,7 @@ iOS is the only platform besides Android, and it ships without release reminders
 whose entry points are hidden there (the iOS follow-ups are in `docs/roadmap.md`). The decisions are in
 `specs/010-kmp-migration`.
 
-- Android MUST build and pass its tests at every commit (`./gradlew :app:assembleDebug` and
+- Android MUST build and pass its tests at every commit (`./gradlew :androidApp:assembleDebug` and
   `./gradlew test`). No test may be deleted or weakened to get there, and every step MUST be one the
   work can pause on.
 - Library swaps are decided in the plan and made only in the task that calls for them.
@@ -194,4 +194,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.3.1 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-09
+**Version**: 1.3.2 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-09
