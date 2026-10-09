@@ -47,7 +47,7 @@ fun ImageGalleryPager(
     onImageClick: ((Int) -> Unit)? = null
 ) {
     val shouldShowPageIndicator = images.size > 1
-    Box(modifier = modifier) {
+    Box(modifier = modifier.background(Color.Black)) {
         if (images.isNotEmpty()) {
             HorizontalPager(
                 state = pagerState,
