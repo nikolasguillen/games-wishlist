@@ -36,7 +36,7 @@ private const val JPEG_QUALITY = 0.85
  * Re-encoded so the extension always matches the content: PNG when the image has transparency, JPEG otherwise.
  */
 @OptIn(ExperimentalForeignApi::class)
-class WishlistCoverImageStorageImpl : WishlistCoverImageStorage {
+internal class WishlistCoverImageStorageImpl : WishlistCoverImageStorage {
 
     private val coversDir: String get() = "${applicationSupportDirectory()}/$COVERS_DIR_NAME"
 

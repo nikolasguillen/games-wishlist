@@ -12,7 +12,7 @@ private const val GAME_ID_KEY = "gameId"
  * [gameId]: [DeliverReleaseNotificationUseCase] re-verifies eligibility at fire time, so a stale schedule
  * declining to post is correct behavior, not a failure to retry.
  */
-class ReleaseNotificationWorker(
+internal class ReleaseNotificationWorker(
     context: Context,
     params: WorkerParameters,
     private val deliverReleaseNotificationUseCase: DeliverReleaseNotificationUseCase

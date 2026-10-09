@@ -15,7 +15,7 @@ import kotlin.time.Instant
 private const val GAME_ID_KEY = "gameId"
 private fun releaseNotificationWorkName(gameId: Int) = "release_notification_$gameId"
 
-class ReleaseNotificationSchedulerImpl(
+internal class ReleaseNotificationSchedulerImpl(
     private val context: Context
 ) : ReleaseNotificationScheduler {
     // REPLACE, not KEEP: unlike Radar's refresh (ReleaseRefreshSchedulerImpl), a reschedule here is

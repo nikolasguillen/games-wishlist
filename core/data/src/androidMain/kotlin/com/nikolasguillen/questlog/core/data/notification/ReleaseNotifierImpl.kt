@@ -13,7 +13,7 @@ import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotifier
 
 private const val CHANNEL_ID = "release_notifications"
 
-class ReleaseNotifierImpl(
+internal class ReleaseNotifierImpl(
     private val context: Context
 ) : ReleaseNotifier {
 

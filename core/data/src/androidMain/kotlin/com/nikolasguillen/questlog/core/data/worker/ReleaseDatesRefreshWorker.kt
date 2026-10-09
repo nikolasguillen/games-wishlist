@@ -13,7 +13,7 @@ import com.nikolasguillen.questlog.core.model.AppResult
  * what makes an opted-in game's reminder follow a shifted release date (FR-007) — it has to happen here
  * because this worker normally runs with the app's process dead.
  */
-class ReleaseDatesRefreshWorker(
+internal class ReleaseDatesRefreshWorker(
     context: Context,
     params: WorkerParameters,
     private val refreshReleaseDatesUseCase: RefreshReleaseDatesUseCase,

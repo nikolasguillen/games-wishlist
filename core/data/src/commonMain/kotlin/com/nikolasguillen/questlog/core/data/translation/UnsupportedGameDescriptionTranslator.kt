@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.flowOf
  * and the Game detail action, so the other two methods are unreachable in practice; they answer as the Android
  * implementation does on a device that cannot translate.
  */
-class UnsupportedGameDescriptionTranslator : GameDescriptionTranslator {
+internal class UnsupportedGameDescriptionTranslator : GameDescriptionTranslator {
     override suspend fun modelStatus(): TranslationModelStatus = TranslationModelStatus.UNSUPPORTED
 
     override suspend fun translate(gameId: Int, description: String): String? = null

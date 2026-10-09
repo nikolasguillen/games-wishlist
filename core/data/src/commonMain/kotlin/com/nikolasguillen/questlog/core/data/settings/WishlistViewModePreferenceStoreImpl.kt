@@ -16,7 +16,7 @@ private val WISHLIST_VIEW_MODE_KEY = intPreferencesKey("wishlist_view_mode")
  * [com.nikolasguillen.questlog.core.data.di.DataModule] so this class stays a plain function of an injected
  * [DataStore], directly unit-testable with a temp-file-backed instance.
  */
-class WishlistViewModePreferenceStoreImpl(
+internal class WishlistViewModePreferenceStoreImpl(
     private val settingsDataStore: DataStore<Preferences>
 ) : WishlistViewModePreferenceStore {
 

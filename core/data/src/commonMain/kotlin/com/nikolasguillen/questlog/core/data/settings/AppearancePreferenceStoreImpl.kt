@@ -16,7 +16,7 @@ private val APPEARANCE_MODE_KEY = intPreferencesKey("appearance_mode")
  * rather than built here, so this class stays a plain function of an injected [DataStore] — directly
  * unit-testable with a temp-file-backed instance, no Android `Context`/Robolectric required.
  */
-class AppearancePreferenceStoreImpl(
+internal class AppearancePreferenceStoreImpl(
     private val settingsDataStore: DataStore<Preferences>
 ) : AppearancePreferenceStore {
 

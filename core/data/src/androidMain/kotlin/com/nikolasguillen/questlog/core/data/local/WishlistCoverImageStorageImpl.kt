@@ -22,7 +22,7 @@ import kotlin.math.roundToInt
  * enough for the largest place a cover is shown, and re-encoded so the file extension
  * always matches its actual content.
  */
-class WishlistCoverImageStorageImpl(
+internal class WishlistCoverImageStorageImpl(
     private val context: Context
 ) : WishlistCoverImageStorage {
 

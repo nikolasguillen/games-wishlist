@@ -8,7 +8,7 @@ import kotlin.time.Instant
  * because `ReleaseRemindersAvailability` hides every entry point; it is bound only so that the shared use cases
  * that take a scheduler can still be built.
  */
-class NoOpReleaseNotificationScheduler : ReleaseNotificationScheduler {
+internal class NoOpReleaseNotificationScheduler : ReleaseNotificationScheduler {
     override fun schedule(gameId: Int, at: Instant) = Unit
 
     override fun cancel(gameId: Int) = Unit

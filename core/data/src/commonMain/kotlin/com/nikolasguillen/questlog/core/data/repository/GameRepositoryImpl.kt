@@ -171,7 +171,7 @@ private const val RADAR_REFRESH_CONCURRENCY = 3
  */
 private const val DISCOVER_LANE_CACHE_TTL = 6 * 60 * 60 * 1000L
 
-class GameRepositoryImpl(
+internal class GameRepositoryImpl(
     private val apiService: IgdbApiService,
     private val gameDao: GameDao,
     private val listDao: ListDao,

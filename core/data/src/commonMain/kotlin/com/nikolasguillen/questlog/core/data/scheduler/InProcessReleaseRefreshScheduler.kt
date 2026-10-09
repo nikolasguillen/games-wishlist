@@ -28,7 +28,7 @@ private val LAST_REFRESH_KEY = longPreferencesKey("release_dates_last_refresh_ep
  * - The timestamp is written only after a refresh succeeds, so a failed or interrupted run is tried again at
  *   the next launch.
  */
-class InProcessReleaseRefreshScheduler(
+internal class InProcessReleaseRefreshScheduler(
     private val refreshReleaseDates: RefreshReleaseDatesUseCase,
     private val settingsDataStore: DataStore<Preferences>,
     private val scope: CoroutineScope,

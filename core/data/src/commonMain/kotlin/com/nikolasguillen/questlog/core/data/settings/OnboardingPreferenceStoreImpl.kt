@@ -18,7 +18,7 @@ private val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_complet
  * The flag lives outside Room on purpose: the database is destructively migrated while the app is
  * unpublished, and a wiped schema must not show the welcome flow again.
  */
-class OnboardingPreferenceStoreImpl(
+internal class OnboardingPreferenceStoreImpl(
     private val settingsDataStore: DataStore<Preferences>
 ) : OnboardingPreferenceStore {
 

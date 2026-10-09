@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.time.Duration.Companion.seconds
 
-class GameDescriptionTranslatorImpl(
+internal class GameDescriptionTranslatorImpl(
     private val geminiNanoClient: GeminiNanoClient,
     private val translationDao: TranslationDao,
     private val downloadScope: CoroutineScope

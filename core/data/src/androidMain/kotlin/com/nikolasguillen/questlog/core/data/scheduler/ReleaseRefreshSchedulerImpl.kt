@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 private const val RELEASE_DATES_REFRESH_WORK_NAME = "release_dates_refresh"
 private const val IMMEDIATE_REFRESH_WORK_NAME = "release_dates_refresh_now"
 
-class ReleaseRefreshSchedulerImpl(
+internal class ReleaseRefreshSchedulerImpl(
     private val context: Context
 ) : ReleaseRefreshScheduler {
     // KEEP: called from Application.onCreate() on every launch, so an existing periodic schedule must
