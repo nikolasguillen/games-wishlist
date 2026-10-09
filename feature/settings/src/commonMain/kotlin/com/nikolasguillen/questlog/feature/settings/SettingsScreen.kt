@@ -44,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.AppearanceMode
 import com.nikolasguillen.questlog.core.ui.component.CustomSegmentedButton
@@ -302,7 +303,7 @@ private fun TranslationModelRow(rowState: TranslationModelRowState, onDownloadCl
                     Icon(
                         imageVector = Icons.Default.Download,
                         contentDescription = stringResource(Res.string.settings_translation_model_download_action),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.appColors.textOnSurface
                     )
 
                 is TranslationModelRowState.Downloading -> {
@@ -311,12 +312,16 @@ private fun TranslationModelRow(rowState: TranslationModelRowState, onDownloadCl
                         CircularProgressIndicator(
                             progress = { fraction },
                             modifier = Modifier.size(24.dp),
-                            strokeWidth = 2.dp
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.appColors.textOnSurface,
+                            trackColor = MaterialTheme.appColors.textOnSurface.copy(alpha = 0.2f)
                         )
                     } else {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            strokeWidth = 2.dp
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.appColors.textOnSurface,
+                            trackColor = MaterialTheme.appColors.textOnSurface.copy(alpha = 0.2f)
                         )
                     }
                 }
@@ -324,13 +329,14 @@ private fun TranslationModelRow(rowState: TranslationModelRowState, onDownloadCl
                 TranslationModelRowState.Ready -> Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.appColors.textOnSurface
                 )
 
                 TranslationModelRowState.Failed -> IconButton(onClick = onDownloadClick) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
-                        contentDescription = stringResource(Res.string.settings_translation_model_download_action)
+                        contentDescription = stringResource(Res.string.settings_translation_model_download_action),
+                        tint = MaterialTheme.appColors.textOnSurface
                     )
                 }
             }
