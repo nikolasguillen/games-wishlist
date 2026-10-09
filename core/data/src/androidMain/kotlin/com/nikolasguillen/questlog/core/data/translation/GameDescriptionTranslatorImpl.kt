@@ -45,8 +45,10 @@ internal class GameDescriptionTranslatorImpl(
         }
 
         val translated = geminiNanoClient.generate(
-            prefix = buildTranslationPromptPrefix(),
-            suffix = buildTranslationPromptSuffix(description)
+            // The blank line closes the rules block; it belongs to the cached prefix so the variable half starts
+            // at the <text> tag.
+            prefix = buildTranslationInstructions(Locale.getDefault().getDisplayLanguage(Locale.ENGLISH)) + "\n\n",
+            suffix = buildTranslationSource(description)
         )
         if (translated.isNullOrBlank()) return null
 

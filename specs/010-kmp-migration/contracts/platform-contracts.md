@@ -220,7 +220,7 @@ single `actual` per platform and no behaviour of its own to specify.
 | `SearchBarScrollBehaviorCompat` | `:feature:search` | Android is pinned to the androidx Material 3 `1.5.0-beta01` search-bar API and iOS runs JetBrains' `1.12.0-alpha03`, whose scroll-behaviour members differ. Removed when both ship the same stable release |
 | `runBlockingCompat` | `:shared` | `runBlocking` is not visible from `commonMain`; the default-wishlist seed reads Compose resources, which are suspending, from Room's synchronous creation callback on its own thread |
 | `applicationSupportDirectory()` and `TopViewController` (iOS only) | `:core:common`, `:core:ui` | Helpers the iOS `actual`s share: where Room, DataStore and cover files live, and which `UIViewController` presents the photo picker and the share sheet |
-| `TranslationPromptBuilder`, `TranslationArtifactSanitizer`, `TranslationMapper` (Android only) | `:core:data` | Parts of the Android translator; the iOS translator is `UnsupportedGameDescriptionTranslator` |
+| `TranslationMapper` (Android only) | `:core:data` | Part of the Android translator: it maps ML Kit's status and download types, which the iOS translator never sees |
 | `databasePlatformModule` | `:core:database` | Binds the Room builder: the database file lives in the app's database directory on Android and in `Application Support` on iOS |
 | `networkPlatformModule` | `:core:network` | Binds the HTTP engine (OkHttp, Darwin) and `ElapsedRealtimeSource`, the monotonic clock the token cache expires against |
 

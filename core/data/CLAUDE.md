@@ -6,9 +6,10 @@ refresh. This is the **error boundary** of the app: exceptions stop here and bec
 ## Common and Android
 
 The repository, the common mappers, the three preference stores, `RepositoryErrorMapper.kt` and
-`StaticReleaseRemindersAvailability` are in `commonMain`. Everything that touches an Android API is in
-`androidMain`: `worker/`, `scheduler/`, `notification/ReleaseNotifierImpl`, `translation/` (with
-`mapper/TranslationMapper.kt`, which names ML Kit's types), `local/WishlistCoverImageStorageImpl` and this
+`StaticReleaseRemindersAvailability` are in `commonMain`, and so are the translation prompt builder and the
+artifact sanitizer, which every translation engine shares. Everything that touches an Android API is in
+`androidMain`: `worker/`, `scheduler/`, `notification/ReleaseNotifierImpl`, `translation/GameDescriptionTranslatorImpl`
+(with `mapper/TranslationMapper.kt`, which names ML Kit's types), `local/WishlistCoverImageStorageImpl` and this
 module's `strings.xml`. `:core:ai` is an `androidMain` dependency only. Each platform's bindings are in its
 `dataPlatformModule` (`expect`, with the Android `actual` in `di/DataPlatformModule.android.kt` and the iOS one in
 `iosMain`); the common `dataModule` binds only what needs no platform API. A new Android-only class goes in `androidMain` with its
@@ -103,11 +104,12 @@ exists to avoid, and translates sentence by sentence with no notion of the domai
 engine later is this class: a second client in `:core:ai` plus a branch here. Do not build that
 abstraction before a second engine actually exists.
 
-Two files sit beside it, `internal` top-level functions as everywhere else in this module and both free of
-the client: `TranslationPromptBuilder.kt` (`buildTranslationPromptPrefix()`, `buildTranslationPromptSuffix()`)
-owns the prompt text, and `TranslationArtifactSanitizer.kt` (`String.stripTranslationArtifacts()`) strips
-what a small on-device model leaves behind. Keep them out of the translator — they are the parts worth
-unit-testing without a device.
+Two files sit beside it in `commonMain`, `internal` top-level functions as everywhere else in this module and
+both free of the client: `TranslationPromptBuilder.kt` (`buildTranslationInstructions(targetLanguage)`,
+`buildTranslationSource(description)`) owns the prompt text, and `TranslationArtifactSanitizer.kt`
+(`String.stripTranslationArtifacts()`) strips what a small on-device model leaves behind. Both are common so
+every engine shares one prompt. Keep them out of the translator — they are the parts worth unit-testing without
+a device.
 
 `dataModule` also registers an application-scoped `CoroutineScope` for this feature only: the model
 download has to outlive the `SettingsViewModel` that started it, or leaving the screen would cancel it.

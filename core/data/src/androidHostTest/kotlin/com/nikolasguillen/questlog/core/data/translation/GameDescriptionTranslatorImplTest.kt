@@ -11,6 +11,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
@@ -60,6 +61,29 @@ class GameDescriptionTranslatorImplTest {
     @After
     fun tearDown() {
         Locale.setDefault(originalLocale)
+    }
+
+    @Test
+    fun `the prompt sent to the model is unchanged by the common prompt builder`() = runTest {
+        val prefix = slot<String>()
+        val suffix = slot<String>()
+        coEvery { translationDao.getTranslation(1, "it") } returns null
+        coEvery { geminiNanoClient.generate(capture(prefix), capture(suffix)) } returns "Una descrizione."
+
+        translator.translate(1, "Some description")
+
+        assertEquals(
+            "You are translating text for a video game catalogue app.\n" +
+                "Translate the text between the <text> tags from English into Italian.\n" +
+                "Keep game titles, character names, studio names and platform names untranslated.\n" +
+                "Preserve the paragraph structure.\n" +
+                "Output the translated text only: no tags, no labels, no quotes, no commentary.\n" +
+                "\n" +
+                "<text>\n" +
+                "Some description\n" +
+                "</text>",
+            prefix.captured + suffix.captured
+        )
     }
 
     @Test
