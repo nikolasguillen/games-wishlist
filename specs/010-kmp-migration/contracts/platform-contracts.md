@@ -40,11 +40,36 @@ The 24h interval is a single constant shared by both implementations.
 
 | | Android | iOS |
 |---|---|---|
-| Model status | From ML Kit via `:core:ai` (unchanged) | Always `TranslationModelStatus.UNSUPPORTED` |
-| Translate / download | ML Kit (unchanged) | Never called. If called, it returns the failure result the Android implementation uses for an unsupported device |
+| Model status | From ML Kit via `:core:ai` (unchanged) | From Apple's on-device model (FoundationModels, iOS 26+) through `AppleLanguageModelBridge`. An English preferred language → `UNSUPPORTED`; `.available` with the preferred language supported → `READY`; `.unavailable(.modelNotReady)` → `DOWNLOADING`; everything else → `UNSUPPORTED` (iOS below 26, an ineligible device, Apple Intelligence off, an unsupported language) |
+| Translate | ML Kit (unchanged) | A fresh `LanguageModelSession` per call, with permissive-content-transformation guardrails, a token-budget check on iOS 26.4+ and the shared Room cache. `null` on any failure |
+| Download | ML Kit (unchanged) | The app cannot start one: the system fetches the model. Polls availability every 15 s, `Completed` when available and `Failed` when it becomes unavailable for any other reason |
 
-`UNSUPPORTED` already hides the Settings row and the Game detail action, so iOS needs no UI change for
-this.
+iOS needs no UI change for this. It never reports `DOWNLOADABLE`, so the Settings Download button and the Wi-Fi
+dialog are never shown; `UNSUPPORTED` hides the Settings row and the Game detail action.
+
+### `AppleLanguageModelBridge` — `:core:data` (implemented in Swift)
+
+FoundationModels is a Swift-only framework with no Objective-C surface, so Kotlin/Native cannot import it.
+Kotlin owns this interface and Swift (`iosApp/iosApp/FoundationModelsBridge.swift`) implements it.
+`ContentView` passes the implementation to `MainViewController(languageModelBridge:)`, which binds it in Koin.
+
+```kotlin
+interface AppleLanguageModelBridge {
+    fun preferredLanguageTag(): String
+    fun preferredLanguageEnglishName(): String
+    fun availability(): AppleLanguageModelAvailability   // AVAILABLE, NOT_READY, UNAVAILABLE, LANGUAGE_UNSUPPORTED
+    fun generate(instructions: String, prompt: String, onResult: (String?) -> Unit): AppleLanguageModelGeneration
+}
+interface AppleLanguageModelGeneration { fun cancel() }
+```
+
+- Nothing is `suspend`: a `suspend` member implemented in Swift has no cancellation and crashes on a thrown
+  Swift error. `generate` reports through a callback and returns a handle that cancels the Swift task.
+- The language comes from the bridge, read from the user's preferred languages. The app's locale would always be
+  English, because the app ships English resources only.
+- `AppleLanguageModelTranslator` lives in `commonMain`, not `iosMain`, so it can be tested on the JVM against a
+  fake bridge, like `InProcessReleaseRefreshScheduler`. It is bound only by the iOS `dataPlatformModule`. This is a
+  deliberate exception to "implementations live in `androidMain`/`iosMain`".
 
 ### `AppVersionProvider`, `NetworkStatusProvider` — `:core:common` (class → interface)
 
