@@ -43,6 +43,9 @@ kotlin {
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
+        iosTest.dependencies {
+            implementation(kotlin("test"))
+        }
         androidHostTest.dependencies {
             implementation(libs.junit)
             implementation(libs.ktor.client.mock)
