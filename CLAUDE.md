@@ -35,6 +35,9 @@ with `git config core.hooksPath .githooks`.
 ./gradlew test                                                   # all JVM unit tests
 ./gradlew :core:data:testDebugUnitTest --console=plain -q        # single-module tests (Android module)
 ./gradlew :core:domain:testAndroidHostTest --console=plain -q    # single-module tests (multiplatform module)
+./gradlew :core:network:iosSimulatorArm64Test --console=plain -q # iOS-only tests (macOS; boots a simulator)
+xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -sdk iphonesimulator \
+  -destination 'generic/platform=iOS Simulator' -derivedDataPath iosApp/build build   # the iOS app (macOS)
 ```
 
 `./gradlew test` covers both kinds: a root `test` task depends on every multiplatform module's
@@ -147,6 +150,7 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
 | Theme resolution, scaffold, bottom bar and back stack | `shared/.../QuestLogRoot.kt`, `shared/.../QuestLogBottomBar.kt` |
 | Koin assembly (`initKoin`) and every ViewModel binding | `shared/.../di/SharedKoin.kt`, `shared/.../di/ViewModelModule.kt` |
 | Splash screen, edge-to-edge, deep link parsing | `app/.../MainActivity.kt` |
+| iOS entry point (`MainViewController`) and the Xcode project that hosts it | `shared/src/iosMain/.../MainViewController.kt`, `iosApp/` |
 | Shared UI constants | `core/ui/util/Constants.kt` (`object UiConstants`) |
 | Network↔domain↔entity mappers | `core/data/mapper/GameMapper.kt` |
 | `GameDescriptionTranslator` | `core/domain/translation/` (impl in `core/data/translation/`) |

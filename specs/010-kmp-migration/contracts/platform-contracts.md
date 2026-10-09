@@ -146,7 +146,7 @@ internal expect fun SystemBarsAppearance(darkTheme: Boolean)
 
 | Android | iOS |
 |---|---|
-| `WindowCompat.getInsetsController(...).isAppearanceLight*Bars` (moved from `QuestLogTheme`) | No-op in this feature. If the iOS walkthrough shows poor status-bar contrast, the fix goes in `iosApp/` (`UIViewController.preferredStatusBarStyle`), not in shared code |
+| `WindowCompat.getInsetsController(...).isAppearanceLight*Bars` (moved from `QuestLogTheme`) | No-op in this feature. Compose Multiplatform already keeps the iOS status-bar text readable against the app theme (checked in the walkthrough), so `iosApp/` needs no `preferredStatusBarStyle` |
 
 ### `DateUtils` platform rendering — `:core:common`
 
@@ -205,4 +205,4 @@ same commit as any change to it.**
 | Release reminders (notifications, permission prompt, per-game toggle, settings rows, onboarding page) | Full | Absent | No reminder controls anywhere | `docs/roadmap.md` — "Release reminders on iOS" |
 | Release-date refresh while the app is closed | WorkManager, every 24h | None | Dates refresh at launch (if over 24h old) and when the saved set changes | Same roadmap entry |
 | On-device description translation | ML Kit Gemini Nano | Absent (`UNSUPPORTED`) | No translate action, no Settings row | `docs/roadmap.md` — "On-device description translation on iOS" |
-| Status-bar icon colour follows the app theme | Yes | System default unless the walkthrough shows a contrast problem | Possibly system-coloured status bar text | Fix in `iosApp/` if needed |
+| Status-bar icon colour follows the app theme | Yes | Follows the app theme without any code: the walkthrough (force dark under a light system theme and force light under a dark one) showed readable status-bar text both ways | None | None needed |

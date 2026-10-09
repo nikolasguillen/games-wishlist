@@ -64,3 +64,35 @@ for f in quest_log_database quest_log_database-wal quest_log_database-shm; do
   $ADB exec-out run-as com.nikolasguillen.questlog cat databases/$f > $f; done
 sqlite3 quest_log_database "select 'games',count(*) from games union all select 'wishlists',count(*) from wishlists union all select 'cross_ref',count(*) from game_list_cross_ref;"
 ```
+
+## iOS walkthrough (T104–T107)
+
+Run on the **iPhone 17 simulator, iOS 26.5**, debug build, driven by an XCUITest scratch driver kept outside the
+repo. The simulator runtimes installed here are iOS 26.5 and 27.0 only, so the deployment target (iOS 16.0) is
+**not exercised**: it compiles and links against it, nothing more. Device install, signing and TestFlight stay in
+`docs/roadmap.md`.
+
+| # | Row | Result |
+|---|---|---|
+| 1 | Fresh install → launch | Pass. Launch screen (wordmark on `#FAFAFA`), then a five-page welcome flow with no reminders page. |
+| 2 | Onboarding → search → save | Pass. Search returns live IGDB results (credentials reach the iOS build) and covers load. SC-003 (first game saved within 3 minutes) was not timed: the flow took a handful of taps, but the run was driven step by step. |
+| 3 | Kill → relaunch | Pass. No welcome flow; both saved games and the custom list are still there (FR-010). |
+| 4 | Radar dates at UTC−8 / UTC+9 | Pass, same as Android by construction: both format `DateUtils.timestampToLocalDate`, which uses the device zone. IGDB's midnight-UTC "Nov 19" shows as **Nov 18 at UTC−8** and Nov 19 at UTC+9 and UTC+1. This is existing Android behaviour, not an iOS regression. |
+| 5 | Game detail | Pass. Share opens the iOS share sheet with the share text. No translate action, no reminder control or banner. |
+| 6 | Settings | Pass. Appearance, owned platforms, welcome tour, About (`1.0`, from `CFBundleShortVersionString`). No reminders, permission or translation rows. |
+| 7 | Appearance | Pass. Follow system, force light, force dark all switch. Status-bar text stays readable when the app theme and the system theme disagree, so T106 needed no change. |
+| 8 | Lists | Pass. Create with a cover from the photo picker, rename, delete (the cover file is removed). The cover survived a relaunch. |
+| 9 | Swipe back | Pass on Settings (back to Search) and detail. |
+| 10 | Offline search | **Not exercised**: a simulator shares the Mac's network and cannot be taken offline from here. The Darwin error mapping is covered by `PlatformTransportFailureTest` (5 tests, `:core:network:iosSimulatorArm64Test`). |
+| 11 | 24 h launch refresh | Partly. The timestamp key `release_dates_last_refresh_epoch_ms` is written to the DataStore after a launch; the 24 h policy itself is covered by `InProcessReleaseRefreshSchedulerTest` (10 tests). The stored timestamp was not edited to force a second refresh. |
+
+**T107, performance.** After `simctl launch`, the launch screen is still up at 0.9 s and the Discover screen is
+drawn by 1.4 s, inside the 2 s goal. Scroll smoothness was not measured: a simulator is not representative, so
+that check waits for a device.
+
+**Found and fixed during the walkthrough**
+
+- Covers did not load: `coil-network-ktor3` was only a dependency of `:app`. It is now in `:shared` with the
+  engine per platform (OkHttp on Android, Darwin on iOS).
+- The welcome flow's Radar page told iOS users to "turn on a reminder", which they cannot. Platforms without
+  reminders now get their own page copy.
