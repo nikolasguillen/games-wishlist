@@ -1,7 +1,7 @@
 # AGENTS.md
 
-`Quest Log` is a modular Android app (Kotlin, Jetpack Compose, Hilt, Room, Retrofit/Moshi,
-AndroidX Navigation 3) for tracking a videogame wishlist, backed by the IGDB API.
+`Quest Log` is a modular Kotlin Multiplatform app for Android and iOS (Kotlin, Compose Multiplatform, Koin,
+Room, Ktor, Navigation 3) for tracking a videogame wishlist, backed by the IGDB API.
 
 ## Instructions live in CLAUDE.md
 

@@ -1,10 +1,10 @@
 # CLAUDE.md
 
-Modular Android app for tracking a videogame wishlist, backed by the IGDB API.
+Modular Kotlin Multiplatform app (Android and iOS) for tracking a videogame wishlist, backed by the IGDB API.
 
 Kotlin 2.4.20 · AGP 9.4.1 · Gradle 9.7.1 (JVM toolchain 21) · compileSdk/targetSdk 37 · minSdk 29 · Java 11
 Compose Multiplatform 1.12.1 (Material 3: JetBrains 1.12.0-alpha03, Jetpack 1.5.0-beta01 on Android) · Koin 4.2.2 · Room 2.8.5 (KSP, bundled SQLite driver) · Ktor 3 + kotlinx.serialization · Navigation 3
-Coil 3 · WorkManager + `koin-androidx-workmanager` (Radar's release-date refresh)
+Coil 3 · WorkManager + `koin-androidx-workmanager` (Radar's release-date refresh, Android only) · iOS 16+ target (Xcode, Kotlin/Native)
 
 ## Git
 
@@ -35,21 +35,23 @@ with `git config core.hooksPath .githooks`.
 ./gradlew test                                                   # all JVM unit tests
 ./gradlew :core:data:testDebugUnitTest --console=plain -q        # single-module tests (Android module)
 ./gradlew :core:domain:testAndroidHostTest --console=plain -q    # single-module tests (multiplatform module)
+./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 -q        # the iOS framework (macOS)
 ./gradlew :core:network:iosSimulatorArm64Test --console=plain -q # iOS-only tests (macOS; boots a simulator)
 xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -sdk iphonesimulator \
   -destination 'generic/platform=iOS Simulator' -derivedDataPath iosApp/build build   # the iOS app (macOS)
 ```
 
 `./gradlew test` covers both kinds: a root `test` task depends on every multiplatform module's
-`testAndroidHostTest`. `allTests` is not the project's command — it also runs the iOS simulator tests and
-skips the Android modules that are not converted yet.
+`testAndroidHostTest`. `allTests` is not the project's command — it also runs the iOS simulator tests, which need
+a Mac.
 
 Prefer a single-module `compileDebugKotlin` for quick feedback; only run `:app:assembleDebug` when the
 change spans modules or touches DI wiring.
 
 This project is developed on both macOS and Windows. The commands above use the Unix wrapper; on Windows
 (PowerShell) use the batch wrapper instead — `.\gradlew.bat :app:assembleDebug`. Check the platform before
-suggesting a command.
+suggesting a command. The iOS targets exist only on macOS (`kotlin.native.ignoreDisabledTargets`): on Windows
+Gradle skips them, and the `ios*` tasks and `xcodebuild` are Mac-only.
 
 - **No detekt, ktlint, spotless, or CI are configured.** Do not propose a lint gate that does not exist.
 - Never edit anything under `**/build/generated/**`.
@@ -59,7 +61,7 @@ suggesting a command.
 
 ## Module graph and dependency rules
 
-19 modules, all under the `com.nikolasguillen.questlog.*` namespace. Sources live in `src/commonMain/kotlin/` and `src/androidMain/kotlin/` (`:core:ai` and `:app` keep `src/main/java/`).
+19 modules (plus `build-logic/` and the `iosApp/` Xcode project), all under the `com.nikolasguillen.questlog.*` namespace. Sources live in `src/commonMain/kotlin/` and `src/androidMain/kotlin/` (`:core:ai` and `:app` keep `src/main/java/`).
 
 ```
 :app  →  :shared  →  everything
@@ -166,27 +168,31 @@ delete the rule in the same commit — do not rewrite it into a note saying the 
 a neighbouring rule already covers what is left. The same applies to `docs/tech-debt.md`: remove a
 resolved entry instead of annotating it as fixed. History belongs in commit messages.
 
-## Kotlin Multiplatform migration
+## Working in a multiplatform codebase
 
-The owner has decided to migrate the whole project to KMP, with Compose Multiplatform for the UI. The scope
-is in `specs/010-kmp-migration/spec.md`: **iOS is the only added platform** (no desktop, no web), and iOS
-launches **without** release reminders and on-device translation, whose entry points are hidden there (the
-iOS follow-ups are in `docs/roadmap.md`). Every module except `:core:ai` and `:app` is multiplatform now
-(Android target, and iOS targets that compile once Phase 4's `actual`s exist); the migration is sequenced by
-that feature's plan and tasks, so follow them rather than restructuring ad hoc.
+The whole project is Kotlin Multiplatform with Compose Multiplatform for the UI. **iOS is the only platform
+besides Android** (no desktop, no web), and it ships **without** release reminders and on-device translation,
+whose entry points are hidden there; the iOS follow-ups are in `docs/roadmap.md`. Every module except `:core:ai`
+and `:app` is multiplatform. The history and decisions are in `specs/010-kmp-migration`.
 
 - **Android must build and pass its tests at every commit** (`./gradlew :app:assembleDebug`,
-  `./gradlew test`). Never delete or weaken a test to get there. Each step must be one you could pause on.
+  `./gradlew test`). Never delete or weaken a test to get there.
+- **Shared code goes in `commonMain`.** Never import `android.*` or `java.*` there: dates are `kotlinx-datetime`, files and IO are `kotlinx-io`, and a string with a placeholder
+  is a Compose resource with positional `%1$s`.
+- **A platform capability is a contract owned by shared code, with one implementation per platform** — the
+  shape `ReleaseRefreshScheduler`, `GameDescriptionTranslator`, `AppVersionProvider` and
+  `NetworkStatusProvider` already have. Every file in `androidMain` or `iosMain` implements one of the
+  capabilities in `specs/010-kmp-migration/contracts/platform-contracts.md`; a new capability is added there
+  first, together with what the platform that lacks it does.
+- **`expect`/`actual` is for a single function or composable**; a service with state is an interface in
+  `commonMain` bound per platform in that module's `*PlatformModule`. `:shared` assembles the Koin graph.
 - **Library swaps are decided in the plan, not on the side.** Do not swap one outside the task that calls
   for it.
-- **The module-boundary rules above still hold** after the move. A new module or dependency edge must be
-  called out explicitly.
-- Keep `:core:model` free of Android and Compose dependencies. It is the natural first candidate for
-  `commonMain`.
-- Platform-only capabilities (background refresh, notifications, on-device translation, splash screen) are
-  reached through a contract owned by shared code, with one implementation per platform — the shape
-  `ReleaseRefreshScheduler` and `GameDescriptionTranslator` already have.
-- Use `kotlinx-datetime`, not `java.time`, for any new date code.
+- **A new module or dependency edge must be called out explicitly**, and the module-boundary rules above still
+  hold.
+- Keep `:core:model` free of Android and Compose dependencies.
+- Anything only the Mac can verify (iOS compile, `iosApp/`, simulator tests) is said so rather than assumed;
+  a change to shared code is checked on Android and, when a Mac is at hand, on the iOS simulator.
 
 When a decision would be hard to undo, say so and let the owner choose.
 

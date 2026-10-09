@@ -129,3 +129,7 @@ error-to-text boundary in the app — route all error rendering through it. Also
 transitively — do not re-declare them downstream. The module sets
 `freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")`, which differs from the
 flag used by `core/network`.
+
+Coil loads over the network only because `:shared` carries `coil-network-ktor3` and the Ktor engine for each
+platform (OkHttp, Darwin). A module that shows images depends on `coil-compose` and nothing else; without the
+fetcher in the final app every cover silently stays a placeholder.

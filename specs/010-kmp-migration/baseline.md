@@ -96,3 +96,15 @@ that check waits for a device.
   engine per platform (OkHttp on Android, Darwin on iOS).
 - The welcome flow's Radar page told iOS users to "turn on a reminder", which they cannot. Platforms without
   reminders now get their own page copy.
+
+## T109 — Boundary audit
+
+Run on the branch after Phase 5.
+
+- **Feature modules** list no `project(...)` in their own build files. `questlog.kmp.feature` gives each of them exactly
+  `:core:common`, `:core:model`, `:core:domain`, `:core:ui`, `:core:navigation` and `:core:designsystem`.
+- **`:shared`** depends on every module except `:core:ai`.
+- **`:core:ai`** is referenced by `settings.gradle.kts`, its own build file, a comment in `:shared`, and
+  `core/data/build.gradle.kts` line 27, inside `androidMain.dependencies`.
+- **`:core:model`**: no `android`, `androidx.compose` or `androidx.activity` import under `core/model/src`.
+- **Navigation 3**: no build file outside `core/navigation` and `shared` mentions it.

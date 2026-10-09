@@ -33,8 +33,9 @@ tone alongside them.
 Spec `specs/010-kmp-migration` ships iOS without these two features; their entry points are hidden there.
 Both already sit behind a contract in shared code, so each is a new iOS implementation and nothing else.
 
-- **Release reminders on iOS**: an iOS implementation of `ReleaseRefreshScheduler` (background refresh),
-  local notifications and their permission prompt, and the Settings rows that configure them.
+- **Release reminders on iOS**: a background refresh for `ReleaseRefreshScheduler` (today it only runs at launch),
+  local notifications and their permission prompt, and the Settings rows that configure them. The welcome flow's
+  `RadarWithoutReminders` page goes away when reminders arrive.
 - **On-device description translation on iOS**: an iOS implementation of `GameDescriptionTranslator`.
   Needs a design decision first, since ML Kit's GenAI client has no iOS counterpart (see below).
 - **iOS distribution**: installing on a physical device (development team), signing and provisioning, and
@@ -42,14 +43,11 @@ Both already sit behind a contract in shared code, so each is a new iOS implemen
 
 ## Decisions that would be expensive to reverse
 
-Per the KMP section in the root `CLAUDE.md`:
-
-- **Use `kotlinx-datetime`, not `java.time`.** A timeline feature spreads date math everywhere; rewriting
-  it after a KMP move is exactly the work the project is trying to avoid.
 - Room's destructive migration is deliberate while the app is unpublished — new entities for these phases
   wipe the device, and that is fine. See `docs/tech-debt.md`.
 - **ML Kit's GenAI Prompt API (the on-device translation feature's Gemini Nano client) has no
-  multiplatform counterpart.** What survives a KMP move is the `GameDescriptionTranslator` port in
-  `:core:domain`; `:core:ai` is replaced wholesale, the same shape already used for scheduling —
-  `core/domain/radar/ReleaseRefreshScheduler.kt` (contract) with the WorkManager implementation isolated
-  in `core/data/scheduler/ReleaseRefreshSchedulerImpl.kt`.
+  multiplatform counterpart.** `:core:ai` stays Android-only and reachable only from `:core:data`; what is shared is
+  the `GameDescriptionTranslator` port in `:core:domain`, and iOS binds `UnsupportedGameDescriptionTranslator`
+  until it gets a translator of its own. Scheduling has the same shape: `ReleaseRefreshScheduler` is the
+  contract, WorkManager implements it on Android and `InProcessReleaseRefreshScheduler` (once per 24 h, at launch)
+  on iOS.

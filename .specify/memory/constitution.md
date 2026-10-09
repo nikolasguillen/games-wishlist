@@ -24,7 +24,7 @@ them is a design decision, not an accident of history.
 A plan that requires a new edge in this graph MUST say so explicitly and justify it in its
 Complexity Tracking section. Silently adding the dependency is a constitution violation.
 
-**Rationale**: These boundaries are what keep a KMP migration tractable and what stop the UI layer
+**Rationale**: These boundaries are what keep a multiplatform codebase tractable and what stop the UI layer
 from reaching into persistence. They are cheap to respect now and expensive to reinstate later.
 
 ### II. Typed Errors Cross Layers, Exceptions Do Not
@@ -117,11 +117,10 @@ the real commands makes the verification step actionable.
 
 **Platform**: Kotlin 2.4.20, AGP 9.4.1, Gradle 9.7.1 (JVM toolchain 21), compileSdk/targetSdk 37,
 minSdk 29, Java 11, Compose Multiplatform 1.12.1 (Material 3 1.5.0-beta01 on Android), Koin 4.2.2, Room 2.8.5 (KSP, bundled SQLite driver), Ktor 3 + kotlinx.serialization,
-Navigation 3, Coil 3, WorkManager. Build configuration is shared through the convention plugins in
+Navigation 3, Coil 3, WorkManager (Android), and an iOS 16+ target built with Xcode. Build configuration is shared through the convention plugins in
 `build-logic/`: a module applies the one that matches its kind and takes its namespace, `compileSdk`,
-`minSdk` and Java version from it. Modules the migration has not reached yet still repeat them by hand;
-copy a converted one when adding a module, and register it in `settings.gradle.kts`. This describes the
-repository today; the migration plan changes it wherever it replaces a library or a source-set layout.
+`minSdk` and Java version from it. `:core:ai` keeps a hand-written build file because it is Android-only.
+Register a new module in `settings.gradle.kts`.
 
 **Persistence**: The app is unpublished, so the database stays at `version = 1` with
 `fallbackToDestructiveMigration(true)` and no `Migration` objects. The version MUST NOT be bumped.
@@ -138,16 +137,17 @@ project and MUST NOT be introduced. `KoinGraphTest` MUST stay green: it proves e
 into `internal object IgdbCredentials` (under `build/`) by `core/network/build.gradle.kts`. They MUST NEVER
 be committed or moved into source.
 
-**Kotlin Multiplatform**: The owner has decided to migrate the whole project to KMP, with Compose
-Multiplatform for the UI. The scope is `specs/010-kmp-migration/spec.md`: iOS is the only added
-platform, and iOS launches without release reminders and on-device translation, whose entry points
-are hidden there (the iOS follow-ups are in `docs/roadmap.md`). The migration is sequenced by that
-feature's plan and tasks, not restructured ad hoc.
+**Kotlin Multiplatform**: The whole project is Kotlin Multiplatform with Compose Multiplatform for the UI.
+iOS is the only platform besides Android, and it ships without release reminders and on-device translation,
+whose entry points are hidden there (the iOS follow-ups are in `docs/roadmap.md`). The decisions are in
+`specs/010-kmp-migration`.
 
 - Android MUST build and pass its tests at every commit (`./gradlew :app:assembleDebug` and
   `./gradlew test`). No test may be deleted or weakened to get there, and every step MUST be one the
   work can pause on.
 - Library swaps are decided in the plan and made only in the task that calls for them.
+- `commonMain` MUST NOT import `android.*` or `java.*`; platform code lives in `androidMain` and `iosMain`
+  and implements a capability listed in `specs/010-kmp-migration/contracts/platform-contracts.md`.
 - The module-boundary rules in Principle I still hold after the move. Any new module or dependency
   edge MUST be called out in Complexity Tracking.
 - `:core:model` MUST stay free of Android and Compose dependencies.
@@ -194,4 +194,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.3.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-08
+**Version**: 1.3.1 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-09

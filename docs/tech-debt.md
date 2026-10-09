@@ -11,7 +11,7 @@ these patterns as the house style. Mention the relevant item if it blocks you, t
 `git log` is the history, this file is only the present. It is meant to shrink until it is empty, and then
 to be deleted.
 
-Last audited: 2026-09-24.
+Last audited: 2026-10-09.
 
 ## Cleanup pass in progress
 
@@ -52,11 +52,25 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
   no exemption for component sizes. They came over unchanged from the create-list sheet. Resolve it by
   adding size tokens to `:core:designsystem`, or by agreeing that component sizes are exempt.
 
+- **The iOS 16 floor is untested**: the app targets iOS 16.0, but the only simulator runtimes the project has
+  been run on are iOS 26.5 and 27.0, and no physical device. The static framework links against 16.0 with a
+  version warning from a bundled ICU object (built for 18.5). Run it on an older runtime before shipping.
+- **Compose Multiplatform runs ahead of the Android BOM and Material 3 is split**: on Android, Compose
+  UI/runtime/foundation resolve to 1.12.1 (the BOM said 1.10) and Material 3 is pinned to androidx `1.5.0-beta01`
+  by `questlog.kmp.compose`, while iOS uses JetBrains' `1.12.0-alpha03`, so the search bar needs the
+  `SearchBarScrollBehaviorCompat` `expect`/`actual`. JetBrains' `1.13.0-alpha02` was rejected. Drop the pin and
+  the `expect` when both sides ship the same stable Material 3.
+- **iOS scroll smoothness and the offline error path were never run**: the first frame appears within 1.4 s on a
+  simulator, but jank in the Discover shelves, the search grid and the wishlist needs a device, and a simulator
+  cannot be taken offline from here (the Darwin error mapping is unit-tested instead).
+
 ## Infrastructure
 
 - **No CI** (`.github/` does not exist) and **no static analysis** (no detekt, ktlint, spotless,
   `.editorconfig`, or `lint {}` block).
-- **Test coverage gaps**: no tests at all for `:core:database` DAOs, and in `:core:ui` only
+- **Test coverage gaps**: iOS has one test class (`PlatformTransportFailureTest`, run with
+  `:core:network:iosSimulatorArm64Test`) and the root `test` task does not run it; the iOS `actual`s are otherwise
+  covered only by the walkthrough in `specs/010-kmp-migration/baseline.md`. No tests at all for `:core:database` DAOs, and in `:core:ui` only
   `PlatformPickerMapper` is covered — the other mappers are not. In `:core:domain` only the `usecase/discover/` and `radar/` use cases are covered; the search,
   list, detail and translation ones are not. `:core:ai` has no test source set at all:
   `GeminiNanoClient` wraps `Generation.getClient()`, a static factory that would need static mocking to
