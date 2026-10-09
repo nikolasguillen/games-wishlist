@@ -43,7 +43,14 @@ Last audited: 2026-10-09.
 - **The iOS 16 floor is untested**: the app targets iOS 16.0, but the oldest runtime it has been run on is
   iOS 17.0 (simulator; the others are 26.5 and 27.0), and it has never run on a physical device or on iOS 16.x.
   The static framework links against 16.0 with a version warning from a bundled ICU object (built for 18.5).
-  Run it on an iOS 16 runtime, or raise the deployment target to 17.0, before shipping.
+  Run it on an iOS 16 runtime, or raise the deployment target to 17.0, before shipping. FoundationModels is
+  weak-linked (`-weak_framework`), so a run below iOS 26 is also what proves the weak link at runtime.
+- **The iOS translation row can show Android's wording**: the system downloads Apple's model, so Settings only
+  polls for it (`AppleLanguageModelTranslator.downloadModel()`). If the model becomes unavailable while it polls,
+  for example because the user switched Apple Intelligence off, the row ends on "Download failed. Tap to try
+  again.", and tapping it opens the confirm dialog that says the model is several gigabytes and Wi-Fi only. The
+  retry is harmless, since it only polls again, but both texts are written for Android's download. Fix it with a
+  distinct `TranslationModelDownload` outcome that hides the row, handled in `SettingsViewModel`.
 - **Compose Multiplatform runs ahead of the Android BOM and Material 3 is split**: on Android, Compose
   UI/runtime/foundation resolve to 1.12.1 (the BOM said 1.10) and Material 3 is pinned to androidx `1.5.0-beta01`
   by `questlog.kmp.compose`, while iOS uses JetBrains' `1.12.0-alpha03`, so the search bar needs the
@@ -60,7 +67,8 @@ Last audited: 2026-10-09.
   `.editorconfig`, or `lint {}` block).
 - **Test coverage gaps**: iOS has one test class (`PlatformTransportFailureTest`, run with
   `:core:network:iosSimulatorArm64Test`) and the root `test` task does not run it; the iOS `actual`s are otherwise
-  covered only by the walkthrough in `specs/010-kmp-migration/baseline.md`. No tests at all for `:core:database` DAOs, and in `:core:ui` only
+  covered only by the walkthrough in `specs/010-kmp-migration/baseline.md`. The Swift `FoundationModelsBridge` has
+  no tests: `AppleLanguageModelTranslator` is tested against a fake bridge only. No tests at all for `:core:database` DAOs, and in `:core:ui` only
   `GameUiMapper`, `PlatformPickerMapper` and `HtmlUtils` are covered — the other mappers are not. In `:core:domain` the `radar/`,
   `release/`, `usecase/discover/` and `usecase/notification/` packages are covered, plus three of the twelve list use cases and
   `SetGameStatusUseCase`; the search, settings and translation use cases and the other list and detail ones are not. `:core:ai` has no test source set at all:

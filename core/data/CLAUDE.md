@@ -15,11 +15,12 @@ module's `strings.xml`. `:core:ai` is an `androidMain` dependency only. Each pla
 `iosMain`); the common `dataModule` binds only what needs no platform API. A new Android-only class goes in `androidMain` with its
 binding in the `actual` module; shared code reaches it through an interface in `:core:domain`.
 
-iOS has no background job runner, no reminders and no on-device translator, so its `dataPlatformModule` binds
+iOS has no background job runner and no reminders, so its `dataPlatformModule` binds
 `InProcessReleaseRefreshScheduler` (refresh at launch if the last successful one is 24h old, and when the saved
 set changes; one run at a time; the timestamp is written only after a success), no-op reminder classes,
-`StaticReleaseRemindersAvailability(false)` and `UnsupportedGameDescriptionTranslator`. All of these are in
-`commonMain` and unit-tested on the JVM.
+`StaticReleaseRemindersAvailability(false)` and `AppleLanguageModelTranslator`. All of these are in `commonMain`
+and unit-tested on the JVM; the translator needs an `AppleLanguageModelBridge`, which Swift supplies because
+FoundationModels cannot be imported from Kotlin/Native.
 
 ## Repository
 
@@ -98,11 +99,17 @@ explains *why*, not *what*. Match it when writing non-obvious logic.
 
 ## Translation
 
-`GameDescriptionTranslatorImpl` is Gemini Nano only — no second engine. ML Kit's classic Translation API
-was weighed and dropped: it downloads a per-language-pair NMT model, the per-app download this feature
-exists to avoid, and translates sentence by sentence with no notion of the domain. The seam for a fallback
-engine later is this class: a second client in `:core:ai` plus a branch here. Do not build that
-abstraction before a second engine actually exists.
+There is one engine per platform: `GameDescriptionTranslatorImpl` runs Gemini Nano on Android, and
+`AppleLanguageModelTranslator` runs Apple's on-device model on iOS. They share the prompt builder, the sanitizer
+and `translateWithCache`; each supplies only its generate step and its status and download handling. Do not add a
+second engine to a platform that has one. ML Kit's classic Translation API and Apple's Translation framework were
+both weighed and dropped for the same reason: they download a per-language-pair model, the per-app download this
+feature exists to avoid, and translate sentence by sentence with no notion of the domain.
+
+The iOS translator reaches FoundationModels through `AppleLanguageModelBridge`, implemented in Swift under
+`iosApp/` and bound by `MainViewController`. The bridge is callback-based on purpose (a `suspend` member
+implemented in Swift cannot be cancelled), and the translator never reports `DOWNLOADABLE`: the system owns that
+model, so `downloadModel()` only polls for it to become available.
 
 Three files sit beside it in `commonMain`, `internal` top-level functions as everywhere else in this module and
 all free of the client: `TranslationPromptBuilder.kt` (`buildTranslationInstructions(targetLanguage)`,

@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		A10000000000000000000001 /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000002 /* iOSApp.swift */; };
 		A10000000000000000000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000004 /* ContentView.swift */; };
+		A1000000000000000000001A /* FoundationModelsBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001B /* FoundationModelsBridge.swift */; };
+		A1000000000000000000001C /* FoundationModelsGeneration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001D /* FoundationModelsGeneration.swift */; };
 		A10000000000000000000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000006 /* Assets.xcassets */; };
 		A10000000000000000000007 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000008 /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
@@ -17,6 +19,8 @@
 		A10000000000000000000009 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000002 /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
 		A10000000000000000000004 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A1000000000000000000001B /* FoundationModelsBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsBridge.swift; sourceTree = "<group>"; };
+		A1000000000000000000001D /* FoundationModelsGeneration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsGeneration.swift; sourceTree = "<group>"; };
 		A10000000000000000000006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A10000000000000000000008 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A1000000000000000000000A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -36,6 +40,8 @@
 			children = (
 				A10000000000000000000002 /* iOSApp.swift */,
 				A10000000000000000000004 /* ContentView.swift */,
+				A1000000000000000000001B /* FoundationModelsBridge.swift */,
+				A1000000000000000000001D /* FoundationModelsGeneration.swift */,
 				A10000000000000000000006 /* Assets.xcassets */,
 				A10000000000000000000008 /* LaunchScreen.storyboard */,
 				A1000000000000000000000A /* Info.plist */,
@@ -156,6 +162,8 @@
 			files = (
 				A10000000000000000000001 /* iOSApp.swift in Sources */,
 				A10000000000000000000003 /* ContentView.swift in Sources */,
+				A1000000000000000000001A /* FoundationModelsBridge.swift in Sources */,
+				A1000000000000000000001C /* FoundationModelsGeneration.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -232,6 +240,8 @@
 					"$(inherited)",
 					"-framework",
 					QuestLogShared,
+					"-weak_framework",
+					FoundationModels,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.nikolasguillen.questlog;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -264,6 +274,8 @@
 					"$(inherited)",
 					"-framework",
 					QuestLogShared,
+					"-weak_framework",
+					FoundationModels,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.nikolasguillen.questlog;
 				PRODUCT_NAME = "$(TARGET_NAME)";

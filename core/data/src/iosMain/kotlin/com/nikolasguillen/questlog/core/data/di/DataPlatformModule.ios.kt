@@ -10,7 +10,7 @@ import com.nikolasguillen.questlog.core.data.notification.NoOpReleaseNotificatio
 import com.nikolasguillen.questlog.core.data.notification.NoOpReleaseNotifier
 import com.nikolasguillen.questlog.core.data.notification.StaticReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.data.scheduler.InProcessReleaseRefreshScheduler
-import com.nikolasguillen.questlog.core.data.translation.UnsupportedGameDescriptionTranslator
+import com.nikolasguillen.questlog.core.data.translation.AppleLanguageModelTranslator
 import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotificationScheduler
 import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotifier
 import com.nikolasguillen.questlog.core.domain.notification.ReleaseRemindersAvailability
@@ -41,7 +41,8 @@ actual val dataPlatformModule: Module = module {
     singleOf(::NoOpReleaseNotifier) { bind<ReleaseNotifier>() }
     single<ReleaseRemindersAvailability> { StaticReleaseRemindersAvailability(isAvailable = false) }
 
-    singleOf(::UnsupportedGameDescriptionTranslator) { bind<GameDescriptionTranslator>() }
+    // Needs the AppleLanguageModelBridge that MainViewController binds from Swift: FoundationModels is Swift-only.
+    singleOf(::AppleLanguageModelTranslator) { bind<GameDescriptionTranslator>() }
     factoryOf(::WishlistCoverImageStorageImpl) { bind<WishlistCoverImageStorage>() }
 
     single<DataStore<Preferences>> {

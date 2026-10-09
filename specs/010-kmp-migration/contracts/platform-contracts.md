@@ -228,9 +228,10 @@ single `actual` per platform and no behaviour of its own to specify.
 
 | Concern | Android (`:androidApp`) | iOS (`iosApp/`) |
 |---|---|---|
-| Entry point | `MainActivity` → `setContent { QuestLogRoot(pendingDeepLinkGameId, onDeepLinkConsumed, displayCornerRadius) }`; the splash is held by `MainActivity` itself until `RootViewModel` has the onboarding flag | `ContentView` → `MainViewController()` |
+| Entry point | `MainActivity` → `setContent { QuestLogRoot(pendingDeepLinkGameId, onDeepLinkConsumed, displayCornerRadius) }`; the splash is held by `MainActivity` itself until `RootViewModel` has the onboarding flag | `ContentView` → `MainViewController(languageModelBridge: FoundationModelsBridge())` |
 | DI start | `QuestLogApp.onCreate` → `initKoin(isDebugBuild = BuildConfig.DEBUG) { androidContext(this) }`; the WorkManager factory is the `Application`'s `Configuration.Provider` | `MainViewController()` → idempotent `initKoin(isDebugBuild = …)`; the iOS bindings are the `expect` platform modules' `iosMain` actuals, which `initKoin` already lists |
 | Splash | `core-splashscreen`, held until the start route is known (unchanged) | `LaunchScreen` storyboard with the app logo |
+| Swift services handed to Kotlin | None | `FoundationModelsBridge` (FoundationModels), bound in Koin by `MainViewController` |
 | Periodic refresh kick-off | `QuestLogApp` calls `schedulePeriodicRefresh()` (unchanged) | `MainViewController()` calls `schedulePeriodicRefresh()` once per launch |
 | Display corner radius | `RoundedCorner` probe (unchanged) | Fixed default passed by `MainViewController()` |
 | Deep link to a game (`questlog://game/{id}`, used by the reminder notification) | `MainActivity` parses the intent (`onCreate` and `onNewIntent`) into a `GameDetailRoute` and hands it to `QuestLogRoot` as a pending route | Not registered (its only producer, reminders, is absent on iOS) |
@@ -244,5 +245,4 @@ same commit as any change to it.**
 |---|---|---|---|---|
 | Release reminders (notifications, permission prompt, per-game toggle, settings rows, onboarding page) | Full | Absent | No reminder controls anywhere | `docs/roadmap.md` — "Release reminders on iOS" |
 | Release-date refresh while the app is closed | WorkManager, every 24h | None | Dates refresh at launch (if over 24h old) and when the saved set changes | Same roadmap entry |
-| On-device description translation | ML Kit Gemini Nano | Absent (`UNSUPPORTED`) | No translate action, no Settings row | `docs/roadmap.md` — "On-device description translation on iOS" |
 | Status-bar icon colour follows the app theme | Yes | Follows the app theme without any code: the walkthrough (force dark under a light system theme and force light under a dark one) showed readable status-bar text both ways | None | None needed |

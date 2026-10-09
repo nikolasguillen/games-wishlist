@@ -153,6 +153,7 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
 | Koin assembly (`initKoin`) and every ViewModel binding | `shared/.../di/SharedKoin.kt`, `shared/.../di/ViewModelModule.kt` |
 | Splash screen, edge-to-edge, deep link parsing | `androidApp/.../MainActivity.kt` |
 | iOS entry point (`MainViewController`) and the Xcode project that hosts it | `shared/src/iosMain/.../MainViewController.kt`, `iosApp/` |
+| Swift services that Kotlin calls (FoundationModels is Swift-only), passed in through `MainViewController` | `iosApp/iosApp/` (`FoundationModelsBridge`) |
 | Shared UI constants | `core/ui/util/Constants.kt` (`object UiConstants`) |
 | Network↔domain↔entity mappers | `core/data/mapper/GameMapper.kt` |
 | `GameDescriptionTranslator` | `core/domain/translation/` (impl in `core/data/translation/`) |
@@ -171,8 +172,8 @@ resolved entry instead of annotating it as fixed. History belongs in commit mess
 ## Working in a multiplatform codebase
 
 The whole project is Kotlin Multiplatform with Compose Multiplatform for the UI. **iOS is the only platform
-besides Android** (no desktop, no web), and it ships **without** release reminders and on-device translation,
-whose entry points are hidden there; the iOS follow-ups are in `docs/roadmap.md`. Every module except `:core:ai`
+besides Android** (no desktop, no web), and it ships **without** release reminders, whose entry points are
+hidden there; the iOS follow-ups are in `docs/roadmap.md`. Every module except `:core:ai`
 and `:androidApp` is multiplatform. The history and decisions are in `specs/010-kmp-migration`.
 
 - **Android must build and pass its tests at every commit** (`./gradlew :androidApp:assembleDebug`,
