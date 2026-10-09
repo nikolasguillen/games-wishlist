@@ -1,8 +1,18 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+
 plugins {
     id("questlog.kmp.compose")
 }
 
 kotlin {
+    // The iOS app links this one static framework; every other module is compiled into it.
+    targets.withType<KotlinNativeTarget>().configureEach {
+        binaries.framework {
+            baseName = "QuestLogShared"
+            isStatic = true
+        }
+    }
+
     sourceSets {
         commonMain.dependencies {
             // Everything the app is made of except :core:ai, which only :core:data may reach.
@@ -33,6 +43,9 @@ kotlin {
             implementation(libs.jetbrains.lifecycle.viewmodel.navigation3)
             implementation(libs.jetbrains.material.icons.extended)
             implementation(libs.kotlinx.coroutines.core)
+        }
+        iosMain.dependencies {
+            implementation(libs.jetbrains.compose.ui)
         }
         androidHostTest.dependencies {
             implementation(libs.junit)
