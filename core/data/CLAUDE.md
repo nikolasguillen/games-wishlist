@@ -104,12 +104,13 @@ exists to avoid, and translates sentence by sentence with no notion of the domai
 engine later is this class: a second client in `:core:ai` plus a branch here. Do not build that
 abstraction before a second engine actually exists.
 
-Two files sit beside it in `commonMain`, `internal` top-level functions as everywhere else in this module and
-both free of the client: `TranslationPromptBuilder.kt` (`buildTranslationInstructions(targetLanguage)`,
-`buildTranslationSource(description)`) owns the prompt text, and `TranslationArtifactSanitizer.kt`
-(`String.stripTranslationArtifacts()`) strips what a small on-device model leaves behind. Both are common so
-every engine shares one prompt. Keep them out of the translator — they are the parts worth unit-testing without
-a device.
+Three files sit beside it in `commonMain`, `internal` top-level functions as everywhere else in this module and
+all free of the client: `TranslationPromptBuilder.kt` (`buildTranslationInstructions(targetLanguage)`,
+`buildTranslationSource(description)`) owns the prompt text, `TranslationArtifactSanitizer.kt`
+(`String.stripTranslationArtifacts()`) strips what a small on-device model leaves behind, and
+`TranslationCache.kt` (`TranslationDao.translateWithCache(...)`) holds the length guard, the Room cache and its
+staleness check, taking only the engine's generate step. All three are common so every engine shares one prompt
+and one cache. Keep them out of the translator — they are the parts worth unit-testing without a device.
 
 `dataModule` also registers an application-scoped `CoroutineScope` for this feature only: the model
 download has to outlive the `SettingsViewModel` that started it, or leaving the screen would cancel it.

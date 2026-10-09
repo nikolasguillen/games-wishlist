@@ -7,7 +7,6 @@ import com.nikolasguillen.questlog.core.data.mapper.toTranslationModelDownload
 import com.nikolasguillen.questlog.core.data.mapper.toTranslationModelStatus
 import com.nikolasguillen.questlog.core.data.translation.GameDescriptionTranslatorImpl.Companion.STATUS_POLL_INTERVAL
 import com.nikolasguillen.questlog.core.database.dao.TranslationDao
-import com.nikolasguillen.questlog.core.database.entity.TranslatedDescriptionEntity
 import com.nikolasguillen.questlog.core.domain.translation.GameDescriptionTranslator
 import com.nikolasguillen.questlog.core.model.TranslationModelDownload
 import com.nikolasguillen.questlog.core.model.TranslationModelStatus
@@ -32,37 +31,15 @@ internal class GameDescriptionTranslatorImpl(
         return geminiNanoClient.status().toTranslationModelStatus()
     }
 
-    override suspend fun translate(gameId: Int, description: String): String? {
-        if (description.isBlank() || description.length > MAX_TRANSLATABLE_CHARS) return null
-
-        val languageTag = Locale.getDefault().toLanguageTag()
-        val sourceHash = description.hashCode()
-
-        val cached = translationDao.getTranslation(gameId, languageTag)
-        if (cached != null && cached.sourceHash == sourceHash) {
-            // Rows written before the prompt fix can still carry a leaked label; sanitize on read too.
-            return cached.translatedText.stripTranslationArtifacts()
-        }
-
-        val translated = geminiNanoClient.generate(
-            // The blank line closes the rules block; it belongs to the cached prefix so the variable half starts
-            // at the <text> tag.
-            prefix = buildTranslationInstructions(Locale.getDefault().getDisplayLanguage(Locale.ENGLISH)) + "\n\n",
-            suffix = buildTranslationSource(description)
-        )
-        if (translated.isNullOrBlank()) return null
-
-        val sanitized = translated.stripTranslationArtifacts()
-        translationDao.saveTranslation(
-            TranslatedDescriptionEntity(
-                gameId = gameId,
-                languageTag = languageTag,
-                sourceHash = sourceHash,
-                translatedText = sanitized
+    override suspend fun translate(gameId: Int, description: String): String? =
+        translationDao.translateWithCache(gameId, Locale.getDefault().toLanguageTag(), description) {
+            geminiNanoClient.generate(
+                // The blank line closes the rules block; it belongs to the cached prefix so the variable half
+                // starts at the <text> tag.
+                prefix = buildTranslationInstructions(Locale.getDefault().getDisplayLanguage(Locale.ENGLISH)) + "\n\n",
+                suffix = buildTranslationSource(description)
             )
-        )
-        return sanitized
-    }
+        }
 
     // Held here rather than started fresh per call: GeminiNanoClient.download() is a cold Flow, and
     // cancelling its collector cancels the SDK's own download job along with it. Collecting it from
@@ -128,8 +105,6 @@ internal class GameDescriptionTranslatorImpl(
     }
 
     private companion object {
-        // Well inside the Prompt API's ~4000-token ceiling; no IGDB summary comes close to this.
-        const val MAX_TRANSLATABLE_CHARS = 8000
         val STATUS_POLL_INTERVAL = 15.seconds
     }
 }
