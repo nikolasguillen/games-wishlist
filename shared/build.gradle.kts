@@ -43,9 +43,15 @@ kotlin {
             implementation(libs.jetbrains.lifecycle.viewmodel.navigation3)
             implementation(libs.jetbrains.material.icons.extended)
             implementation(libs.kotlinx.coroutines.core)
+            // Coil finds its network fetcher on the classpath; the engine that fetches covers is chosen per platform.
+            implementation(libs.coil3.network.ktor3)
+        }
+        androidMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
         }
         iosMain.dependencies {
             implementation(libs.jetbrains.compose.ui)
+            implementation(libs.ktor.client.darwin)
         }
         androidHostTest.dependencies {
             implementation(libs.junit)

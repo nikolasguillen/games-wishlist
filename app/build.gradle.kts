@@ -44,9 +44,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    // Coil finds its network fetcher on the classpath, so the engine that fetches covers is chosen here.
-    implementation(libs.coil3.network.ktor3)
-    implementation(libs.ktor.client.okhttp)
     implementation(libs.material)
     testImplementation(libs.androidx.core)
     testImplementation(libs.junit)
