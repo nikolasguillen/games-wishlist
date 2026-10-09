@@ -127,8 +127,7 @@ error-to-text boundary in the app — route all error rendering through it. Also
 
 `build.gradle.kts` exposes material-icons and `haze` with `api(...)`, so feature modules get them
 transitively — do not re-declare them downstream. The module sets
-`freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")`, which differs from the
-flag used by `core/network`.
+`freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")`.
 
 Coil loads over the network only because `:shared` carries `coil-network-ktor3` and the Ktor engine for each
 platform (OkHttp, Darwin). A module that shows images depends on `coil-compose` and nothing else; without the

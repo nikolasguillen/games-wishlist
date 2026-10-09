@@ -23,15 +23,16 @@ iosApp (Xcode)             ──► QuestLogShared.framework  (built from :shar
 
 | Edge | Before | After | Why |
 |---|---|---|---|
-| `:androidApp` → `:feature:*`, `:core:*` | direct | **removed**. `:androidApp` depends on `:shared`, `:core:navigation` (to turn the `questlog://game/{id}` intent into a `GameDetailRoute`) and `:core:domain` (for `QuestLogApp`'s `ReleaseRefreshScheduler` call). The workers are declared in `:core:data`'s Android Koin module, so `:androidApp` never sees them | Navigation, scaffold and DI assembly move to `:shared` (research R2) |
+| `:androidApp` → `:feature:*`, `:core:*` | direct | **removed**. `:androidApp` depends on `:shared` and `:core:domain` (for `QuestLogApp`'s `ReleaseRefreshScheduler` call). It turns the `questlog://game/{id}` intent into a plain game id for `QuestLogRoot`, so it needs no navigation types. The workers are declared in `:core:data`'s Android Koin module, so `:androidApp` never sees them | Navigation, scaffold and DI assembly move to `:shared` (research R2) |
 | `:shared` → features and core | did not exist | new | `:shared` takes over `:androidApp`'s role as the module that knows navigation |
 | `:core:data` → `:core:ai` | `implementation` | `androidMain` `implementation` | ML Kit stays Android-only |
 
 **Navigation ownership**: `:shared` is the only module that knows navigation. It holds the single
 `entryProvider` in `QuestLogNavDisplay`. `:androidApp` hosts `QuestLogRoot` and owns no route, no
-`entryProvider` and no screen. Adding a route still means exactly two edits outside the feature:
+`entryProvider` and no screen. Adding a route still means three edits outside the feature:
 
-- a `NavKey` in `core/navigation/Routes.kt`, also registered in its `SavedStateConfiguration` in the same file;
+- a `NavKey` in `core/navigation/Routes.kt`;
+- a `subclass(...)` line for it in `core/navigation/GameNavSavedStateConfiguration.kt`;
 - a branch in `:shared`'s `entryProvider`.
 
 ## External dependencies allowed per layer (after the migration)

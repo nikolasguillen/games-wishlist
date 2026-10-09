@@ -1,6 +1,7 @@
 # CLAUDE.md — core:designsystem
 
-Theme tokens only, seven files under `theme/`. No composables beyond `QuestLogTheme`.
+Theme tokens only, under `theme/`. The only composables are `QuestLogTheme` and `SystemBarsAppearance`, an `internal expect`
+that sets the status and navigation bar icon colours (Android `actual`; a no-op on iOS, whose bars follow the theme on their own).
 
 - **`@QuestLogPreviews`** (`QuestLogPreviews.kt`) — multipreview annotation (`@PreviewLightDark` under the
   hood) that renders a preview in both light and dark theme. Use it instead of `@Preview` on every preview

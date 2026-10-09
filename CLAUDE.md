@@ -30,11 +30,11 @@ with `git config core.hooksPath .githooks`.
 
 ```bash
 ./gradlew :androidApp:assembleDebug                               # full debug build
-./gradlew :feature:search:compileDebugKotlin --console=plain -q  # fast single-module check (Android module)
+./gradlew :feature:search:compileAndroidMain --console=plain -q  # fast single-module check (multiplatform module)
 ./gradlew :core:domain:compileCommonMainKotlinMetadata -q       # fast check of a multiplatform module's commonMain
 ./gradlew test                                                   # all JVM unit tests
-./gradlew :core:data:testDebugUnitTest --console=plain -q        # single-module tests (Android module)
-./gradlew :core:domain:testAndroidHostTest --console=plain -q    # single-module tests (multiplatform module)
+./gradlew :core:data:testAndroidHostTest --console=plain -q      # single-module tests (multiplatform module)
+./gradlew :core:ai:compileDebugKotlin --console=plain -q         # fast single-module check (Android-only module)
 ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 -q        # the iOS framework (macOS)
 ./gradlew :core:network:iosSimulatorArm64Test --console=plain -q # iOS-only tests (macOS; boots a simulator)
 xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -sdk iphonesimulator \
@@ -45,8 +45,8 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -sdk iphonesimulator 
 `testAndroidHostTest`. `allTests` is not the project's command — it also runs the iOS simulator tests, which need
 a Mac.
 
-Prefer a single-module `compileDebugKotlin` for quick feedback; only run `:androidApp:assembleDebug` when the
-change spans modules or touches DI wiring.
+Prefer a single-module `compileAndroidMain` (`compileDebugKotlin` only exists on `:androidApp` and `:core:ai`) for
+quick feedback; only run `:androidApp:assembleDebug` when the change spans modules or touches DI wiring.
 
 This project is developed on both macOS and Windows. The commands above use the Unix wrapper; on Windows
 (PowerShell) use the batch wrapper instead — `.\gradlew.bat :androidApp:assembleDebug`. Check the platform before
@@ -64,7 +64,8 @@ Gradle skips them, and the `ios*` tasks and `xcodebuild` are Mac-only.
 19 modules (plus `build-logic/` and the `iosApp/` Xcode project), all under the `com.nikolasguillen.questlog.*` namespace. Sources live in `src/commonMain/kotlin/` and `src/androidMain/kotlin/` (`:core:ai` and `:androidApp` keep `src/main/java/`).
 
 ```
-:androidApp  →  :shared  →  everything
+:androidApp  →  :shared  →  everything except :core:ai
+:androidApp  →  :core:domain   (QuestLogApp schedules the periodic release refresh)
 :feature:{search, radar, game-detail, lists, wishlist, settings, onboarding}
 :core:{common, model, network, database, data, domain, ui, designsystem, navigation, ai}
 ```
@@ -85,8 +86,7 @@ These boundaries are load-bearing — check them before adding a dependency:
 - `:core:model` has no Android and no Compose dependency (only `kotlinx-serialization-core`). Keep it that way.
 - **Build configuration lives in `build-logic/` convention plugins** (`questlog.kmp.library`, …). A module
   applies the plugin that matches its kind and declares only its own dependencies: the namespace,
-  `compileSdk = 37`, `minSdk = 29` and Java 11 come from the plugin, never from the module. The migration is
-  converting modules one by one (`specs/010-kmp-migration`). `:core:ai` keeps a hand-written build file on
+  `compileSdk = 37`, `minSdk = 29` and Java 11 come from the plugin, never from the module. `:core:ai` keeps a hand-written build file on
   purpose, being Android-only; `:androidApp` applies `questlog.android.application`, because AGP 9 does not allow an
   application module to be multiplatform. Register a new module in
   `settings.gradle.kts`.

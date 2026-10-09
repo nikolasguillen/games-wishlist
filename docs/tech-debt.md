@@ -13,18 +13,6 @@ to be deleted.
 
 Last audited: 2026-10-09.
 
-## Cleanup pass in progress
-
-An ordered pass over this list is underway on `develop`, one fix per commit; `git log` is the record of
-what has already been done. Entries are deleted from this file as they are fixed, so whatever is still
-written below is still true. Agreed order for the rest:
-
-1. **Release signing** — on hold: blocked on the owner generating a keystore, and not being chased in the
-   meantime.
-
-Convention plugins, CI and the test-coverage gaps are deliberately last — see the KMP section in the root
-`CLAUDE.md`, since a multiplatform move would rewrite the build logic anyway.
-
 ## Technical risks
 
 - **Room migrations are deferred until release**: the database is deliberately pinned to `version = 1`
@@ -73,8 +61,9 @@ Convention plugins, CI and the test-coverage gaps are deliberately last — see 
 - **Test coverage gaps**: iOS has one test class (`PlatformTransportFailureTest`, run with
   `:core:network:iosSimulatorArm64Test`) and the root `test` task does not run it; the iOS `actual`s are otherwise
   covered only by the walkthrough in `specs/010-kmp-migration/baseline.md`. No tests at all for `:core:database` DAOs, and in `:core:ui` only
-  `PlatformPickerMapper` is covered — the other mappers are not. In `:core:domain` only the `usecase/discover/` and `radar/` use cases are covered; the search,
-  list, detail and translation ones are not. `:core:ai` has no test source set at all:
+  `GameUiMapper`, `PlatformPickerMapper` and `HtmlUtils` are covered — the other mappers are not. In `:core:domain` the `radar/`,
+  `release/`, `usecase/discover/` and `usecase/notification/` packages are covered, plus three of the twelve list use cases and
+  `SetGameStatusUseCase`; the search, settings and translation use cases and the other list and detail ones are not. `:core:ai` has no test source set at all:
   `GeminiNanoClient` wraps `Generation.getClient()`, a static factory that would need static mocking to
   reach, and the logic actually worth testing (mapping ML Kit's types) is covered where it lands, in
   `:core:data`'s `GameDescriptionTranslatorImplTest`. No Compose UI tests — `ui-test-junit4` is

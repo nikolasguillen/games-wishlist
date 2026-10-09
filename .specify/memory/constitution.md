@@ -95,14 +95,16 @@ A plan MUST NEVER depend on a pipeline, a lint gate or a formatter that does not
 
 Verification means compiling and running the JVM test suites locally:
 
-- `./gradlew :<module>:compileDebugKotlin` for a single-module change (`compileCommonMainKotlinMetadata` in a
-  multiplatform module).
+- `./gradlew :<module>:compileAndroidMain` for a single-module change in a multiplatform module
+  (`compileCommonMainKotlinMetadata` checks only its `commonMain`); `compileDebugKotlin` exists only on `:androidApp`
+  and `:core:ai`.
 - `./gradlew :androidApp:assembleDebug` when the change spans modules or touches DI wiring.
 - `./gradlew test` for the suites. A root `test` task makes it include every multiplatform module's
   `testAndroidHostTest`.
 
-The existing test source sets — `core/data`, `core/domain`, `core/network`, `core/ui`,
-`feature/{search,radar,lists,game-detail,settings,wishlist,onboarding}` and `androidApp` — MUST stay green. New ViewModel,
+The existing test source sets — `core/{common,data,domain,navigation,network,ui}`,
+`feature/{search,radar,lists,game-detail,settings,wishlist,onboarding}` and `shared` (which holds `KoinGraphTest`) — MUST
+stay green. New ViewModel,
 mapper, use-case or error-mapping logic gets a test in its own module's test source set (`src/androidHostTest` in a multiplatform module) using JUnit4 +
 MockK + `kotlinx-coroutines-test`, mocking the use cases rather than the repository, with a
 `StandardTestDispatcher` and `Dispatchers.setMain`/`resetMain`.
@@ -151,9 +153,10 @@ whose entry points are hidden there (the iOS follow-ups are in `docs/roadmap.md`
 - The module-boundary rules in Principle I still hold after the move. Any new module or dependency
   edge MUST be called out in Complexity Tracking.
 - `:core:model` MUST stay free of Android and Compose dependencies.
-- Platform-only capabilities (background refresh, notifications, on-device translation, splash
-  screen) MUST be reached through a contract owned by shared code, with one implementation per
-  platform. `ReleaseRefreshScheduler` and `GameDescriptionTranslator` are the existing shape.
+- Platform-only capabilities (background refresh, notifications, on-device translation) MUST be
+  reached through a contract owned by shared code, with one implementation per platform.
+  `ReleaseRefreshScheduler` and `GameDescriptionTranslator` are the existing shape. The splash screen is
+  not a contract: it belongs to each platform's shell (`:androidApp`, `iosApp/`).
 - New date code MUST use `kotlinx-datetime`, not `java.time`.
 
 When a decision would be hard to undo, say so in the plan and let the owner choose.
@@ -194,4 +197,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.3.2 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-09
+**Version**: 1.3.3 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-09
