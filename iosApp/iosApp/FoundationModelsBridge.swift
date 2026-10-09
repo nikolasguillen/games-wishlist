@@ -1,5 +1,6 @@
 import Foundation
 import FoundationModels
+import os
 import QuestLogShared
 
 /// Apple's on-device model (FoundationModels) behind the Kotlin `AppleLanguageModelBridge`.
@@ -9,6 +10,10 @@ import QuestLogShared
 /// (`-weak_framework` in the target's linker flags) and every use is behind `#available(iOS 26.0, *)`, so the
 /// app still launches on iOS 16–25, where this reports `.unavailable`.
 final class FoundationModelsBridge: NSObject, DataAppleLanguageModelBridge {
+
+    /// Every failure below reaches Kotlin as a plain `nil`, which the UI shows as "translation failed". The cause
+    /// is logged here, never the text being translated, so a failure can be read from the console.
+    private static let logger = Logger(subsystem: "com.nikolasguillen.questlog", category: "translation")
 
     func preferredLanguageTag() -> String {
         // Not Locale.current: its language follows the app's own localizations, and the app ships English only.
@@ -64,6 +69,7 @@ final class FoundationModelsBridge: NSObject, DataAppleLanguageModelBridge {
         if #available(iOS 26.4, *) {
             // Half the window for the input, half left for the translation, which is about as long.
             if let tokens = try? await model.tokenCount(for: instructions + prompt), tokens > model.contextSize / 2 {
+                logger.error("Refused: \(tokens, privacy: .public) tokens exceed half of the \(model.contextSize, privacy: .public)-token window")
                 return nil
             }
         }
@@ -72,6 +78,7 @@ final class FoundationModelsBridge: NSObject, DataAppleLanguageModelBridge {
             return try await session.respond(to: prompt).content
         } catch {
             // Guardrails, context overflow, an unsupported language, cancellation: the caller shows the original.
+            logger.error("Generation failed: \(String(describing: error), privacy: .public)")
             return nil
         }
     }
