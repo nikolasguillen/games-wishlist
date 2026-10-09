@@ -317,11 +317,11 @@ The per-commit amendments in Phases 2–3 already corrected the library rules; t
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T117 Verify SC-001: run the settled test command and confirm the test count is at or above T001, with no test deleted or disabled; list the tests whose files changed beyond renames (`git diff -M --stat develop -- '*Test*.kt'`) and confirm the only content edits are the ones this file names (the `RequestBody` → `String` type change, the extra `ReleaseRemindersAvailability` constructor argument, the `Res` handles, `File` → `String` in two mapper tests)
-- [ ] T118 Verify SC-002: repeat the Phase 1 parity walkthrough on the final Android build in light and dark and compare with the screenshots
-- [ ] T119 Verify SC-004: run the two `find … | wc -l` commands in `quickstart.md` § Shared-code ratio and record the percentage; it must be at least 90%, and every file under `androidMain`/`iosMain` must implement a capability from `contracts/platform-contracts.md`
-- [ ] T120 Verify SC-007: change one shared rule (for example the `24 h` refresh constant, or a bucket boundary in `ReleaseBucketResolver`) in a single edit, rebuild both apps, and confirm both reflect it; revert the change
-- [ ] T121 Run `quickstart.md` end to end once more (both walkthroughs) on the final commit and remove any leftover scratch from `specs/010-kmp-migration/` that is not part of the spec set
+- [X] T117 Verify SC-001: run the settled test command and confirm the test count is at or above T001, with no test deleted or disabled; list the tests whose files changed beyond renames (`git diff -M --stat develop -- '*Test*.kt'`) and confirm the only content edits are the ones this file names (the `RequestBody` → `String` type change, the extra `ReleaseRemindersAvailability` constructor argument, the `Res` handles, `File` → `String` in two mapper tests)
+- [X] T118 Verify SC-002: repeat the Phase 1 parity walkthrough on the final Android build in light and dark and compare with the screenshots
+- [X] T119 Verify SC-004: run the two `find … | wc -l` commands in `quickstart.md` § Shared-code ratio and record the percentage; it must be at least 90%, and every file under `androidMain`/`iosMain` must implement a capability from `contracts/platform-contracts.md`
+- [X] T120 Verify SC-007: change one shared rule (for example the `24 h` refresh constant, or a bucket boundary in `ReleaseBucketResolver`) in a single edit, rebuild both apps, and confirm both reflect it; revert the change
+- [X] T121 Run `quickstart.md` end to end once more (both walkthroughs) on the final commit and remove any leftover scratch from `specs/010-kmp-migration/` that is not part of the spec set
 - [ ] T122 Run `speckit-analyze` for a cross-artifact consistency pass over spec.md, plan.md and this file before declaring the feature done
 
 ---

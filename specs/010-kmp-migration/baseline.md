@@ -123,3 +123,33 @@ then `./gradlew test :app:assembleDebug`. All five built and passed.
 | `dc73f412` | `feat(ios): add the ios app shell` | 58 / 535 | 0 |
 
 The floor from T001 is 456 tests; every sampled commit is above it.
+
+## Phase 7 — Final verification
+
+**T117, SC-001.** `./gradlew test` on the final commit ran **58 test classes and 535 Android-host tests with no
+failures** (floor from T001: 456), plus the 5 tests of `:core:network:iosSimulatorArm64Test`. Beyond renames
+(`src/test/java` → `src/androidHostTest/kotlin`) the existing tests changed in four ways only: `RequestBody` →
+`String` in the `GameRepositoryImpl*` tests, the extra `ReleaseRemindersAvailability` constructor argument in the
+ViewModel tests, Compose `Res` handles replacing `R.string`/`R.plurals` in expected `UiText`s, and one new
+expectation in `OnboardingViewModelTest` for the iOS page list. No test was deleted or disabled.
+
+**T118, SC-002.** Final Android debug build on `emulator-5554`, compared with `captures/baseline/` outside the top
+140 px (status bar clock). Radar, Lists and Settings are **pixel-identical** in light and dark (0.0 % of pixels differ by
+more than 24/255). Search has the same layout, and covers load, but its shelves hold different games than the baseline run.
+They come from IGDB and the saved-games taste profile, so two runs on different days differ.
+
+**T119, SC-004.** `commonMain` holds 26 753 lines and the Android/iOS source sets 1 648 (`:core:ai` excluded):
+**94.2 %** shared. Every file under `androidMain` and `iosMain` is a contract implementation, a platform module, or one
+of the small seams listed in `contracts/platform-contracts.md`.
+
+**T120, SC-007.** One edit to `search_placeholder` in `feature/search/.../strings.xml`, then
+`:app:assembleDebug` and `xcodebuild`: the new text shows on the Android emulator and on the iOS simulator. The edit
+was reverted.
+
+**T121, quickstart end to end.** Android: parity rows re-checked on the final build (T118), update path (the debug build was
+installed over the existing data several times and the lists, the settings and the "onboarding done" flag survived),
+deep link `questlog://game/{id}` on the **R8 release build** from a cold start (opens the game, covers load), `help
+--configuration-cache` twice reuses the cache, `releaseRuntimeClasspath` resolves `material3` to `1.5.0-beta01`, and
+`:shared:linkDebugFrameworkIosSimulatorArm64` plus `compileKotlinIosArm64` pass. iOS: the walkthrough above, run on the
+code as it stands apart from the last build setting. Windows checks (T065, T090) still need the owner's Windows machine.
+No scratch file remains in `specs/010-kmp-migration/`.
