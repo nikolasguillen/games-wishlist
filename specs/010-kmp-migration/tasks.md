@@ -393,3 +393,15 @@ Task: ":feature:onboarding conversion"
 - Never edit anything under `**/build/generated/**`, and never commit `local.properties`
 - If a library API named here differs in the pinned version, follow the library's own docs and record the difference in the commit body; do not change the design without asking
 - Tasks that say "stop and ask the owner" must not be skipped
+
+---
+
+## Phase 8: Convergence
+
+Gaps left between the artifacts and the code after Phases 1–7. T002, T003, T065 and T090 are still open from earlier phases and are not repeated here.
+
+- [ ] T123 On the final Android build, with notifications allowed, enable a release reminder from a game's detail page and from Radar, confirm the periodic job is scheduled (`adb -s emulator-5554 shell dumpsys jobscheduler | grep questlog`), let one notification fire or trigger it, tap it and confirm it opens that game, and confirm the Settings reminders rows, the permission row and the reminders onboarding page still behave as before, per FR-001 and parity checklist rows 4, 8 and 9 (partial: only the deep link was exercised on the final build)
+- [ ] T124 Have a person time the iOS first-run flow on the simulator, from a fresh install through the welcome flow, a search and saving a game, to the game still being there after a restart, and record the time in `specs/010-kmp-migration/baseline.md`, per SC-003 (partial: the flow worked, but it was driven step by step and never timed)
+- [ ] T125 Run the iOS app on a simulator runtime older than 18 (install an iOS 16 or 17 runtime from Xcode, Settings → Components), repeat walkthrough rows 1, 3 and 9, and move the "iOS 16 floor is untested" entry out of `docs/tech-debt.md` or keep it with what failed, per FR-002 and T104 (partial: only iOS 26.5 and 27.0 were run, and the framework links with a version warning against 16.0)
+- [ ] T126 Complete the two iOS walkthrough rows that were only partly checked: row 10, search with the Mac's network off (or a Network Link Conditioner profile at 100 % loss) shows the same offline error page and retries after reconnecting; row 11, delete `release_dates_last_refresh_epoch_ms` from the app's DataStore file (or set it older than 24 h) and confirm Radar's dates refresh once at the next launch, per FR-007, SC-006 and parity row 11 (partial: the error mapping and the 24 h policy are unit-tested, the on-device paths were not run)
+- [ ] T127 Scroll the Discover shelves, the search grid and a long wishlist on a device or with Instruments on a simulator, and either confirm no visible jank or record it in `docs/tech-debt.md` as a risk, per the plan's iOS performance goals and T107 (partial: first-frame time was measured, scroll smoothness was not)
