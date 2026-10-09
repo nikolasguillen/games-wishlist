@@ -10,6 +10,9 @@ internal sealed interface OnboardingPage {
     data object Lists : OnboardingPage
     data object Radar : OnboardingPage
 
+    /** The Radar step on a platform without release reminders, which must not promise them. */
+    data object RadarWithoutReminders : OnboardingPage
+
     /** The owned-platforms step. Optional, and never blocks the flow. */
     data object Platforms : OnboardingPage
 

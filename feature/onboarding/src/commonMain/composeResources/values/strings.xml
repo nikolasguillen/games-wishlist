@@ -10,6 +10,7 @@
 
     <string name="onboarding_radar_headline">Never miss a release</string>
     <string name="onboarding_radar_body">Radar shows when your saved games come out. Turn on a reminder for any of them.</string>
+    <string name="onboarding_radar_without_reminders_body">Radar shows when your saved games come out, sorted by release date.</string>
 
     <string name="onboarding_platforms_headline">Which platforms do you own?</string>
     <string name="onboarding_platforms_body">Pick the ones you play on. It's optional, and you can change it any time in Settings.</string>

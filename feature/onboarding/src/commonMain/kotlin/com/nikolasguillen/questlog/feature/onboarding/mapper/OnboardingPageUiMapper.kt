@@ -18,6 +18,7 @@ import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_lists
 import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_lists_headline
 import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_radar_body
 import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_radar_headline
+import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_radar_without_reminders_body
 import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_reminders_body
 import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_reminders_declined_body
 import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_reminders_declined_headline
@@ -42,7 +43,7 @@ internal fun buildOnboardingPages(
     add(OnboardingPage.Welcome)
     add(OnboardingPage.Discover)
     add(OnboardingPage.Lists)
-    add(OnboardingPage.Radar)
+    add(if (remindersAvailable) OnboardingPage.Radar else OnboardingPage.RadarWithoutReminders)
     add(OnboardingPage.Platforms)
     if (remindersAvailable && requiresRuntimePermission && !canDeliver) add(OnboardingPage.Reminders)
 }
@@ -70,6 +71,12 @@ internal fun OnboardingPage.toInfoUiModel(): OnboardingInfoPageUiModel? = when (
     OnboardingPage.Radar -> OnboardingInfoPageUiModel(
         headline = UiText.StringResource(Res.string.onboarding_radar_headline),
         body = UiText.StringResource(Res.string.onboarding_radar_body),
+        icon = Icons.Default.CalendarMonth
+    )
+
+    OnboardingPage.RadarWithoutReminders -> OnboardingInfoPageUiModel(
+        headline = UiText.StringResource(Res.string.onboarding_radar_headline),
+        body = UiText.StringResource(Res.string.onboarding_radar_without_reminders_body),
         icon = Icons.Default.CalendarMonth
     )
 

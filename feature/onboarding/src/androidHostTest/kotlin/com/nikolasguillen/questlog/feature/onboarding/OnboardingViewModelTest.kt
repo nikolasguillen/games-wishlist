@@ -343,8 +343,11 @@ class OnboardingViewModelTest {
             viewModel.resolveFacts(requiresRuntimePermission = true, canDeliver = false)
             advanceUntilIdle()
 
+            val radarWithoutReminders = pagesWithoutReminders.map {
+                if (it == OnboardingPage.Radar) OnboardingPage.RadarWithoutReminders else it
+            }
             assertEquals(
-                OnboardingContentState.Ready(pagesWithoutReminders),
+                OnboardingContentState.Ready(radarWithoutReminders),
                 viewModel.uiState.value.contentState
             )
         }
