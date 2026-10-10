@@ -74,7 +74,8 @@ one by hand:
   `shimmerEffect()` whenever the shimmer stands in for real text.
 - `MetallicModifiers.kt` — `Modifier.brushedMetal(...)`, `Modifier.metallicBorder(...)`,
   `Modifier.metallicBackground(...)`, `Modifier.animatedMetallicBorder(...)` and
-  `Modifier.rainbowMetallicBorder(...)`, all wrapping the brushes from `MetallicEffects.kt`.
+  `Modifier.rainbowMetallicBorder(...)`, plus `Modifier.rainbowMetallicTint()` (the rainbow gradient over a
+  monochrome icon's shape), all wrapping the brushes from `MetallicEffects.kt`.
 
 Also: `ColorUtils.kt`, `HtmlUtils.kt`, `MetallicEffects.kt` (brush factories:
 `primaryMetallicGradient()`, `rememberAnimatedMetallicGradient()`, `rainbowMetallicGradient()`),

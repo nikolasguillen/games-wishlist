@@ -19,15 +19,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -203,3 +206,14 @@ fun Modifier.rainbowMetallicBorder(
     brush = rainbowMetallicGradient(),
     shape = shape
 )
+
+/**
+ * Paints the rainbow metallic gradient over the opaque pixels of a composable, the way a `tint` would a
+ * single colour. Meant for a monochrome icon: pass it an opaque tint (or none) so only its shape is kept.
+ */
+fun Modifier.rainbowMetallicTint(): Modifier = this
+    .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+    .drawWithContent {
+        drawContent()
+        drawRect(brush = rainbowMetallicGradient(), blendMode = BlendMode.SrcIn)
+    }
