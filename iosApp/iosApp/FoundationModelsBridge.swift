@@ -30,6 +30,12 @@ final class FoundationModelsBridge: NSObject, DataAppleLanguageModelBridge {
         let model = Self.translationModel
         switch model.availability {
         case .available:
+            // A backend that says "available" but has no context window cannot generate anything: the iOS 27
+            // simulator on a macOS 26 host does exactly that, and fails every request with ModelManagerError 1026.
+            if #available(iOS 26.4, *), model.contextSize == 0 {
+                Self.logger.error("Model reports available but has a 0-token context window; treating it as unavailable")
+                return .unavailable
+            }
             return model.supportsLocale(Locale(identifier: preferredLanguageTag()))
                 ? .available
                 : .languageUnsupported

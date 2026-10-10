@@ -11,7 +11,10 @@ enum class AppleLanguageModelAvailability {
     /** `.unavailable(.modelNotReady)`: the system is still downloading or preparing the model. */
     NOT_READY,
 
-    /** Any other reason: below iOS 26, an ineligible device, or Apple Intelligence turned off. */
+    /**
+     * Any other reason: below iOS 26, an ineligible device, Apple Intelligence turned off, or a model that reports
+     * itself available while having no context window, so it could not generate anything.
+     */
     UNAVAILABLE,
 
     /** The model is ready but cannot write the preferred language. */

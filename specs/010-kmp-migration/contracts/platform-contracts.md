@@ -40,7 +40,7 @@ The 24h interval is a single constant shared by both implementations.
 
 | | Android | iOS |
 |---|---|---|
-| Model status | From ML Kit via `:core:ai` (unchanged) | From Apple's on-device model (FoundationModels, iOS 26+) through `AppleLanguageModelBridge`. An English preferred language → `UNSUPPORTED`; `.available` with the preferred language supported → `READY`; `.unavailable(.modelNotReady)` → `DOWNLOADING`; everything else → `UNSUPPORTED` (iOS below 26, an ineligible device, Apple Intelligence off, an unsupported language) |
+| Model status | From ML Kit via `:core:ai` (unchanged) | From Apple's on-device model (FoundationModels, iOS 26+) through `AppleLanguageModelBridge`. An English preferred language → `UNSUPPORTED`; `.available` with the preferred language supported → `READY`; `.unavailable(.modelNotReady)` → `DOWNLOADING`; everything else → `UNSUPPORTED` (iOS below 26, an ineligible device, Apple Intelligence off, an unsupported language, a model reporting a 0-token context window) |
 | Translate | ML Kit (unchanged) | A fresh `LanguageModelSession` per call, with permissive-content-transformation guardrails, a token-budget check on iOS 26.4+ and the shared Room cache. `null` on any failure |
 | Download | ML Kit (unchanged) | The app cannot start one: the system fetches the model. Polls availability every 15 s, `Completed` when available and `Failed` when it becomes unavailable for any other reason |
 
