@@ -44,7 +44,8 @@ The 24h interval is a single constant shared by both implementations.
 | Translate | ML Kit (unchanged) | A fresh `LanguageModelSession` per call, with permissive-content-transformation guardrails, a token-budget check on iOS 26.4+ and the shared Room cache. `null` on any failure |
 | Download | ML Kit (unchanged) | The app cannot start one: the system fetches the model. Polls availability every 15 s, `Completed` when available and `Failed` when it becomes unavailable for any other reason |
 
-iOS needs no UI change for this. It never reports `DOWNLOADABLE`, so the Settings Download button and the Wi-Fi
+The only UI difference is the `TranslationEngineBadge` under a translated description (see the compatibility seams
+below). Otherwise iOS needs no UI change: it never reports `DOWNLOADABLE`, so the Settings Download button and the Wi-Fi
 dialog are never shown; `UNSUPPORTED` hides the Settings row and the Game detail action.
 
 ### `AppleLanguageModelBridge` — `:core:data` (implemented in Swift)
@@ -218,6 +219,7 @@ single `actual` per platform and no behaviour of its own to specify.
 |---|---|---|
 | `fullScreenDialogProperties()` | `:core:ui` | How a dialog opts out of the platform's own insets so it can fill the screen edge to edge is a per-platform `DialogProperties` option (`decorFitsSystemWindows` on Android, `usePlatformInsets` on iOS) |
 | `SearchBarScrollBehaviorCompat` | `:feature:search` | Android is pinned to the androidx Material 3 `1.5.0-beta01` search-bar API and iOS runs JetBrains' `1.12.0-alpha03`, whose scroll-behaviour members differ. Removed when both ship the same stable release |
+| `TranslationEngineBadge` | `:feature:game-detail` | Credits the on-device model behind a translated description: Gemini Nano with its logo on Android, Apple Intelligence with a neutral sparkle on iOS. Each `actual` only picks `GeminiNanoBadge` or `AppleIntelligenceBadge`, which live in `commonMain` so the preview can show both and share `TranslationBadge` |
 | `runBlockingCompat` | `:shared` | `runBlocking` is not visible from `commonMain`; the default-wishlist seed reads Compose resources, which are suspending, from Room's synchronous creation callback on its own thread |
 | `applicationSupportDirectory()` and `TopViewController` (iOS only) | `:core:common`, `:core:ui` | Helpers the iOS `actual`s share: where Room, DataStore and cover files live, and which `UIViewController` presents the photo picker and the share sheet |
 | `TranslationMapper` (Android only) | `:core:data` | Part of the Android translator: it maps ML Kit's status and download types, which the iOS translator never sees |

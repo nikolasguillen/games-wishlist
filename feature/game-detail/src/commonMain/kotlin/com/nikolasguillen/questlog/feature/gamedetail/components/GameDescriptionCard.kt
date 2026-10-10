@@ -1,10 +1,6 @@
 package com.nikolasguillen.questlog.feature.gamedetail.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -18,16 +14,10 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -36,12 +26,9 @@ import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
-import com.nikolasguillen.questlog.core.ui.component.CustomAlertDialog
 import com.nikolasguillen.questlog.core.ui.component.CustomContentCard
 import com.nikolasguillen.questlog.core.ui.resources.description_title
-import com.nikolasguillen.questlog.core.ui.resources.got_it
 import com.nikolasguillen.questlog.core.ui.util.modifiers.lineShimmer
-import com.nikolasguillen.questlog.core.ui.util.modifiers.rainbowMetallicBorder
 import com.nikolasguillen.questlog.core.ui.util.modifiers.rememberLineShimmerState
 import com.nikolasguillen.questlog.feature.gamedetail.model.DescriptionTranslationState
 import com.nikolasguillen.questlog.feature.gamedetail.resources.Res
@@ -49,11 +36,6 @@ import com.nikolasguillen.questlog.feature.gamedetail.resources.description_retr
 import com.nikolasguillen.questlog.feature.gamedetail.resources.description_show_original
 import com.nikolasguillen.questlog.feature.gamedetail.resources.description_translate_action
 import com.nikolasguillen.questlog.feature.gamedetail.resources.description_translating
-import com.nikolasguillen.questlog.feature.gamedetail.resources.description_translation_info_action
-import com.nikolasguillen.questlog.feature.gamedetail.resources.ic_gemini
-import com.nikolasguillen.questlog.feature.gamedetail.resources.powered_by_gemini_nano
-import com.nikolasguillen.questlog.feature.gamedetail.resources.powered_by_gemini_nano_description
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes
 
@@ -107,7 +89,7 @@ internal fun GameDescriptionCard(
             )
 
             if (translation is DescriptionTranslationState.Ready) {
-                TranslatedOnDeviceBadge(
+                TranslationEngineBadge(
                     modifier = Modifier
                         .padding(top = MaterialTheme.spacing.mediumLarge)
                         .align(Alignment.Start)
@@ -169,49 +151,6 @@ private fun DescriptionTitleAction(
                 onClick = onTranslateClick
             )
         }
-    }
-}
-
-@Composable
-private fun TranslatedOnDeviceBadge(modifier: Modifier = Modifier) {
-    val shape = MaterialTheme.shapes.small
-    var showInfoDialog by rememberSaveable { mutableStateOf(false) }
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .clip(shape)
-            .clickable(
-                onClickLabel = stringResource(Res.string.description_translation_info_action),
-                role = Role.Button,
-                onClick = { showInfoDialog = true }
-            )
-            .rainbowMetallicBorder(width = 2.dp, shape = shape)
-            .background(MaterialTheme.colorScheme.secondaryContainer)
-            .padding(MaterialTheme.spacing.medium)
-    ) {
-        Text(
-            text = stringResource(Res.string.powered_by_gemini_nano),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSecondaryContainer
-        )
-        Spacer(modifier = Modifier.size(MaterialTheme.spacing.smallMedium))
-        Icon(
-            painter = painterResource(Res.drawable.ic_gemini),
-            contentDescription = null,
-            tint = Color.Unspecified,
-            modifier = Modifier.size(14.dp)
-        )
-    }
-
-    if (showInfoDialog) {
-        CustomAlertDialog(
-            title = stringResource(Res.string.powered_by_gemini_nano),
-            message = stringResource(Res.string.powered_by_gemini_nano_description),
-            onConfirm = { showInfoDialog = false },
-            onDismiss = { showInfoDialog = false },
-            confirmButtonText = stringResource(CoreUiRes.string.got_it)
-        )
     }
 }
 
