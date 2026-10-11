@@ -19,6 +19,8 @@ keeps its pending set correct ahead of time:
 - It cancels a reminder as soon as its game is unsaved.
 - It keeps a small ledger of armed reminders, so it can tell afterwards that one fired and never posts it twice.
 - It keeps the soonest 64 under the system's pending-notification cap.
+- It serializes the sync, so a launch from a tapped reminder (several syncs within moments) cannot re-arm a
+  reminder that has just fired.
 
 The decision logic sits in `commonMain` behind ports, so the JVM tests reach it. Only thin adapters touch
 `UserNotifications`.
@@ -56,8 +58,8 @@ must not block the main thread: it runs in the app scope on `Dispatchers.Default
 hour is 09:00 local (`NOTIFICATION_HOUR`) on both platforms. Floating triggers keep the reminder on the release
 day in the current time zone.
 
-**Scale/Scope**: A handful to a few hundred opted-in games. About 12 new Kotlin files, about 20 edited, and one
-flag removed across 4 ViewModels and their tests.
+**Scale/Scope**: A handful to a few hundred opted-in games. About 22 new Kotlin files (about 10 of them tests and
+fakes), about 25 edited, and one flag removed across 4 ViewModels and their tests.
 
 All Technical Context unknowns were resolved in [research.md](research.md). No NEEDS CLARIFICATION remains.
 
@@ -114,8 +116,9 @@ core/domain/src/commonMain/kotlin/com/nikolasguillen/questlog/core/domain/
 │   ├── ReleaseNotifier.kt                         # suspend notifyReleased; canDeliver() removed
 │   └── ReleaseRemindersAvailability.kt            # DELETED (last phase)
 └── usecase/notification/
-    ├── SyncReleaseNotificationsUseCase.kt         # records fired reminders first
+    ├── SyncReleaseNotificationsUseCase.kt         # records fired reminders first; serialized by a Mutex
     └── DeliverReleaseNotificationUseCase.kt       # awaits suspend notifier
+core/domain/.../di/DomainKoin.kt                   # SyncReleaseNotificationsUseCase: factoryOf -> singleOf
 
 core/data/src/
 ├── commonMain/kotlin/.../core/data/
@@ -165,17 +168,25 @@ navigation in `:shared`. Logic bound only on iOS lives in `commonMain` with port
 ## Phasing (each phase leaves Android building and green)
 
 1. **Contracts and Android adaptation.** Change the `suspend` signatures and add `ReleaseReminder` and
-   `takeFiredReminders`. Make the sync records fired reminders. Move the text to `:core:ui` behind
-   `ReleaseReminderText`. Android behaves identically, and iOS still binds the (adapted) no-ops.
-2. **iOS scheduling.** Add the ledger, `trimToCapacity`, `LocalNotificationReleaseScheduler`, the
-   `UserNotificationCenter` adapter, the iOS bindings, and the post-refresh sync in `ReleaseRefreshRunner`. The
-   flag is still `false` on iOS, so nothing is visible yet.
-3. **iOS lifecycle, permission and taps.** Add the coordinator, the sync triggers, the authorization cache, the
-   permission and dialog `actual`s, the delegate, `ReminderDeepLinks`, and the `MainViewController` wiring.
-4. **Turn it on.** Set the iOS flag to `true` and run the full simulator walkthrough in [quickstart.md](quickstart.md).
-5. **Remove the flag.** Delete `ReleaseRemindersAvailability`, the no-ops, `RadarWithoutReminders` and the
+   `takeFiredReminders`. Make the sync record fired reminders, and serialize it (one `Mutex`, bound as a `single`).
+   Move the text to `:core:ui` behind `ReleaseReminderText`. Android behaves identically, and iOS still binds the
+   (adapted) no-ops.
+2. **iOS opt-in end to end (US1).** Add the ledger, `LocalNotificationReleaseScheduler`, the `UserNotificationCenter`
+   adapter, the authorization cache, the permission and dialog `actual`s, the sync triggers and the
+   `ReleaseReminderCoordinator`, then **turn the flag on** for iOS. The coordinator belongs here, not later: the
+   first opt-in happens while permission is undecided, so the scheduler refuses it, and only the "permission newly
+   granted" trigger arms it after the user taps Allow.
+3. **iOS pending set stays correct (US2).** Add `trimToCapacity` (the 64 cap) and the post-refresh sync in
+   `ReleaseRefreshRunner`.
+4. **Taps (US3).** Add the notification delegate, `ReminderDeepLinks` and the `MainViewController` wiring.
+5. **Settings verification (US4).** No new code; the screens go live when the flag flips, and the walkthrough checks
+   them.
+6. **Remove the flag (US5).** Delete `ReleaseRemindersAvailability`, the no-ops, `RadarWithoutReminders` and the
    flag-only tests. Update the docs and `platform-contracts.md`. This phase is separable: dropping it leaves a
    working feature with a constant `true` flag.
+
+The reminder controls are visible on iOS from phase 2, before the cap, the refresh sync and taps exist. The app is
+unpublished, so this is a development-time state only: no build between phases 2 and 4 is released.
 
 ## Complexity Tracking
 
@@ -185,4 +196,5 @@ mistaken for accidents:
 | Choice | Why needed | Simpler alternative rejected because |
 |---|---|---|
 | Armed-reminder ledger (iOS DataStore key) | iOS runs no code at fire time, so without it a release-day resync posts the reminder twice (research §3) | The delivered list loses notifications the user cleared. A Room column changes the schema for an iOS-only fact |
+| `SyncReleaseNotificationsUseCase` bound as a `single` with a `Mutex` | The ledger rule reads state that `takeFiredReminders` has just consumed, so two interleaved syncs can double-post (research §3). A `factory` would give each caller its own lock | A lock in the iOS scheduler only cannot see the repository's delivered date, and a per-instance lock under `factoryOf` serializes nothing |
 | `ReleaseReminderCoordinator` watching saved-set removals | There is no fire-time re-check on iOS, so an unsaved game's reminder must be cancelled immediately (FR-004) | Hooking each removal use case means four shared edits that also change Android, and it misses the next removal path |

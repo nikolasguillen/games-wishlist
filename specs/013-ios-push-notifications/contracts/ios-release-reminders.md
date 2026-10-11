@@ -53,6 +53,10 @@ interface ReleaseNotifier {
 Step 1 on Android is a no-op, so the Android behaviour is unchanged. `DeliverReleaseNotificationUseCase` only
 gains `suspend` on the notifier call.
 
+**Serialized.** The whole body runs under one `Mutex`, and the use case is bound with `singleOf` in
+`DomainKoin.kt` (it was `factoryOf`), so every caller shares the lock. Without it, a second sync running between
+step 1 and the `markReleaseNotificationDelivered` write would re-arm a reminder that already fired (research §3).
+
 ## 2. Data-layer ports — `:core:data` `commonMain`
 
 ```kotlin
@@ -188,3 +192,8 @@ Made in the same commit as the code that makes each one true:
   closed" row already belongs to spec 012.
 - Add `LocalNotificationCenter`, `ReminderSyncTriggers` and `ReleaseReminderText` beside `AppRefreshTaskBridge`,
   with the same "`commonMain` logic, iOS-only binding" exception note.
+- Register every `iosMain` helper under the capability it implements, so that no file sits outside the registry:
+  `NotificationAuthorization`, `NotificationAuthorizationStatus` and `OpenNotificationSettings` (permission UI),
+  `IosReminderSyncTriggers` (`ReminderSyncTriggers`), and `ReminderDeepLinks` with
+  `ReleaseReminderNotificationDelegate` (deep link).
+- Note that `SyncReleaseNotificationsUseCase` is a single, serialized instance (§1).

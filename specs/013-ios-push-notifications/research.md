@@ -83,6 +83,16 @@ notifications are blocked. The rule is applied in two places:
 A release date that moves after firing, *D1* → *D2*, does not match the ledger's *D1*, so *D2* is armed. That is
 the same re-arming Android does through `notifiedForDate`.
 
+**Syncs must not interleave.** `takeFiredReminders` removes the ledger entry *before* the sync writes
+`markReleaseNotificationDelivered`. A second sync that runs in between sees neither a ledger entry nor a delivered
+date, so it would arm an immediate request for a reminder that already fired, and the user gets it twice. This is
+the normal path, not a corner: tapping a reminder launches the app, and the coordinator's launch sync, the
+refresh's post-sync and the foreground trigger all run within moments. So `SyncReleaseNotificationsUseCase` holds a
+`Mutex` for its whole body, and its Koin binding changes from `factoryOf` to `singleOf`. The binding matters as
+much as the lock: a `factory` gives each caller (the toggle use case, the Android worker, the runner, the
+coordinator) its own instance and so its own lock. Android is unaffected, because its sync is idempotent. Nested
+locking is safe: the sync lock is always taken before the scheduler's.
+
 **Storage**: The ledger lives in the existing iOS settings `DataStore`, as one string-set key
 (`release_reminders_armed`, entries `"<gameId>:<releaseDateEpochSeconds>"`). There is no Room change, so no
 schema export and no destructive wipe. It holds at most one entry per opted-in game.

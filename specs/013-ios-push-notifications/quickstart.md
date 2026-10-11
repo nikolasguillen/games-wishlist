@@ -32,6 +32,8 @@ These must cover the following (see [contracts](contracts/ios-release-reminders.
 | 70 reminders scheduled in random order | The 64 soonest are pending, and the other 6 have no ledger entry |
 | `takeFiredReminders` | Returns ledger entries not pending, and only once |
 | Sync after a fire | Marks it delivered and does not re-arm the same date. It does re-arm when the date moved |
+| Two overlapping syncs right after a reminder fired | The second waits for the first, and neither re-arms the fired date |
+| Coordinator: a permission-granted trigger event | A full sync runs, which arms a reminder that was refused while permission was undecided |
 | Coordinator: a saved game leaves the set | `sync(gameId)` runs for that id. The first emission triggers nothing |
 | Coordinator: trigger events during a sync | Exactly one follow-up full sync |
 | Runner: successful refresh | A full sync runs before `run()` returns. A failed refresh runs none |
@@ -52,7 +54,8 @@ deleting the app.
 1. **Welcome flow (US5)**: Fresh install. The flow shows the reminders page and no "unavailable" page. "Allow
    notifications" brings up the system prompt.
 2. **Opt in (US1)**: Save a game whose exact release day is **today**. After 09:00 local, the reminder resolves to
-   "now". Turn "Notify me" on in Radar and allow the prompt. Within a few seconds a notification titled
+   "now". Turn "Notify me" on in Radar and allow the prompt, with permission not yet decided and **without
+   relaunching**. Within a few seconds a notification titled
    "<Game> is out today!" appears. With the app in the foreground it still shows as a banner (FR-014).
 3. **Future date**: Opt in to a game with a future exact date. Check the pending request in the debugger with
    `UNUserNotificationCenter.current().getPendingNotificationRequests`. Its trigger is 09:00 on the release day
