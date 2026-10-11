@@ -97,16 +97,19 @@ indistinguishable from today's "dropped", because they are fire-and-forget.
 
 ## R5. When the next run is requested
 
-**Decision**: after **every** runner call completes, whatever the origin (launch, wishlist change,
-background task) and whatever the outcome (refreshed, not due, failed, cancelled), the scheduler submits one
-request with:
+**Decision**: the scheduler submits a request **before** every runner call starts and again **after** it
+completes, whatever the origin (launch, wishlist change, background task) and whatever the outcome
+(refreshed, not due, failed, cancelled). Each submit uses:
 
 ```
 earliestBegin = lastSuccess == null ? now : max(now, lastSuccess + RELEASE_DATES_REFRESH_INTERVAL)
 ```
 
 **Rationale**: one rule covers FR-005, FR-006 and FR-009. The launch always produces a runner call, even
-when it is not due, so "submit at launch" falls out of it. A failure leaves `lastSuccess` old, so the next
+when it is not due, so "submit at launch" falls out of it. The submit **before** the work is what keeps the
+chain unbroken (FR-006): a launch refresh does network work, and if the system suspends or kills the app
+during it, the post-run submit would never happen. The first submit uses the date from the old timestamp, the
+second the date from the new one, and the second replaces the first. A failure leaves `lastSuccess` old, so the next
 request is "now" and the system's own throttling spaces the retries (spec assumption: no custom backoff).
 Because the date derives from the last *success*, re-submitting at every launch does not push the window
 out, which is the iOS equivalent of the WorkManager `KEEP` policy. A submit for an identifier that already

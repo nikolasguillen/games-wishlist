@@ -40,7 +40,7 @@ typical wishlist. This is the existing chunked, concurrency-limited refresh, unc
 The Simulator cannot run background tasks (research R8). There are no `suspend` members across the
 Swift boundary. `commonMain` has no `android.*`/`java.*` imports
 
-**Scale/Scope**: about 4 new Kotlin files, 1 removed class (and its test, whose cases are carried over),
+**Scale/Scope**: about 8 new Kotlin files, 1 removed class (and its test, whose cases are carried over),
 2 new Swift files, `Info.plist`, 4 docs
 
 ## Constitution Check
@@ -128,7 +128,7 @@ Each step leaves Android building and `./gradlew test` green.
 1. **Contracts first**: update `platform-contracts.md` (contract §"Changes to …").
 2. **Runner + tests**: add `ReleaseRefreshRunner`/`ReleaseRefreshOutcome`, and move the old test cases into
    `ReleaseRefreshRunnerTest`. Add the join, next-begin and cancel cases. `InProcessReleaseRefreshScheduler`
-   can delegate to the runner temporarily so iOS still binds something that works.
+   stays untouched, and is still bound on iOS, until the new scheduler replaces it in step 3.
 3. **Seam interfaces + `BackgroundTaskReleaseRefreshScheduler` + tests**. Switch the iOS binding. Remove
    `InProcessReleaseRefreshScheduler` and its test once every case is accounted for.
 4. **`:shared` iOS entry points**: `startQuestLog`, `runAppRefreshTask`, and a parameterless

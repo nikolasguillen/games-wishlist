@@ -47,7 +47,7 @@ Validation rules:
 | Kind | `BGAppRefreshTaskRequest` |
 | `earliestBeginDate` | `lastSuccess == null ? now : max(now, lastSuccess + interval)` (research R5) |
 | Cardinality | At most one: a new submit replaces the pending one |
-| Submitted | After every runner call completes, whatever the origin or outcome. Every launch makes one runner call |
+| Submitted | Before every runner call starts and again after it completes, whatever the origin or outcome. Every launch makes one runner call. The second submit replaces the first |
 | Submit rejected | Logged by Swift and ignored: background refresh switched off, Simulator, too many requests. The in-app fallback still runs |
 
 ## Outcome reported to the system

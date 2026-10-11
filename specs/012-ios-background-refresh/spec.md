@@ -249,8 +249,9 @@ the one part left for a device.
   system ends it early, the next opportunity retries the whole refresh.
 - After a failed or cut-short run, the next request asks the system to run again no earlier than the
   failure itself; the system's own throttling spaces retries, and the app adds no custom backoff.
-- A background run that finds a refresh already in progress does not wait for it or start another; it ends
-  as handled and the next run is requested. The in-progress refresh decides the recorded time.
+- A background run that finds a refresh already in progress does not start another; it joins the one in
+  flight, keeps the system's task open until that refresh finishes, and reports its outcome. Ending early
+  would let the system suspend the app mid-refresh. The in-progress refresh decides the recorded time.
 - The refresh is an idempotent update of stored dates, so a cancelled run leaves them as before or fully
   updated. The plan verifies this against the repository code.
 - The existing in-app behaviors (refresh at launch when due, refresh on wishlist change) are correct as

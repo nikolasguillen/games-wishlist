@@ -11,9 +11,9 @@ end are made in the **first** implementation task, before any code, per the root
 
 | | iOS behavior |
 |---|---|
-| `schedulePeriodicRefresh()` | Runs the refresh in the app if due, then submits the next background request (`earliestBegin` per data-model) |
-| `scheduleImmediateRefresh()` | Runs the refresh in the app now, then submits the next background request |
-| *(system-launched task)* | Runs the refresh if due, joining one already in flight, then submits the next request and reports the outcome |
+| `schedulePeriodicRefresh()` | Submits the next background request, runs the refresh in the app if due, then submits again with the new date (`earliestBegin` per data-model) |
+| `scheduleImmediateRefresh()` | Submits the next background request, runs the refresh in the app now, then submits again with the new date |
+| *(system-launched task)* | Submits the next request, runs the refresh if due (joining one already in flight), submits again, then reports the outcome |
 
 ## Kotlin → Swift: `AppRefreshTaskBridge` — `:core:data` `commonMain`, implemented in Swift
 
