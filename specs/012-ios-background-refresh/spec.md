@@ -201,18 +201,25 @@ are the only place implementation vocabulary appears.
 
 ## Verification
 
-The system decides when a background task runs and cannot be asked to run one on demand, so verification
-has two parts:
+The system decides when a background task runs and cannot be asked to run one on demand. The iOS
+Simulator does not support background tasks at all: a request to schedule one is rejected there, and
+Xcode's `_simulateLaunchForTaskWithIdentifier` / `_simulateExpirationForTaskWithIdentifier` debugger
+commands work only on a physical device. Verification therefore has three parts (owner decision,
+2026-10-11):
 
 - **Common code (any machine)**: unit tests on the JVM for the due check, the single-run guard and the
   timestamp rule, using a fake bridge and a fake clock, in the same style as
   `InProcessReleaseRefreshSchedulerTest`.
-- **On a Mac only**: build `iosApp`, launch it on the simulator from Xcode, pause the debugger and run
-  `e -l objc -- (void)[[BGTaskScheduler sharedScheduler] _simulateLaunchForTaskWithIdentifier:@"<identifier>"]`
-  to fire a background run, and the matching `_simulateExpirationForTaskWithIdentifier:` to exercise early
-  termination. This cannot be checked on Windows, and nothing here may be reported as verified on iOS
-  unless it was run that way. Also check once that the app registers the task identifier without crashing
-  on launch.
+- **On a Mac, on the simulator**: the app launches with the task registered and does not crash. A rejected
+  scheduling request is handled quietly. The background run itself is exercised end to end through a
+  debug-only hook that runs the same work without the system: success, not due, offline, cut short, empty
+  wishlist, and overlap with an in-app refresh. None of this can be checked on Windows.
+- **On a device, later**: the system-launched run and early termination, with the debugger commands above.
+  Physical-device distribution is out of scope, so this path is recorded in `docs/tech-debt.md` as
+  unverified until it lands. Nothing may be reported as verified on a device unless it was run there.
+
+SC-001 to SC-005 are met on the simulator through the debug hook; the system's own dispatch of the run is
+the one part left for a device.
 
 ## Success Criteria *(mandatory)*
 
