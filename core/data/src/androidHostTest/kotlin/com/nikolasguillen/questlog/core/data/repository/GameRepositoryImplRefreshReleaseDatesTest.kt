@@ -8,6 +8,7 @@ import com.nikolasguillen.questlog.core.database.dao.PlatformDao
 import com.nikolasguillen.questlog.core.database.dao.ReleaseNotificationDao
 import com.nikolasguillen.questlog.core.database.dao.SearchHistoryDao
 import com.nikolasguillen.questlog.core.database.entity.GamePlatformCrossRef
+import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.network.IgdbApiService
 import com.nikolasguillen.questlog.core.network.model.IgdbPlatform
 import com.nikolasguillen.questlog.core.network.model.IgdbReleaseDateEntry
@@ -17,6 +18,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -63,9 +65,10 @@ class GameRepositoryImplRefreshReleaseDatesTest {
     fun `no saved games means no network call and an immediate success`() = runTest {
         coEvery { gameDao.getSavedGameIds() } returns emptyList()
 
-        repository.refreshSavedGameReleaseDates()
+        val result = repository.refreshSavedGameReleaseDates()
 
         coVerify(exactly = 0) { apiService.getReleaseDates(any()) }
+        assertTrue(result is AppResult.Success)
     }
 
     @Test

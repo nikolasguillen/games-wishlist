@@ -152,8 +152,8 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
 | Theme resolution, scaffold, bottom bar and back stack | `shared/.../QuestLogRoot.kt`, `shared/.../QuestLogBottomBar.kt` |
 | Koin assembly (`initKoin`) and every ViewModel binding | `shared/.../di/SharedKoin.kt`, `shared/.../di/ViewModelModule.kt` |
 | Splash screen, edge-to-edge, deep link parsing | `androidApp/.../MainActivity.kt` |
-| iOS entry point (`MainViewController`) and the Xcode project that hosts it | `shared/src/iosMain/.../MainViewController.kt`, `iosApp/` |
-| Swift services that Kotlin calls (FoundationModels is Swift-only), passed in through `MainViewController` | `iosApp/iosApp/` (`FoundationModelsBridge`) |
+| iOS entry points (`startQuestLog`, `runAppRefreshTask`, `MainViewController`) and the Xcode project that hosts them | `shared/src/iosMain/.../QuestLogIos.kt`, `.../MainViewController.kt`, `iosApp/` |
+| Swift services that Kotlin calls (FoundationModels and BackgroundTasks are Swift-only), passed in through `startQuestLog` from the app delegate | `iosApp/iosApp/` (`FoundationModelsBridge`, `ReleaseRefreshTask`, `AppDelegate`) |
 | Shared UI constants | `core/ui/util/Constants.kt` (`object UiConstants`) |
 | Network↔domain↔entity mappers | `core/data/mapper/GameMapper.kt` |
 | `GameDescriptionTranslator` | `core/domain/translation/` (impl in `core/data/translation/`) |

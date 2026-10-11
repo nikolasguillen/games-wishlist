@@ -3,7 +3,8 @@ package com.nikolasguillen.questlog.core.domain.radar
 /**
  * Schedules the periodic saved-game release-date refresh. Contract only: `:core:domain` never imports
  * `androidx.work` — the WorkManager-backed implementation lives in `:core:data`, per the KMP-reversibility
- * note in the roadmap (WorkManager has no multiplatform counterpart).
+ * note in the roadmap (WorkManager has no multiplatform counterpart). The refresh runs at most about once per
+ * interval, when the system allows; no implementation promises an exact cadence.
  */
 interface ReleaseRefreshScheduler {
     fun schedulePeriodicRefresh()

@@ -33,8 +33,8 @@ tone alongside them.
 Spec `specs/010-kmp-migration` ships iOS without release reminders; their entry points are hidden there.
 They already sit behind a contract in shared code, so the iOS side is a new implementation and nothing else.
 
-- **Release reminders on iOS**: a background refresh for `ReleaseRefreshScheduler` (today it only runs at launch),
-  local notifications and their permission prompt, and the Settings rows that configure them. The welcome flow's
+- **Release reminders on iOS**: local notifications and their permission prompt, and the Settings rows that
+  configure them. The welcome flow's
   `RadarWithoutReminders` page goes away when reminders arrive.
 - **iOS distribution**: installing on a physical device (development team), signing and provisioning, and
   TestFlight. Spec 010 verifies on the simulator only.
@@ -47,5 +47,5 @@ They already sit behind a contract in shared code, so the iOS side is a new impl
   multiplatform counterpart.** `:core:ai` stays Android-only and reachable only from `:core:data`; what is shared is
   the `GameDescriptionTranslator` port in `:core:domain`, and iOS translates with Apple's FoundationModels through
   a Swift bridge (`AppleLanguageModelBridge`), not through a shared client. Scheduling has the same shape: `ReleaseRefreshScheduler` is the
-  contract, WorkManager implements it on Android and `InProcessReleaseRefreshScheduler` (once per 24 h, at launch)
-  on iOS.
+  contract, WorkManager implements it on Android and `BackgroundTaskReleaseRefreshScheduler` (a `BGAppRefreshTask`, at most
+  about once per 24 h when the system allows, with the in-app refresh as the fallback) on iOS.

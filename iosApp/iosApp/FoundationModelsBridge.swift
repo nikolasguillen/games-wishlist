@@ -6,7 +6,7 @@ import QuestLogShared
 /// Apple's on-device model (FoundationModels) behind the Kotlin `AppleLanguageModelBridge`.
 ///
 /// Kotlin/Native cannot import FoundationModels, a Swift-only framework, so the Kotlin translator reaches it
-/// through this class, which `ContentView` hands to `MainViewController`. FoundationModels is weak-linked
+/// through this class, which `AppDelegate` hands to `startQuestLog`. FoundationModels is weak-linked
 /// (`-weak_framework` in the target's linker flags) and every use is behind `#available(iOS 26.0, *)`, so the
 /// app still launches on iOS 16–25, where this reports `.unavailable`.
 final class FoundationModelsBridge: NSObject, DataAppleLanguageModelBridge {

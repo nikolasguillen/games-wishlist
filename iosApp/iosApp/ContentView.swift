@@ -4,7 +4,7 @@ import QuestLogShared
 /// Hosts the Compose Multiplatform UI built in the `:shared` module.
 struct ComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
-        MainViewControllerKt.MainViewController(languageModelBridge: FoundationModelsBridge())
+        MainViewControllerKt.MainViewController()
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}

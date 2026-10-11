@@ -3,7 +3,7 @@ package com.nikolasguillen.questlog.core.data.translation
 /**
  * Apple's on-device language model, as the iOS translator sees it.
  *
- * Implemented in Swift by `iosApp` (`FoundationModelsBridge`) and handed to Kotlin through `MainViewController`:
+ * Implemented in Swift by `iosApp` (`FoundationModelsBridge`) and handed to Kotlin through `startQuestLog`:
  * FoundationModels is a Swift-only framework with no Objective-C surface, so Kotlin/Native cannot call it.
  * Public only because Swift has to see it to implement it.
  *

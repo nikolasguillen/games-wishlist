@@ -1,0 +1,49 @@
+package com.nikolasguillen.questlog.shared
+
+import com.nikolasguillen.questlog.core.data.scheduler.AppRefreshTaskBridge
+import com.nikolasguillen.questlog.core.data.scheduler.AppRefreshTaskHandler
+import com.nikolasguillen.questlog.core.data.scheduler.AppRefreshTaskRun
+import com.nikolasguillen.questlog.core.data.translation.AppleLanguageModelBridge
+import com.nikolasguillen.questlog.core.domain.radar.ReleaseRefreshScheduler
+import com.nikolasguillen.questlog.shared.di.initKoin
+import org.koin.dsl.module
+import org.koin.mp.KoinPlatform
+import kotlin.experimental.ExperimentalNativeApi
+import kotlin.native.Platform
+
+/**
+ * Starts the Kotlin side of the app, once per process. Called from the app delegate's `didFinishLaunching`, before
+ * it returns.
+ *
+ * Koin starts here and not in [MainViewController] because the system can launch the app in the background to run
+ * the release refresh, and then no scene is connected and no view controller is ever built. The periodic refresh
+ * is requested once per launch, the same moment `QuestLogApp.onCreate` does it on Android.
+ *
+ * Swift supplies the bridges because only Swift can call FoundationModels and BackgroundTasks. A second call does
+ * nothing, so the bridges that were bound first stay: they keep no state.
+ */
+@OptIn(ExperimentalNativeApi::class)
+fun startQuestLog(
+    languageModelBridge: AppleLanguageModelBridge,
+    appRefreshTaskBridge: AppRefreshTaskBridge
+) {
+    if (KoinPlatform.getKoinOrNull() != null) return
+    val koin = initKoin(isDebugBuild = Platform.isDebugBinary) {
+        modules(
+            module {
+                single<AppleLanguageModelBridge> { languageModelBridge }
+                single<AppRefreshTaskBridge> { appRefreshTaskBridge }
+            }
+        )
+    }.koin
+    koin.get<ReleaseRefreshScheduler>().schedulePeriodicRefresh()
+}
+
+/**
+ * The body of the background app-refresh task, called from Swift's launch handler once the system starts it.
+ * [onFinished] receives the outcome exactly once; the returned handle ends the run when the system says the time
+ * is up. Expects [startQuestLog] to have run, which the app delegate guarantees: the system invokes a launch
+ * handler only after launch has finished.
+ */
+fun runAppRefreshTask(onFinished: (Boolean) -> Unit): AppRefreshTaskRun =
+    KoinPlatform.getKoin().get<AppRefreshTaskHandler>().run(onFinished)

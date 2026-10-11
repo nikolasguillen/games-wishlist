@@ -13,6 +13,8 @@
 		A1000000000000000000001C /* FoundationModelsGeneration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001D /* FoundationModelsGeneration.swift */; };
 		A10000000000000000000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000006 /* Assets.xcassets */; };
 		A10000000000000000000007 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000008 /* LaunchScreen.storyboard */; };
+		A1000000000000000000001E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001F /* AppDelegate.swift */; };
+		A10000000000000000000020 /* ReleaseRefreshTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000021 /* ReleaseRefreshTask.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +26,8 @@
 		A10000000000000000000006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A10000000000000000000008 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A1000000000000000000000A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A1000000000000000000001F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A10000000000000000000021 /* ReleaseRefreshTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseRefreshTask.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -42,6 +46,8 @@
 				A10000000000000000000004 /* ContentView.swift */,
 				A1000000000000000000001B /* FoundationModelsBridge.swift */,
 				A1000000000000000000001D /* FoundationModelsGeneration.swift */,
+				A1000000000000000000001F /* AppDelegate.swift */,
+				A10000000000000000000021 /* ReleaseRefreshTask.swift */,
 				A10000000000000000000006 /* Assets.xcassets */,
 				A10000000000000000000008 /* LaunchScreen.storyboard */,
 				A1000000000000000000000A /* Info.plist */,
@@ -164,6 +170,8 @@
 				A10000000000000000000003 /* ContentView.swift in Sources */,
 				A1000000000000000000001A /* FoundationModelsBridge.swift in Sources */,
 				A1000000000000000000001C /* FoundationModelsGeneration.swift in Sources */,
+				A1000000000000000000001E /* AppDelegate.swift in Sources */,
+				A10000000000000000000020 /* ReleaseRefreshTask.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

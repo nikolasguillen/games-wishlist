@@ -15,12 +15,11 @@ module's `strings.xml`. `:core:ai` is an `androidMain` dependency only. Each pla
 `iosMain`); the common `dataModule` binds only what needs no platform API. A new Android-only class goes in `androidMain` with its
 binding in the `actual` module; shared code reaches it through an interface in `:core:domain`.
 
-iOS has no background job runner and no reminders, so its `dataPlatformModule` binds
-`InProcessReleaseRefreshScheduler` (refresh at launch if the last successful one is 24h old, and when the saved
-set changes; one run at a time; the timestamp is written only after a success), no-op reminder classes,
-`StaticReleaseRemindersAvailability(false)` and `AppleLanguageModelTranslator`. All of these are in `commonMain`
-and unit-tested on the JVM; the translator needs an `AppleLanguageModelBridge`, which Swift supplies because
-FoundationModels cannot be imported from Kotlin/Native.
+iOS has no WorkManager and no reminders, so its `dataPlatformModule` binds `BackgroundTaskReleaseRefreshScheduler`
+with its `ReleaseRefreshRunner`, no-op reminder classes, `StaticReleaseRemindersAvailability(false)` and
+`AppleLanguageModelTranslator`. All of these are in `commonMain` and unit-tested on the JVM. The translator needs
+an `AppleLanguageModelBridge` and the scheduler an `AppRefreshTaskBridge`, which Swift supplies because
+FoundationModels and BackgroundTasks cannot be imported from Kotlin/Native.
 
 ## Repository
 
@@ -107,7 +106,7 @@ both weighed and dropped for the same reason: they download a per-language-pair 
 feature exists to avoid, and translate sentence by sentence with no notion of the domain.
 
 The iOS translator reaches FoundationModels through `AppleLanguageModelBridge`, implemented in Swift under
-`iosApp/` and bound by `MainViewController`. The bridge is callback-based on purpose (a `suspend` member
+`iosApp/` and bound by `startQuestLog`. The bridge is callback-based on purpose (a `suspend` member
 implemented in Swift cannot be cancelled), and the translator never reports `DOWNLOADABLE`: the system owns that
 model, so `downloadModel()` only polls for it to become available.
 
@@ -135,3 +134,19 @@ window, and the immediate one collapses the burst of requests that several saves
 
 The worker-factory half lives in `:androidApp`, which is the Android-only part of the entry point: `QuestLogApp` implements `Configuration.Provider` and hands WorkManager a
 `KoinWorkerFactory`, and it is also where `schedulePeriodicRefresh()` is called from.
+
+On iOS the same contract is `BackgroundTaskReleaseRefreshScheduler`: the refresh runs in the app at launch and when
+the saved set changes, and the system also launches it through a `BGAppRefreshTask`. The guarantee is "at most about
+once per interval, when the system allows", never an exact cadence, so the in-app refresh stays as the fallback. All
+the rules are in `ReleaseRefreshRunner`, which both paths share:
+
+- A refresh is due when the last *successful* one is missing or at least `RELEASE_DATES_REFRESH_INTERVAL` old. The
+  time is written only after the use case succeeds, never on a failure or a cancellation.
+- One refresh runs at a time, and a request that arrives during one **joins** it rather than being dropped. A dropped
+  background run would tell the system it is done and let the app be suspended mid-refresh.
+- The next background request is submitted **before** every run and again **after** it, whatever the outcome, with
+  `earliestBegin` counted from the last success. Do not move the first submit after the work: a suspended or killed
+  app would never reach it, and the chain would end.
+- Swift (`ReleaseRefreshTask`) only registers the task, submits, and passes the outcome and the expiration across
+  through `AppRefreshTaskBridge` and `AppRefreshTaskHandler`. Koin is started by `startQuestLog` from the app
+  delegate, not by `MainViewController`, because a background launch builds no UI.

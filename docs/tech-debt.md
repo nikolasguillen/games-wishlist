@@ -56,6 +56,12 @@ Last audited: 2026-10-09.
   by `questlog.kmp.compose`, while iOS uses JetBrains' `1.12.0-alpha03`, so the search bar needs the
   `SearchBarScrollBehaviorCompat` `expect`/`actual`. JetBrains' `1.13.0-alpha02` was rejected. Drop the pin and
   the `expect` when both sides ship the same stable Material 3.
+- **The iOS background refresh was never dispatched by the system**: the Simulator cannot run background tasks, and
+  `_simulateLaunchForTaskWithIdentifier:` / `_simulateExpirationForTaskWithIdentifier:` work only on a device. What was
+  run is the Kotlin path, through the `#if DEBUG` hooks `ReleaseRefreshTask.debugRun()` and `debugCancel()`. Not
+  exercised: the system-launched run, the system's expiration, and a background launch with no UI (the app delegate
+  starts Koin so that it should work, but no scene-less launch has been observed). Close it on a physical iPhone when
+  device distribution lands, using the two debugger commands, with the app never opened.
 - **iOS scroll smoothness and the offline error path were never run**: the first frame appears within 1.4 s on a
   simulator and the Discover shelves and the search grid scroll with every cover loading, but frame pacing needs
   a device (Instruments' Animation Hitches template refuses to record on a simulator). A simulator also cannot be

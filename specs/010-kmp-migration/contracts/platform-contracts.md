@@ -25,10 +25,13 @@ interface ReleaseRefreshScheduler {
 
 | | Android | iOS |
 |---|---|---|
-| `schedulePeriodicRefresh()` | Unique periodic WorkManager job, 24h, unmetered (unchanged) | If `release_dates_last_refresh_epoch_ms` is missing or older than 24h, launch `RefreshReleaseDatesUseCase` in the app-scoped coroutine scope; record the time on success |
-| `scheduleImmediateRefresh()` | One-shot WorkManager job (unchanged) | Launch `RefreshReleaseDatesUseCase` now in the app scope; record the time on success. A refresh already running is not duplicated |
+| `schedulePeriodicRefresh()` | Unique periodic WorkManager job, 24h, unmetered (unchanged) | Submits the next background request, runs `RefreshReleaseDatesUseCase` in the app-scoped coroutine scope if `release_dates_last_refresh_epoch_ms` is missing or older than 24h (recording the time on success), then submits again with the new date |
+| `scheduleImmediateRefresh()` | One-shot WorkManager job (unchanged) | Submits the next background request, runs `RefreshReleaseDatesUseCase` now in the app scope (recording the time on success), then submits again with the new date. A refresh already running is joined, not duplicated |
+| *(system-launched task)* | WorkManager runs the job (unchanged) | The system launches the app and the `BGAppRefreshTask` handler submits the next request, runs the refresh if due (joining one already in flight), submits again, then reports the outcome through `AppRefreshTaskHandler` |
 
-The 24h interval is a single constant shared by both implementations.
+The 24h interval is a single constant shared by both implementations. On iOS it is a floor, not a schedule: the
+system decides when to run the task, so the guarantee is "at most about once per interval, when the system allows".
+The next request's earliest date is `lastSuccess + 24h`, or now when there is no success or it is overdue.
 
 ### `ReleaseNotificationScheduler`, `ReleaseNotifier` — `:core:domain` (unchanged signatures)
 
@@ -52,7 +55,8 @@ dialog are never shown; `UNSUPPORTED` hides the Settings row and the Game detail
 
 FoundationModels is a Swift-only framework with no Objective-C surface, so Kotlin/Native cannot import it.
 Kotlin owns this interface and Swift (`iosApp/iosApp/FoundationModelsBridge.swift`) implements it.
-`ContentView` passes the implementation to `MainViewController(languageModelBridge:)`, which binds it in Koin.
+The app delegate passes the implementation to `startQuestLog(languageModelBridge:appRefreshTaskBridge:)`, which
+binds it in Koin.
 
 ```kotlin
 interface AppleLanguageModelBridge {
@@ -69,8 +73,32 @@ interface AppleLanguageModelGeneration { fun cancel() }
 - The language comes from the bridge, read from the user's preferred languages. The app's locale would always be
   English, because the app ships English resources only.
 - `AppleLanguageModelTranslator` lives in `commonMain`, not `iosMain`, so it can be tested on the JVM against a
-  fake bridge, like `InProcessReleaseRefreshScheduler`. It is bound only by the iOS `dataPlatformModule`. This is a
-  deliberate exception to "implementations live in `androidMain`/`iosMain`".
+  fake bridge, like `BackgroundTaskReleaseRefreshScheduler`. It is bound only by the iOS `dataPlatformModule`. This
+  is a deliberate exception to "implementations live in `androidMain`/`iosMain`".
+
+### `AppRefreshTaskBridge`, `AppRefreshTaskHandler` — `:core:data` (iOS background refresh)
+
+`BackgroundTasks` is reached from Swift (`iosApp/iosApp/ReleaseRefreshTask.swift`), which registers the task,
+submits requests and completes the system task. Kotlin owns both directions and keeps every scheduling decision
+(the due check, one run at a time, the timestamp rule, the next request's earliest date), so the JVM tests reach it.
+
+```kotlin
+interface AppRefreshTaskBridge {            // Kotlin → Swift
+    fun submitRequest(earliestBeginEpochMillis: Long)
+}
+interface AppRefreshTaskHandler {           // Swift → Kotlin
+    fun run(onFinished: (Boolean) -> Unit): AppRefreshTaskRun
+}
+interface AppRefreshTaskRun { fun cancel() }
+```
+
+- `submitRequest` replaces the pending request and may be called from any thread. A rejected submit (background
+  refresh off, the Simulator) is logged by Swift and swallowed.
+- `onFinished` is called exactly once, after the next request has been submitted: `true` for a refresh that
+  succeeded or was not due, `false` for one that failed or was cancelled. `cancel()` is the system's expiration.
+- Nothing is `suspend`, for the reasons recorded for `AppleLanguageModelBridge`.
+- `BackgroundTaskReleaseRefreshScheduler` and `ReleaseRefreshRunner` live in `commonMain` and are bound only by the
+  iOS `dataPlatformModule`, the same exception as `AppleLanguageModelTranslator`.
 
 ### `AppVersionProvider`, `NetworkStatusProvider` — `:core:common` (class → interface)
 
@@ -230,11 +258,11 @@ single `actual` per platform and no behaviour of its own to specify.
 
 | Concern | Android (`:androidApp`) | iOS (`iosApp/`) |
 |---|---|---|
-| Entry point | `MainActivity` → `setContent { QuestLogRoot(pendingDeepLinkGameId, onDeepLinkConsumed, displayCornerRadius) }`; the splash is held by `MainActivity` itself until `RootViewModel` has the onboarding flag | `ContentView` → `MainViewController(languageModelBridge: FoundationModelsBridge())` |
-| DI start | `QuestLogApp.onCreate` → `initKoin(isDebugBuild = BuildConfig.DEBUG) { androidContext(this) }`; the WorkManager factory is the `Application`'s `Configuration.Provider` | `MainViewController()` → idempotent `initKoin(isDebugBuild = …)`; the iOS bindings are the `expect` platform modules' `iosMain` actuals, which `initKoin` already lists |
+| Entry point | `MainActivity` → `setContent { QuestLogRoot(pendingDeepLinkGameId, onDeepLinkConsumed, displayCornerRadius) }`; the splash is held by `MainActivity` itself until `RootViewModel` has the onboarding flag | `AppDelegate` → `startQuestLog(...)`; `ContentView` → `MainViewController()` |
+| DI start | `QuestLogApp.onCreate` → `initKoin(isDebugBuild = BuildConfig.DEBUG) { androidContext(this) }`; the WorkManager factory is the `Application`'s `Configuration.Provider` | `startQuestLog(...)` from the app delegate's `didFinishLaunching` → idempotent `initKoin(isDebugBuild = …)`, so a background launch with no UI has the graph too; the iOS bindings are the `expect` platform modules' `iosMain` actuals, which `initKoin` already lists |
 | Splash | `core-splashscreen`, held until the start route is known (unchanged) | `LaunchScreen` storyboard with the app logo |
-| Swift services handed to Kotlin | None | `FoundationModelsBridge` (FoundationModels), bound in Koin by `MainViewController` |
-| Periodic refresh kick-off | `QuestLogApp` calls `schedulePeriodicRefresh()` (unchanged) | `MainViewController()` calls `schedulePeriodicRefresh()` once per launch |
+| Swift services handed to Kotlin | None | `FoundationModelsBridge` (FoundationModels) and `ReleaseRefreshTask` (BackgroundTasks), bound in Koin by `startQuestLog` |
+| Periodic refresh kick-off | `QuestLogApp` calls `schedulePeriodicRefresh()` (unchanged) | `startQuestLog(...)` calls `schedulePeriodicRefresh()` once per launch; the system also launches the refresh task in the background |
 | Display corner radius | `RoundedCorner` probe (unchanged) | Fixed default passed by `MainViewController()` |
 | Deep link to a game (`questlog://game/{id}`, used by the reminder notification) | `MainActivity` parses the intent (`onCreate` and `onNewIntent`) into a `GameDetailRoute` and hands it to `QuestLogRoot` as a pending route | Not registered (its only producer, reminders, is absent on iOS) |
 
