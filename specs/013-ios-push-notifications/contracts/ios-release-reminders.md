@@ -64,7 +64,11 @@ interface ReleaseReminderText {
 
 /** The iOS notification centre, as the reminder scheduler sees it. Implemented in `iosMain`; faked in tests. */
 internal interface LocalNotificationCenter {
-    /** `false` when the system refused it (e.g. not authorized). Never throws except `CancellationException`. */
+    /**
+     * `false` when the reminder could not be armed: the app is not authorized to notify (the adapter reads the
+     * authorization status first, because the system accepts a request it will never deliver) or the system
+     * rejected the request. Never throws except `CancellationException`.
+     */
     suspend fun add(request: LocalReminderRequest): Boolean
     suspend fun pendingReminders(): List<PendingReminder>
     suspend fun remove(gameIds: Collection<Int>)
@@ -107,7 +111,8 @@ id as a tie-break.
 ## 4. `ReleaseReminderCoordinator` — `:core:data` `commonMain`, bound only on iOS
 
 ```kotlin
-internal class ReleaseReminderCoordinator(
+// Public class, internal constructor: `startQuestLog` in :shared calls start(), and Koin builds it inside :core:data.
+class ReleaseReminderCoordinator internal constructor(
     private val syncReleaseNotifications: SyncReleaseNotificationsUseCase,
     private val getSavedGameIds: () -> Flow<Set<Int>>,   // from GameRepository.getSavedGames()
     private val triggers: ReminderSyncTriggers,
