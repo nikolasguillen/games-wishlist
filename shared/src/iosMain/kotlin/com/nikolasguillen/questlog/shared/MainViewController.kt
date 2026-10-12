@@ -1,7 +1,9 @@
 package com.nikolasguillen.questlog.shared
 
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeUIViewController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import platform.UIKit.UIViewController
 
 /**
@@ -11,10 +13,11 @@ import platform.UIKit.UIViewController
  */
 fun MainViewController(): UIViewController =
     ComposeUIViewController {
+        val pendingDeepLinkGameId by ReminderDeepLinks.pending.collectAsStateWithLifecycle()
         QuestLogRoot(
-            // The only producer of a game deep link is the release reminder, which iOS does not have.
-            pendingDeepLinkGameId = null,
-            onDeepLinkConsumed = {},
+            // The game a tapped release reminder asked to open.
+            pendingDeepLinkGameId = pendingDeepLinkGameId,
+            onDeepLinkConsumed = ReminderDeepLinks::consume,
             // iOS exposes no per-corner radius; the content is not clipped to the display.
             displayCornerRadius = 0.dp
         )

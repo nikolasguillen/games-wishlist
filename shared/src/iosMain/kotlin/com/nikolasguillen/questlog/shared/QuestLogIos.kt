@@ -12,9 +12,13 @@ import com.nikolasguillen.questlog.shared.di.initKoin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.dsl.module
+import platform.UserNotifications.UNUserNotificationCenter
 import org.koin.mp.KoinPlatform
 import kotlin.experimental.ExperimentalNativeApi
 import kotlin.native.Platform
+
+// The notification centre keeps its delegate weakly, so the instance lives here for the whole process.
+private val reminderNotificationDelegate = ReleaseReminderNotificationDelegate()
 
 /**
  * Starts the Kotlin side of the app, once per process. Called from the app delegate's `didFinishLaunching`, before
@@ -26,6 +30,10 @@ import kotlin.native.Platform
  * notification permission, so that it is known before the first screen asks, and starts the reminder coordinator,
  * which brings the pending release reminders in line with the saved games.
  *
+ * The notification centre's delegate is set first, before anything that can return early and before this function
+ * returns: a tap on a reminder that launched the app is delivered as soon as a delegate exists, and one set later
+ * would miss it.
+ *
  * Swift supplies the bridges because only Swift can call FoundationModels and BackgroundTasks. A second call does
  * nothing, so the bridges that were bound first stay: they keep no state.
  */
@@ -34,6 +42,7 @@ fun startQuestLog(
     languageModelBridge: AppleLanguageModelBridge,
     appRefreshTaskBridge: AppRefreshTaskBridge
 ) {
+    UNUserNotificationCenter.currentNotificationCenter().delegate = reminderNotificationDelegate
     if (KoinPlatform.getKoinOrNull() != null) return
     val koin = initKoin(isDebugBuild = Platform.isDebugBinary) {
         modules(
