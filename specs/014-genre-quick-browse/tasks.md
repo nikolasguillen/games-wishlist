@@ -423,7 +423,7 @@ sheet's genre group never offers the browsed genre while everything else still n
   the root `CLAUDE.md`. If no Mac is available, record "iOS compile not run" in the final report instead of assuming.
 - [X] T046 Run quickstart §3 (steps 1–14) on an Android emulator or device and record each step's result. Includes TalkBack
   (step 14) and the offline/Retry case (step 10).
-  Result on the API 36 emulator, debug build, live IGDB (2026-10-12). **Passed**: 1 (chips RPG, Shooter, Adventure,
+  Result on an Android emulator, debug build, live IGDB (2026-10-12). **Passed**: 1 (chips RPG, Shooter, Adventure,
   Strategy, Indie above the empty-history message), 3 ("genre: RPG", X and back arrow, 146 games, popularity order),
   5 (first sort option reads "Top picks", selected, descending), 6 (RPG absent from the filter sheet's genres; Indie +
   PC narrows 146 to 60 with AND, order kept), 7 (X and system back return to Discover with the default placeholder),
