@@ -421,8 +421,18 @@ sheet's genre group never offers the browsed genre while everything else still n
   or weakened. Fix what they reveal.
 - [X] T045 **(Mac only)** Run `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 -q` and the `xcodebuild` command from
   the root `CLAUDE.md`. If no Mac is available, record "iOS compile not run" in the final report instead of assuming.
-- [ ] T046 Run quickstart §3 (steps 1–14) on an Android emulator or device and record each step's result. Includes TalkBack
+- [X] T046 Run quickstart §3 (steps 1–14) on an Android emulator or device and record each step's result. Includes TalkBack
   (step 14) and the offline/Retry case (step 10).
+  Result on the API 36 emulator, debug build, live IGDB (2026-10-12). **Passed**: 1 (chips RPG, Shooter, Adventure,
+  Strategy, Indie above the empty-history message), 3 ("genre: RPG", X and back arrow, 146 games, popularity order),
+  5 (first sort option reads "Top picks", selected, descending), 6 (RPG absent from the filter sheet's genres; Indie +
+  PC narrows 146 to 60 with AND, order kept), 7 (X and system back return to Discover with the default placeholder),
+  8 ("zelda" replaces the browse; Recent searches holds only "zelda"), 10 (airplane mode gives the error page, Retry
+  reloads RPG), 11 (landscape and background/resume keep the browse), 12 (two saved games made the row RPG, Adventure,
+  Indie, Turn-based strategy, …, live while the overlay was open), and the "no chips while typing" half of 2.
+  **Not run by hand**: 4's snackbar and long-press, 5's Rating-then-clear half, 9 (two quick taps), 13 (dropped
+  game; covered by `GetBrowseGenresUseCaseTest`), and 14 (TalkBack was not turned on: the chip nodes are clickable and
+  neither selected nor checkable in the accessibility tree, but the announcement itself is unverified).
 - [ ] T047 **(Mac only)** Run quickstart §4 on the iOS simulator (steps 1–9, 11–12, 14 with VoiceOver; step 10 is not
   runnable on a simulator). Record every step not run as not run.
 
