@@ -186,8 +186,9 @@ and confirm the recent searches are exactly as before.
   not persisted (out of scope).
 - **Typing without submitting while a browse is active**: the browse stays on screen until a query is
   submitted. If the user deletes what they typed, the genre placeholder is shown again.
-- **Active filter on the browsed genre**: if a genre filter for the same genre was already selected when the
-  browse starts, it is dropped, because it is now implied and no longer offered.
+- **Active filter on the browsed genre**: a browse starts with no filter selected (see Assumptions), so a
+  filter on the browsed genre can never be carried into it; and since that genre is not offered in the filter
+  sheet, it cannot be selected during the browse either.
 - **Recent window or minimum ratings leaves a thin pool**: a niche genre may show few results or none; this
   is an accepted consequence of keeping obscure and ancient entries out.
 - **Accessibility**: each chip is announced by screen readers as a button carrying the genre name, and is
@@ -269,7 +270,8 @@ and confirm the recent searches are exactly as before.
 - **FR-027**: During a genre browse the filter sheet MUST NOT offer the browsed genre in its genre group.
   The remaining genres, platforms and game types MUST be offered and MUST narrow the results, with the
   genre filter remaining an AND.
-- **FR-028**: Any previously selected filter on the browsed genre MUST be dropped when the browse starts.
+- **FR-028**: A genre browse MUST start with no filter selected, as a new text search does, so no filter on
+  the browsed genre can be active during it.
 - **FR-029**: When the genre browse ends, the filter sheet MUST offer every genre again.
 
 **Lifecycle**
@@ -333,8 +335,10 @@ and confirm the recent searches are exactly as before.
 - **Popular-first** means ordered by the data source's popularity measure, not by rating. The "Top picks"
   label is the user-facing name for that default order. The other sorts (name, rating, release date) work on
   a genre browse as they do on a text search.
-- **Filters other than the browsed genre** that are active when the browse starts stay active, as they do
-  when a new text query is submitted; the user can still change them in the filter sheet.
+- **Filters reset when a browse starts**, exactly as they do when a new text query is submitted: every new
+  result set starts with no filter selected, built from the facets of its own results. The user then narrows
+  the browse in the filter sheet. (Corrected during planning: the earlier wording said active filters carry
+  over, which is not what a text search does.)
 - **Pagination** is whatever a text search already does; no new paging behavior is introduced.
 - **Taste profile availability**: If the taste profile cannot be read, the row falls back to the defaults
   rather than hiding or failing.
