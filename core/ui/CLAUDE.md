@@ -122,7 +122,9 @@ Extension functions only, no classes. `ErrorMapper.kt` (`RepositoryError.toUiTex
 error-to-text boundary in the app — route all error rendering through it. Also `GameUiMapper.kt`
 (`List<Game>.toGameItemList()`, `Game.toGameItem()`, `Platform.getShortLabel()`,
 `GameStatus.toLabelUiText()`), `GameTypeMapper.kt`, `WishlistIconMapper.kt`,
-`AppearanceModeMapper.kt` (`AppearanceMode.toLabelUiText()`).
+`AppearanceModeMapper.kt` (`AppearanceMode.toLabelUiText()`), `GenreMapper.kt` (`Genre.toLabelUiText()`: a genre
+the app knows by id, see `KnownGenre` in `:core:model`, resolves to a short `genre_*` resource, and any other falls back
+to the name the data source gave it).
 
 ## Build notes
 

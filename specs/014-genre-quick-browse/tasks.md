@@ -409,17 +409,17 @@ sheet's genre group never offers the browsed genre while everything else still n
 
 **Purpose**: Documentation that the rules require, and the verification the constitution calls for.
 
-- [ ] T042 [P] Update `core/ui/CLAUDE.md`: in the Mappers section add `GenreMapper.kt` (`Genre.toLabelUiText()`: a known id
+- [X] T042 [P] Update `core/ui/CLAUDE.md`: in the Mappers section add `GenreMapper.kt` (`Genre.toLabelUiText()`: a known id
   resolves to a short `genre_*` resource, any other falls back to the data source's name). Instructions, not a changelog:
   do not mention this feature by name.
-- [ ] T043 [P] Update `docs/tech-debt.md` (Infrastructure → test coverage gaps): the `:core:domain` sentence says the
+- [X] T043 [P] Update `docs/tech-debt.md` (Infrastructure → test coverage gaps): the `:core:domain` sentence says the
   search use cases are not covered; now `BrowseGenreUseCase`, `GetBrowseGenresUseCase` and the facet function are.
   Also update the `:core:ui` sentence ("only `GameUiMapper`, `PlatformPickerMapper` and `HtmlUtils` are covered"): it is
   false once `GenreMapperTest` lands, so add `GenreMapper`. Reword so it names only what is still uncovered, and refresh the "Last audited" date only if the whole file was
   re-checked (it was not, so leave it).
-- [ ] T044 Run `./gradlew test` and `./gradlew :androidApp:assembleDebug`; both must pass with no existing test deleted
+- [X] T044 Run `./gradlew test` and `./gradlew :androidApp:assembleDebug`; both must pass with no existing test deleted
   or weakened. Fix what they reveal.
-- [ ] T045 **(Mac only)** Run `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 -q` and the `xcodebuild` command from
+- [X] T045 **(Mac only)** Run `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 -q` and the `xcodebuild` command from
   the root `CLAUDE.md`. If no Mac is available, record "iOS compile not run" in the final report instead of assuming.
 - [ ] T046 Run quickstart §3 (steps 1–14) on an Android emulator or device and record each step's result. Includes TalkBack
   (step 14) and the offline/Retry case (step 10).

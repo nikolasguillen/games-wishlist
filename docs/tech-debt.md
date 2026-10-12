@@ -75,9 +75,10 @@ Last audited: 2026-10-09.
   `:core:network:iosSimulatorArm64Test`) and the root `test` task does not run it; the iOS `actual`s are otherwise
   covered only by the walkthrough in `specs/010-kmp-migration/baseline.md`. The Swift `FoundationModelsBridge` has
   no tests: `AppleLanguageModelTranslator` is tested against a fake bridge only. No tests at all for `:core:database` DAOs, and in `:core:ui` only
-  `GameUiMapper`, `PlatformPickerMapper` and `HtmlUtils` are covered — the other mappers are not. In `:core:domain` the `radar/`,
+  `GameUiMapper`, `PlatformPickerMapper`, `GenreMapper` and `HtmlUtils` are covered — the other mappers are not. In `:core:domain` the `radar/`,
   `release/`, `usecase/discover/` and `usecase/notification/` packages are covered, plus three of the twelve list use cases and
-  `SetGameStatusUseCase`; the search, settings and translation use cases and the other list and detail ones are not. `:core:ai` has no test source set at all:
+  `SetGameStatusUseCase`; in `usecase/search/` only `BrowseGenreUseCase`, `GetBrowseGenresUseCase` and the shared facet
+  function are covered, so the other search, settings and translation use cases and the other list and detail ones are not. `:core:ai` has no test source set at all:
   `GeminiNanoClient` wraps `Generation.getClient()`, a static factory that would need static mocking to
   reach, and the logic actually worth testing (mapping ML Kit's types) is covered where it lands, in
   `:core:data`'s `GameDescriptionTranslatorImplTest`. No Compose UI tests — `ui-test-junit4` is
