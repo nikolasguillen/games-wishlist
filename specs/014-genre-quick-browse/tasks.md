@@ -44,7 +44,7 @@ not be reported as verified unless they were run on a Mac.
 
 **Purpose**: Settle the two data facts the code depends on before they are written into constants and strings.
 
-- [ ] T001 Run quickstart §1 against live IGDB using the credentials in `local.properties`. (a) `POST /v4/genres` with
+- [X] T001 Run quickstart §1 against live IGDB using the credentials in `local.properties`. (a) `POST /v4/genres` with
   `fields id, name; limit 50;` and compare every pair with the table in `specs/014-genre-quick-browse/data-model.md`
   (§`KnownGenre`); correct the table where IGDB disagrees. (b) `POST /v4/games/count` with the `where` clause of
   `specs/014-genre-quick-browse/contracts/genre-browse.md` for genres 12, 5, 31, 15, 32 (the defaults) and 30, 26 (niche).
@@ -59,25 +59,25 @@ not be reported as verified unless they were run on a Mac.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 [P] Create `core/model/src/commonMain/kotlin/com/nikolasguillen/questlog/core/model/KnownGenre.kt`:
+- [X] T002 [P] Create `core/model/src/commonMain/kotlin/com/nikolasguillen/questlog/core/model/KnownGenre.kt`:
   `enum class KnownGenre(val id: Int, val igdbName: String)` with the 23 entries of the table in
   `specs/014-genre-quick-browse/data-model.md` (use the ids and names as corrected by T001). Add
   `companion fun fromId(id: Int): KnownGenre?` returning `null` for an id not listed (no fallback entry) and
   `companion val BROWSE_DEFAULTS: List<KnownGenre>` = `[ROLE_PLAYING, SHOOTER, ADVENTURE, STRATEGY, INDIE]`, in that
   order (FR-007). KDoc: the enum is the app's table of genres it has a label for; `Genre.id` is what code compares.
   No Android or Compose import (`:core:model` stays plain Kotlin).
-- [ ] T003 [P] Add 23 `genre_*` strings to `core/ui/src/commonMain/composeResources/values/strings.xml`, one per
+- [X] T003 [P] Add 23 `genre_*` strings to `core/ui/src/commonMain/composeResources/values/strings.xml`, one per
   `KnownGenre`, using the short labels from the data-model table (`genre_role_playing` = "RPG", `genre_platform` =
   "Platformer", `genre_simulator` = "Simulation", `genre_sport` = "Sports", `genre_real_time_strategy` =
   "Real-time strategy", `genre_hack_and_slash` = "Hack and slash", …). Plain quotes, no escapes (see `core/ui/CLAUDE.md`).
-- [ ] T004 [P] Create `core/ui/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/ui/mapper/GenreMapperTest.kt`
+- [X] T004 [P] Create `core/ui/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/ui/mapper/GenreMapperTest.kt`
   (KDoc header saying what it covers). Cases: every `KnownGenre` maps to a `UiText.StringResource` and no two share a
   resource; `Genre(12, "Role-playing (RPG)")` equals `UiText.StringResource(Res.string.genre_role_playing)`; a genre with
   an id `KnownGenre.fromId` does not list (e.g. `Genre(9999, "Wonder Genre")`) maps to
   `UiText.DynamicString("Wonder Genre")`; the label depends on the id and not the name (`Genre(12, "anything")` still
   resolves to the RPG resource); `KnownGenre` ids are unique, `fromId(12) == ROLE_PLAYING`, `fromId(9999) == null`, and
   `BROWSE_DEFAULTS.map { it.id } == listOf(12, 5, 31, 15, 32)`.
-- [ ] T005 Create `core/ui/src/commonMain/kotlin/com/nikolasguillen/questlog/core/ui/mapper/GenreMapper.kt` with
+- [X] T005 Create `core/ui/src/commonMain/kotlin/com/nikolasguillen/questlog/core/ui/mapper/GenreMapper.kt` with
   `fun Genre.toLabelUiText(): UiText`: when `KnownGenre.fromId(id)` is non-null, an **exhaustive `when`** over
   `KnownGenre` returns `UiText.StringResource(Res.string.genre_*)`; otherwise `UiText.DynamicString(name)`. Import each
   resource explicitly (`import ...core.ui.resources.genre_role_playing`). Match the shape of `GameTypeMapper.kt`.

@@ -61,6 +61,14 @@ does not cache them, like `searchGames`.
   search is not cached either. Caching would also need a key per genre and an expiry policy that nothing
   asks for.
 
+**Verified against live IGDB (2026-10-12)**:
+- `/genres` returns 23 genres and every id/name pair matches the `KnownGenre` table in
+  [data-model.md](data-model.md); nothing to correct and no genre is missing.
+- `/games/count` with the contract's window and floor (without the `game_type` exclusion, so the real counts are
+  slightly lower): RPG 150, Shooter 88, Adventure 289, Strategy 62, Indie 197, Quiz 3, Pinball 0. The five
+  defaults each fill a grid, so the 2-year window and the 10-rating floor stay as they are. Pinball and Quiz are
+  the thin case the spec's Edge Cases accept (empty state naming the genre).
+
 ---
 
 ## R2. Which genres the chips show

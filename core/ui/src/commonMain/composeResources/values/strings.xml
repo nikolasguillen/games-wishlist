@@ -42,6 +42,30 @@
     <string name="gametype_pack">Pack / Addon</string>
     <string name="gametype_update">Update</string>
 
+    <string name="genre_point_and_click">Point-and-click</string>
+    <string name="genre_fighting">Fighting</string>
+    <string name="genre_shooter">Shooter</string>
+    <string name="genre_music">Music</string>
+    <string name="genre_platform">Platformer</string>
+    <string name="genre_puzzle">Puzzle</string>
+    <string name="genre_racing">Racing</string>
+    <string name="genre_real_time_strategy">Real-time strategy</string>
+    <string name="genre_role_playing">RPG</string>
+    <string name="genre_simulator">Simulation</string>
+    <string name="genre_sport">Sports</string>
+    <string name="genre_strategy">Strategy</string>
+    <string name="genre_turn_based_strategy">Turn-based strategy</string>
+    <string name="genre_tactical">Tactical</string>
+    <string name="genre_hack_and_slash">Hack and slash</string>
+    <string name="genre_quiz_trivia">Quiz</string>
+    <string name="genre_pinball">Pinball</string>
+    <string name="genre_adventure">Adventure</string>
+    <string name="genre_indie">Indie</string>
+    <string name="genre_arcade">Arcade</string>
+    <string name="genre_visual_novel">Visual novel</string>
+    <string name="genre_card_and_board_game">Card &amp; board game</string>
+    <string name="genre_moba">MOBA</string>
+
     <!-- Sorting -->
     <string name="sort_relevance">Relevance</string>
     <string name="sort_name">Name</string>
