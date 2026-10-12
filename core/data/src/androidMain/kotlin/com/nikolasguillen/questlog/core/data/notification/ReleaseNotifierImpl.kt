@@ -14,14 +14,12 @@ import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotifier
 private const val CHANNEL_ID = "release_notifications"
 
 internal class ReleaseNotifierImpl(
-    private val context: Context
+    private val context: Context,
+    private val text: ReleaseReminderText
 ) : ReleaseNotifier {
 
-    override fun canDeliver(): Boolean =
-        NotificationManagerCompat.from(context).areNotificationsEnabled()
-
     @SuppressLint("MissingPermission")
-    override fun notifyReleased(gameId: Int, gameName: String) {
+    override suspend fun notifyReleased(gameId: Int, gameName: String) {
         val notificationManager = NotificationManagerCompat.from(context)
         ensureChannel(notificationManager)
 
@@ -35,13 +33,8 @@ internal class ReleaseNotifierImpl(
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_popup_reminder)
-            .setContentTitle(
-                context.getString(
-                    R.string.release_notification_title_format,
-                    gameName
-                )
-            )
-            .setContentText(context.getString(R.string.release_notification_body))
+            .setContentTitle(text.title(gameName))
+            .setContentText(text.body())
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .build()

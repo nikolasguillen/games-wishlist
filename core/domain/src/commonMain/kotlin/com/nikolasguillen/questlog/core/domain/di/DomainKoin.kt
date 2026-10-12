@@ -47,6 +47,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.translation.DownloadTrans
 import com.nikolasguillen.questlog.core.domain.usecase.translation.GetTranslationModelStatusUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.TranslateGameDescriptionUseCase
 import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 /** Every use case and domain service is a plain class; a fresh instance per request is enough for all of them. */
@@ -81,7 +82,9 @@ val domainModule = module {
     factoryOf(::DeliverReleaseNotificationUseCase)
     factoryOf(::GetReleaseNotificationGameIdsUseCase)
     factoryOf(::SetReleaseNotificationEnabledUseCase)
-    factoryOf(::SyncReleaseNotificationsUseCase)
+    // A single, not a factory: the use case serializes its body with a Mutex, and every caller (the toggle use case,
+    // the refresh worker and runner, the iOS coordinator) must share that one lock for it to serialize anything.
+    singleOf(::SyncReleaseNotificationsUseCase)
     factoryOf(::AddSearchToHistoryUseCase)
     factoryOf(::ClearAllHistoryUseCase)
     factoryOf(::ClearRecentGamesUseCase)

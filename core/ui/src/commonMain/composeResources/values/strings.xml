@@ -145,6 +145,8 @@
     <string name="notification_permission_denied_title">Notifications are off</string>
     <string name="notification_permission_denied_message">This reminder won't arrive until notifications are enabled for QuestLog in system settings.</string>
     <string name="notification_permission_denied_action">Open settings</string>
+    <string name="release_notification_title_format">%1$s is out today!</string>
+    <string name="release_notification_body">Tap to see it in your collection.</string>
     <string name="list_name_label">List name</string>
     <string name="description_optional_label">Description (optional)</string>
     <string name="icon_optional_label">Icon (optional)</string>

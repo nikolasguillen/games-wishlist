@@ -3,6 +3,7 @@ package com.nikolasguillen.questlog.shared.di
 import com.nikolasguillen.questlog.core.common.di.commonPlatformModule
 import com.nikolasguillen.questlog.core.data.di.dataModule
 import com.nikolasguillen.questlog.core.data.di.dataPlatformModule
+import com.nikolasguillen.questlog.core.data.notification.ReleaseReminderText
 import com.nikolasguillen.questlog.core.database.DefaultWishlistSeed
 import com.nikolasguillen.questlog.core.database.DefaultWishlistSeedProvider
 import com.nikolasguillen.questlog.core.database.di.databaseModule
@@ -11,6 +12,7 @@ import com.nikolasguillen.questlog.core.domain.di.domainModule
 import com.nikolasguillen.questlog.core.network.NetworkConfig
 import com.nikolasguillen.questlog.core.network.di.networkModule
 import com.nikolasguillen.questlog.core.network.di.networkPlatformModule
+import com.nikolasguillen.questlog.shared.ReleaseReminderTextImpl
 import com.nikolasguillen.questlog.shared.runBlockingCompat
 import com.nikolasguillen.questlog.shared.resources.Res
 import com.nikolasguillen.questlog.shared.resources.default_wishlist_description
@@ -50,10 +52,13 @@ internal fun allModules(isDebugBuild: Boolean): List<Module> = listOf(
 )
 
 /**
- * The bindings only the app root can supply: what is a debug build, and the words of the default wishlist.
+ * The bindings only the app root can supply: what is a debug build, the words of the default wishlist and the words
+ * of a release reminder, which `:core:data` cannot read from `:core:ui`'s resources.
  */
 internal fun sharedModule(isDebugBuild: Boolean): Module = module {
     single { NetworkConfig(logBodies = isDebugBuild) }
+
+    single<ReleaseReminderText> { ReleaseReminderTextImpl() }
 
     // Resolved when the database is first created, which happens on its own thread and once per install.
     single {

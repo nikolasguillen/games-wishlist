@@ -1,16 +1,21 @@
 package com.nikolasguillen.questlog.core.domain.notification
 
-import kotlin.time.Instant
-
 /**
- * Schedules per-game release-day reminders. Contract only: `:core:domain` never imports `androidx.work` —
- * the WorkManager-backed implementation lives in `:core:data`, per the KMP-reversibility note in the
- * roadmap, the same shape as [com.nikolasguillen.questlog.core.domain.radar.ReleaseRefreshScheduler].
+ * Schedules per-game release-day reminders. Contract only: `:core:domain` never imports a platform scheduler.
+ * Each platform has its own implementation in `:core:data`, the same shape as
+ * [com.nikolasguillen.questlog.core.domain.radar.ReleaseRefreshScheduler].
  */
 interface ReleaseNotificationScheduler {
-    /** Enqueues (or re-enqueues) the reminder for [gameId] to fire at [at]. Replaces any existing one. */
-    fun schedule(gameId: Int, at: Instant)
+    /** Arms (or re-arms) the reminder for [reminder].gameId, replacing any pending one. */
+    suspend fun schedule(reminder: ReleaseReminder)
 
-    /** Cancels any pending reminder for [gameId]. A no-op when none is scheduled. */
-    fun cancel(gameId: Int)
+    /** Removes any pending reminder for [gameId]. A no-op when none is scheduled. */
+    suspend fun cancel(gameId: Int)
+
+    /**
+     * Reminders the system delivered without running app code since the last call, as gameId to the release date
+     * each was armed for. Each one is reported once. A platform whose worker records delivery itself returns an
+     * empty map.
+     */
+    suspend fun takeFiredReminders(): Map<Int, Long>
 }
