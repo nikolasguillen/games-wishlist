@@ -33,11 +33,34 @@ The 24h interval is a single constant shared by both implementations. On iOS it 
 system decides when to run the task, so the guarantee is "at most about once per interval, when the system allows".
 The next request's earliest date is `lastSuccess + 24h`, or now when there is no success or it is overdue.
 
-### `ReleaseNotificationScheduler`, `ReleaseNotifier` — `:core:domain` (unchanged signatures)
+### `ReleaseNotificationScheduler`, `ReleaseNotifier` — `:core:domain` (changed in `specs/013-ios-push-notifications`)
+
+```kotlin
+data class ReleaseReminder(val gameId: Int, val gameName: String, val releaseDateEpochSeconds: Long, val fireAt: Instant)
+
+interface ReleaseNotificationScheduler {
+    suspend fun schedule(reminder: ReleaseReminder)   // arms or re-arms; replaces any pending one
+    suspend fun cancel(gameId: Int)
+    suspend fun takeFiredReminders(): Map<Int, Long>  // gameId → the release date it was armed for, each reported once
+}
+
+interface ReleaseNotifier {
+    suspend fun notifyReleased(gameId: Int, gameName: String)   // `canDeliver()` is gone: nothing called it
+}
+```
+
+Signatures changed from `schedule(gameId, at: Instant)` / `cancel(gameId)` / `notifyReleased(...)` / `canDeliver()`.
 
 | | Android | iOS |
 |---|---|---|
-| Implementation | WorkManager + `NotificationManagerCompat` (unchanged) | No-op objects. They are unreachable from the UI because `ReleaseRemindersAvailability.isAvailable` is `false`, but bound so that shared use cases resolve |
+| `schedule` | WorkManager one-shot per game, `REPLACE` (unchanged); ignores `gameName` and `releaseDateEpochSeconds` | `LocalNotificationReleaseScheduler`: a local notification through `UserNotifications`. Floating 09:00 calendar trigger on the release day, or a 1 s trigger when `fireAt` has passed. Records an armed-reminder ledger entry, then trims to the 64 soonest |
+| `cancel` | `cancelUniqueWork` (unchanged) | Removes the pending request and the ledger entry |
+| `takeFiredReminders` | `emptyMap()`: the worker records delivery itself | Ledger entries whose request is no longer pending, removed from the ledger as they are returned |
+| `notifyReleased` | `NotificationManagerCompat`, text from `ReleaseReminderText` | Not bound: the system delivers the notification and no app code runs at fire time |
+
+`SyncReleaseNotificationsUseCase` calls `takeFiredReminders()` first and marks each result delivered. It is a single,
+serialized instance (`singleOf` plus a `Mutex`), so two syncs never interleave that step with the delivered-date
+read.
 
 ### `GameDescriptionTranslator` — `:core:domain` (unchanged signature)
 
@@ -99,6 +122,30 @@ interface AppRefreshTaskRun { fun cancel() }
 - Nothing is `suspend`, for the reasons recorded for `AppleLanguageModelBridge`.
 - `BackgroundTaskReleaseRefreshScheduler` and `ReleaseRefreshRunner` live in `commonMain` and are bound only by the
   iOS `dataPlatformModule`, the same exception as `AppleLanguageModelTranslator`.
+
+### `LocalNotificationCenter`, `ReminderSyncTriggers`, `ReleaseReminderText` — `:core:data` (iOS release reminders)
+
+```kotlin
+internal interface LocalNotificationCenter {          // the iOS notification centre, as the scheduler sees it
+    suspend fun add(request: LocalReminderRequest): Boolean   // false: not authorized, or rejected. Never throws but CancellationException
+    suspend fun pendingReminders(): List<PendingReminder>
+    suspend fun remove(gameIds: Collection<Int>)
+}
+interface ReminderSyncTriggers { val events: Flow<Unit> }    // app became active, permission newly granted
+interface ReleaseReminderText {                              // implemented in :shared from :core:ui's Compose resources
+    suspend fun title(gameName: String): String
+    suspend fun body(): String
+}
+```
+
+- `LocalNotificationReleaseScheduler`, `ReleaseReminderCoordinator` and the armed-reminder ledger live in
+  `commonMain` and are bound only by the iOS `dataPlatformModule`, the same exception as `AppRefreshTaskBridge`'s
+  `BackgroundTaskReleaseRefreshScheduler`. Only `UserNotificationCenter` (the `UserNotifications` adapter) is `iosMain`.
+- `ReminderSyncTriggers` is implemented in `:shared` `iosMain` (`IosReminderSyncTriggers`), because the permission cache
+  it listens to lives in `:core:ui`. `ReleaseReminderText` is implemented in `:shared` `commonMain` and used by both
+  platforms.
+- `ReleaseRefreshRunner` also runs a full reminder sync after a successful refresh, so a date that moved is
+  followed while the app is in the background.
 
 ### `AppVersionProvider`, `NetworkStatusProvider` — `:core:common` (class → interface)
 
@@ -186,10 +233,11 @@ The existing `NotificationPermission.kt` helpers and `NotificationPermissionDeni
 
 | Android | iOS |
 |---|---|
-| Existing behaviour | Never composed, because every call site is behind `ReleaseRemindersAvailability.isAvailable` |
+| Existing behaviour | `rememberNotificationPermissionState` reads the `NotificationAuthorization` cache (`NOT_DETERMINED`, `DENIED`, `AUTHORIZED`). `request()` shows the system prompt when undecided and otherwise opens the app's notification settings. The cache is refreshed on `ON_RESUME` and after a prompt. `NotificationPermissionDeniedDialog` is a `CustomAlertDialog` whose confirm opens the app's notification settings |
 
-To keep the `expect` surface minimal, the iOS `actual`s are inert (no-ops that report "not granted").
-They exist only so that `commonMain` compiles.
+The iOS helpers sit in `:core:ui` `iosMain`: `NotificationAuthorization` and `NotificationAuthorizationStatus` (public, so
+that `:shared` can observe the transition to `AUTHORIZED`) and `OpenNotificationSettings` (opens
+`UIApplicationOpenNotificationSettingsURLString`).
 
 ### `SystemBarsAppearance` — `:core:designsystem`
 
@@ -264,7 +312,7 @@ single `actual` per platform and no behaviour of its own to specify.
 | Swift services handed to Kotlin | None | `FoundationModelsBridge` (FoundationModels) and `ReleaseRefreshTask` (BackgroundTasks), bound in Koin by `startQuestLog` |
 | Periodic refresh kick-off | `QuestLogApp` calls `schedulePeriodicRefresh()` (unchanged) | `startQuestLog(...)` calls `schedulePeriodicRefresh()` once per launch; the system also launches the refresh task in the background |
 | Display corner radius | `RoundedCorner` probe (unchanged) | Fixed default passed by `MainViewController()` |
-| Deep link to a game (`questlog://game/{id}`, used by the reminder notification) | `MainActivity` parses the intent (`onCreate` and `onNewIntent`) into a `GameDetailRoute` and hands it to `QuestLogRoot` as a pending route | Not registered (its only producer, reminders, is absent on iOS) |
+| Deep link to a game (`questlog://game/{id}`, used by the reminder notification) | `MainActivity` parses the intent (`onCreate` and `onNewIntent`) into a `GameDetailRoute` and hands it to `QuestLogRoot` as a pending route | No URL scheme. `ReleaseReminderNotificationDelegate` (`:shared` `iosMain`, set by `startQuestLog`) reads `gameId` from the tapped notification's `userInfo` → `ReminderDeepLinks` → `MainViewController` → `QuestLogRoot` as the pending game id |
 
 ## Capability exception register
 
