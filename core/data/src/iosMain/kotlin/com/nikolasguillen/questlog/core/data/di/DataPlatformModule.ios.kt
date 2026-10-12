@@ -41,6 +41,7 @@ actual val dataPlatformModule: Module = module {
     single {
         ReleaseRefreshRunner(
             refreshReleaseDates = get(),
+            syncReleaseNotifications = get(),
             settingsDataStore = get(),
             scope = get(),
             clock = Clock.System

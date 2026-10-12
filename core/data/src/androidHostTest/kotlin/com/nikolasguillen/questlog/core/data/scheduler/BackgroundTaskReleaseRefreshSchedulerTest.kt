@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import com.nikolasguillen.questlog.core.domain.radar.RefreshReleaseDatesUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.notification.SyncReleaseNotificationsUseCase
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.RepositoryError
 import io.mockk.coEvery
@@ -38,12 +39,13 @@ class BackgroundTaskReleaseRefreshSchedulerTest {
     private val start = Instant.fromEpochSeconds(1_700_000_000)
 
     private val refreshReleaseDates = mockk<RefreshReleaseDatesUseCase>()
+    private val syncReleaseNotifications = mockk<SyncReleaseNotificationsUseCase>(relaxed = true)
     private val clock = FakeClock(start)
     private val bridge = FakeAppRefreshTaskBridge()
     private val dataStore: DataStore<Preferences> = InMemoryPreferencesDataStore()
 
     private fun TestScope.scheduler() = BackgroundTaskReleaseRefreshScheduler(
-        runner = ReleaseRefreshRunner(refreshReleaseDates, dataStore, scope = this, clock = clock),
+        runner = ReleaseRefreshRunner(refreshReleaseDates, syncReleaseNotifications, dataStore, scope = this, clock = clock),
         bridge = bridge,
         scope = this
     )

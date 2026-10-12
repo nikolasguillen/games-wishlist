@@ -16,6 +16,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 /**
@@ -170,6 +171,32 @@ class LocalNotificationReleaseSchedulerTest {
         assertEquals(listOf(GAME_ID, GAME_ID), center.added.map { it.gameId })
         assertEquals(mapOf(GAME_ID to 200L), ledger.entries())
         assertEquals(setOf(GAME_ID), center.pendingIds)
+    }
+
+    @Test
+    fun `scheduling 70 reminders in random order leaves the 64 soonest pending`() = runTest {
+        val ids = (1..70).shuffled()
+        ids.forEach { id ->
+            scheduler.schedule(reminder(gameId = id, releaseDate = id.toLong(), fireAt = releaseDay.toInstant(zone) + (id * 86_400L).seconds))
+        }
+
+        assertEquals((1..64).toSet(), center.pendingIds)
+        assertEquals((1..64).toSet(), ledger.entries().keys)
+        // A trimmed reminder never fired, so it must not be reported as one.
+        assertTrue(scheduler.takeFiredReminders().isEmpty())
+    }
+
+    @Test
+    fun `a trimmed game is armed again by a later schedule once there is room`() = runTest {
+        (1..65).forEach { id ->
+            scheduler.schedule(reminder(gameId = id, releaseDate = id.toLong(), fireAt = releaseDay.toInstant(zone) + (id * 86_400L).seconds))
+        }
+        assertEquals(setOf(65), (1..65).toSet() - center.pendingIds)
+
+        scheduler.cancel(1)
+        scheduler.schedule(reminder(gameId = 65, releaseDate = 65, fireAt = releaseDay.toInstant(zone) + (65 * 86_400L).seconds))
+
+        assertTrue(65 in center.pendingIds)
     }
 
     private companion object {

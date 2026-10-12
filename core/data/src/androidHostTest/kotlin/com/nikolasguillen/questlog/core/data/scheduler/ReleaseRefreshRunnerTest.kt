@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import com.nikolasguillen.questlog.core.domain.radar.RefreshReleaseDatesUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.notification.SyncReleaseNotificationsUseCase
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.RepositoryError
 import io.mockk.coEvery
@@ -37,12 +38,13 @@ class ReleaseRefreshRunnerTest {
     private val start = Instant.fromEpochSeconds(1_700_000_000)
 
     private val refreshReleaseDates = mockk<RefreshReleaseDatesUseCase>()
+    private val syncReleaseNotifications = mockk<SyncReleaseNotificationsUseCase>(relaxed = true)
     private val clock = FakeClock(start)
 
     private fun dataStore(): DataStore<Preferences> = InMemoryPreferencesDataStore()
 
     private fun TestScope.runner(dataStore: DataStore<Preferences>) =
-        ReleaseRefreshRunner(refreshReleaseDates, dataStore, scope = this, clock = clock)
+        ReleaseRefreshRunner(refreshReleaseDates, syncReleaseNotifications, dataStore, scope = this, clock = clock)
 
     private suspend fun DataStore<Preferences>.lastRefreshMillis(): Long? = data.first()[lastRefreshKey]
 
@@ -265,5 +267,77 @@ class ReleaseRefreshRunnerTest {
         advanceUntilIdle()
 
         assertEquals(start.toEpochMilliseconds(), dataStore.lastRefreshMillis())
+    }
+
+    @Test
+    fun `a successful refresh runs a full reminder sync after recording the time and before run returns`() = runTest {
+        coEvery { refreshReleaseDates() } returns AppResult.success(Unit)
+        val dataStore = dataStore()
+        var recordedWhenSyncStarted: Long? = null
+        coEvery { syncReleaseNotifications(null) } coAnswers { recordedWhenSyncStarted = dataStore.lastRefreshMillis() }
+
+        runner(dataStore).run(onlyIfDue = true)
+
+        coVerify(exactly = 1) { syncReleaseNotifications(null) }
+        assertEquals(start.toEpochMilliseconds(), recordedWhenSyncStarted)
+    }
+
+    @Test
+    fun `a refresh that is not due or that failed runs no reminder sync`() = runTest {
+        val notDue = dataStore().also { it.setLastRefresh(start - 1.minutes) }
+        coEvery { refreshReleaseDates() } returns AppResult.success(Unit)
+        runner(notDue).run(onlyIfDue = true)
+
+        coEvery { refreshReleaseDates() } returns AppResult.failure(RepositoryError.NoNetwork)
+        runner(dataStore()).run(onlyIfDue = true)
+
+        coVerify(exactly = 0) { syncReleaseNotifications(any()) }
+    }
+
+    @Test
+    fun `a reminder sync that throws leaves the refresh successful and the time recorded`() = runTest {
+        coEvery { refreshReleaseDates() } returns AppResult.success(Unit)
+        coEvery { syncReleaseNotifications(any()) } throws IllegalStateException("boom")
+        val dataStore = dataStore()
+
+        val outcome = runner(dataStore).run(onlyIfDue = true)
+
+        assertEquals(ReleaseRefreshOutcome.REFRESHED, outcome)
+        assertEquals(start.toEpochMilliseconds(), dataStore.lastRefreshMillis())
+    }
+
+    @Test
+    fun `a joiner waits for the reminder sync`() = runTest {
+        coEvery { refreshReleaseDates() } returns AppResult.success(Unit)
+        val gate = CompletableDeferred<Unit>()
+        coEvery { syncReleaseNotifications(any()) } coAnswers { gate.await() }
+        val runner = runner(dataStore())
+
+        val first = async { runner.run(onlyIfDue = false) }
+        advanceUntilIdle()
+        val joiner = async { runner.run(onlyIfDue = false) }
+        advanceUntilIdle()
+        assertTrue(!first.isCompleted && !joiner.isCompleted)
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(ReleaseRefreshOutcome.REFRESHED, joiner.await())
+        coVerify(exactly = 1) { syncReleaseNotifications(any()) }
+    }
+
+    @Test
+    fun `cancelling the refresh before it finishes runs no reminder sync`() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        coEvery { refreshReleaseDates() } coAnswers { gate.await(); AppResult.success(Unit) }
+        val runner = runner(dataStore())
+
+        val result = async { runCatching { runner.run(onlyIfDue = false) } }
+        advanceUntilIdle()
+        runner.cancelRunning()
+        advanceUntilIdle()
+
+        assertTrue(result.await().exceptionOrNull() is CancellationException)
+        coVerify(exactly = 0) { syncReleaseNotifications(any()) }
     }
 }

@@ -48,6 +48,14 @@ internal class LocalNotificationReleaseScheduler(
             return@withLock
         }
         ledger.put(gameId, reminder.releaseDateEpochSeconds)
+
+        // The system keeps only 64 pending requests, and which ones it drops is not ours to decide: keep the
+        // soonest and forget the rest, so the ledger never claims a reminder that is not pending.
+        val trimmed = trimToCapacity(center.pendingReminders(), MAX_PENDING_REMINDERS)
+        if (trimmed.isNotEmpty()) {
+            center.remove(trimmed)
+            ledger.remove(trimmed)
+        }
     }
 
     override suspend fun cancel(gameId: Int) = mutex.withLock {
