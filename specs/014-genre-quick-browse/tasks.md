@@ -433,8 +433,10 @@ sheet's genre group never offers the browsed genre while everything else still n
   **Not run by hand**: 4's snackbar and long-press, 5's Rating-then-clear half, 9 (two quick taps), 13 (dropped
   game; covered by `GetBrowseGenresUseCaseTest`), and 14 (TalkBack was not turned on: the chip nodes are clickable and
   neither selected nor checkable in the accessibility tree, but the announcement itself is unverified).
-- [ ] T047 **(Mac only)** Run quickstart §4 on the iOS simulator (steps 1–9, 11–12, 14 with VoiceOver; step 10 is not
+  The owner then ran the steps above that were not run by hand and reported them done (2026-10-13).
+- [X] T047 **(Mac only)** Run quickstart §4 on the iOS simulator (steps 1–9, 11–12, 14 with VoiceOver; step 10 is not
   runnable on a simulator). Record every step not run as not run.
+  Run by the owner and reported done (2026-10-13).
 
 ---
 
