@@ -2,7 +2,6 @@ package com.nikolasguillen.questlog.feature.gamedetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nikolasguillen.questlog.core.domain.notification.ReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.domain.usecase.GetGameDetailUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.RefreshGameDetailUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.SetGameStatusUseCase
@@ -58,12 +57,8 @@ class GameDetailViewModel(
     private val translateGameDescriptionUseCase: TranslateGameDescriptionUseCase,
     private val getTranslationModelStatusUseCase: GetTranslationModelStatusUseCase,
     getReleaseNotificationGameIdsUseCase: GetReleaseNotificationGameIdsUseCase,
-    private val setReleaseNotificationEnabledUseCase: SetReleaseNotificationEnabledUseCase,
-    releaseRemindersAvailability: ReleaseRemindersAvailability
+    private val setReleaseNotificationEnabledUseCase: SetReleaseNotificationEnabledUseCase
 ) : ViewModel() {
-
-    // Fixed for the life of the process: a platform without reminders never offers the banner or its control.
-    private val remindersAvailable = releaseRemindersAvailability.isAvailable
 
     // Single source of truth: reactively observes local storage. Mutations write through the
     // use cases below and this flow picks the change back up -- no manually mirrored copy.
@@ -101,7 +96,6 @@ class GameDetailViewModel(
                 when {
                     game != null -> GameDetailContentState.Success(
                         game.toUiModel(isNotificationEnabled = gameId in notificationIds, now = Clock.System.now())
-                            .let { model -> if (remindersAvailable) model else model.copy(isNotificationAvailable = false) }
                     )
                     error != null -> GameDetailContentState.Error(error)
                     else -> GameDetailContentState.Loading
@@ -174,7 +168,6 @@ class GameDetailViewModel(
     }
 
     private fun toggleReleaseNotification() {
-        if (!remindersAvailable) return
         val successState = _uiState.value.contentState as? GameDetailContentState.Success ?: return
         val wasEnabled = successState.game.isNotificationEnabled
         val gameName = successState.game.name

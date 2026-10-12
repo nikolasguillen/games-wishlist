@@ -18,7 +18,6 @@ import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_lists
 import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_lists_headline
 import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_radar_body
 import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_radar_headline
-import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_radar_without_reminders_body
 import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_reminders_body
 import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_reminders_declined_body
 import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_reminders_declined_headline
@@ -31,21 +30,19 @@ import com.nikolasguillen.questlog.feature.onboarding.resources.onboarding_welco
 /**
  * The pages this launch shows, in order.
  *
- * The reminders page is last, and only when asking could change something: the platform offers release
- * reminders at all, the device has a runtime notification permission, and notifications cannot be
- * delivered yet.
+ * The reminders page is last, and only when asking could change something: the device has a runtime
+ * notification permission, and notifications cannot be delivered yet.
  */
 internal fun buildOnboardingPages(
-    remindersAvailable: Boolean,
     requiresRuntimePermission: Boolean,
     canDeliver: Boolean
 ): List<OnboardingPage> = buildList {
     add(OnboardingPage.Welcome)
     add(OnboardingPage.Discover)
     add(OnboardingPage.Lists)
-    add(if (remindersAvailable) OnboardingPage.Radar else OnboardingPage.RadarWithoutReminders)
+    add(OnboardingPage.Radar)
     add(OnboardingPage.Platforms)
-    if (remindersAvailable && requiresRuntimePermission && !canDeliver) add(OnboardingPage.Reminders)
+    if (requiresRuntimePermission && !canDeliver) add(OnboardingPage.Reminders)
 }
 
 /** The informational content of [this], or `null` for a page that is not purely informational. */
@@ -71,12 +68,6 @@ internal fun OnboardingPage.toInfoUiModel(): OnboardingInfoPageUiModel? = when (
     OnboardingPage.Radar -> OnboardingInfoPageUiModel(
         headline = UiText.StringResource(Res.string.onboarding_radar_headline),
         body = UiText.StringResource(Res.string.onboarding_radar_body),
-        icon = Icons.Default.CalendarMonth
-    )
-
-    OnboardingPage.RadarWithoutReminders -> OnboardingInfoPageUiModel(
-        headline = UiText.StringResource(Res.string.onboarding_radar_headline),
-        body = UiText.StringResource(Res.string.onboarding_radar_without_reminders_body),
         icon = Icons.Default.CalendarMonth
     )
 

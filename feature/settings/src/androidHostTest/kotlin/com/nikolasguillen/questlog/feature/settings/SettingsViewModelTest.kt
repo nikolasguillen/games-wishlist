@@ -2,7 +2,6 @@ package com.nikolasguillen.questlog.feature.settings
 
 import com.nikolasguillen.questlog.core.common.AppVersionProvider
 import com.nikolasguillen.questlog.core.common.NetworkStatusProvider
-import com.nikolasguillen.questlog.core.domain.notification.ReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatformsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.settings.GetAppearanceModeUseCase
@@ -37,8 +36,6 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.yield
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -82,7 +79,7 @@ class SettingsViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel(remindersAvailable: Boolean = true) = SettingsViewModel(
+    private fun viewModel() = SettingsViewModel(
         appVersionProvider = appVersionProvider,
         getSelectedPlatformsUseCase = getSelectedPlatformsUseCase,
         downloadTranslationModelUseCase = downloadTranslationModelUseCase,
@@ -90,8 +87,7 @@ class SettingsViewModelTest {
         getReleaseNotificationGameIdsUseCase = getReleaseNotificationGameIdsUseCase,
         getAppearanceModeUseCase = getAppearanceModeUseCase,
         setAppearanceModeUseCase = setAppearanceModeUseCase,
-        networkStatusProvider = networkStatusProvider,
-        releaseRemindersAvailability = mockk<ReleaseRemindersAvailability> { every { isAvailable } returns remindersAvailable }
+        networkStatusProvider = networkStatusProvider
     )
 
     // uiState is WhileSubscribed(5000): nothing upstream runs until something collects it.
@@ -379,23 +375,5 @@ class SettingsViewModelTest {
 
         coVerify(exactly = 1) { setAppearanceModeUseCase(AppearanceMode.LIGHT) }
         job.cancel()
-    }
-
-    @Test
-    fun `release reminders are available by default`() = runTest {
-        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.UNSUPPORTED
-        val viewModel = viewModel()
-        advanceUntilIdle()
-
-        assertTrue(viewModel.uiState.value.releaseRemindersAvailable)
-    }
-
-    @Test
-    fun `release reminders are marked unavailable when the platform has none`() = runTest {
-        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.UNSUPPORTED
-        val viewModel = viewModel(remindersAvailable = false)
-        advanceUntilIdle()
-
-        assertFalse(viewModel.uiState.value.releaseRemindersAvailable)
     }
 }

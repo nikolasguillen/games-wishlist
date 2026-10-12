@@ -17,7 +17,7 @@ import org.koin.dsl.module
 
 /**
  * The bindings that need no platform API. Needs `dataPlatformModule` for the rest: the settings `DataStore`, the
- * schedulers, the notifier, the translator, the cover storage and `ReleaseRemindersAvailability`.
+ * schedulers, the notifier (Android only), the translator and the cover storage.
  */
 val dataModule = module {
     singleOf(::GameRepositoryImpl) { bind<GameRepository>() }

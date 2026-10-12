@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nikolasguillen.questlog.core.common.AppVersionProvider
 import com.nikolasguillen.questlog.core.common.NetworkStatusProvider
-import com.nikolasguillen.questlog.core.domain.notification.ReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatformsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.settings.GetAppearanceModeUseCase
@@ -34,15 +33,11 @@ class SettingsViewModel(
     private val getReleaseNotificationGameIdsUseCase: GetReleaseNotificationGameIdsUseCase,
     private val getAppearanceModeUseCase: GetAppearanceModeUseCase,
     private val setAppearanceModeUseCase: SetAppearanceModeUseCase,
-    private val networkStatusProvider: NetworkStatusProvider,
-    releaseRemindersAvailability: ReleaseRemindersAvailability
+    private val networkStatusProvider: NetworkStatusProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
-        SettingsUiState(
-            appVersion = appVersionProvider.versionName,
-            releaseRemindersAvailable = releaseRemindersAvailability.isAvailable
-        )
+        SettingsUiState(appVersion = appVersionProvider.versionName)
     )
     internal val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 

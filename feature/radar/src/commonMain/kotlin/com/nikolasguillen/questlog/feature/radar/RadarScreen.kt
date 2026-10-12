@@ -172,8 +172,7 @@ internal fun RadarContent(
                             entry = entry,
                             onClick = { onGameClick(entry.id) },
                             onToggleNotification = { onToggleNotification(entry.id) },
-                            showNotificationToggle = state.releaseRemindersAvailable &&
-                                section.bucket != ReleaseBucket.RECENTLY_RELEASED
+                            showNotificationToggle = section.bucket != ReleaseBucket.RECENTLY_RELEASED
                         )
                     }
                 }

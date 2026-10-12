@@ -1,6 +1,5 @@
 package com.nikolasguillen.questlog.feature.radar
 
-import com.nikolasguillen.questlog.core.domain.notification.ReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.domain.radar.GetRadarTimelineUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.SetReleaseNotificationEnabledUseCase
@@ -34,7 +33,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -65,21 +63,19 @@ class RadarViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun buildViewModel(remindersAvailable: Boolean = true) = RadarViewModel(
+    private fun buildViewModel() = RadarViewModel(
         getRadarTimelineUseCase,
         getReleaseNotificationGameIdsUseCase,
-        setReleaseNotificationEnabledUseCase,
-        mockk<ReleaseRemindersAvailability> { every { isAvailable } returns remindersAvailable }
+        setReleaseNotificationEnabledUseCase
     )
 
     private fun TestScope.createViewModel(
         sections: List<RadarTimelineSection>,
-        notificationEnabledGameIds: Set<Int> = emptySet(),
-        remindersAvailable: Boolean = true
+        notificationEnabledGameIds: Set<Int> = emptySet()
     ): RadarViewModel {
         every { getRadarTimelineUseCase() } returns flowOf(sections)
         every { getReleaseNotificationGameIdsUseCase() } returns flowOf(notificationEnabledGameIds)
-        return buildViewModel(remindersAvailable).also { viewModel ->
+        return buildViewModel().also { viewModel ->
             backgroundScope.launch { viewModel.uiState.collect {} }
             advanceUntilIdle()
         }
@@ -187,31 +183,6 @@ class RadarViewModelTest {
             ),
             effects
         )
-        effectJob.cancel()
-    }
-
-    @Test
-    fun `a platform without release reminders says so in the state and never shows the bell`() = runTest(testDispatcher) {
-        val section = RadarTimelineSection(bucket = ReleaseBucket.THIS_WEEK, entries = listOf(radarEntry(gameId = 1)))
-        val viewModel = createViewModel(listOf(section), remindersAvailable = false)
-
-        assertFalse(viewModel.uiState.value.releaseRemindersAvailable)
-    }
-
-    @Test
-    fun `ToggleReleaseNotification does nothing on a platform without release reminders`() = runTest(testDispatcher) {
-        val section = RadarTimelineSection(bucket = ReleaseBucket.THIS_WEEK, entries = listOf(radarEntry(gameId = 1)))
-        val viewModel = createViewModel(listOf(section), remindersAvailable = false)
-
-        val effects = mutableListOf<RadarUiEffect>()
-        val effectJob = launch { viewModel.uiEffect.collect { effects.add(it) } }
-        advanceUntilIdle()
-
-        viewModel.onEvent(RadarUiEvent.ToggleReleaseNotification(1))
-        advanceUntilIdle()
-
-        coVerify(exactly = 0) { setReleaseNotificationEnabledUseCase(any(), any()) }
-        assertEquals(emptyList<RadarUiEffect>(), effects)
         effectJob.cancel()
     }
 }

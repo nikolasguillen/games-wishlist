@@ -2,7 +2,6 @@ package com.nikolasguillen.questlog.feature.radar
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nikolasguillen.questlog.core.domain.notification.ReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.domain.radar.GetRadarTimelineUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.SetReleaseNotificationEnabledUseCase
@@ -25,12 +24,8 @@ import kotlinx.coroutines.launch
 class RadarViewModel(
     getRadarTimelineUseCase: GetRadarTimelineUseCase,
     getReleaseNotificationGameIdsUseCase: GetReleaseNotificationGameIdsUseCase,
-    private val setReleaseNotificationEnabledUseCase: SetReleaseNotificationEnabledUseCase,
-    releaseRemindersAvailability: ReleaseRemindersAvailability
+    private val setReleaseNotificationEnabledUseCase: SetReleaseNotificationEnabledUseCase
 ) : ViewModel() {
-
-    // Fixed for the life of the process: a platform without reminders never shows a bell or asks for permission.
-    private val remindersAvailable = releaseRemindersAvailability.isAvailable
 
     // Tracks the latest known opt-in set so onEvent can flip a toggle without waiting for the next
     // emission -- the source of truth for isNotificationEnabled always stays this use case's Flow.
@@ -52,14 +47,13 @@ class RadarViewModel(
                 RadarContentState.Empty
             } else {
                 RadarContentState.Success(uiSections)
-            },
-            releaseRemindersAvailable = remindersAvailable
+            }
         )
     }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = RadarUiState(releaseRemindersAvailable = remindersAvailable)
+            initialValue = RadarUiState()
         )
 
     internal fun onEvent(event: RadarUiEvent) {
@@ -69,7 +63,6 @@ class RadarViewModel(
     }
 
     private fun toggleReleaseNotification(gameId: Int) {
-        if (!remindersAvailable) return
         val wasEnabled = gameId in notificationEnabledGameIds
         val gameTitle = findGameTitle(gameId)
         viewModelScope.launch {

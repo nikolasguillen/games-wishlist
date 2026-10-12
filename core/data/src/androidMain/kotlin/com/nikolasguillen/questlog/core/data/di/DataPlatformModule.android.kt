@@ -8,7 +8,6 @@ import com.nikolasguillen.questlog.core.ai.GeminiNanoClient
 import com.nikolasguillen.questlog.core.data.local.WishlistCoverImageStorage
 import com.nikolasguillen.questlog.core.data.local.WishlistCoverImageStorageImpl
 import com.nikolasguillen.questlog.core.data.notification.ReleaseNotifierImpl
-import com.nikolasguillen.questlog.core.data.notification.StaticReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.data.scheduler.ReleaseNotificationSchedulerImpl
 import com.nikolasguillen.questlog.core.data.scheduler.ReleaseRefreshSchedulerImpl
 import com.nikolasguillen.questlog.core.data.translation.GameDescriptionTranslatorImpl
@@ -16,7 +15,6 @@ import com.nikolasguillen.questlog.core.data.worker.ReleaseDatesRefreshWorker
 import com.nikolasguillen.questlog.core.data.worker.ReleaseNotificationWorker
 import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotificationScheduler
 import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotifier
-import com.nikolasguillen.questlog.core.domain.notification.ReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.domain.radar.ReleaseRefreshScheduler
 import com.nikolasguillen.questlog.core.domain.translation.GameDescriptionTranslator
 import org.koin.android.ext.koin.androidContext
@@ -33,9 +31,6 @@ actual val dataPlatformModule: Module = module {
     singleOf(::ReleaseNotificationSchedulerImpl) { bind<ReleaseNotificationScheduler>() }
     singleOf(::ReleaseNotifierImpl) { bind<ReleaseNotifier>() }
     factoryOf(::WishlistCoverImageStorageImpl) { bind<WishlistCoverImageStorage>() }
-
-    // Android has release reminders (WorkManager + notifications), so every reminder entry point shows.
-    single<ReleaseRemindersAvailability> { StaticReleaseRemindersAvailability(isAvailable = true) }
 
     // The on-device model is shared by every app on the device and Generation.getClient() is a static
     // factory, so the one client is created lazily and kept.

@@ -9,17 +9,13 @@ import com.nikolasguillen.questlog.core.data.local.WishlistCoverImageStorageImpl
 import com.nikolasguillen.questlog.core.data.notification.ArmedReminderLedger
 import com.nikolasguillen.questlog.core.data.notification.LocalNotificationCenter
 import com.nikolasguillen.questlog.core.data.notification.LocalNotificationReleaseScheduler
-import com.nikolasguillen.questlog.core.data.notification.NoOpReleaseNotifier
 import com.nikolasguillen.questlog.core.data.notification.ReleaseReminderCoordinator
 import com.nikolasguillen.questlog.core.data.notification.UserNotificationCenter
-import com.nikolasguillen.questlog.core.data.notification.StaticReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.data.scheduler.AppRefreshTaskHandler
 import com.nikolasguillen.questlog.core.data.scheduler.BackgroundTaskReleaseRefreshScheduler
 import com.nikolasguillen.questlog.core.data.scheduler.ReleaseRefreshRunner
 import com.nikolasguillen.questlog.core.data.translation.AppleLanguageModelTranslator
 import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotificationScheduler
-import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotifier
-import com.nikolasguillen.questlog.core.domain.notification.ReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.domain.radar.ReleaseRefreshScheduler
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.domain.translation.GameDescriptionTranslator
@@ -68,10 +64,8 @@ actual val dataPlatformModule: Module = module {
             scope = get()
         )
     }
-    // Nothing on iOS posts a reminder itself; this is bound until the availability flag goes (Phase 7), so that
-    // DeliverReleaseNotificationUseCase can still be resolved.
-    singleOf(::NoOpReleaseNotifier) { bind<ReleaseNotifier>() }
-    single<ReleaseRemindersAvailability> { StaticReleaseRemindersAvailability(isAvailable = true) }
+    // No ReleaseNotifier: the system posts the notification, and the only caller of one, the Android worker, does
+    // not exist here.
 
     // Needs the AppleLanguageModelBridge that startQuestLog binds from Swift: FoundationModels is Swift-only.
     singleOf(::AppleLanguageModelTranslator) { bind<GameDescriptionTranslator>() }

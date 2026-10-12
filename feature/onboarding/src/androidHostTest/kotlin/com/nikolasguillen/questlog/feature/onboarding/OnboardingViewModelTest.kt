@@ -2,7 +2,6 @@ package com.nikolasguillen.questlog.feature.onboarding
 
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
-import com.nikolasguillen.questlog.core.domain.notification.ReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetKnownPlatformsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatformIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.SyncPlatformCatalogUseCase
@@ -91,13 +90,12 @@ class OnboardingViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel(remindersAvailable: Boolean = true) = OnboardingViewModel(
+    private fun createViewModel() = OnboardingViewModel(
         getKnownPlatformsUseCase = getKnownPlatformsUseCase,
         getSelectedPlatformIdsUseCase = getSelectedPlatformIdsUseCase,
         toggleOwnedPlatformUseCase = toggleOwnedPlatformUseCase,
         syncPlatformCatalogUseCase = syncPlatformCatalogUseCase,
-        completeOnboardingUseCase = completeOnboardingUseCase,
-        releaseRemindersAvailability = mockk<ReleaseRemindersAvailability> { every { isAvailable } returns remindersAvailable }
+        completeOnboardingUseCase = completeOnboardingUseCase
     )
 
     private fun OnboardingViewModel.platformNames(): List<String> =
@@ -331,23 +329,6 @@ class OnboardingViewModelTest {
 
             assertEquals(
                 OnboardingContentState.Ready(pagesWithoutReminders + OnboardingPage.Reminders),
-                viewModel.uiState.value.contentState
-            )
-        }
-
-    @Test
-    fun `the reminders page is absent on a platform without release reminders`() =
-        runTest(testDispatcher) {
-            val viewModel = createViewModel(remindersAvailable = false)
-
-            viewModel.resolveFacts(requiresRuntimePermission = true, canDeliver = false)
-            advanceUntilIdle()
-
-            val radarWithoutReminders = pagesWithoutReminders.map {
-                if (it == OnboardingPage.Radar) OnboardingPage.RadarWithoutReminders else it
-            }
-            assertEquals(
-                OnboardingContentState.Ready(radarWithoutReminders),
                 viewModel.uiState.value.contentState
             )
         }
