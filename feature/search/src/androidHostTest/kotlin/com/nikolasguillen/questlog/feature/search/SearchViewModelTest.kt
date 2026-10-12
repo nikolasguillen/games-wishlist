@@ -1290,5 +1290,40 @@ class SearchViewModelTest {
         assertEquals(listOf(4, 1), viewModel.successState().games.map { it.id })
     }
 
+    @Test
+    fun `a genre browse never writes to the search history, retried or not`() = runTest(testDispatcher) {
+        coEvery { browseGenreUseCase(12) } returnsMany listOf(
+            AppResult.failure(RepositoryError.NoNetwork),
+            AppResult.success(
+                SearchResult(games = listOf(testGame(id = 1)), platforms = emptyList(), genres = emptyList())
+            )
+        )
+        val viewModel = createViewModel()
+
+        viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+        advanceUntilIdle()
+        viewModel.onEvent(SearchUiEvent.OnRetrySearch)
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { addSearchToHistoryUseCase(any()) }
+    }
+
+    @Test
+    fun `a query submitted after a browse is the only thing written to history`() = runTest(testDispatcher) {
+        givenBrowse(12, testGame(id = 1))
+        coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
+            SearchResult(games = listOf(testGame(id = 2)), platforms = emptyList(), genres = emptyList())
+        )
+        val viewModel = createViewModel()
+
+        viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+        advanceUntilIdle()
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { addSearchToHistoryUseCase(any()) }
+        coVerify(exactly = 1) { addSearchToHistoryUseCase("zelda") }
+    }
+
     // endregion
 }

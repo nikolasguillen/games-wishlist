@@ -396,7 +396,7 @@ sheet's genre group never offers the browsed genre while everything else still n
 
 **Independent Test**: Quickstart §3 step 8, and the test below.
 
-- [ ] T041 [US5] Extend `SearchViewModelTest.kt` with: (a) after `OnGenreBrowseTriggered`, `addSearchToHistoryUseCase` was
+- [X] T041 [US5] Extend `SearchViewModelTest.kt` with: (a) after `OnGenreBrowseTriggered`, `addSearchToHistoryUseCase` was
   never called (`coVerify(exactly = 0)`), including after a Retry of a failed browse; (b) a browse followed by
   `OnSearchTriggered("zelda")` calls `addSearchToHistoryUseCase("zelda")` exactly once and never with an empty string or a
   genre name. No production change is needed: T020 already never calls the use case from `browseGenre`; this test pins it.
