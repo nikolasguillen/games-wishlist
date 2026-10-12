@@ -2,8 +2,10 @@ package com.nikolasguillen.questlog.feature.search.mapper
 
 import com.nikolasguillen.questlog.core.model.GameType
 import com.nikolasguillen.questlog.core.model.Genre
+import com.nikolasguillen.questlog.core.model.KnownGenre
 import com.nikolasguillen.questlog.core.model.Platform
 import com.nikolasguillen.questlog.core.ui.mapper.getShortLabel
+import com.nikolasguillen.questlog.core.ui.mapper.toLabelUiText
 import com.nikolasguillen.questlog.core.ui.mapper.toUiText
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.core.ui.resources.sort_name
@@ -11,6 +13,7 @@ import com.nikolasguillen.questlog.core.ui.resources.sort_rating
 import com.nikolasguillen.questlog.core.ui.resources.sort_release_date
 import com.nikolasguillen.questlog.core.ui.resources.sort_relevance
 import com.nikolasguillen.questlog.core.ui.util.UiConstants
+import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchSort
 import com.nikolasguillen.questlog.feature.search.model.SortingUiModel
@@ -71,6 +74,18 @@ internal fun List<Genre>.toGenreFilters(): List<GameFilterUiModel> {
             selected = false
         )
     }
+}
+
+internal fun List<Genre>.toBrowseGenreUiModels(): List<BrowseGenreUiModel> {
+    return this.map { genre -> BrowseGenreUiModel(id = genre.id, label = genre.toLabelUiText()) }
+}
+
+/**
+ * The chip row before the taste profile has been read, and the one a user with no saved games sees: the five
+ * defaults of [KnownGenre.BROWSE_DEFAULTS]. Seeding the state with it means the row is never missing.
+ */
+internal fun defaultBrowseGenres(): List<BrowseGenreUiModel> {
+    return KnownGenre.BROWSE_DEFAULTS.map { Genre(it.id, it.igdbName) }.toBrowseGenreUiModels()
 }
 
 internal fun getInitialGameTypeFilters(): List<GameFilterUiModel> {

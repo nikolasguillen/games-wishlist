@@ -10,6 +10,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.list.GetWishlistAssignmen
 import com.nikolasguillen.questlog.core.domain.usecase.list.GetWishlistedGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.RemoveGameFromListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.AddSearchToHistoryUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.search.BrowseGenreUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.ClearAllHistoryUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.ClearRecentGamesUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.DeleteSearchHistoryItemUseCase
@@ -20,6 +21,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.search.SearchGamesUseCase
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.DiscoverFeed
 import com.nikolasguillen.questlog.core.model.Game
+import com.nikolasguillen.questlog.core.model.Genre
 import com.nikolasguillen.questlog.core.model.Platform
 import com.nikolasguillen.questlog.core.model.RecentSearchActivity
 import com.nikolasguillen.questlog.core.model.RepositoryError
@@ -27,6 +29,7 @@ import com.nikolasguillen.questlog.core.model.SearchResult
 import com.nikolasguillen.questlog.core.model.SearchSuggestion
 import com.nikolasguillen.questlog.core.model.WishlistList
 import com.nikolasguillen.questlog.core.ui.model.UiText
+import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.DiscoverContentState
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchContentState
@@ -81,6 +84,7 @@ class SearchViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
     private val searchGamesUseCase = mockk<SearchGamesUseCase>()
+    private val browseGenreUseCase = mockk<BrowseGenreUseCase>()
     private val addSearchToHistoryUseCase = mockk<AddSearchToHistoryUseCase>(relaxed = true)
     private val getRecentSearchActivityUseCase = mockk<GetRecentSearchActivityUseCase>()
     private val deleteSearchHistoryItemUseCase = mockk<DeleteSearchHistoryItemUseCase>(relaxed = true)
@@ -117,12 +121,33 @@ class SearchViewModelTest {
         name: String = "Game $id",
         rating: Double = 0.0,
         ratingCount: Int = 0,
-        platforms: List<Platform> = emptyList()
-    ) = Game(id = id, name = name, rating = rating, ratingCount = ratingCount, platforms = platforms)
+        platforms: List<Platform> = emptyList(),
+        genres: List<Genre> = emptyList()
+    ) = Game(
+        id = id,
+        name = name,
+        rating = rating,
+        ratingCount = ratingCount,
+        platforms = platforms,
+        genres = genres
+    )
+
+    private val rpgChip = BrowseGenreUiModel(12, UiText.DynamicString("RPG"))
+    private val indieChip = BrowseGenreUiModel(32, UiText.DynamicString("Indie"))
+
+    private fun givenBrowse(genreId: Int, vararg games: Game, genres: List<Genre> = emptyList()) {
+        coEvery { browseGenreUseCase(genreId) } returns AppResult.success(
+            SearchResult(games = games.toList(), platforms = emptyList(), genres = genres)
+        )
+    }
+
+    private fun SearchViewModel.sortOption(sortType: SearchSort): SortingUiModel =
+        uiState.value.sortBottomSheetState.sorting.first { it.sortType == sortType }
 
     private fun TestScope.createViewModel(): SearchViewModel {
         return SearchViewModel(
             searchGamesUseCase = searchGamesUseCase,
+            browseGenreUseCase = browseGenreUseCase,
             addSearchToHistoryUseCase = addSearchToHistoryUseCase,
             getRecentSearchActivityUseCase = getRecentSearchActivityUseCase,
             deleteSearchHistoryItemUseCase = deleteSearchHistoryItemUseCase,
@@ -832,4 +857,174 @@ class SearchViewModelTest {
             coVerify(exactly = 0) { removeGameFromListUseCase(1, listC.id) }
             assertEquals(null, viewModel.uiState.value.listSelectorState)
         }
+    // region Genre browse
+
+    @Test
+    fun `the chip row starts as the five default genres in order`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        assertEquals(listOf(12, 5, 31, 15, 32), viewModel.uiState.value.browseGenres.map { it.id })
+    }
+
+    @Test
+    fun `a genre browse shows Loading, then the games, with the browsed genre out of the filters`() =
+        runTest(testDispatcher) {
+            val deferred = CompletableDeferred<AppResult<SearchResult>>()
+            coEvery { browseGenreUseCase(12) } coAnswers { deferred.await() }
+            val viewModel = createViewModel()
+
+            viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+            assertEquals(rpgChip, viewModel.uiState.value.activeGenre)
+            assertEquals(SearchContentState.Loading, viewModel.uiState.value.contentState)
+
+            deferred.complete(
+                AppResult.success(
+                    SearchResult(
+                        games = listOf(testGame(id = 1, genres = listOf(Genre(12, "RPG"), Genre(32, "Indie")))),
+                        platforms = emptyList(),
+                        genres = listOf(Genre(32, "Indie"))
+                    )
+                )
+            )
+            advanceUntilIdle()
+
+            val genreFilterIds = viewModel.successState().filters
+                .filterIsInstance<GameFilterUiModel.Genre>().map { it.id }
+            assertEquals(listOf(32), genreFilterIds)
+            assertEquals(rpgChip, viewModel.uiState.value.activeGenre)
+        }
+
+    @Test
+    fun `starting a genre browse empties the text field`() = runTest(testDispatcher) {
+        givenBrowse(12, testGame(id = 1))
+        val viewModel = createViewModel()
+        viewModel.setQuery("zelda")
+
+        viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+        advanceUntilIdle()
+
+        assertEquals("", viewModel.textFieldState.text.toString())
+    }
+
+    @Test
+    fun `Top picks keeps the server order and ascending reverses it, even after a filter`() =
+        runTest(testDispatcher) {
+            val pc = Platform(id = 1, name = "PC")
+            // Deliberately neither alphabetical nor by rating: only the server's order explains [3, 1, 2, 4].
+            coEvery { browseGenreUseCase(12) } returns AppResult.success(
+                SearchResult(
+                    games = listOf(
+                        testGame(id = 3, name = "Charlie", rating = 10.0, platforms = listOf(pc)),
+                        testGame(id = 1, name = "Alpha", rating = 90.0, platforms = listOf(pc)),
+                        testGame(id = 2, name = "Bravo", rating = 50.0),
+                        testGame(id = 4, name = "Delta", rating = 70.0, platforms = listOf(pc))
+                    ),
+                    platforms = listOf(pc),
+                    genres = emptyList()
+                )
+            )
+            val viewModel = createViewModel()
+            viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+            advanceUntilIdle()
+
+            assertEquals(listOf(3, 1, 2, 4), viewModel.successState().games.map { it.id })
+            assertEquals(listOf(3, 1, 2, 4), viewModel.successState().allGames.map { it.id })
+
+            viewModel.onEvent(SearchUiEvent.OnSortChanged(viewModel.sortOption(SearchSort.RELEVANCE)))
+            assertEquals(listOf(4, 2, 1, 3), viewModel.successState().games.map { it.id })
+
+            viewModel.onEvent(SearchUiEvent.OnSortChanged(viewModel.sortOption(SearchSort.RELEVANCE)))
+            val platformFilter =
+                viewModel.successState().filters.filterIsInstance<GameFilterUiModel.Platform>().first()
+            viewModel.onEvent(SearchUiEvent.OnFilterClick(platformFilter))
+            assertEquals(listOf(3, 1, 4), viewModel.successState().games.map { it.id })
+        }
+
+    @Test
+    fun `Name, Rating and Release date sort a genre browse as they sort a text search`() =
+        runTest(testDispatcher) {
+            coEvery { browseGenreUseCase(12) } returns AppResult.success(
+                SearchResult(
+                    games = listOf(
+                        testGame(id = 3, name = "Charlie", rating = 10.0, ratingCount = 5).copy(releaseDate = "2024-01-01"),
+                        testGame(id = 1, name = "Alpha", rating = 90.0, ratingCount = 5).copy(releaseDate = "2025-06-01"),
+                        testGame(id = 2, name = "Bravo", rating = 50.0, ratingCount = 5).copy(releaseDate = "2023-03-01")
+                    ),
+                    platforms = emptyList(),
+                    genres = emptyList()
+                )
+            )
+            val viewModel = createViewModel()
+            viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+            advanceUntilIdle()
+
+            viewModel.onEvent(SearchUiEvent.OnSortChanged(viewModel.sortOption(SearchSort.NAME)))
+            assertEquals(listOf(3, 2, 1), viewModel.successState().games.map { it.id })
+
+            viewModel.onEvent(SearchUiEvent.OnSortChanged(viewModel.sortOption(SearchSort.RATING)))
+            assertEquals(listOf(1, 2, 3), viewModel.successState().games.map { it.id })
+
+            viewModel.onEvent(SearchUiEvent.OnSortChanged(viewModel.sortOption(SearchSort.RELEASE_DATE)))
+            assertEquals(listOf(1, 3, 2), viewModel.successState().games.map { it.id })
+        }
+
+    @Test
+    fun `a failed genre browse shows Error and Retry re-runs the same genre, never a text search`() =
+        runTest(testDispatcher) {
+            coEvery { browseGenreUseCase(12) } returnsMany listOf(
+                AppResult.failure(RepositoryError.NoNetwork),
+                AppResult.success(
+                    SearchResult(games = listOf(testGame(id = 1)), platforms = emptyList(), genres = emptyList())
+                )
+            )
+            val viewModel = createViewModel()
+            viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+            advanceUntilIdle()
+            assertTrue(viewModel.uiState.value.contentState is SearchContentState.Error)
+
+            viewModel.onEvent(SearchUiEvent.OnRetrySearch)
+            advanceUntilIdle()
+
+            assertEquals(listOf(1), viewModel.successState().games.map { it.id })
+            assertEquals(rpgChip, viewModel.uiState.value.activeGenre)
+            coVerify(exactly = 2) { browseGenreUseCase(12) }
+            coVerify(exactly = 0) { searchGamesUseCase(any()) }
+        }
+
+    @Test
+    fun `a genre browse with no games shows Empty and keeps the genre`() = runTest(testDispatcher) {
+        givenBrowse(30)
+        val viewModel = createViewModel()
+        val pinball = BrowseGenreUiModel(30, UiText.DynamicString("Pinball"))
+
+        viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(pinball))
+        advanceUntilIdle()
+
+        assertEquals(SearchContentState.Empty, viewModel.uiState.value.contentState)
+        assertEquals(pinball, viewModel.uiState.value.activeGenre)
+    }
+
+    @Test
+    fun `two genres tapped in a row leave only the second one's results`() = runTest(testDispatcher) {
+        val first = CompletableDeferred<AppResult<SearchResult>>()
+        coEvery { browseGenreUseCase(12) } coAnswers { first.await() }
+        givenBrowse(32, testGame(id = 2))
+        val viewModel = createViewModel()
+
+        viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+        viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(indieChip))
+        advanceUntilIdle()
+        // The first request is slow: whatever it carries must not land on top of the second.
+        first.complete(
+            AppResult.success(
+                SearchResult(games = listOf(testGame(id = 1)), platforms = emptyList(), genres = emptyList())
+            )
+        )
+        advanceUntilIdle()
+
+        assertEquals(indieChip, viewModel.uiState.value.activeGenre)
+        assertEquals(listOf(2), viewModel.successState().games.map { it.id })
+    }
+
+    // endregion
 }

@@ -28,9 +28,13 @@ internal fun DiscoverPlaceholder(modifier: Modifier = Modifier) {
 }
 
 @Composable
-internal fun EmptySearchPlaceholder(onClearSearchClick: () -> Unit, modifier: Modifier = Modifier) {
+internal fun EmptySearchPlaceholder(
+    message: String,
+    onClearSearchClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     EmptyPage(
-        message = stringResource(Res.string.search_no_results),
+        message = message,
         icon = Icons.Outlined.SmartToy,
         actionLabel = UiText.StringResource(Res.string.clear_search_action),
         onActionClick = onClearSearchClick,
@@ -61,7 +65,10 @@ private fun DiscoverPlaceholderPreview() {
 @Composable
 private fun EmptySearchPlaceholderPreview() {
     QuestLogTheme {
-        EmptySearchPlaceholder(onClearSearchClick = {})
+        EmptySearchPlaceholder(
+            message = stringResource(Res.string.search_no_results),
+            onClearSearchClick = {}
+        )
     }
 }
 

@@ -13,6 +13,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.list.GetWishlistAssignmen
 import com.nikolasguillen.questlog.core.domain.usecase.list.GetWishlistedGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.list.RemoveGameFromListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.AddSearchToHistoryUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.search.BrowseGenreUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.ClearAllHistoryUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.ClearRecentGamesUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.DeleteSearchHistoryItemUseCase
@@ -29,6 +30,7 @@ import com.nikolasguillen.questlog.core.ui.mapper.toGameItemList
 import com.nikolasguillen.questlog.core.ui.mapper.toUiText
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
+import com.nikolasguillen.questlog.feature.search.mapper.defaultBrowseGenres
 import com.nikolasguillen.questlog.feature.search.mapper.getInitialGameTypeFilters
 import com.nikolasguillen.questlog.feature.search.mapper.getInitialSortFilters
 import com.nikolasguillen.questlog.feature.search.mapper.isSortActive
@@ -37,6 +39,7 @@ import com.nikolasguillen.questlog.feature.search.mapper.toGenreFilters
 import com.nikolasguillen.questlog.feature.search.mapper.toPlatformFilters
 import com.nikolasguillen.questlog.feature.search.mapper.toSelectorItem
 import com.nikolasguillen.questlog.feature.search.mapper.toSuggestionUiModels
+import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.DiscoverContentState
 import com.nikolasguillen.questlog.feature.search.model.FilterBottomSheetState
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
@@ -81,6 +84,7 @@ private const val MIN_SUGGESTION_QUERY_LENGTH = 3
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModel(
     private val searchGamesUseCase: SearchGamesUseCase,
+    private val browseGenreUseCase: BrowseGenreUseCase,
     private val addSearchToHistoryUseCase: AddSearchToHistoryUseCase,
     private val getRecentSearchActivityUseCase: GetRecentSearchActivityUseCase,
     private val deleteSearchHistoryItemUseCase: DeleteSearchHistoryItemUseCase,
@@ -98,6 +102,7 @@ class SearchViewModel(
 
     private val _uiState = MutableStateFlow(
         SearchUiState(
+            browseGenres = defaultBrowseGenres(),
             sortBottomSheetState = SortBottomSheetState(
                 sorting = getInitialSortFilters(),
                 isSortActive = false // Initial is always Relevance/Desc
@@ -144,6 +149,10 @@ class SearchViewModel(
             is SearchUiEvent.OnSearchTriggered -> {
                 textFieldState.setTextAndPlaceCursorAtEnd(event.query)
                 performSearch(query = event.query)
+            }
+
+            is SearchUiEvent.OnGenreBrowseTriggered -> {
+                browseGenre(event.genre)
             }
 
             SearchUiEvent.OnClearSearch -> {
@@ -521,16 +530,25 @@ class SearchViewModel(
         }
     }
 
+    /**
+     * @param keepServerOrder True for a genre browse, where "Relevance" means "Top picks": the order the
+     * server ranked the games in (most rated first). A query-text relevance score has nothing to say about
+     * a browse, and re-scoring it would throw the popularity ranking away. Descending keeps that order,
+     * ascending reverses it; the other sorts are the same as for a text search.
+     */
     private fun sortGames(
         games: List<Game>,
         sortModel: SortingUiModel?,
-        query: String = ""
+        query: String = "",
+        keepServerOrder: Boolean = false
     ): List<Game> {
         val currentSort = sortModel ?: return games
 
         return when (currentSort.sortType) {
             SearchSort.RELEVANCE -> {
-                if (currentSort.descending) games.sortedByDescending {
+                if (keepServerOrder) {
+                    if (currentSort.descending) games else games.reversed()
+                } else if (currentSort.descending) games.sortedByDescending {
                     calculateGameRelevanceScore(it, query)
                 }
                 else games.sortedBy { calculateGameRelevanceScore(it, query) }
@@ -567,8 +585,12 @@ class SearchViewModel(
     ) {
         val query = textFieldState.text.toString()
         val filteredGames = filterGames(contentState.allGames, newFilters)
-        val sortedGames =
-            sortGames(filteredGames, _uiState.value.sortBottomSheetState.selectedSorting, query)
+        val sortedGames = sortGames(
+            filteredGames,
+            _uiState.value.sortBottomSheetState.selectedSorting,
+            query,
+            keepServerOrder = _uiState.value.activeGenre != null
+        )
 
         _uiState.update {
             it.copy(
@@ -582,7 +604,12 @@ class SearchViewModel(
 
     private fun performSearch(query: String) {
         if (query.isBlank()) return
-        _uiState.update { it.copy(suggestions = SearchSuggestionsUiModel()) }
+        // Only one search may land its result: without this, a slow earlier request finishing after a
+        // later one would overwrite it.
+        searchJob?.cancel()
+        // After the guard above: a blank submit during a genre browse must leave the browse as it was, or
+        // its results would sit under the default placeholder. A submitted query replaces the browse.
+        _uiState.update { it.copy(suggestions = SearchSuggestionsUiModel(), activeGenre = null) }
         suggestionsResetTrigger.tryEmit("")
 
         searchJob = viewModelScope.launch {
@@ -620,12 +647,63 @@ class SearchViewModel(
     }
 
     /**
-     * Re-runs the query still held by [textFieldState]. [performSearch] re-adds it to history through
-     * [addSearchToHistoryUseCase], which is keyed by the query text, so this only refreshes its
-     * timestamp rather than creating a duplicate entry.
+     * Shows the popular, recent, released games of [genre] in the results grid, as a text search shows its
+     * matches. Differs from [performSearch] in three ways: the text field is emptied (the bar's placeholder
+     * names the genre instead), the games stay in the server's popularity order (see [sortGames]), and the
+     * browse is never written to the search history -- it is not something the user typed.
+     */
+    private fun browseGenre(genre: BrowseGenreUiModel) {
+        searchJob?.cancel()
+
+        textFieldState.edit { replace(0, length, "") }
+        _uiState.update {
+            it.copy(
+                suggestions = SearchSuggestionsUiModel(),
+                activeGenre = genre,
+                contentState = SearchContentState.Loading
+            )
+        }
+        suggestionsResetTrigger.tryEmit("")
+
+        searchJob = viewModelScope.launch {
+            browseGenreUseCase(genre.id).onSuccess { searchResult ->
+                val newState = if (searchResult.games.isEmpty()) {
+                    SearchContentState.Empty
+                } else {
+                    val filters =
+                        searchResult.platforms.toPlatformFilters() + searchResult.genres.toGenreFilters() + getInitialGameTypeFilters()
+                    val sortedGames = sortGames(
+                        searchResult.games,
+                        _uiState.value.sortBottomSheetState.selectedSorting,
+                        keepServerOrder = true
+                    )
+
+                    SearchContentState.Success(
+                        games = sortedGames.toGameItemList(wishlistedGameIds.value),
+                        filters = filters,
+                        // Server order, not the sorted one: re-sorting and filtering start from here, and
+                        // "Top picks" is only recoverable from the original ranking.
+                        allGames = searchResult.games
+                    )
+                }
+                _uiState.update { it.copy(contentState = newState) }
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(contentState = SearchContentState.Error(message = error.toUiText()))
+                }
+            }
+        }
+    }
+
+    /**
+     * Re-runs what failed: the genre browse while one is active, otherwise the query still held by
+     * [textFieldState]. [performSearch] re-adds that query to history through [addSearchToHistoryUseCase],
+     * which is keyed by the query text, so this only refreshes its timestamp rather than creating a
+     * duplicate entry. A genre browse never touches the history, retried or not.
      */
     private fun retrySearch() {
-        performSearch(textFieldState.text.toString())
+        val genre = _uiState.value.activeGenre
+        if (genre != null) browseGenre(genre) else performSearch(textFieldState.text.toString())
     }
 
     private fun initSearchHistory() {
@@ -763,6 +841,7 @@ class SearchViewModel(
         _uiState.update {
             it.copy(
                 suggestions = SearchSuggestionsUiModel(),
+                activeGenre = null,
                 contentState = SearchContentState.Idle
             )
         }

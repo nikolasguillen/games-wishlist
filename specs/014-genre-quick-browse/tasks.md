@@ -119,7 +119,7 @@ show only the second genre; offline then Retry reloads the same genre.
   (MockK on `GameRepository`). Cases: the games are exactly the repository's list in the repository's order (B1); platform
   and genre facets are derived as in a text search (B2); the browsed genre is never in `SearchResult.genres` (B3); a
   repository `Failure` is passed through unchanged (B4); the repository is called with the given id.
-- [ ] T009 [US1] Extend `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModelTest.kt`:
+- [X] T009 [US1] Extend `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModelTest.kt`:
   add `private val browseGenreUseCase = mockk<BrowseGenreUseCase>()` and pass it as `browseGenreUseCase = ...` in
   `createViewModel()`. Add cases: (1) `OnGenreBrowseTriggered(g)` sets `activeGenre`, moves `contentState` through
   `Loading` to `Success`, and the `Success.filters` hold the facets the use case returned (so the browsed genre is
@@ -167,21 +167,21 @@ show only the second genre; offline then Retry reloads the same genre.
 
 ### Implementation for User Story 1 — feature models and strings
 
-- [ ] T015 [P] [US1] Create
+- [X] T015 [P] [US1] Create
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/model/BrowseGenreUiModel.kt`:
   `@Immutable internal data class BrowseGenreUiModel(val id: Int, val label: UiText)`, with a KDoc line saying the id is
   what code compares and the label is only for display.
-- [ ] T016 [US1] Add to `feature/search/src/commonMain/composeResources/values/strings.xml`:
+- [X] T016 [US1] Add to `feature/search/src/commonMain/composeResources/values/strings.xml`:
   `browse_by_genre` = "Browse by genre" and `genre_browse_no_results` = "No popular %1$s games released recently"
   (positional `%1$s`, plain quotes).
-- [ ] T017 [P] [US1] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/model/SearchUiState.kt`
+- [X] T017 [P] [US1] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/model/SearchUiState.kt`
   add `val browseGenres: List<BrowseGenreUiModel> = emptyList()` and `val activeGenre: BrowseGenreUiModel? = null`, with
   `@property` KDoc: `browseGenres` is the chip row, `activeGenre` is the genre being browsed or `null`, and
   `activeGenre != null` implies `contentState !is SearchContentState.Idle`. Depends on T015.
-- [ ] T018 [P] [US1] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/model/SearchUiEvent.kt`
+- [X] T018 [P] [US1] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/model/SearchUiEvent.kt`
   add `data class OnGenreBrowseTriggered(val genre: BrowseGenreUiModel) : SearchUiEvent` with a KDoc line (the user
   tapped a genre chip). Depends on T015.
-- [ ] T019 [P] [US1] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/mapper/SearchUiMapper.kt`
+- [X] T019 [P] [US1] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/mapper/SearchUiMapper.kt`
   add `internal fun List<Genre>.toBrowseGenreUiModels(): List<BrowseGenreUiModel>` (`id = genre.id`,
   `label = genre.toLabelUiText()`) and
   `internal fun defaultBrowseGenres(): List<BrowseGenreUiModel>` built from `KnownGenre.BROWSE_DEFAULTS` as
@@ -189,7 +189,7 @@ show only the second genre; offline then Retry reloads the same genre.
 
 ### Implementation for User Story 1 — ViewModel
 
-- [ ] T020 [US1] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModel.kt`:
+- [X] T020 [US1] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModel.kt`:
   add the constructor parameter `private val browseGenreUseCase: BrowseGenreUseCase`; seed the initial
   `SearchUiState(browseGenres = defaultBrowseGenres(), …)`; route `SearchUiEvent.OnGenreBrowseTriggered` to a new
   `browseGenre(genre)`. `browseGenre` does exactly what `performSearch` does **except** it never calls
@@ -200,13 +200,13 @@ show only the second genre; offline then Retry reloads the same genre.
   `Error(error.toUiText())`. In `performSearch` also **cancel `searchJob` before launching the new one** (research R5),
   which fixes the latent last-response-wins race between two searches. Do not change what `performSearch` writes to
   history. Depends on T013, T014, T017–T019. Makes T009 cases 1, 2, 5–7 pass once T021–T022 land.
-- [ ] T021 [US1] In the same file make the sort browse-aware (research R6): give `sortGames` a `keepServerOrder: Boolean`
+- [X] T021 [US1] In the same file make the sort browse-aware (research R6): give `sortGames` a `keepServerOrder: Boolean`
   parameter; for `SearchSort.RELEVANCE` it returns `games` unchanged when descending and `games.reversed()` when
   ascending, and never calls `calculateGameRelevanceScore`; the other three sorts are untouched. `browseGenre` stores
   `allGames` in server order **without** applying a first sort and builds `games` with
   `sortGames(…, keepServerOrder = true)`; `updateSearchContent` passes
   `keepServerOrder = _uiState.value.activeGenre != null`. Filtering already preserves order. Makes T009 cases 3–4 pass.
-- [ ] T022 [US1] In the same file make leaving a browse consistent: `clearSearch()` sets `activeGenre = null` together
+- [X] T022 [US1] In the same file make leaving a browse consistent: `clearSearch()` sets `activeGenre = null` together
   with `contentState = Idle`; `performSearch` sets `activeGenre = null` **after** its `isBlank` guard (a blank submit during a browse must leave the
   browse untouched, or genre results would sit under the default placeholder); `retrySearch()` calls
   `browseGenre(activeGenre)` when `activeGenre != null` and `performSearch(textFieldState.text.toString())` otherwise
@@ -214,7 +214,7 @@ show only the second genre; offline then Retry reloads the same genre.
 
 ### Implementation for User Story 1 — UI
 
-- [ ] T023 [P] [US1] Create
+- [X] T023 [P] [US1] Create
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/components/GenreBrowseSection.kt`:
   an `internal` composable `GenreBrowseSection(genres: List<BrowseGenreUiModel>, onGenreClick:
   (BrowseGenreUiModel) -> Unit, modifier: Modifier = Modifier)` — a `titleMedium` "Browse by genre" heading padded like
@@ -226,7 +226,7 @@ show only the second genre; offline then Retry reloads the same genre.
   `genre.label.asString()`, `maxLines = 1`; a click calls `onGenreClick(genre)` and does **not** call `bringIntoView`
   (the overlay closes). Gaps use `MaterialTheme.spacing`. End the file with `@QuestLogPreviews` previews wrapped in
   `QuestLogTheme { }`: the five defaults, and a long label. Depends on T015, T016.
-- [ ] T024 [US1] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/components/SearchBars.kt`
+- [X] T024 [US1] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/components/SearchBars.kt`
   add `browseGenres: List<BrowseGenreUiModel>` and `onBrowseGenre: (BrowseGenreUiModel) -> Unit` to `SearchTopBar` and
   `ExpandedSearchBar` and lay the overlay out as in `specs/014-genre-quick-browse/contracts/search-screen-ui.md`: when the
   query is blank and `browseGenres` is not empty, `GenreBrowseSection` comes first — above the
@@ -234,13 +234,13 @@ show only the second genre; offline then Retry reloads the same genre.
   `else` column keeps its `spacedBy(MaterialTheme.spacing.large)`); when `browseGenres` is empty or the query is not
   blank, the overlay is exactly as today (FR-002). Update the existing previews to pass genres and add one
   `ExpandedSearchBar` preview with an empty history and genres. Depends on T023.
-- [ ] T025 [US1] Make the empty state say which genre it is for. In
+- [X] T025 [US1] Make the empty state say which genre it is for. In
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/components/SearchPlaceholders.kt`
   change `EmptySearchPlaceholder` to take `message: String` (keeping `onClearSearchClick`, `modifier`), and in
   `.../components/SearchMainContent.kt` add `activeGenre: BrowseGenreUiModel?` and pass
   `stringResource(Res.string.genre_browse_no_results, genre.label.asString())` when it is non-null and
   `search_no_results` otherwise (FR-019); add a browse-empty preview. Depends on T016, T017.
-- [ ] T026 [US1] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchScreen.kt` add
+- [X] T026 [US1] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchScreen.kt` add
   an `onBrowseGenre: (BrowseGenreUiModel) -> Unit` built like `onSearch` — `remember(onResetScroll, searchBarState,
   onEvent, scope)`, then `scope.launch { onResetScroll() }`, `scope.launch { searchBarState.animateToCollapsed() }` and
   `onEvent(SearchUiEvent.OnGenreBrowseTriggered(genre))` — and pass it, with `uiState.browseGenres`, to `SearchTopBar`;

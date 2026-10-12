@@ -50,6 +50,7 @@ import com.nikolasguillen.questlog.feature.search.components.SearchMainContent
 import com.nikolasguillen.questlog.feature.search.components.SearchSortBottomSheet
 import com.nikolasguillen.questlog.feature.search.components.SearchTopBar
 import com.nikolasguillen.questlog.feature.search.components.resetToTop
+import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchContentState
 import com.nikolasguillen.questlog.feature.search.model.SearchHistoryUiModel
@@ -176,6 +177,17 @@ internal fun SearchScreenContent(
             }
         }
 
+    // Same choreography as a submitted query: back to the top of the grid and the overlay out of the way
+    // while the browse loads. The field is emptied by the ViewModel, so it needs no write here.
+    val onBrowseGenre: (BrowseGenreUiModel) -> Unit =
+        remember(onResetScroll, searchBarState, onEvent, scope) {
+            { genre ->
+                scope.launch { onResetScroll() }
+                scope.launch { searchBarState.animateToCollapsed() }
+                onEvent(SearchUiEvent.OnGenreBrowseTriggered(genre))
+            }
+        }
+
     val onGameClickWithCollapse: (Int) -> Unit =
         remember(onGameClick, searchBarState, scope) {
             { gameId ->
@@ -217,6 +229,7 @@ internal fun SearchScreenContent(
                 scrollBehavior = scrollBehavior,
                 onSearch = onSearch,
                 onGameClick = onGameClickWithCollapse,
+                onBrowseGenre = onBrowseGenre,
                 onEvent = onEvent,
                 onProfileClick = onProfileClick,
                 backgroundColor = backgroundColor
@@ -235,6 +248,7 @@ internal fun SearchScreenContent(
             onEvent = onEvent,
             onGameClick = onGameClickWithCollapse,
             gridState = gridState,
+            activeGenre = uiState.activeGenre,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),

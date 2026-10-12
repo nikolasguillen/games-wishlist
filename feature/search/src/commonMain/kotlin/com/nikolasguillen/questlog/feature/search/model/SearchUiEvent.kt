@@ -3,6 +3,9 @@ package com.nikolasguillen.questlog.feature.search.model
 internal sealed interface SearchUiEvent {
     data class OnSearchTriggered(val query: String) : SearchUiEvent
     data object OnClearSearch : SearchUiEvent
+
+    /** The user tapped a genre chip in the "Browse by genre" row. */
+    data class OnGenreBrowseTriggered(val genre: BrowseGenreUiModel) : SearchUiEvent
     data object OnClearHistory : SearchUiEvent
     data class OnHistoryItemRemoved(val query: String) : SearchUiEvent
     data class OnRecentGameRemoved(val gameId: Int) : SearchUiEvent

@@ -9,6 +9,11 @@ import androidx.compose.runtime.Immutable
  * [contentState] is authoritative about which is on screen: while it is [SearchContentState.Idle] the
  * feed in [discover] is rendered, and any other value means a committed search holds the content area.
  *
+ * @property browseGenres The "Browse by genre" chip row, always five genres once the ViewModel has seeded it.
+ * Empty only in a bare [SearchUiState] (previews, tests), where the section is not drawn.
+ * @property activeGenre The genre being browsed, or `null` when no genre browse is active. A browse renders
+ * through [contentState] like a text search, so `activeGenre != null` implies `contentState` is not
+ * [SearchContentState.Idle].
  * @property history Aggregated user search history activity.
  * @property suggestions Composite state for search suggestions (Local history & Remote games).
  * @property discover The Discover feed, kept current whether or not it is the thing on screen.
@@ -19,6 +24,8 @@ import androidx.compose.runtime.Immutable
  */
 @Immutable
 internal data class SearchUiState(
+    val browseGenres: List<BrowseGenreUiModel> = emptyList(),
+    val activeGenre: BrowseGenreUiModel? = null,
     val history: SearchHistoryUiModel = SearchHistoryUiModel(),
     val suggestions: SearchSuggestionsUiModel = SearchSuggestionsUiModel(),
     val discover: DiscoverContentState = DiscoverContentState.Loading,

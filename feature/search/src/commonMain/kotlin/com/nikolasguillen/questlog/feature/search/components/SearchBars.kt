@@ -75,6 +75,8 @@ import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.core.ui.resources.cancel
 import com.nikolasguillen.questlog.core.ui.resources.proceed_label
 import com.nikolasguillen.questlog.core.ui.util.annotatedStringResource
+import com.nikolasguillen.questlog.feature.search.mapper.defaultBrowseGenres
+import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.model.GameSuggestionUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchContentState
@@ -130,6 +132,7 @@ internal fun SearchTopBar(
     scrollBehavior: SearchBarScrollBehavior,
     onSearch: (String) -> Unit,
     onGameClick: (Int) -> Unit,
+    onBrowseGenre: (BrowseGenreUiModel) -> Unit,
     onEvent: (SearchUiEvent) -> Unit,
     onProfileClick: () -> Unit,
     backgroundColor: Color
@@ -199,9 +202,11 @@ internal fun SearchTopBar(
         inputField = inputField,
         history = uiState.history,
         suggestions = uiState.suggestions,
+        browseGenres = uiState.browseGenres,
         searchQuery = textFieldState.text.toString(),
         searchBarColors = searchBarColors,
         onCommitSearch = onSearch,
+        onBrowseGenre = onBrowseGenre,
         onGameClick = onGameClick,
         onRemoveRecentGame = { onEvent(SearchUiEvent.OnRecentGameRemoved(it)) },
         onClearRecentSearches = { onEvent(SearchUiEvent.OnClearHistory) },
@@ -345,9 +350,11 @@ internal fun ExpandedSearchBar(
     inputField: @Composable () -> Unit,
     history: SearchHistoryUiModel,
     suggestions: SearchSuggestionsUiModel,
+    browseGenres: List<BrowseGenreUiModel>,
     searchQuery: String,
     searchBarColors: SearchBarColors,
     onCommitSearch: (String) -> Unit,
+    onBrowseGenre: (BrowseGenreUiModel) -> Unit,
     onGameClick: (Int) -> Unit,
     onRemoveRecentGame: (Int) -> Unit,
     onClearRecentSearches: () -> Unit,
@@ -373,15 +380,7 @@ internal fun ExpandedSearchBar(
                 onGameSuggestionClick = onGameClick
             )
 
-            history.isEmpty -> Text(
-                text = stringResource(Res.string.expanded_search_initial_message),
-                style = MaterialTheme.typography.labelLarge,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .padding(MaterialTheme.spacing.large)
-                    .fillMaxWidth()
-            )
+            browseGenres.isEmpty() && history.isEmpty -> InitialMessage()
 
             else -> Column(
                 modifier = Modifier
@@ -389,6 +388,17 @@ internal fun ExpandedSearchBar(
                     .padding(vertical = MaterialTheme.spacing.medium),
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large)
             ) {
+                // Above the history, and also when there is none: a first-time user has nothing to
+                // revisit, which is exactly when a way into the catalogue is most useful.
+                if (browseGenres.isNotEmpty()) {
+                    GenreBrowseSection(
+                        genres = browseGenres,
+                        onGenreClick = onBrowseGenre
+                    )
+                }
+                if (history.isEmpty) {
+                    InitialMessage()
+                }
                 if (history.queries.isNotEmpty()) {
                     RecentSearchesSection(
                         recentSearches = history.queries,
@@ -438,6 +448,19 @@ internal fun ExpandedSearchBar(
             )
         }
     }
+}
+
+@Composable
+private fun InitialMessage() {
+    Text(
+        text = stringResource(Res.string.expanded_search_initial_message),
+        style = MaterialTheme.typography.labelLarge,
+        textAlign = TextAlign.Center,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier
+            .padding(MaterialTheme.spacing.large)
+            .fillMaxWidth()
+    )
 }
 
 @Composable
@@ -641,6 +664,7 @@ private fun SearchTopBarPreview() {
             scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(),
             onSearch = {},
             onGameClick = {},
+            onBrowseGenre = {},
             onEvent = {},
             onProfileClick = {},
             backgroundColor = Color.Transparent
@@ -743,9 +767,44 @@ private fun ExpandedSearchBarPreview() {
             },
             history = previewHistory,
             suggestions = SearchSuggestionsUiModel(),
+            browseGenres = defaultBrowseGenres(),
             searchQuery = "",
             searchBarColors = SearchBarDefaults.colors(),
             onCommitSearch = {},
+            onBrowseGenre = {},
+            onGameClick = {},
+            onRemoveRecentGame = {},
+            onClearRecentSearches = {},
+            onRemoveRecentSearchItem = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@QuestLogPreviews
+@Composable
+private fun ExpandedSearchBarFirstTimePreview() {
+    QuestLogTheme {
+        val searchBarState = rememberContainedSearchBarState(SearchBarValue.Expanded)
+        val textFieldState = rememberTextFieldState()
+
+        ExpandedSearchBar(
+            searchBarState = searchBarState,
+            inputField = {
+                SearchInputField(
+                    textFieldState = textFieldState,
+                    searchBarState = searchBarState,
+                    onSearch = {},
+                    onClearSearch = {}
+                )
+            },
+            history = SearchHistoryUiModel(),
+            suggestions = SearchSuggestionsUiModel(),
+            browseGenres = defaultBrowseGenres(),
+            searchQuery = "",
+            searchBarColors = SearchBarDefaults.colors(),
+            onCommitSearch = {},
+            onBrowseGenre = {},
             onGameClick = {},
             onRemoveRecentGame = {},
             onClearRecentSearches = {},
@@ -774,9 +833,11 @@ private fun ExpandedSearchBarTypingPreview() {
             },
             history = previewHistory,
             suggestions = previewSuggestions,
+            browseGenres = defaultBrowseGenres(),
             searchQuery = "cyberpunk",
             searchBarColors = SearchBarDefaults.colors(),
             onCommitSearch = {},
+            onBrowseGenre = {},
             onGameClick = {},
             onRemoveRecentGame = {},
             onClearRecentSearches = {},
@@ -808,9 +869,11 @@ private fun ExpandedSearchBarLoadingPreview() {
                 gameSuggestions = emptyList(),
                 isLoadingRemote = true
             ),
+            browseGenres = defaultBrowseGenres(),
             searchQuery = "cyberpunk",
             searchBarColors = SearchBarDefaults.colors(),
             onCommitSearch = {},
+            onBrowseGenre = {},
             onGameClick = {},
             onRemoveRecentGame = {},
             onClearRecentSearches = {},
