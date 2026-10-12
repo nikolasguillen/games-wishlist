@@ -140,9 +140,10 @@ into `internal object IgdbCredentials` (under `build/`) by `core/network/build.g
 be committed or moved into source.
 
 **Kotlin Multiplatform**: The whole project is Kotlin Multiplatform with Compose Multiplatform for the UI.
-iOS is the only platform besides Android, and it ships without release reminders and on-device translation,
-whose entry points are hidden there (the iOS follow-ups are in `docs/roadmap.md`). The decisions are in
-`specs/010-kmp-migration`.
+iOS is the only platform besides Android, and both have the same features: release reminders (local
+notifications), the background release-date refresh and on-device translation each have an iOS implementation
+behind a contract in shared code. What is still open for iOS is in `docs/roadmap.md`. The decisions are in
+`specs/010-kmp-migration` and the iOS specs that followed it.
 
 - Android MUST build and pass its tests at every commit (`./gradlew :androidApp:assembleDebug` and
   `./gradlew test`). No test may be deleted or weakened to get there, and every step MUST be one the
@@ -197,4 +198,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.3.3 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-09
+**Version**: 1.3.4 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-12
