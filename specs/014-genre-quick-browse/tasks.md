@@ -207,7 +207,8 @@ show only the second genre; offline then Retry reloads the same genre.
   `sortGames(…, keepServerOrder = true)`; `updateSearchContent` passes
   `keepServerOrder = _uiState.value.activeGenre != null`. Filtering already preserves order. Makes T009 cases 3–4 pass.
 - [ ] T022 [US1] In the same file make leaving a browse consistent: `clearSearch()` sets `activeGenre = null` together
-  with `contentState = Idle`; `performSearch` sets `activeGenre = null` when it starts; `retrySearch()` calls
+  with `contentState = Idle`; `performSearch` sets `activeGenre = null` **after** its `isBlank` guard (a blank submit during a browse must leave the
+  browse untouched, or genre results would sit under the default placeholder); `retrySearch()` calls
   `browseGenre(activeGenre)` when `activeGenre != null` and `performSearch(textFieldState.text.toString())` otherwise
   (FR-017, FR-023). Makes T009 case 5 pass. Then run `./gradlew :feature:search:testAndroidHostTest`.
 
@@ -269,7 +270,8 @@ other genres those lead; a genre only dropped games carry does not; no duplicate
   strongest only, no default; a taste genre equal to a default appears once, at its taste position (C5); a genre whose
   weight is negative (only a `DROPPED` game carries it) is not offered; a tie on weight is broken by `count` and then by
   ascending id, deterministically (run it twice); every emission has exactly 5 distinct ids (C1); a re-emission of the
-  saved-games flow that does not change the ranking produces no new list, one that does produces one (C6).
+  saved-games flow that does not change the ranking produces no new list, one that does produces one (C6); a
+  `getSavedGames()` flow that throws emits the five defaults instead of failing (C7).
 - [ ] T028 [US2] Extend `SearchViewModelTest.kt` (`feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/`):
   add `getBrowseGenresUseCase = mockk<GetBrowseGenresUseCase>()`, stub `every { getBrowseGenresUseCase() } returns
   flowOf(<the five defaults>)` in `setUp()`, pass it in `createViewModel()`, and add case (9): after the use case emits a
@@ -293,8 +295,10 @@ other genres those lead; a genre only dropped games carry does not; no duplicate
   list is empty), take `names = games.flatMap { it.genres }.associateBy { it.id }`, keep genres with `weight > 0.0`, sort by
   `weight` descending, then `count` descending, then `id` ascending, take at most `BROWSE_GENRE_COUNT = 5` (a named
   private constant), skip an id with no name, then pad from `KnownGenre.BROWSE_DEFAULTS` as `Genre(it.id, it.igdbName)`
-  skipping ids already present until there are five; finish with `.distinctUntilChanged()`. KDoc: why positive weights
-  only and why the id is the last tie-break. Depends on T029. Makes T027 pass.
+  skipping ids already present until there are five; finish with `.distinctUntilChanged()` and `.catch { emit(<the five defaults>) }` after the
+  mapping, so a failing saved-games flow still gives a full row (spec Assumptions; the catch ends the
+  flow, which is acceptable for a failure that should not happen). KDoc: why positive weights only, why the id is the
+  last tie-break, and why the fallback exists. Depends on T029. Makes T027 pass.
 - [ ] T031 [US2] Register `factoryOf(::GetBrowseGenresUseCase)` in
   `core/domain/src/commonMain/kotlin/com/nikolasguillen/questlog/core/domain/di/DomainKoin.kt`.
 - [ ] T032 [US2] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModel.kt`
@@ -324,7 +328,8 @@ each return to Discover with the default placeholder; typing and submitting a qu
   `searchGamesUseCase`; (c) typing into `textFieldState` without submitting (`setQuery`) leaves `activeGenre` and
   `contentState` unchanged, and clearing the typed text afterwards still leaves the browse active; (d) tapping a chip
   while text-search results are showing replaces them and empties the text field; (e) tapping the genre already being
-  browsed ends in the same `Success` state, not an inconsistent one.
+  browsed ends in the same `Success` state, not an inconsistent one; (f) a blank submit (`OnSearchTriggered("")` or
+  whitespace) during a browse leaves `activeGenre`, `contentState` and the sort label unchanged.
 
 ### Implementation for User Story 3
 
@@ -378,7 +383,7 @@ sheet's genre group never offers the browsed genre while everything else still n
   "RPG" like the chip and the placeholder; this also applies to text searches). Depends on T038.
 - [ ] T040 [US4] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModel.kt`
   apply the label at every transition: `browseGenre` runs `sorting.withRelevanceLabel(true)` on
-  `sortBottomSheetState`; `performSearch` and `clearSearch` run `withRelevanceLabel(false)`. Keep `isSortActive`
+  `sortBottomSheetState`; `performSearch` (after its `isBlank` guard) and `clearSearch` run `withRelevanceLabel(false)`. Keep `isSortActive`
   untouched. Makes T037 pass.
 
 **Checkpoint**: `./gradlew :feature:search:testAndroidHostTest --console=plain -q` is green; run quickstart §3 steps 5–6.
@@ -409,7 +414,8 @@ sheet's genre group never offers the browsed genre while everything else still n
   do not mention this feature by name.
 - [ ] T043 [P] Update `docs/tech-debt.md` (Infrastructure → test coverage gaps): the `:core:domain` sentence says the
   search use cases are not covered; now `BrowseGenreUseCase`, `GetBrowseGenresUseCase` and the facet function are.
-  Reword so it names only what is still uncovered, and refresh the "Last audited" date only if the whole file was
+  Also update the `:core:ui` sentence ("only `GameUiMapper`, `PlatformPickerMapper` and `HtmlUtils` are covered"): it is
+  false once `GenreMapperTest` lands, so add `GenreMapper`. Reword so it names only what is still uncovered, and refresh the "Last audited" date only if the whole file was
   re-checked (it was not, so leave it).
 - [ ] T044 Run `./gradlew test` and `./gradlew :androidApp:assembleDebug`; both must pass with no existing test deleted
   or weakened. Fix what they reveal.

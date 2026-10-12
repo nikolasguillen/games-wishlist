@@ -166,7 +166,8 @@ and confirm the recent searches are exactly as before.
   finds nothing, worded so it makes sense without a typed query (it names the genre, not an empty string).
   If filters are active it offers to clear them, as a text search does.
 - **Offline or HTTP failure**: the same error state as a text search is shown, with a Retry action. Retry
-  re-runs the same genre browse (same genre, same filters, same sort), not a text search of an empty query.
+  re-runs the same genre browse (same genre, same sort; filters start unselected, as for any new result set),
+  not a text search of an empty query.
 - **Taste profile with fewer than five genres**: padded with defaults until there are five (User Story 2).
 - **A taste genre that is also a default**: appears once, in its taste position; padding skips it (User
   Story 2, scenario 4).
@@ -243,7 +244,7 @@ and confirm the recent searches are exactly as before.
 - **FR-016**: The results MUST use the same game cards, save button, long-press list selector, loading
   state, empty state and error state as a text search, including the same pagination behavior.
 - **FR-017**: The Retry action on a failed genre browse MUST re-run the same genre browse, with the same
-  genre, active filters and sort.
+  genre and sort. Filters start unselected, as for any new result set (FR-028).
 - **FR-018**: When a chip is tapped while an earlier search or browse is still loading, only the results of
   the most recent request MUST ever be shown.
 - **FR-019**: The empty state of a genre browse MUST read sensibly without a typed query.

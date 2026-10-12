@@ -89,6 +89,8 @@ Rules, applied to every emission of `repository.getSavedGames()`:
 4. Pad from `KnownGenre.BROWSE_DEFAULTS` (as `Genre(k.id, k.igdbName)`), skipping ids already present, until
    there are five.
 5. `distinctUntilChanged()`, so a library change that does not move the ranking produces no new list.
+6. If the saved-games flow throws, the flow emits the five defaults and ends (spec Assumptions: an unreadable
+   taste profile falls back to the defaults rather than failing).
 
 ### `BrowseGenreUseCase` (new, `usecase/search/`)
 

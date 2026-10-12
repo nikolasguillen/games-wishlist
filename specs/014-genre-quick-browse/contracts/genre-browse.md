@@ -84,6 +84,7 @@ class GetBrowseGenresUseCase(private val repository: GameRepository) {
 | C4 | Fewer than 5 taste genres → padded from the defaults in their fixed order, skipping ids already present. | FR-007, FR-009 |
 | C5 | A taste genre that is also a default keeps its taste position. | FR-009 |
 | C6 | Re-emits when the saved games change, and only when the resulting list changes. | User Story 2 scenario 5 |
+| C7 | If the saved-games flow throws, the flow emits the five defaults rather than failing. | spec Assumptions |
 
 **Tests** (`GetBrowseGenresUseCaseTest`, MockK on `GameRepository.getSavedGames()`): empty library; one
 saved game with three genres; more than five positive genres; a dropped-only genre (excluded); a taste genre
