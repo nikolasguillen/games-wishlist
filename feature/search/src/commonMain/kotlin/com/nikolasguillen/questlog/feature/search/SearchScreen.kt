@@ -30,7 +30,6 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -210,9 +209,13 @@ internal fun SearchScreenContent(
     }
 
     // 4. Dynamic Styles
+    // Fades to the scrolled color at zero alpha rather than Color.Transparent: that is transparent *black*,
+    // and the color animation interpolates lightness alongside alpha, so the header would dip darker than
+    // the background midway through the fade.
+    val scrolledContainerColor = MaterialTheme.appColors.searchBarScrolledContainerColor
     val backgroundColor by animateColorAsState(
-        targetValue = if (isScrolled) MaterialTheme.appColors.searchBarScrolledContainerColor
-        else Color.Transparent,
+        targetValue = if (isScrolled) scrolledContainerColor
+        else scrolledContainerColor.copy(alpha = 0f),
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "topBarBackground"
     )
