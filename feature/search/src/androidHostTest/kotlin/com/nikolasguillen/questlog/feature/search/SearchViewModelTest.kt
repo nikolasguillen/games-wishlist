@@ -30,6 +30,7 @@ import com.nikolasguillen.questlog.core.model.SearchResult
 import com.nikolasguillen.questlog.core.model.SearchSuggestion
 import com.nikolasguillen.questlog.core.model.WishlistList
 import com.nikolasguillen.questlog.core.ui.resources.genre_adventure
+import com.nikolasguillen.questlog.core.ui.resources.sort_relevance
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.DiscoverContentState
@@ -42,6 +43,7 @@ import com.nikolasguillen.questlog.feature.search.model.SortingUiModel
 import com.nikolasguillen.questlog.feature.search.resources.Res
 import com.nikolasguillen.questlog.feature.search.resources.added_to_wishlist
 import com.nikolasguillen.questlog.feature.search.resources.removed_from_wishlist
+import com.nikolasguillen.questlog.feature.search.resources.sort_top_picks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -1171,6 +1173,121 @@ class SearchViewModelTest {
         assertEquals(contentBefore, viewModel.uiState.value.contentState)
         assertEquals(sortingBefore, viewModel.uiState.value.sortBottomSheetState.sorting)
         coVerify(exactly = 0) { searchGamesUseCase(any()) }
+    }
+
+    @Test
+    fun `Relevance reads Top picks during a browse and Relevance again after clear or a submitted query`() =
+        runTest(testDispatcher) {
+            givenBrowse(12, testGame(id = 1))
+            coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
+                SearchResult(games = listOf(testGame(id = 2)), platforms = emptyList(), genres = emptyList())
+            )
+            val viewModel = createViewModel()
+            val topPicks = UiText.StringResource(Res.string.sort_top_picks)
+            val relevance = UiText.StringResource(CoreUiRes.string.sort_relevance)
+            assertEquals(relevance, viewModel.sortOption(SearchSort.RELEVANCE).label)
+
+            viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+            advanceUntilIdle()
+            assertEquals(topPicks, viewModel.sortOption(SearchSort.RELEVANCE).label)
+
+            viewModel.onEvent(SearchUiEvent.OnClearSearch)
+            assertEquals(relevance, viewModel.sortOption(SearchSort.RELEVANCE).label)
+
+            viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+            advanceUntilIdle()
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
+            advanceUntilIdle()
+            assertEquals(relevance, viewModel.sortOption(SearchSort.RELEVANCE).label)
+        }
+
+    @Test
+    fun `the selected sort and its direction survive a browse starting and ending`() =
+        runTest(testDispatcher) {
+            givenBrowse(12, testGame(id = 1))
+            val viewModel = createViewModel()
+            viewModel.onEvent(SearchUiEvent.OnSortChanged(viewModel.sortOption(SearchSort.RATING)))
+            viewModel.onEvent(SearchUiEvent.OnSortChanged(viewModel.sortOption(SearchSort.RATING)))
+            val before = viewModel.uiState.value.sortBottomSheetState
+            assertTrue(before.isSortActive)
+            assertEquals(false, viewModel.sortOption(SearchSort.RATING).descending)
+
+            viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+            advanceUntilIdle()
+            val during = viewModel.uiState.value.sortBottomSheetState
+            viewModel.onEvent(SearchUiEvent.OnClearSearch)
+            val after = viewModel.uiState.value.sortBottomSheetState
+
+            listOf(during, after).forEach { state ->
+                assertEquals(before.isSortActive, state.isSortActive)
+                assertEquals(
+                    before.sorting.map { Triple(it.sortType, it.selected, it.descending) },
+                    state.sorting.map { Triple(it.sortType, it.selected, it.descending) }
+                )
+            }
+        }
+
+    @Test
+    fun `a browse starts with every filter unselected, even after a filtered text search`() =
+        runTest(testDispatcher) {
+            val pc = Platform(id = 1, name = "PC")
+            coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
+                SearchResult(
+                    games = listOf(testGame(id = 7, platforms = listOf(pc))),
+                    platforms = listOf(pc),
+                    genres = listOf(Genre(12, "RPG"))
+                )
+            )
+            coEvery { browseGenreUseCase(12) } returns AppResult.success(
+                SearchResult(
+                    games = listOf(testGame(id = 1, platforms = listOf(pc), genres = listOf(Genre(12, "RPG")))),
+                    platforms = listOf(pc),
+                    genres = emptyList()
+                )
+            )
+            val viewModel = createViewModel()
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
+            advanceUntilIdle()
+            viewModel.onEvent(
+                SearchUiEvent.OnFilterClick(
+                    viewModel.successState().filters.filterIsInstance<GameFilterUiModel.Platform>().first()
+                )
+            )
+            assertTrue(viewModel.successState().filters.any { it.selected })
+
+            viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+            advanceUntilIdle()
+
+            assertTrue(viewModel.successState().filters.none { it.selected })
+            assertTrue(viewModel.successState().filters.filterIsInstance<GameFilterUiModel.Genre>().isEmpty())
+        }
+
+    @Test
+    fun `filters on a browse narrow with AND semantics in Top picks order`() = runTest(testDispatcher) {
+        val pc = Platform(id = 1, name = "PC")
+        val rpg = Genre(12, "RPG")
+        val indie = Genre(32, "Indie")
+        coEvery { browseGenreUseCase(12) } returns AppResult.success(
+            SearchResult(
+                games = listOf(
+                    testGame(id = 4, platforms = listOf(pc), genres = listOf(rpg, indie)),
+                    testGame(id = 3, genres = listOf(rpg, indie)),
+                    testGame(id = 2, platforms = listOf(pc), genres = listOf(rpg)),
+                    testGame(id = 1, platforms = listOf(pc), genres = listOf(rpg, indie))
+                ),
+                platforms = listOf(pc),
+                genres = listOf(indie)
+            )
+        )
+        val viewModel = createViewModel()
+        viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+        advanceUntilIdle()
+
+        viewModel.successState().filters
+            .filter { it is GameFilterUiModel.Platform || it is GameFilterUiModel.Genre }
+            .forEach { viewModel.onEvent(SearchUiEvent.OnFilterClick(it)) }
+
+        assertEquals(listOf(4, 1), viewModel.successState().games.map { it.id })
     }
 
     // endregion

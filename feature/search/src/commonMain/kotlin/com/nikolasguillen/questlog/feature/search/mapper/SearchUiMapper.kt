@@ -17,6 +17,8 @@ import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchSort
 import com.nikolasguillen.questlog.feature.search.model.SortingUiModel
+import com.nikolasguillen.questlog.feature.search.resources.Res
+import com.nikolasguillen.questlog.feature.search.resources.sort_top_picks
 import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes
 
 internal fun List<Platform>.toPlatformFilters(): List<GameFilterUiModel> {
@@ -70,7 +72,7 @@ internal fun List<Genre>.toGenreFilters(): List<GameFilterUiModel> {
     return this.map { genre ->
         GameFilterUiModel.Genre(
             id = genre.id,
-            label = UiText.DynamicString(genre.name),
+            label = genre.toLabelUiText(),
             selected = false
         )
     }
@@ -120,6 +122,20 @@ internal fun getInitialSortFilters(): List<SortingUiModel> {
             descending = true
         )
     }
+}
+
+/**
+ * Relabels the "Relevance" option for the kind of results on screen: a genre browse is ordered by popularity,
+ * not by how well a query matches, so it reads "Top picks". Only the label changes -- which option is
+ * selected and in which direction is the user's choice and survives the switch.
+ */
+internal fun List<SortingUiModel>.withRelevanceLabel(isGenreBrowse: Boolean): List<SortingUiModel> {
+    val label = if (isGenreBrowse) {
+        UiText.StringResource(Res.string.sort_top_picks)
+    } else {
+        UiText.StringResource(CoreUiRes.string.sort_relevance)
+    }
+    return map { if (it.sortType == SearchSort.RELEVANCE) it.copy(label = label) else it }
 }
 
 /**

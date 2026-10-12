@@ -363,25 +363,25 @@ sheet's genre group never offers the browsed genre while everything else still n
 
 ### Tests for User Story 4 (write first)
 
-- [ ] T037 [US4] Extend `SearchViewModelTest.kt` with: (a) during a browse the `RELEVANCE` entry of
+- [X] T037 [US4] Extend `SearchViewModelTest.kt` with: (a) during a browse the `RELEVANCE` entry of
   `sortBottomSheetState.sorting` is labelled `UiText.StringResource(Res.string.sort_top_picks)`; after `OnClearSearch`, and
   after a submitted query, it is `UiText.StringResource(CoreUiRes.string.sort_relevance)` again; (b) with `RATING`
   ascending selected, starting and ending a browse leaves `selected`, `descending` and `isSortActive` for every entry
   exactly as they were; (c) starting a browse while a text search's filters are selected resets to no selected filter
   (FR-028) and the genre filters list does not contain the browsed id; (d) with a platform filter and a second genre
   filter applied during a browse, `games` holds only games that carry **all** of them (AND), in "Top picks" order.
-- [ ] T038 [US4] Add `sort_top_picks` = "Top picks" to
+- [X] T038 [US4] Add `sort_top_picks` = "Top picks" to
   `feature/search/src/commonMain/composeResources/values/strings.xml`.
 
 ### Implementation for User Story 4
 
-- [ ] T039 [US4] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/mapper/SearchUiMapper.kt`:
+- [X] T039 [US4] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/mapper/SearchUiMapper.kt`:
   add `internal fun List<SortingUiModel>.withRelevanceLabel(isGenreBrowse: Boolean): List<SortingUiModel>` that rewrites
   **only** the `SearchSort.RELEVANCE` entry's `label` — `UiText.StringResource(Res.string.sort_top_picks)` when
   `isGenreBrowse`, else `UiText.StringResource(CoreUiRes.string.sort_relevance)` — and never touches `selected` or
   `descending`. Also change `toGenreFilters()` to `label = genre.toLabelUiText()` (research R3, so the filter sheet says
   "RPG" like the chip and the placeholder; this also applies to text searches). Depends on T038.
-- [ ] T040 [US4] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModel.kt`
+- [X] T040 [US4] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModel.kt`
   apply the label at every transition: `browseGenre` runs `sorting.withRelevanceLabel(true)` on
   `sortBottomSheetState`; `performSearch` (after its `isBlank` guard) and `clearSearch` run `withRelevanceLabel(false)`. Keep `isSortActive`
   untouched. Makes T037 pass.

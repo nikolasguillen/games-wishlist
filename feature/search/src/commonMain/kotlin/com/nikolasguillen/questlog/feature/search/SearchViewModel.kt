@@ -41,6 +41,7 @@ import com.nikolasguillen.questlog.feature.search.mapper.toGenreFilters
 import com.nikolasguillen.questlog.feature.search.mapper.toPlatformFilters
 import com.nikolasguillen.questlog.feature.search.mapper.toSelectorItem
 import com.nikolasguillen.questlog.feature.search.mapper.toSuggestionUiModels
+import com.nikolasguillen.questlog.feature.search.mapper.withRelevanceLabel
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.DiscoverContentState
 import com.nikolasguillen.questlog.feature.search.model.FilterBottomSheetState
@@ -613,7 +614,13 @@ class SearchViewModel(
         searchJob?.cancel()
         // After the guard above: a blank submit during a genre browse must leave the browse as it was, or
         // its results would sit under the default placeholder. A submitted query replaces the browse.
-        _uiState.update { it.copy(suggestions = SearchSuggestionsUiModel(), activeGenre = null) }
+        _uiState.update {
+            it.copy(
+                suggestions = SearchSuggestionsUiModel(),
+                activeGenre = null,
+                sortBottomSheetState = it.sortBottomSheetState.withRelevanceLabel(isGenreBrowse = false)
+            )
+        }
         suggestionsResetTrigger.tryEmit("")
 
         searchJob = viewModelScope.launch {
@@ -664,7 +671,8 @@ class SearchViewModel(
             it.copy(
                 suggestions = SearchSuggestionsUiModel(),
                 activeGenre = genre,
-                contentState = SearchContentState.Loading
+                contentState = SearchContentState.Loading,
+                sortBottomSheetState = it.sortBottomSheetState.withRelevanceLabel(isGenreBrowse = true)
             )
         }
         suggestionsResetTrigger.tryEmit("")
@@ -803,6 +811,9 @@ class SearchViewModel(
         }
     }
 
+    private fun SortBottomSheetState.withRelevanceLabel(isGenreBrowse: Boolean): SortBottomSheetState =
+        copy(sorting = sorting.withRelevanceLabel(isGenreBrowse))
+
     private fun List<GameItemUiModel>.withSavedState(ids: Set<Int>): List<GameItemUiModel> =
         map { it.copy(isSaved = it.id in ids) }
 
@@ -859,7 +870,8 @@ class SearchViewModel(
             it.copy(
                 suggestions = SearchSuggestionsUiModel(),
                 activeGenre = null,
-                contentState = SearchContentState.Idle
+                contentState = SearchContentState.Idle,
+                sortBottomSheetState = it.sortBottomSheetState.withRelevanceLabel(isGenreBrowse = false)
             )
         }
     }
