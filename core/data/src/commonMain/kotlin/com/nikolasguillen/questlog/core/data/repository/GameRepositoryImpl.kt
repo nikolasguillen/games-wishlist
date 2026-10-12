@@ -138,6 +138,27 @@ private const val RECOMMENDED_RELEASE_WINDOW_YEARS = 10
 private const val SECONDS_PER_YEAR = 365L * 24 * 60 * 60
 
 /**
+ * How far back Search's genre browse looks. Tuning knob: it keeps the grid to games people are talking about
+ * now rather than a genre's all-time canon, and a wider window lets older games back in. Two years still
+ * fills a grid for every default genre (checked against IGDB: 62 to 289 games each); a niche genre can come
+ * back thin, which the screen reports as an empty state naming the genre.
+ */
+private const val GENRE_BROWSE_RELEASE_WINDOW_YEARS = 2
+
+/**
+ * Fewest ratings a game needs to appear in Search's genre browse. Tuning knob: the browse is sorted by rating
+ * count, so this only cuts the long tail of games almost nobody has rated. Raising it thins niche genres
+ * first.
+ */
+private const val GENRE_BROWSE_MIN_RATING_COUNT = 10
+
+/**
+ * Page size of Search's genre browse: IGDB's cap, the same as a text search, so both give the filter sheet
+ * the same amount of data.
+ */
+private const val GENRE_BROWSE_LIMIT = 500
+
+/**
  * Candidate pool for the "More from <studio>" shelf. A studio's catalogue is far smaller than a whole
  * genre, so this is headroom rather than a page size -- matches [RECOMMENDED_POOL_LIMIT] for the same
  * reason that one does.
@@ -309,6 +330,29 @@ internal class GameRepositoryImpl(
                 where genres = ($genreId) & game_type != ($excludedIds) & version_parent = null & cover != null & total_rating_count >= $RECOMMENDED_MIN_RATING_COUNT & first_release_date > $windowStart$platformFilter;
                 sort total_rating desc;
                 limit $RECOMMENDED_POOL_LIMIT;
+            """.trimIndent()
+            AppResult.success(apiService.searchGames(queryText).map { it.toGame() })
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override suspend fun getPopularGamesByGenre(genreId: Int): AppResult<List<Game>> {
+        return try {
+            val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
+            val nowSeconds = Clock.System.now().toEpochMilliseconds() / 1000
+            val windowStart = nowSeconds - GENRE_BROWSE_RELEASE_WINDOW_YEARS * SECONDS_PER_YEAR
+            // "Popular" is how many people rated a game: IGDB's Popularity API ranks game ids with no genre
+            // field to filter on, so total_rating_count is the one measure the query can both filter and
+            // sort by. Both date bounds are set so only released games qualify; a game with no
+            // first_release_date fails both comparisons and drops out, which is right for a grid of games
+            // the user can play now. No platform clause: a browse is a search, and the filter sheet's
+            // platform facet is how the user narrows it.
+            val queryText = """
+                fields name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                where genres = ($genreId) & game_type != ($excludedIds) & version_parent = null & cover != null & total_rating_count >= $GENRE_BROWSE_MIN_RATING_COUNT & first_release_date <= $nowSeconds & first_release_date > $windowStart;
+                sort total_rating_count desc;
+                limit $GENRE_BROWSE_LIMIT;
             """.trimIndent()
             AppResult.success(apiService.searchGames(queryText).map { it.toGame() })
         } catch (e: Exception) {

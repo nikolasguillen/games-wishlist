@@ -100,7 +100,7 @@ show only the second genre; offline then Retry reloads the same genre.
 
 ### Tests for User Story 1 (write first)
 
-- [ ] T006 [P] [US1] Create
+- [X] T006 [P] [US1] Create
   `core/data/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImplGenreBrowseTest.kt`,
   in the captured-query-body style of `GameRepositoryImplPopularGamesTest.kt`. Cases for `getPopularGamesByGenre(12)`:
   the body contains `genres = (12)`, `cover != null`, `version_parent = null`, `total_rating_count >= 10`,
@@ -108,13 +108,13 @@ show only the second genre; offline then Retry reloads the same genre.
   does), `sort total_rating_count desc` and `limit 500`; it contains **no** `platforms =` clause; rows come back in the
   order the service returned them; a thrown `IgdbHttpException` comes back as `AppResult.Failure` with `Http`; a
   `CancellationException` is rethrown, not returned as a failure.
-- [ ] T007 [P] [US1] Create
+- [X] T007 [P] [US1] Create
   `core/domain/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/domain/usecase/search/SearchResultFacetsTest.kt`.
   Cases for `List<Game>.toSearchResult(excludedGenreId)`: distinct platforms and genres; platforms and genres ordered by
   how many games carry them (most first); with `excludedGenreId = 12` no genre with id 12 is in `genres` while the games
   list still contains games carrying it; with no exclusion the result equals what `SearchGamesUseCase` produced before the
   move; the games list order is untouched.
-- [ ] T008 [P] [US1] Create
+- [X] T008 [P] [US1] Create
   `core/domain/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/domain/usecase/search/BrowseGenreUseCaseTest.kt`
   (MockK on `GameRepository`). Cases: the games are exactly the repository's list in the repository's order (B1); platform
   and genre facets are derived as in a text search (B2); the browsed genre is never in `SearchResult.genres` (B3); a
@@ -133,12 +133,12 @@ show only the second genre; offline then Retry reloads the same genre.
 
 ### Implementation for User Story 1 — data and domain
 
-- [ ] T010 [US1] Add to `core/domain/src/commonMain/kotlin/com/nikolasguillen/questlog/core/domain/repository/GameRepository.kt`:
+- [X] T010 [US1] Add to `core/domain/src/commonMain/kotlin/com/nikolasguillen/questlog/core/domain/repository/GameRepository.kt`:
   `suspend fun getPopularGamesByGenre(genreId: Int): AppResult<List<Game>>` with the KDoc from
   `specs/014-genre-quick-browse/contracts/genre-browse.md` (released games of the genre, most rated first, inside a
   recent window and above a rating floor; network only, not cached; unlike `getGamesByGenre` it admits no unreleased game
   and orders by rating count).
-- [ ] T011 [US1] Implement it in
+- [X] T011 [US1] Implement it in
   `core/data/src/commonMain/kotlin/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImpl.kt`, beside
   `getGamesByGenre`. Add three documented constants next to the existing ones: `GENRE_BROWSE_RELEASE_WINDOW_YEARS = 2`,
   `GENRE_BROWSE_MIN_RATING_COUNT = 10`, `GENRE_BROWSE_LIMIT = 500` (use T001's verified values; each KDoc says it is a
@@ -148,21 +148,21 @@ show only the second genre; offline then Retry reloads the same genre.
   No platform clause. Send it with `apiService.searchGames(...)`, map with `toGame()`, wrap in `AppResult.success`, and
   `catch (e: Exception)` → `AppResult.failure(e.toRepositoryError())` (which rethrows `CancellationException`). Compute
   `now` with `Clock.System`, as the file already does. Makes T006 pass.
-- [ ] T012 [P] [US1] Create
+- [X] T012 [P] [US1] Create
   `core/domain/src/commonMain/kotlin/com/nikolasguillen/questlog/core/domain/usecase/search/SearchResultFacets.kt` with
   `internal fun List<Game>.toSearchResult(excludedGenreId: Int? = null): SearchResult`, holding the facet derivation now
   inline in `SearchGamesUseCase` (distinct platforms and genres, each sorted by occurrence count descending); genres whose
   id equals `excludedGenreId` are left out of the `genres` facet only. Change
   `core/domain/src/commonMain/kotlin/com/nikolasguillen/questlog/core/domain/usecase/search/SearchGamesUseCase.kt` to
   `repository.searchGames(query).map { it.toSearchResult() }`; its public behaviour must not change. Makes T007 pass.
-- [ ] T013 [US1] Create
+- [X] T013 [US1] Create
   `core/domain/src/commonMain/kotlin/com/nikolasguillen/questlog/core/domain/usecase/search/BrowseGenreUseCase.kt`:
   `class BrowseGenreUseCase(private val repository: GameRepository)` with
   `suspend operator fun invoke(genreId: Int): AppResult<SearchResult>` =
   `repository.getPopularGamesByGenre(genreId).map { it.toSearchResult(excludedGenreId = genreId) }`. KDoc: the games keep
   the order the server returned; the browsed genre is left out of the facets because every result carries it. Depends on
   T010, T012. Makes T008 pass.
-- [ ] T014 [US1] Register `factoryOf(::BrowseGenreUseCase)` (with its import) in
+- [X] T014 [US1] Register `factoryOf(::BrowseGenreUseCase)` (with its import) in
   `core/domain/src/commonMain/kotlin/com/nikolasguillen/questlog/core/domain/di/DomainKoin.kt`, next to `SearchGamesUseCase`.
 
 ### Implementation for User Story 1 — feature models and strings

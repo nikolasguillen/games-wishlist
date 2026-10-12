@@ -52,6 +52,17 @@ interface GameRepository {
     suspend fun getGamesByGenre(genreId: Int, platformIds: Set<Int>): AppResult<List<Game>>
 
     /**
+     * Released games carrying [genreId], most rated first, for Search's genre browse. Bounded to a recent
+     * release window and a rating-count floor so obscure and decades-old entries do not surface. Network only
+     * and not cached, like [searchGames]; unlike [getGamesByGenre] (the Discover shelf), it admits no
+     * unreleased game and orders by how many people rated a game, not by its score.
+     *
+     * The list keeps the order the server ranked it in. No platform filter is applied: a browse is a search,
+     * and the platform facet is how the user narrows it.
+     */
+    suspend fun getPopularGamesByGenre(genreId: Int): AppResult<List<Game>>
+
+    /**
      * Games involving this developer, for the "More from <studio>" personalised Discover shelf. Same
      * coarse-server/fine-local split as [getGamesByGenre], but carries no rating floor — unlike a genre
      * shelf, this one is meant to surface a followed studio's unreleased titles, which a rating floor

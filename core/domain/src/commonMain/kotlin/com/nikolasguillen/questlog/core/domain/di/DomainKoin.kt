@@ -32,6 +32,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNo
 import com.nikolasguillen.questlog.core.domain.usecase.notification.SetReleaseNotificationEnabledUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.SyncReleaseNotificationsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.AddSearchToHistoryUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.search.BrowseGenreUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.ClearAllHistoryUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.ClearRecentGamesUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.DeleteSearchHistoryItemUseCase
@@ -93,6 +94,7 @@ val domainModule = module {
     factoryOf(::GetSearchSuggestionsUseCase)
     factoryOf(::RemoveRecentGameUseCase)
     factoryOf(::SearchGamesUseCase)
+    factoryOf(::BrowseGenreUseCase)
     factoryOf(::CompleteOnboardingUseCase)
     factoryOf(::GetAppearanceModeUseCase)
     factoryOf(::GetOnboardingCompletedUseCase)
