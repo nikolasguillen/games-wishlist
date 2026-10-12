@@ -199,11 +199,12 @@ internal fun SearchScreenContent(
             }
         }
 
-    // Only fires once a query is committed and the bar is collapsed: while expanded, the search
-    // bar's own predictive-back handling owns the gesture (collapsing it instead).
+    // Only fires once a query or a genre browse is committed and the bar is collapsed: while expanded, the
+    // search bar's own predictive-back handling owns the gesture (collapsing it instead). A browse leaves the
+    // field empty, so the text alone cannot say there is something to go back from.
     BackHandler(
         enabled = searchBarState.currentValue == SearchBarValue.Collapsed &&
-            textFieldState.text.isNotEmpty()
+            (textFieldState.text.isNotEmpty() || uiState.activeGenre != null)
     ) {
         onEvent(SearchUiEvent.OnClearSearch)
     }

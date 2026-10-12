@@ -323,7 +323,7 @@ each return to Discover with the default placeholder; typing and submitting a qu
 
 ### Tests for User Story 3 (write first)
 
-- [ ] T033 [US3] Extend `SearchViewModelTest.kt` with: (a) `OnClearSearch` during a browse sets `activeGenre = null` and
+- [X] T033 [US3] Extend `SearchViewModelTest.kt` with: (a) `OnClearSearch` during a browse sets `activeGenre = null` and
   `contentState = Idle`; (b) `OnSearchTriggered("zelda")` during a browse sets `activeGenre = null` and runs
   `searchGamesUseCase`; (c) typing into `textFieldState` without submitting (`setQuery`) leaves `activeGenre` and
   `contentState` unchanged, and clearing the typed text afterwards still leaves the browse active; (d) tapping a chip
@@ -333,9 +333,9 @@ each return to Discover with the default placeholder; typing and submitting a qu
 
 ### Implementation for User Story 3
 
-- [ ] T034 [US3] Add `genre_browse_placeholder` = "genre: %1$s" to
+- [X] T034 [US3] Add `genre_browse_placeholder` = "genre: %1$s" to
   `feature/search/src/commonMain/composeResources/values/strings.xml`.
-- [ ] T035 [US3] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/components/SearchBars.kt`
+- [X] T035 [US3] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/components/SearchBars.kt`
   give `SearchInputField` a parameter `activeGenreLabel: UiText? = null` (a default keeps every existing call and preview
   compiling). When it is non-null: the placeholder text is `stringResource(Res.string.genre_browse_placeholder,
   label.asString())`; the input field gets `Modifier.semantics { stateDescription = <the same text> }` so a screen reader
@@ -343,7 +343,7 @@ each return to Discover with the default placeholder; typing and submitting a qu
   the clear (X) button is shown when `textFieldState.text.isNotEmpty() || activeGenreLabel != null` (FR-021) — it keeps
   sending `onClearSearch`. Pass `uiState.activeGenre?.label` from `SearchTopBar`'s `inputField`. Add a
   `SearchInputField` preview with an empty field and a genre. Depends on T034.
-- [ ] T036 [P] [US3] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchScreen.kt`
+- [X] T036 [P] [US3] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchScreen.kt`
   change the `BackHandler` condition to `searchBarState.currentValue == SearchBarValue.Collapsed &&
   (textFieldState.text.isNotEmpty() || uiState.activeGenre != null)` so the system back gesture ends a browse as the
   arrow does. Update the comment above it. (The back arrow already shows for any non-`Idle` `contentState` and needs no

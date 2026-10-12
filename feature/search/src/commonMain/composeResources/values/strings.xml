@@ -47,6 +47,7 @@
 
     <!-- Genre browse -->
     <string name="browse_by_genre">Browse by genre</string>
+    <string name="genre_browse_placeholder">genre: %1$s</string>
     <string name="genre_browse_no_results">No popular %1$s games released recently</string>
 
     <!-- Wishlist toggle -->

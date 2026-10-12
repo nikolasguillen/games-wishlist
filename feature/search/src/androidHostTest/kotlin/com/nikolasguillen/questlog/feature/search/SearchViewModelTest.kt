@@ -1066,5 +1066,112 @@ class SearchViewModelTest {
         assertEquals(listOf(12, 5, 31, 15, 32), viewModel.uiState.value.browseGenres.map { it.id })
     }
 
+    @Test
+    fun `OnClearSearch during a genre browse returns to Discover with no active genre`() =
+        runTest(testDispatcher) {
+            givenBrowse(12, testGame(id = 1))
+            val viewModel = createViewModel()
+            viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+            advanceUntilIdle()
+
+            viewModel.onEvent(SearchUiEvent.OnClearSearch)
+
+            assertEquals(null, viewModel.uiState.value.activeGenre)
+            assertEquals(SearchContentState.Idle, viewModel.uiState.value.contentState)
+        }
+
+    @Test
+    fun `a submitted query during a genre browse replaces it with a text search`() =
+        runTest(testDispatcher) {
+            givenBrowse(12, testGame(id = 1))
+            coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
+                SearchResult(games = listOf(testGame(id = 7)), platforms = emptyList(), genres = emptyList())
+            )
+            val viewModel = createViewModel()
+            viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+            advanceUntilIdle()
+
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
+            advanceUntilIdle()
+
+            assertEquals(null, viewModel.uiState.value.activeGenre)
+            assertEquals(listOf(7), viewModel.successState().games.map { it.id })
+            coVerify(exactly = 1) { searchGamesUseCase("zelda") }
+        }
+
+    @Test
+    fun `typing during a genre browse leaves it on screen, even if the text is deleted again`() =
+        runTest(testDispatcher) {
+            givenBrowse(12, testGame(id = 1))
+            val viewModel = createViewModel()
+            viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+            advanceUntilIdle()
+            val before = viewModel.uiState.value.contentState
+
+            viewModel.setQuery("ze")
+            advanceUntilIdle()
+            assertEquals(rpgChip, viewModel.uiState.value.activeGenre)
+            assertEquals(before, viewModel.uiState.value.contentState)
+
+            viewModel.setQuery("")
+            advanceUntilIdle()
+            assertEquals(rpgChip, viewModel.uiState.value.activeGenre)
+            assertEquals(before, viewModel.uiState.value.contentState)
+        }
+
+    @Test
+    fun `a genre tapped while text results are showing replaces them and empties the field`() =
+        runTest(testDispatcher) {
+            coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
+                SearchResult(games = listOf(testGame(id = 7)), platforms = emptyList(), genres = emptyList())
+            )
+            givenBrowse(12, testGame(id = 1))
+            val viewModel = createViewModel()
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
+            advanceUntilIdle()
+            assertEquals("zelda", viewModel.textFieldState.text.toString())
+
+            viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+            advanceUntilIdle()
+
+            assertEquals(listOf(1), viewModel.successState().games.map { it.id })
+            assertEquals("", viewModel.textFieldState.text.toString())
+            assertEquals(rpgChip, viewModel.uiState.value.activeGenre)
+        }
+
+    @Test
+    fun `tapping the genre already being browsed ends in the same results`() = runTest(testDispatcher) {
+        givenBrowse(12, testGame(id = 1), testGame(id = 2))
+        val viewModel = createViewModel()
+        viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+        advanceUntilIdle()
+        val first = viewModel.successState().games.map { it.id }
+
+        viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+        advanceUntilIdle()
+
+        assertEquals(first, viewModel.successState().games.map { it.id })
+        assertEquals(rpgChip, viewModel.uiState.value.activeGenre)
+    }
+
+    @Test
+    fun `a blank submit during a genre browse changes nothing`() = runTest(testDispatcher) {
+        givenBrowse(12, testGame(id = 1))
+        val viewModel = createViewModel()
+        viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+        advanceUntilIdle()
+        val contentBefore = viewModel.uiState.value.contentState
+        val sortingBefore = viewModel.uiState.value.sortBottomSheetState.sorting
+
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered(""))
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("   "))
+        advanceUntilIdle()
+
+        assertEquals(rpgChip, viewModel.uiState.value.activeGenre)
+        assertEquals(contentBefore, viewModel.uiState.value.contentState)
+        assertEquals(sortingBefore, viewModel.uiState.value.sortBottomSheetState.sorting)
+        coVerify(exactly = 0) { searchGamesUseCase(any()) }
+    }
+
     // endregion
 }
