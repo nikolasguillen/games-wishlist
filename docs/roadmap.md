@@ -30,12 +30,8 @@ tone alongside them.
 
 ## iOS follow-ups after the multiplatform migration
 
-Spec `specs/010-kmp-migration` ships iOS without release reminders; their entry points are hidden there.
-They already sit behind a contract in shared code, so the iOS side is a new implementation and nothing else.
+What is still open after `specs/010-kmp-migration` and the iOS specs that followed it.
 
-- **Release reminders on iOS**: local notifications and their permission prompt, and the Settings rows that
-  configure them. The welcome flow's
-  `RadarWithoutReminders` page goes away when reminders arrive.
 - **iOS distribution**: installing on a physical device (development team), signing and provisioning, and
   TestFlight. Spec 010 verifies on the simulator only.
 

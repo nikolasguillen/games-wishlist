@@ -172,8 +172,7 @@ resolved entry instead of annotating it as fixed. History belongs in commit mess
 ## Working in a multiplatform codebase
 
 The whole project is Kotlin Multiplatform with Compose Multiplatform for the UI. **iOS is the only platform
-besides Android** (no desktop, no web), and it ships **without** release reminders, whose entry points are
-hidden there; the iOS follow-ups are in `docs/roadmap.md`. Every module except `:core:ai`
+besides Android** (no desktop, no web); the iOS follow-ups are in `docs/roadmap.md`. Every module except `:core:ai`
 and `:androidApp` is multiplatform. The history and decisions are in `specs/010-kmp-migration`.
 
 - **Android must build and pass its tests at every commit** (`./gradlew :androidApp:assembleDebug`,

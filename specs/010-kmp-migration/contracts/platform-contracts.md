@@ -178,21 +178,6 @@ It is a concrete class today and becomes an interface so that the repository sta
 
 ## New contracts
 
-### `ReleaseRemindersAvailability` — `:core:domain`
-
-```kotlin
-interface ReleaseRemindersAvailability { val isAvailable: Boolean }
-```
-
-| Android | iOS |
-|---|---|
-| `true` | `false` |
-
-**Consumers**: `SettingsViewModel`, `GameDetailViewModel`, `OnboardingViewModel`, `RadarViewModel`.
-`ReleaseNotificationsViewModel` is not a consumer: its screen is only reachable from the Settings row that
-the flag already removes. Each one injects it directly, as for any other dependency, and
-gets a host test that sets it to `false` and asserts the entry point is absent from the UiState.
-
 ### `rememberCoverImagePicker` — `:core:ui`
 
 ```kotlin
@@ -321,6 +306,5 @@ same commit as any change to it.**
 
 | Capability | Android | iOS | User sees on iOS | Follow-up |
 |---|---|---|---|---|
-| Release reminders (notifications, permission prompt, per-game toggle, settings rows, onboarding page) | Full | Absent | No reminder controls anywhere | `docs/roadmap.md` — "Release reminders on iOS" |
-| Release-date refresh while the app is closed | WorkManager, every 24h | None | Dates refresh at launch (if over 24h old) and when the saved set changes | Same roadmap entry |
+| Release-date refresh while the app is closed | WorkManager, every 24h | `BGAppRefreshTask`, at most about once per 24h and only when the system allows | Dates refresh at launch (if over 24h old), when the saved set changes, and in the background when the system runs the task | None |
 | Status-bar icon colour follows the app theme | Yes | Follows the app theme without any code: the walkthrough (force dark under a light system theme and force light under a dark one) showed readable status-bar text both ways | None | None needed |

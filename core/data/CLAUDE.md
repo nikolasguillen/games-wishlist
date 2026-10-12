@@ -5,8 +5,8 @@ refresh. This is the **error boundary** of the app: exceptions stop here and bec
 
 ## Common and Android
 
-The repository, the common mappers, the three preference stores, `RepositoryErrorMapper.kt` and
-`StaticReleaseRemindersAvailability` are in `commonMain`, and so are the translation prompt builder and the
+The repository, the common mappers, the three preference stores and `RepositoryErrorMapper.kt` are in
+`commonMain`, and so are the translation prompt builder and the
 artifact sanitizer, which every translation engine shares. Everything that touches an Android API is in
 `androidMain`: `worker/`, `scheduler/`, `notification/ReleaseNotifierImpl`, `translation/GameDescriptionTranslatorImpl`
 (with `mapper/TranslationMapper.kt`, which names ML Kit's types), `local/WishlistCoverImageStorageImpl` and this
@@ -15,10 +15,12 @@ module's `strings.xml`. `:core:ai` is an `androidMain` dependency only. Each pla
 `iosMain`); the common `dataModule` binds only what needs no platform API. A new Android-only class goes in `androidMain` with its
 binding in the `actual` module; shared code reaches it through an interface in `:core:domain`.
 
-iOS has no WorkManager and no reminders, so its `dataPlatformModule` binds `BackgroundTaskReleaseRefreshScheduler`
-with its `ReleaseRefreshRunner`, no-op reminder classes, `StaticReleaseRemindersAvailability(false)` and
-`AppleLanguageModelTranslator`. All of these are in `commonMain` and unit-tested on the JVM. The translator needs
-an `AppleLanguageModelBridge` and the scheduler an `AppRefreshTaskBridge`, which Swift supplies because
+iOS has no WorkManager, so its `dataPlatformModule` binds `BackgroundTaskReleaseRefreshScheduler` with its
+`ReleaseRefreshRunner`, `AppleLanguageModelTranslator`, and the release reminder pieces:
+`LocalNotificationReleaseScheduler` (with its `ArmedReminderLedger`), `ReleaseReminderCoordinator` and
+`UserNotificationCenter`, the one `iosMain` class, which adapts `UNUserNotificationCenter` to
+`LocalNotificationCenter`. Everything else is in `commonMain` and unit-tested on the JVM. The translator needs an
+`AppleLanguageModelBridge` and the scheduler an `AppRefreshTaskBridge`, which Swift supplies because
 FoundationModels and BackgroundTasks cannot be imported from Kotlin/Native.
 
 ## Repository
@@ -150,3 +152,26 @@ the rules are in `ReleaseRefreshRunner`, which both paths share:
 - Swift (`ReleaseRefreshTask`) only registers the task, submits, and passes the outcome and the expiration across
   through `AppRefreshTaskBridge` and `AppRefreshTaskHandler`. Koin is started by `startQuestLog` from the app
   delegate, not by `MainViewController`, because a background launch builds no UI.
+
+## Release reminders on iOS
+
+The system delivers a local notification with no app code running, so the pending set has to be right ahead of time
+and a reminder that fired can only be recognised afterwards. `LocalNotificationReleaseScheduler` arms one request per
+game (identifier `release-reminder-<gameId>`, a floating 09:00 calendar trigger, or a one-second trigger when the
+time has passed) and records it in `ArmedReminderLedger`; an entry whose request is no longer pending fired, and
+`takeFiredReminders()` reports it once so `SyncReleaseNotificationsUseCase` marks it delivered instead of arming the
+same date again. Three rules are easy to break:
+
+- **`add` checks the permission itself.** The system accepts a request from an app that may not notify and never
+  delivers it, so `UserNotificationCenter.add` returns `false` unless authorized, and the scheduler then writes no
+  ledger entry. The next sync after the permission is granted arms it.
+- **At most 64 are pending.** After every `add` the scheduler trims to the 64 soonest and drops the rest from the
+  ledger too, so a trimmed game is armed again once there is room and is never reported as fired.
+- **`SyncReleaseNotificationsUseCase` is a `single` with a `Mutex`.** `takeFiredReminders()` removes the ledger entry
+  before the delivered date is written, so a second sync in between would re-arm a fired reminder. A `factory` gives
+  every caller its own lock.
+
+`ReleaseReminderCoordinator` runs the sync at launch, on every `ReminderSyncTriggers` event (the app became active,
+permission newly granted) and for a game that leaves the saved set; a trigger during a sync becomes one follow-up
+sync. `ReleaseRefreshRunner` also syncs after a successful refresh. The reminder text comes from `ReleaseReminderText`,
+implemented in `:shared` from `:core:ui`'s Compose resources for both platforms.
