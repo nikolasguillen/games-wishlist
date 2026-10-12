@@ -263,7 +263,7 @@ other genres those lead; a genre only dropped games carry does not; no duplicate
 
 ### Tests for User Story 2 (write first)
 
-- [ ] T027 [P] [US2] Create
+- [X] T027 [P] [US2] Create
   `core/domain/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/domain/usecase/search/GetBrowseGenresUseCaseTest.kt`
   (MockK on `getSavedGames()`). Cases: no saved games → ids `[12, 5, 31, 15, 32]` (C2); one saved game with three genres →
   those three first, then defaults skipping duplicates, five total (C3, C4); more than five positive genres → the five
@@ -272,7 +272,7 @@ other genres those lead; a genre only dropped games carry does not; no duplicate
   ascending id, deterministically (run it twice); every emission has exactly 5 distinct ids (C1); a re-emission of the
   saved-games flow that does not change the ranking produces no new list, one that does produces one (C6); a
   `getSavedGames()` flow that throws emits the five defaults instead of failing (C7).
-- [ ] T028 [US2] Extend `SearchViewModelTest.kt` (`feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/`):
+- [X] T028 [US2] Extend `SearchViewModelTest.kt` (`feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/`):
   add `getBrowseGenresUseCase = mockk<GetBrowseGenresUseCase>()`, stub `every { getBrowseGenresUseCase() } returns
   flowOf(<the five defaults>)` in `setUp()`, pass it in `createViewModel()`, and add case (9): after the use case emits a
   different list, `uiState.browseGenres` has the same ids in the same order with labels from `toLabelUiText()`, and a
@@ -280,14 +280,14 @@ other genres those lead; a genre only dropped games carry does not; no duplicate
 
 ### Implementation for User Story 2
 
-- [ ] T029 [US2] Create
+- [X] T029 [US2] Create
   `core/domain/src/commonMain/kotlin/com/nikolasguillen/questlog/core/domain/usecase/discover/TasteProfileBuilder.kt` with
   `internal fun List<Game>.toTasteProfile(): TasteProfile`, **moving without changes** `buildProfile`, `gameWeight`,
   `toSignals`, `addScore`, `addCount` and the two `RECENTLY_VIEWED_*` constants out of
   `.../usecase/discover/GetTasteProfileUseCase.kt` (keep their KDoc). `GetTasteProfileUseCase.invoke()` becomes
   `repository.getSavedGames().map { if (it.isEmpty()) TasteProfile.EMPTY else it.toTasteProfile() }`. This is a pure
   move: run `./gradlew :core:domain:testAndroidHostTest` and `GetTasteProfileUseCaseTest` must pass **unchanged**.
-- [ ] T030 [US2] Create
+- [X] T030 [US2] Create
   `core/domain/src/commonMain/kotlin/com/nikolasguillen/questlog/core/domain/usecase/search/GetBrowseGenresUseCase.kt`:
   `class GetBrowseGenresUseCase(private val repository: GameRepository)` with `operator fun invoke(): Flow<List<Genre>>`
   implementing the five rules of `specs/014-genre-quick-browse/data-model.md` (§`GetBrowseGenresUseCase`): map each
@@ -299,9 +299,9 @@ other genres those lead; a genre only dropped games carry does not; no duplicate
   mapping, so a failing saved-games flow still gives a full row (spec Assumptions; the catch ends the
   flow, which is acceptable for a failure that should not happen). KDoc: why positive weights only, why the id is the
   last tie-break, and why the fallback exists. Depends on T029. Makes T027 pass.
-- [ ] T031 [US2] Register `factoryOf(::GetBrowseGenresUseCase)` in
+- [X] T031 [US2] Register `factoryOf(::GetBrowseGenresUseCase)` in
   `core/domain/src/commonMain/kotlin/com/nikolasguillen/questlog/core/domain/di/DomainKoin.kt`.
-- [ ] T032 [US2] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModel.kt`
+- [X] T032 [US2] In `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModel.kt`
   add the constructor parameter `private val getBrowseGenresUseCase: GetBrowseGenresUseCase` and an
   `observeBrowseGenres()` called from `init`: `viewModelScope.launch { getBrowseGenresUseCase().collect { genres ->
   _uiState.update { it.copy(browseGenres = genres.toBrowseGenreUiModels()) } } }`, same shape as

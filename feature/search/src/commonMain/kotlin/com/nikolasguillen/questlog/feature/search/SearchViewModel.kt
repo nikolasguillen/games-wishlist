@@ -17,6 +17,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.search.BrowseGenreUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.ClearAllHistoryUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.ClearRecentGamesUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.DeleteSearchHistoryItemUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.search.GetBrowseGenresUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.GetRecentSearchActivityUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.GetSearchSuggestionsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.RemoveRecentGameUseCase
@@ -34,6 +35,7 @@ import com.nikolasguillen.questlog.feature.search.mapper.defaultBrowseGenres
 import com.nikolasguillen.questlog.feature.search.mapper.getInitialGameTypeFilters
 import com.nikolasguillen.questlog.feature.search.mapper.getInitialSortFilters
 import com.nikolasguillen.questlog.feature.search.mapper.isSortActive
+import com.nikolasguillen.questlog.feature.search.mapper.toBrowseGenreUiModels
 import com.nikolasguillen.questlog.feature.search.mapper.toDiscoverContentState
 import com.nikolasguillen.questlog.feature.search.mapper.toGenreFilters
 import com.nikolasguillen.questlog.feature.search.mapper.toPlatformFilters
@@ -85,6 +87,7 @@ private const val MIN_SUGGESTION_QUERY_LENGTH = 3
 class SearchViewModel(
     private val searchGamesUseCase: SearchGamesUseCase,
     private val browseGenreUseCase: BrowseGenreUseCase,
+    private val getBrowseGenresUseCase: GetBrowseGenresUseCase,
     private val addSearchToHistoryUseCase: AddSearchToHistoryUseCase,
     private val getRecentSearchActivityUseCase: GetRecentSearchActivityUseCase,
     private val deleteSearchHistoryItemUseCase: DeleteSearchHistoryItemUseCase,
@@ -140,6 +143,7 @@ class SearchViewModel(
     init {
         initSearchHistory()
         initSearchSuggestions()
+        observeBrowseGenres()
         observeDiscoverFeed()
         observeWishlistedGameIds()
     }
@@ -716,6 +720,19 @@ class SearchViewModel(
                         )
                     )
                 }
+            }
+        }
+    }
+
+    /**
+     * Keeps the "Browse by genre" row current for the whole life of the ViewModel. The state is seeded with
+     * the five defaults, so the row is never missing while the first emission (one local read) is on its way;
+     * after that it follows the user's library.
+     */
+    private fun observeBrowseGenres() {
+        viewModelScope.launch {
+            getBrowseGenresUseCase().collect { genres ->
+                _uiState.update { it.copy(browseGenres = genres.toBrowseGenreUiModels()) }
             }
         }
     }

@@ -36,6 +36,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.search.BrowseGenreUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.ClearAllHistoryUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.ClearRecentGamesUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.DeleteSearchHistoryItemUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.search.GetBrowseGenresUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.GetRecentSearchActivityUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.GetSearchSuggestionsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.RemoveRecentGameUseCase
@@ -95,6 +96,7 @@ val domainModule = module {
     factoryOf(::RemoveRecentGameUseCase)
     factoryOf(::SearchGamesUseCase)
     factoryOf(::BrowseGenreUseCase)
+    factoryOf(::GetBrowseGenresUseCase)
     factoryOf(::CompleteOnboardingUseCase)
     factoryOf(::GetAppearanceModeUseCase)
     factoryOf(::GetOnboardingCompletedUseCase)

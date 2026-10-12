@@ -14,6 +14,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.search.BrowseGenreUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.ClearAllHistoryUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.ClearRecentGamesUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.DeleteSearchHistoryItemUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.search.GetBrowseGenresUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.GetRecentSearchActivityUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.GetSearchSuggestionsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.RemoveRecentGameUseCase
@@ -28,6 +29,7 @@ import com.nikolasguillen.questlog.core.model.RepositoryError
 import com.nikolasguillen.questlog.core.model.SearchResult
 import com.nikolasguillen.questlog.core.model.SearchSuggestion
 import com.nikolasguillen.questlog.core.model.WishlistList
+import com.nikolasguillen.questlog.core.ui.resources.genre_adventure
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.DiscoverContentState
@@ -66,6 +68,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes
 
 /**
  * [SearchGamesUseCase] and friends are one-shot suspend calls, so most state transitions here are
@@ -85,6 +88,7 @@ class SearchViewModelTest {
 
     private val searchGamesUseCase = mockk<SearchGamesUseCase>()
     private val browseGenreUseCase = mockk<BrowseGenreUseCase>()
+    private val getBrowseGenresUseCase = mockk<GetBrowseGenresUseCase>()
     private val addSearchToHistoryUseCase = mockk<AddSearchToHistoryUseCase>(relaxed = true)
     private val getRecentSearchActivityUseCase = mockk<GetRecentSearchActivityUseCase>()
     private val deleteSearchHistoryItemUseCase = mockk<DeleteSearchHistoryItemUseCase>(relaxed = true)
@@ -102,6 +106,7 @@ class SearchViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+        every { getBrowseGenresUseCase() } returns flowOf(defaultGenres)
         every { getRecentSearchActivityUseCase() } returns flowOf(RecentSearchActivity())
         coEvery { getSearchSuggestionsUseCase.getLocalSuggestions(any()) } returns emptyList()
         coEvery { getSearchSuggestionsUseCase.getRemoteSuggestions(any()) } returns emptyList()
@@ -132,6 +137,14 @@ class SearchViewModelTest {
         genres = genres
     )
 
+    private val defaultGenres = listOf(
+        Genre(12, "Role-playing (RPG)"),
+        Genre(5, "Shooter"),
+        Genre(31, "Adventure"),
+        Genre(15, "Strategy"),
+        Genre(32, "Indie")
+    )
+
     private val rpgChip = BrowseGenreUiModel(12, UiText.DynamicString("RPG"))
     private val indieChip = BrowseGenreUiModel(32, UiText.DynamicString("Indie"))
 
@@ -148,6 +161,7 @@ class SearchViewModelTest {
         return SearchViewModel(
             searchGamesUseCase = searchGamesUseCase,
             browseGenreUseCase = browseGenreUseCase,
+            getBrowseGenresUseCase = getBrowseGenresUseCase,
             addSearchToHistoryUseCase = addSearchToHistoryUseCase,
             getRecentSearchActivityUseCase = getRecentSearchActivityUseCase,
             deleteSearchHistoryItemUseCase = deleteSearchHistoryItemUseCase,
@@ -1024,6 +1038,32 @@ class SearchViewModelTest {
 
         assertEquals(indieChip, viewModel.uiState.value.activeGenre)
         assertEquals(listOf(2), viewModel.successState().games.map { it.id })
+    }
+
+    @Test
+    fun `the chip row follows the genres the use case emits, mapped by id`() = runTest(testDispatcher) {
+        val emissions = MutableStateFlow(defaultGenres)
+        every { getBrowseGenresUseCase() } returns emissions
+        val viewModel = createViewModel()
+
+        emissions.value = listOf(
+            Genre(9999, "Wonder Genre"), Genre(31, "Adventure"), Genre(12, "Role-playing (RPG)"),
+            Genre(5, "Shooter"), Genre(15, "Strategy")
+        )
+        advanceUntilIdle()
+
+        val chips = viewModel.uiState.value.browseGenres
+        assertEquals(listOf(9999, 31, 12, 5, 15), chips.map { it.id })
+        assertEquals(UiText.DynamicString("Wonder Genre"), chips.first().label)
+        assertEquals(
+            UiText.StringResource(CoreUiRes.string.genre_adventure),
+            chips[1].label
+        )
+
+        emissions.value = defaultGenres
+        advanceUntilIdle()
+
+        assertEquals(listOf(12, 5, 31, 15, 32), viewModel.uiState.value.browseGenres.map { it.id })
     }
 
     // endregion
