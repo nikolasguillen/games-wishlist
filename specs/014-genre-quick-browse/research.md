@@ -287,4 +287,4 @@ not call `bringIntoView`, because the overlay closes.
 | Minimum ratings | 10 (`total_rating_count`) | `GENRE_BROWSE_MIN_RATING_COUNT`, `GameRepositoryImpl` |
 | Result cap | 500 (same as text search) | `GENRE_BROWSE_LIMIT`, `GameRepositoryImpl` |
 | Chips | 5 | `BROWSE_GENRE_COUNT`, `GetBrowseGenresUseCase` |
-| Defaults | RPG (12), Shooter (5), Adventure (31), Strategy (15), Indie (32) | `GetBrowseGenresUseCase`, via `KnownGenre` |
+| Defaults | RPG (12), Shooter (5), Adventure (31), Strategy (15), Indie (32) | `KnownGenre.BROWSE_DEFAULTS` |

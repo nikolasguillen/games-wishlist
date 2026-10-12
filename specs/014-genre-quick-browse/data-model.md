@@ -21,6 +21,10 @@ The IGDB genres the app has a label for. Plain Kotlin: no Android, no Compose.
 `companion fun fromId(id: Int): KnownGenre?` returns `null` for an id the enum does not list. There is no
 fallback entry: the caller decides what an unknown genre becomes.
 
+`companion val BROWSE_DEFAULTS: List<KnownGenre>` is `[ROLE_PLAYING, SHOOTER, ADVENTURE, STRATEGY, INDIE]`,
+in that order (FR-007). It is the single source for the fixed fallback: the ViewModel seeds the row with it
+and `GetBrowseGenresUseCase` pads from it.
+
 | Entry | `id` | `igdbName` | Label (`core/ui` `genre_*`) |
 |-------|-----:|------------|------------------------------|
 | `POINT_AND_CLICK` | 2 | Point-and-click | Point-and-click |
@@ -82,8 +86,8 @@ Rules, applied to every emission of `repository.getSavedGames()`:
 3. Taste genres = `profile.genres` with `weight > 0.0`, sorted by `weight` desc, then `count` desc, then `id`
    asc, limited to `BROWSE_GENRE_COUNT` (5), each mapped to `names[id]`. An id with no name in `names` is
    skipped. That cannot happen with a consistent emission; the check is only a guard.
-4. Pad from `DEFAULT_GENRES = [ROLE_PLAYING, SHOOTER, ADVENTURE, STRATEGY, INDIE]` (as
-   `Genre(k.id, k.igdbName)`), skipping ids already present, until there are five.
+4. Pad from `KnownGenre.BROWSE_DEFAULTS` (as `Genre(k.id, k.igdbName)`), skipping ids already present, until
+   there are five.
 5. `distinctUntilChanged()`, so a library change that does not move the ranking produces no new list.
 
 ### `BrowseGenreUseCase` (new, `usecase/search/`)
@@ -130,7 +134,7 @@ Built by `List<Genre>.toBrowseGenreUiModels()` in `SearchUiMapper.kt` (`label = 
 
 | New field | Type | Default | Meaning |
 |-----------|------|---------|---------|
-| `browseGenres` | `List<BrowseGenreUiModel>` | `emptyList()` | The chip row. Empty until the use case's first emission, which arrives in the time of one local read; the section is not drawn while it is empty. |
+| `browseGenres` | `List<BrowseGenreUiModel>` | `emptyList()` | The chip row. The ViewModel's initial state seeds it with the five `KnownGenre.BROWSE_DEFAULTS`, so the row is never missing (FR-010); the use case's first emission, one local read later, replaces it. A bare `SearchUiState()` (previews, tests) has no row, and the section is not drawn while the list is empty. |
 | `activeGenre` | `BrowseGenreUiModel?` | `null` | The genre being browsed, or `null` when no browse is active. |
 
 Invariant: `activeGenre != null` ⇒ `contentState !is SearchContentState.Idle`.

@@ -108,7 +108,7 @@ specs/014-genre-quick-browse/
 
 ```text
 core/model/src/commonMain/kotlin/com/nikolasguillen/questlog/core/model/
-└── KnownGenre.kt                                   NEW   enum: IGDB genre id + igdbName, fromId()
+└── KnownGenre.kt                                   NEW   enum: IGDB genre id + igdbName, fromId(), BROWSE_DEFAULTS
 
 core/domain/src/commonMain/kotlin/com/nikolasguillen/questlog/core/domain/
 ├── repository/GameRepository.kt                    EDIT  + getPopularGamesByGenre(genreId)
