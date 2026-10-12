@@ -1,11 +1,16 @@
 package com.nikolasguillen.questlog.shared
 
+import com.nikolasguillen.questlog.core.data.notification.ReleaseReminderCoordinator
+import com.nikolasguillen.questlog.core.data.notification.ReminderSyncTriggers
 import com.nikolasguillen.questlog.core.data.scheduler.AppRefreshTaskBridge
 import com.nikolasguillen.questlog.core.data.scheduler.AppRefreshTaskHandler
 import com.nikolasguillen.questlog.core.data.scheduler.AppRefreshTaskRun
 import com.nikolasguillen.questlog.core.data.translation.AppleLanguageModelBridge
 import com.nikolasguillen.questlog.core.domain.radar.ReleaseRefreshScheduler
+import com.nikolasguillen.questlog.core.ui.util.NotificationAuthorization
 import com.nikolasguillen.questlog.shared.di.initKoin
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatform
 import kotlin.experimental.ExperimentalNativeApi
@@ -17,7 +22,9 @@ import kotlin.native.Platform
  *
  * Koin starts here and not in [MainViewController] because the system can launch the app in the background to run
  * the release refresh, and then no scene is connected and no view controller is ever built. The periodic refresh
- * is requested once per launch, the same moment `QuestLogApp.onCreate` does it on Android.
+ * is requested once per launch, the same moment `QuestLogApp.onCreate` does it on Android. It also reads the
+ * notification permission, so that it is known before the first screen asks, and starts the reminder coordinator,
+ * which brings the pending release reminders in line with the saved games.
  *
  * Swift supplies the bridges because only Swift can call FoundationModels and BackgroundTasks. A second call does
  * nothing, so the bridges that were bound first stay: they keep no state.
@@ -33,10 +40,13 @@ fun startQuestLog(
             module {
                 single<AppleLanguageModelBridge> { languageModelBridge }
                 single<AppRefreshTaskBridge> { appRefreshTaskBridge }
+                single<ReminderSyncTriggers> { IosReminderSyncTriggers() }
             }
         )
     }.koin
     koin.get<ReleaseRefreshScheduler>().schedulePeriodicRefresh()
+    koin.get<CoroutineScope>().launch { NotificationAuthorization.refresh() }
+    koin.get<ReleaseReminderCoordinator>().start()
 }
 
 /**

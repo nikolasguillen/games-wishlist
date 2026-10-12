@@ -6,8 +6,12 @@ import androidx.datastore.preferences.core.Preferences
 import com.nikolasguillen.questlog.core.common.applicationSupportDirectory
 import com.nikolasguillen.questlog.core.data.local.WishlistCoverImageStorage
 import com.nikolasguillen.questlog.core.data.local.WishlistCoverImageStorageImpl
-import com.nikolasguillen.questlog.core.data.notification.NoOpReleaseNotificationScheduler
+import com.nikolasguillen.questlog.core.data.notification.ArmedReminderLedger
+import com.nikolasguillen.questlog.core.data.notification.LocalNotificationCenter
+import com.nikolasguillen.questlog.core.data.notification.LocalNotificationReleaseScheduler
 import com.nikolasguillen.questlog.core.data.notification.NoOpReleaseNotifier
+import com.nikolasguillen.questlog.core.data.notification.ReleaseReminderCoordinator
+import com.nikolasguillen.questlog.core.data.notification.UserNotificationCenter
 import com.nikolasguillen.questlog.core.data.notification.StaticReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.data.scheduler.AppRefreshTaskHandler
 import com.nikolasguillen.questlog.core.data.scheduler.BackgroundTaskReleaseRefreshScheduler
@@ -17,7 +21,9 @@ import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotificationS
 import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotifier
 import com.nikolasguillen.questlog.core.domain.notification.ReleaseRemindersAvailability
 import com.nikolasguillen.questlog.core.domain.radar.ReleaseRefreshScheduler
+import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.domain.translation.GameDescriptionTranslator
+import kotlinx.coroutines.flow.map
 import okio.Path.Companion.toPath
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.bind
@@ -43,11 +49,28 @@ actual val dataPlatformModule: Module = module {
     single { BackgroundTaskReleaseRefreshScheduler(runner = get(), bridge = get(), scope = get()) } binds
         arrayOf(ReleaseRefreshScheduler::class, AppRefreshTaskHandler::class)
 
-    // Release reminders are not on iOS yet, so every entry point to them is hidden and these are never reached;
-    // they are bound so the shared use cases that take them still resolve.
-    singleOf(::NoOpReleaseNotificationScheduler) { bind<ReleaseNotificationScheduler>() }
+    // Release reminders are local notifications that the system delivers by itself, so there is no worker and no
+    // app code at fire time: the coordinator keeps the pending set right, and the ledger tells a reminder that
+    // fired from one that was never armed. `ReminderSyncTriggers` is bound by `startQuestLog`, because the
+    // permission state it listens to lives in :core:ui.
+    single<LocalNotificationCenter> { UserNotificationCenter() }
+    single { ArmedReminderLedger(get()) }
+    single<ReleaseNotificationScheduler> {
+        LocalNotificationReleaseScheduler(center = get(), text = get(), ledger = get(), clock = Clock.System)
+    }
+    single {
+        val repository = get<GameRepository>()
+        ReleaseReminderCoordinator(
+            syncReleaseNotifications = get(),
+            getSavedGameIds = { repository.getSavedGames().map { games -> games.map { it.id }.toSet() } },
+            triggers = get(),
+            scope = get()
+        )
+    }
+    // Nothing on iOS posts a reminder itself; this is bound until the availability flag goes (Phase 7), so that
+    // DeliverReleaseNotificationUseCase can still be resolved.
     singleOf(::NoOpReleaseNotifier) { bind<ReleaseNotifier>() }
-    single<ReleaseRemindersAvailability> { StaticReleaseRemindersAvailability(isAvailable = false) }
+    single<ReleaseRemindersAvailability> { StaticReleaseRemindersAvailability(isAvailable = true) }
 
     // Needs the AppleLanguageModelBridge that startQuestLog binds from Swift: FoundationModels is Swift-only.
     singleOf(::AppleLanguageModelTranslator) { bind<GameDescriptionTranslator>() }
