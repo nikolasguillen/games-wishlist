@@ -63,6 +63,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
@@ -258,8 +259,10 @@ internal fun SearchInputField(
         readOnly = searchBarState.currentValue == SearchBarValue.Collapsed,
         placeholder = {
             Text(
-                modifier = Modifier.clearAndSetSemantics {},
-                text = genrePlaceholder ?: stringResource(Res.string.search_placeholder)
+                text = genrePlaceholder ?: stringResource(Res.string.search_placeholder),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.clearAndSetSemantics {}
             )
         },
         trailingIcon = {
