@@ -258,7 +258,7 @@ long-pressing a card behave as in a text search result (quickstart §3, rows 3, 
 
 **Dependency**: US1 (the shelf model, key and `hasMore`) and Foundational (`activeBrowse`).
 
-- [ ] T024 [US2] Add the shelf-grid cases to
+- [X] T024 [US2] Add the shelf-grid cases to
   `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModelTest.kt`, in a
   block under the 014 browse tests, built from `getDiscoverFeedUseCase` emissions (as the existing Discover tests do)
   and taking the shelf to open from `viewModel.uiState.value.discover` (the way the screen gets it). Add a helper
@@ -276,17 +276,17 @@ long-pressing a card behave as in a text search result (quickstart §3, rows 3, 
   `OnShelfSeeAllTriggered` for the same shelf with a changed feed emission in between keep the first snapshot;
   (13) with a text search suspended on a `CompletableDeferred`, open a shelf, then complete the search: the shelf's
   `Success` and `activeBrowse` are still there. Needs T025.
-- [ ] T025 [P] [US2] Edit
+- [X] T025 [P] [US2] Edit
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/model/SearchUiEvent.kt`: add
   `data class OnShelfSeeAllTriggered(val shelf: DiscoverShelfUiModel) : SearchUiEvent` with KDoc ("the user tapped a
   Discover shelf's title row; carries the whole shelf, like `OnGenreBrowseTriggered`, so the placeholder names exactly
   what was tapped").
-- [ ] T026 [P] [US2] Add to
+- [X] T026 [P] [US2] Add to
   `feature/search/src/commonMain/composeResources/values/strings.xml`:
   `<string name="discover_see_all_shelf">See all: %1$s</string>` beside the other `discover_*` entries (positional
   `%1$s`, plain text, no escapes; the argument is the shelf's resolved title). The module ships only `values/`, so there
   is no locale to add it to.
-- [ ] T027 [US2] Edit
+- [X] T027 [US2] Edit
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModel.kt`: add the
   `OnShelfSeeAllTriggered` branch to `onEvent` calling a new `private fun openShelf(shelf: DiscoverShelfUiModel)`,
   **synchronous, no coroutine** (research R6): (a) return if `activeBrowse` is already a `Shelf` with `shelf.key`
@@ -302,7 +302,7 @@ long-pressing a card behave as in a text search result (quickstart §3, rows 3, 
   true)`, and `contentState = SearchContentState.Success(games = sorted.toGameItemList(wishlistedGameIds.value), filters
   = filters, allGames = games)`. `allGames` is the **shelf-order** list, so "Top picks" is recoverable after a re-sort
   (as in `browseGenre`). Add the import of `toSearchResult` from `core.domain.usecase.search`. Needs T002, T008, T025.
-- [ ] T028 [US2] Edit
+- [X] T028 [US2] Edit
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/components/DiscoverFeed.kt`: give
   `DiscoverFeed` an `onSeeAllClick: (DiscoverShelfUiModel) -> Unit` parameter (before `modifier`, after `onLongClick`)
   and thread it into `DiscoverShelf`. Rebuild the title row of the private `DiscoverShelf` as in research R7: a `Row`
@@ -318,11 +318,11 @@ long-pressing a card behave as in a text search result (quickstart §3, rows 3, 
   `clickable`, no icon, no semantics change. No `dp` literal; the existing `140.dp` card width stays as it is. Add
   previews: a shelf with `hasMore = true`, one with `hasMore = false`, and one with a very long title that keeps the
   arrow visible. Needs T015, T025, T026.
-- [ ] T029 [US2] Edit
+- [X] T029 [US2] Edit
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/components/SearchMainContent.kt`:
   add `onSeeAllClick: (DiscoverShelfUiModel) -> Unit` to `SearchMainContent` (after `activeBrowse`), pass it through
   `DiscoverContent` to `DiscoverFeed`, and update the previews' calls. Needs T028.
-- [ ] T030 [US2] Edit
+- [X] T030 [US2] Edit
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchScreen.kt`: add `val
   onOpenShelf: (DiscoverShelfUiModel) -> Unit = remember(onResetScroll, onEvent, scope) { { shelf ->
   scope.launch { onResetScroll() }; onEvent(SearchUiEvent.OnShelfSeeAllTriggered(shelf)) } }`, built like

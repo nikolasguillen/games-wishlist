@@ -50,6 +50,7 @@ import com.nikolasguillen.questlog.feature.search.components.SearchSortBottomShe
 import com.nikolasguillen.questlog.feature.search.components.SearchTopBar
 import com.nikolasguillen.questlog.feature.search.components.resetToTop
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
+import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfUiModel
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchContentState
 import com.nikolasguillen.questlog.feature.search.model.SearchHistoryUiModel
@@ -187,6 +188,18 @@ internal fun SearchScreenContent(
             }
         }
 
+    // The results grid is shared by every search and browse, so a shelf's grid must start at the top; the
+    // feed's own scroll position lives in discoverListState, which onResetScroll leaves alone, so the feed
+    // is where the user left it when they come back. The search bar is already collapsed (the arrow is on
+    // the feed), so unlike the two lambdas above there is nothing to collapse.
+    val onOpenShelf: (DiscoverShelfUiModel) -> Unit =
+        remember(onResetScroll, onEvent, scope) {
+            { shelf ->
+                scope.launch { onResetScroll() }
+                onEvent(SearchUiEvent.OnShelfSeeAllTriggered(shelf))
+            }
+        }
+
     val onGameClickWithCollapse: (Int) -> Unit =
         remember(onGameClick, searchBarState, scope) {
             { gameId ->
@@ -251,6 +264,7 @@ internal fun SearchScreenContent(
             discoverState = uiState.discover,
             onEvent = onEvent,
             onGameClick = onGameClickWithCollapse,
+            onSeeAllClick = onOpenShelf,
             gridState = gridState,
             activeBrowse = uiState.activeBrowse,
             modifier = Modifier

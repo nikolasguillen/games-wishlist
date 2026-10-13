@@ -21,19 +21,24 @@ import com.nikolasguillen.questlog.core.domain.usecase.search.RemoveRecentGameUs
 import com.nikolasguillen.questlog.core.domain.usecase.search.SearchGamesUseCase
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.DiscoverFeed
+import com.nikolasguillen.questlog.core.model.DiscoverLane
 import com.nikolasguillen.questlog.core.model.Game
 import com.nikolasguillen.questlog.core.model.Genre
 import com.nikolasguillen.questlog.core.model.Platform
 import com.nikolasguillen.questlog.core.model.RecentSearchActivity
+import com.nikolasguillen.questlog.core.model.RecommendedShelf
 import com.nikolasguillen.questlog.core.model.RepositoryError
 import com.nikolasguillen.questlog.core.model.SearchResult
 import com.nikolasguillen.questlog.core.model.SearchSuggestion
+import com.nikolasguillen.questlog.core.model.ShelfReason
 import com.nikolasguillen.questlog.core.model.WishlistList
 import com.nikolasguillen.questlog.core.ui.resources.genre_adventure
 import com.nikolasguillen.questlog.core.ui.resources.sort_relevance
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.DiscoverContentState
+import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfKey
+import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfUiModel
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchBrowseUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchContentState
@@ -61,6 +66,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -1328,6 +1334,261 @@ class SearchViewModelTest {
 
         coVerify(exactly = 1) { addSearchToHistoryUseCase(any()) }
         coVerify(exactly = 1) { addSearchToHistoryUseCase("zelda") }
+    }
+
+    // endregion
+
+    // region Shelf grid
+
+    private fun givenFeed(feed: DiscoverFeed) {
+        every { getDiscoverFeedUseCase(any()) } returns flowOf(AppResult.success(feed))
+    }
+
+    private fun gamesFrom(firstId: Int, count: Int): List<Game> =
+        (firstId until firstId + count).map { testGame(id = it) }
+
+    private fun genreShelfOf(genreId: Int, name: String, games: List<Game>) =
+        RecommendedShelf(ShelfReason.ByGenre(Genre(genreId, name)), games)
+
+    /** The shelf as the screen holds it, which is what the arrow sends back. */
+    private fun SearchViewModel.shelf(key: DiscoverShelfKey): DiscoverShelfUiModel {
+        val content = uiState.value.discover as DiscoverContentState.Content
+        return (listOfNotNull(content.popular, content.upcoming) + content.recommended).first { it.key == key }
+    }
+
+    private val popularKey = DiscoverShelfKey.Lane(DiscoverLane.POPULAR_THIS_MONTH)
+    private val anticipatedKey = DiscoverShelfKey.Lane(DiscoverLane.MOST_ANTICIPATED)
+
+    private fun SearchViewModel.openShelf(key: DiscoverShelfKey) {
+        onEvent(SearchUiEvent.OnShelfSeeAllTriggered(shelf(key)))
+    }
+
+    @Test
+    fun `opening a shelf shows every game of it at once, with no Loading in between`() =
+        runTest(testDispatcher) {
+            val popular = gamesFrom(firstId = 1, count = 8)
+            givenFeed(DiscoverFeed(popular = popular, upcoming = emptyList()))
+            val viewModel = createViewModel()
+            val shelf = viewModel.shelf(popularKey)
+            assertTrue(shelf.hasMore)
+            assertEquals(6, shelf.games.size)
+
+            val seen = mutableListOf<SearchContentState>()
+            val collector = launch(UnconfinedTestDispatcher(testScheduler)) {
+                viewModel.uiState.collect { seen += it.contentState }
+            }
+
+            viewModel.onEvent(SearchUiEvent.OnShelfSeeAllTriggered(shelf))
+
+            // Synchronous: nothing had to run on a dispatcher for the grid to be there.
+            val success = viewModel.successState()
+            assertEquals(popular.map { it.id }, success.allGames.map { it.id })
+            assertEquals(popular.map { it.id }, success.games.map { it.id })
+            assertEquals(SearchBrowseUiModel.Shelf(popularKey, shelf.title), viewModel.uiState.value.activeBrowse)
+            advanceUntilIdle()
+            collector.cancel()
+            assertTrue(seen.none { it is SearchContentState.Loading })
+            assertTrue(seen.none { it is SearchContentState.Error })
+        }
+
+    @Test
+    fun `the Most anticipated grid holds the shelf without the hero`() = runTest(testDispatcher) {
+        givenFeed(DiscoverFeed(popular = emptyList(), upcoming = gamesFrom(firstId = 1, count = 9)))
+        val viewModel = createViewModel()
+        assertEquals(1, (viewModel.uiState.value.discover as DiscoverContentState.Content).hero?.id)
+
+        viewModel.openShelf(anticipatedKey)
+
+        assertEquals((2..9).toList(), viewModel.successState().allGames.map { it.id })
+    }
+
+    @Test
+    fun `opening a shelf fetches nothing and writes nothing to history`() = runTest(testDispatcher) {
+        givenFeed(DiscoverFeed(popular = gamesFrom(firstId = 1, count = 8), upcoming = emptyList()))
+        val viewModel = createViewModel()
+
+        viewModel.openShelf(popularKey)
+        advanceUntilIdle()
+        viewModel.onEvent(SearchUiEvent.OnClearSearch)
+
+        verify(exactly = 1) { getDiscoverFeedUseCase(any()) }
+        coVerify(exactly = 0) { searchGamesUseCase(any()) }
+        coVerify(exactly = 0) { browseGenreUseCase(any()) }
+        coVerify(exactly = 0) { addSearchToHistoryUseCase(any()) }
+    }
+
+    @Test
+    fun `opening a shelf empties the text field and the suggestions`() = runTest(testDispatcher) {
+        givenFeed(DiscoverFeed(popular = gamesFrom(firstId = 1, count = 8), upcoming = emptyList()))
+        val viewModel = createViewModel()
+        viewModel.setQuery("zel")
+
+        viewModel.openShelf(popularKey)
+        advanceUntilIdle()
+
+        assertEquals("", viewModel.textFieldState.text.toString())
+        assertEquals(emptyList<String>(), viewModel.uiState.value.suggestions.historySuggestions)
+    }
+
+    @Test
+    fun `an open shelf grid does not change when the feed refreshes underneath it`() =
+        runTest(testDispatcher) {
+            val feed = MutableStateFlow(
+                AppResult.success(DiscoverFeed(popular = gamesFrom(firstId = 1, count = 8), upcoming = emptyList()))
+            )
+            every { getDiscoverFeedUseCase(any()) } returns feed
+            val viewModel = createViewModel()
+            viewModel.openShelf(popularKey)
+
+            feed.value = AppResult.success(
+                DiscoverFeed(popular = gamesFrom(firstId = 50, count = 8), upcoming = emptyList())
+            )
+            advanceUntilIdle()
+
+            assertEquals((1..8).toList(), viewModel.successState().allGames.map { it.id })
+            val content = viewModel.uiState.value.discover as DiscoverContentState.Content
+            assertEquals((50..55).toList(), content.popular?.games?.map { it.id })
+        }
+
+    @Test
+    fun `saving and long-pressing a card in a shelf grid act on that game`() = runTest(testDispatcher) {
+        val popular = gamesFrom(firstId = 1, count = 8)
+        givenFeed(DiscoverFeed(popular = popular, upcoming = emptyList()))
+        every { getWishlistAssignmentsUseCase(8) } returns flowOf(
+            listOf(WishlistAssignment(WishlistList(id = 10, name = "Wishlist"), isAssigned = false))
+        )
+        val viewModel = createViewModel()
+        viewModel.openShelf(popularKey)
+
+        // 8 is past the end of the row, so only the grid can have shown it.
+        viewModel.onEvent(SearchUiEvent.OnToggleSave(8))
+        viewModel.onEvent(SearchUiEvent.OnOpenListSelector(8))
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { toggleWishlistUseCase(popular.last()) }
+        assertEquals(8, viewModel.uiState.value.listSelectorState?.gameId)
+    }
+
+    @Test
+    fun `a wishlist change marks the cards of an open shelf grid saved`() = runTest(testDispatcher) {
+        val ids = MutableStateFlow<Set<Int>>(emptySet())
+        every { getWishlistedGameIdsUseCase() } returns ids
+        givenFeed(DiscoverFeed(popular = gamesFrom(firstId = 1, count = 8), upcoming = emptyList()))
+        val viewModel = createViewModel()
+        viewModel.openShelf(popularKey)
+        assertTrue(viewModel.successState().games.none { it.isSaved })
+
+        ids.value = setOf(3, 8)
+        advanceUntilIdle()
+
+        assertEquals(listOf(3, 8), viewModel.successState().games.filter { it.isSaved }.map { it.id })
+    }
+
+    @Test
+    fun `two shelves with the same visible title each open their own games`() = runTest(testDispatcher) {
+        givenFeed(
+            DiscoverFeed(
+                popular = emptyList(),
+                upcoming = emptyList(),
+                recommended = listOf(
+                    genreShelfOf(genreId = 12, name = "Same name", games = gamesFrom(firstId = 1, count = 8)),
+                    genreShelfOf(genreId = 31, name = "Same name", games = gamesFrom(firstId = 101, count = 8))
+                )
+            )
+        )
+        val viewModel = createViewModel()
+        val first = DiscoverShelfKey.ByGenre(12)
+        val second = DiscoverShelfKey.ByGenre(31)
+        assertEquals(viewModel.shelf(first).title, viewModel.shelf(second).title)
+
+        viewModel.openShelf(second)
+        assertEquals((101..108).toList(), viewModel.successState().allGames.map { it.id })
+        viewModel.onEvent(SearchUiEvent.OnClearSearch)
+
+        viewModel.openShelf(first)
+        assertEquals((1..8).toList(), viewModel.successState().allGames.map { it.id })
+    }
+
+    @Test
+    fun `tapping a shelf the refreshed feed no longer holds does nothing`() = runTest(testDispatcher) {
+        val withShelf = DiscoverFeed(
+            popular = gamesFrom(firstId = 1, count = 8),
+            upcoming = emptyList(),
+            recommended = listOf(genreShelfOf(genreId = 12, name = "RPG", games = gamesFrom(firstId = 101, count = 8)))
+        )
+        val feed = MutableStateFlow(AppResult.success(withShelf))
+        every { getDiscoverFeedUseCase(any()) } returns feed
+        val viewModel = createViewModel()
+        val staleShelf = viewModel.shelf(DiscoverShelfKey.ByGenre(12))
+
+        feed.value = AppResult.success(withShelf.copy(recommended = emptyList()))
+        advanceUntilIdle()
+        viewModel.onEvent(SearchUiEvent.OnShelfSeeAllTriggered(staleShelf))
+        advanceUntilIdle()
+
+        assertEquals(null, viewModel.uiState.value.activeBrowse)
+        assertEquals(SearchContentState.Idle, viewModel.uiState.value.contentState)
+    }
+
+    @Test
+    fun `a double tap keeps the first snapshot`() = runTest(testDispatcher) {
+        val feed = MutableStateFlow(
+            AppResult.success(DiscoverFeed(popular = gamesFrom(firstId = 1, count = 8), upcoming = emptyList()))
+        )
+        every { getDiscoverFeedUseCase(any()) } returns feed
+        val viewModel = createViewModel()
+        val shelf = viewModel.shelf(popularKey)
+
+        viewModel.onEvent(SearchUiEvent.OnShelfSeeAllTriggered(shelf))
+        feed.value = AppResult.success(
+            DiscoverFeed(popular = gamesFrom(firstId = 50, count = 8), upcoming = emptyList())
+        )
+        advanceUntilIdle()
+        viewModel.onEvent(SearchUiEvent.OnShelfSeeAllTriggered(shelf))
+        advanceUntilIdle()
+
+        assertEquals((1..8).toList(), viewModel.successState().allGames.map { it.id })
+    }
+
+    @Test
+    fun `a search still loading when a shelf opens cannot land on top of it`() = runTest(testDispatcher) {
+        givenFeed(DiscoverFeed(popular = gamesFrom(firstId = 1, count = 8), upcoming = emptyList()))
+        val deferred = CompletableDeferred<AppResult<SearchResult>>()
+        coEvery { searchGamesUseCase("zelda") } coAnswers { deferred.await() }
+        val viewModel = createViewModel()
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
+        advanceUntilIdle()
+        assertEquals(SearchContentState.Loading, viewModel.uiState.value.contentState)
+
+        viewModel.openShelf(popularKey)
+        deferred.complete(
+            AppResult.success(SearchResult(games = listOf(testGame(id = 999)), platforms = emptyList(), genres = emptyList()))
+        )
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.activeBrowse is SearchBrowseUiModel.Shelf)
+        assertEquals((1..8).toList(), viewModel.successState().allGames.map { it.id })
+        assertEquals("", viewModel.textFieldState.text.toString())
+    }
+
+    @Test
+    fun `a search failing while a shelf opens cannot put an Error under it`() = runTest(testDispatcher) {
+        givenFeed(DiscoverFeed(popular = gamesFrom(firstId = 1, count = 8), upcoming = emptyList()))
+        val deferred = CompletableDeferred<AppResult<SearchResult>>()
+        coEvery { searchGamesUseCase("zelda") } coAnswers { deferred.await() }
+        val viewModel = createViewModel()
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
+        advanceUntilIdle()
+
+        viewModel.openShelf(popularKey)
+        deferred.complete(AppResult.failure(RepositoryError.NoNetwork))
+        advanceUntilIdle()
+        viewModel.onEvent(SearchUiEvent.OnRetrySearch)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.contentState is SearchContentState.Success)
+        // Retry on a shelf grid is a no-op: it must not re-run the old text search either.
+        coVerify(exactly = 1) { searchGamesUseCase("zelda") }
     }
 
     // endregion

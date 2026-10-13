@@ -6,11 +6,13 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
@@ -30,10 +33,15 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
@@ -54,6 +62,7 @@ import com.nikolasguillen.questlog.feature.search.resources.discover_most_antici
 import com.nikolasguillen.questlog.feature.search.resources.discover_popular_this_month
 import com.nikolasguillen.questlog.feature.search.resources.discover_refresh_prompt_subtitle
 import com.nikolasguillen.questlog.feature.search.resources.discover_refresh_prompt_title
+import com.nikolasguillen.questlog.feature.search.resources.discover_see_all_shelf
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -79,6 +88,7 @@ internal fun DiscoverFeed(
     onGameClick: (Int) -> Unit,
     onSaveClick: (Int) -> Unit,
     onLongClick: (Int) -> Unit,
+    onSeeAllClick: (DiscoverShelfUiModel) -> Unit,
     modifier: Modifier = Modifier,
     recommended: List<DiscoverShelfUiModel> = emptyList(),
     isStale: Boolean = false,
@@ -121,7 +131,8 @@ internal fun DiscoverFeed(
                         shelf = shelf,
                         onGameClick = onGameClick,
                         onSaveClick = onSaveClick,
-                        onLongClick = onLongClick
+                        onLongClick = onLongClick,
+                        onSeeAllClick = onSeeAllClick
                     )
                 }
             }
@@ -131,7 +142,8 @@ internal fun DiscoverFeed(
                         shelf = upcoming,
                         onGameClick = onGameClick,
                         onSaveClick = onSaveClick,
-                        onLongClick = onLongClick
+                        onLongClick = onLongClick,
+                        onSeeAllClick = onSeeAllClick
                     )
                 }
             }
@@ -141,7 +153,8 @@ internal fun DiscoverFeed(
                         shelf = popular,
                         onGameClick = onGameClick,
                         onSaveClick = onSaveClick,
-                        onLongClick = onLongClick
+                        onLongClick = onLongClick,
+                        onSeeAllClick = onSeeAllClick
                     )
                 }
             }
@@ -234,24 +247,26 @@ private fun DiscoverRefreshPrompt(
     }
 }
 
+/**
+ * One shelf: a title row, then the capped row of cards. Only a shelf that [DiscoverShelfUiModel.hasMore] gets
+ * an arrow, and then the whole title row is the button -- announced once, as "See all: <title>", rather
+ * than as a title and an arrow that do the same thing. Without an arrow the row is a plain heading and does
+ * nothing, since a grid of the same cards would add nothing.
+ */
 @Composable
 private fun DiscoverShelf(
     shelf: DiscoverShelfUiModel,
     onGameClick: (Int) -> Unit,
     onSaveClick: (Int) -> Unit,
     onLongClick: (Int) -> Unit,
+    onSeeAllClick: (DiscoverShelfUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
         modifier = modifier
     ) {
-        Text(
-            text = shelf.title.asString(),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
-        )
+        DiscoverShelfTitleRow(shelf = shelf, onSeeAllClick = onSeeAllClick)
 
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
@@ -266,6 +281,59 @@ private fun DiscoverShelf(
                     modifier = Modifier.width(140.dp)
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun DiscoverShelfTitleRow(
+    shelf: DiscoverShelfUiModel,
+    onSeeAllClick: (DiscoverShelfUiModel) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val seeAllLabel = if (shelf.hasMore) {
+        stringResource(Res.string.discover_see_all_shelf, shelf.title.asString())
+    } else {
+        null
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            // Every heading takes the platform's minimum touch height, with or without an arrow, so the
+            // shelves keep one rhythm; only the ones with an arrow are tappable.
+            .minimumInteractiveComponentSize()
+            .then(
+                if (seeAllLabel != null) {
+                    // One merged node: the title and the arrow are one control, so a screen reader stops
+                    // here once. clearAndSetSemantics comes after clickable, which keeps the button role.
+                    Modifier
+                        .clickable(role = Role.Button) { onSeeAllClick(shelf) }
+                        .clearAndSetSemantics { contentDescription = seeAllLabel }
+                } else {
+                    Modifier
+                }
+            )
+            .padding(horizontal = MaterialTheme.spacing.large)
+    ) {
+        Text(
+            text = shelf.title.asString(),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+
+        if (shelf.hasMore) {
+            Spacer(modifier = Modifier.width(MaterialTheme.spacing.medium))
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(MaterialTheme.spacing.mediumLarge)
+            )
         }
     }
 }
@@ -311,7 +379,8 @@ private fun DiscoverFeedPreview() {
             upcoming = previewUpcoming,
             onGameClick = {},
             onSaveClick = {},
-            onLongClick = {}
+            onLongClick = {},
+            onSeeAllClick = {}
         )
     }
 }
@@ -326,7 +395,34 @@ private fun DiscoverFeedFullRowPreview() {
             upcoming = null,
             onGameClick = {},
             onSaveClick = {},
-            onLongClick = {}
+            onLongClick = {},
+            onSeeAllClick = {}
+        )
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun DiscoverFeedSeeAllPreview() {
+    QuestLogTheme {
+        DiscoverFeed(
+            hero = previewGames.first(),
+            popular = previewPopular.copy(hasMore = true),
+            upcoming = previewUpcoming,
+            onGameClick = {},
+            onSaveClick = {},
+            onLongClick = {},
+            onSeeAllClick = {},
+            recommended = listOf(
+                previewShelf(
+                    key = DiscoverShelfKey.ByDeveloper(developerId = 1),
+                    title = UiText.StringResource(
+                        Res.string.discover_more_from,
+                        "A studio with a name far too long to fit beside the arrow on a narrow screen"
+                    ),
+                    hasMore = true
+                )
+            )
         )
     }
 }
@@ -342,6 +438,7 @@ private fun DiscoverFeedRecommendedPreview() {
             onGameClick = {},
             onSaveClick = {},
             onLongClick = {},
+            onSeeAllClick = {},
             recommended = listOf(
                 previewShelf(
                     key = DiscoverShelfKey.ByDeveloper(developerId = 1),
@@ -368,6 +465,7 @@ private fun DiscoverFeedStalePreview() {
             onGameClick = {},
             onSaveClick = {},
             onLongClick = {},
+            onSeeAllClick = {},
             isStale = true
         )
     }
@@ -384,6 +482,7 @@ private fun DiscoverFeedRefreshingPreview() {
             onGameClick = {},
             onSaveClick = {},
             onLongClick = {},
+            onSeeAllClick = {},
             isStale = true,
             isRefreshing = true
         )
@@ -400,7 +499,8 @@ private fun DiscoverFeedEmptyPreview() {
             upcoming = null,
             onGameClick = {},
             onSaveClick = {},
-            onLongClick = {}
+            onLongClick = {},
+            onSeeAllClick = {}
         )
     }
 }

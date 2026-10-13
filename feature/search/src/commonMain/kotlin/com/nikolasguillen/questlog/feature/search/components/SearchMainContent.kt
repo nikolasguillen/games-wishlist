@@ -42,6 +42,7 @@ internal fun SearchMainContent(
     discoverState: DiscoverContentState,
     onEvent: (SearchUiEvent) -> Unit,
     onGameClick: (Int) -> Unit,
+    onSeeAllClick: (DiscoverShelfUiModel) -> Unit,
     gridState: LazyGridState,
     activeBrowse: SearchBrowseUiModel?,
     modifier: Modifier = Modifier,
@@ -53,6 +54,7 @@ internal fun SearchMainContent(
                 state = discoverState,
                 onEvent = onEvent,
                 onGameClick = onGameClick,
+                onSeeAllClick = onSeeAllClick,
                 listState = discoverListState
             )
             is SearchContentState.Error -> ErrorPage(
@@ -89,6 +91,7 @@ private fun DiscoverContent(
     state: DiscoverContentState,
     onEvent: (SearchUiEvent) -> Unit,
     onGameClick: (Int) -> Unit,
+    onSeeAllClick: (DiscoverShelfUiModel) -> Unit,
     listState: LazyListState
 ) {
     when (state) {
@@ -104,6 +107,7 @@ private fun DiscoverContent(
             onGameClick = onGameClick,
             onSaveClick = { onEvent(SearchUiEvent.OnToggleSave(it)) },
             onLongClick = { onEvent(SearchUiEvent.OnOpenListSelector(it)) },
+            onSeeAllClick = onSeeAllClick,
             recommended = state.recommended,
             isStale = state.isStale,
             isRefreshing = state.isRefreshing,
@@ -126,6 +130,7 @@ private fun SearchMainContentPreview(
             discoverState = discoverState,
             onEvent = {},
             onGameClick = {},
+            onSeeAllClick = {},
             gridState = rememberLazyGridState(),
             activeBrowse = activeBrowse
         )

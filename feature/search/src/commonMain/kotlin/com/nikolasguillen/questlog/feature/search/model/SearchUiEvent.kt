@@ -6,6 +6,12 @@ internal sealed interface SearchUiEvent {
 
     /** The user tapped a genre chip in the "Browse by genre" row. */
     data class OnGenreBrowseTriggered(val genre: BrowseGenreUiModel) : SearchUiEvent
+
+    /**
+     * The user tapped a Discover shelf's title row to see all of its games as a grid. Carries the whole shelf,
+     * like [OnGenreBrowseTriggered] carries the genre, so the search bar names exactly what was tapped.
+     */
+    data class OnShelfSeeAllTriggered(val shelf: DiscoverShelfUiModel) : SearchUiEvent
     data object OnClearHistory : SearchUiEvent
     data class OnHistoryItemRemoved(val query: String) : SearchUiEvent
     data class OnRecentGameRemoved(val gameId: Int) : SearchUiEvent

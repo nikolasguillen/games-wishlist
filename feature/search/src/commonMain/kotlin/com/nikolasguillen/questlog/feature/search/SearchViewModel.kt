@@ -22,6 +22,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.search.GetRecentSearchAct
 import com.nikolasguillen.questlog.core.domain.usecase.search.GetSearchSuggestionsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.RemoveRecentGameUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.SearchGamesUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.search.toSearchResult
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.DiscoverFeed
 import com.nikolasguillen.questlog.core.model.Game
@@ -35,6 +36,7 @@ import com.nikolasguillen.questlog.feature.search.mapper.defaultBrowseGenres
 import com.nikolasguillen.questlog.feature.search.mapper.getInitialGameTypeFilters
 import com.nikolasguillen.questlog.feature.search.mapper.getInitialSortFilters
 import com.nikolasguillen.questlog.feature.search.mapper.isSortActive
+import com.nikolasguillen.questlog.feature.search.mapper.shelfGames
 import com.nikolasguillen.questlog.feature.search.mapper.toBrowseGenreUiModels
 import com.nikolasguillen.questlog.feature.search.mapper.toDiscoverContentState
 import com.nikolasguillen.questlog.feature.search.mapper.toGenreFilters
@@ -160,6 +162,10 @@ class SearchViewModel(
 
             is SearchUiEvent.OnGenreBrowseTriggered -> {
                 browseGenre(event.genre)
+            }
+
+            is SearchUiEvent.OnShelfSeeAllTriggered -> {
+                openShelf(event.shelf)
             }
 
             SearchUiEvent.OnClearSearch -> {
@@ -708,6 +714,58 @@ class SearchViewModel(
                 }
             }
         }
+    }
+
+    /**
+     * Shows every game of a Discover [shelf] in the results grid, in the shelf's own order.
+     *
+     * The grid is a snapshot of games the feed already holds, so unlike [browseGenre] and [performSearch]
+     * this is synchronous: no request, no `Loading`, no `Error`, and the grid is there in the same frame as
+     * the tap. A later feed refresh changes [SearchUiState.discover] but not what is open here.
+     *
+     * The shelf is looked up by its key, never its title, in the feed as it is *now*: a refresh between the
+     * row being rendered and its arrow being tapped can drop or reorder a personalised shelf, and then the tap
+     * does nothing rather than opening some other shelf under the title the user tapped.
+     */
+    private fun openShelf(shelf: DiscoverShelfUiModel) {
+        // A double tap: the grid is already this shelf, and re-opening it would only reset its sort and filters.
+        val open = _uiState.value.activeBrowse
+        if (open is SearchBrowseUiModel.Shelf && open.key == shelf.key) return
+
+        val games = discoverFeed?.shelfGames(shelf.key)?.takeIf { it.isNotEmpty() } ?: return
+
+        // Cancelled before any state changes, and that is what keeps SearchUiState's invariant true: only a
+        // search coroutine ever writes Loading, Empty or Error, so with none left running nothing can land
+        // on top of the grid, and Retry (which exists only on Error) can never be shown for it.
+        searchJob?.cancel()
+        searchJob = null
+
+        textFieldState.edit { replace(0, length, "") }
+
+        // No excluded genre, unlike a genre browse: a shelf is not defined by one genre, so every genre its
+        // games carry narrows something.
+        val facets = games.toSearchResult()
+        val filters = facets.platforms.toPlatformFilters() +
+            facets.genres.toGenreFilters() +
+            getInitialGameTypeFilters()
+
+        _uiState.update {
+            val sortSheet = it.sortBottomSheetState.withRelevanceLabel(isBrowse = true)
+            // allGames keeps the shelf's own order: re-sorting and filtering start from it, and "Top picks"
+            // is only recoverable from the original ranking.
+            val sorted = sortGames(games, sortSheet.selectedSorting, keepSourceOrder = true)
+            it.copy(
+                suggestions = SearchSuggestionsUiModel(),
+                activeBrowse = SearchBrowseUiModel.Shelf(shelf.key, shelf.title),
+                sortBottomSheetState = sortSheet,
+                contentState = SearchContentState.Success(
+                    games = sorted.toGameItemList(wishlistedGameIds.value),
+                    filters = filters,
+                    allGames = games
+                )
+            )
+        }
+        suggestionsResetTrigger.tryEmit("")
     }
 
     /**

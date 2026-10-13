@@ -22,6 +22,7 @@
     <string name="discover_refresh_prompt_title">New suggestions might be available</string>
     <string name="discover_refresh_prompt_subtitle">Tap to refresh your recommendations</string>
     <string name="discover_dismiss_refresh_prompt">Dismiss</string>
+    <string name="discover_see_all_shelf">See all: %1$s</string>
     <string name="clear_all">Clear all</string>
     <string name="clear_history_title">Clear search history</string>
     <string name="clear_history_message">Are you sure you want to clear all your recent searches? This action cannot be undone.</string>
