@@ -37,6 +37,7 @@ import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -301,9 +302,7 @@ private fun DiscoverShelfTitleRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            // Every heading takes the platform's minimum touch height, with or without an arrow, so the
-            // shelves keep one rhythm; only the ones with an arrow are tappable.
-            .minimumInteractiveComponentSize()
+            .clip(MaterialTheme.shapes.medium)
             .then(
                 if (seeAllLabel != null) {
                     // One merged node: the title and the arrow are one control, so a screen reader stops
@@ -315,6 +314,9 @@ private fun DiscoverShelfTitleRow(
                     Modifier
                 }
             )
+            // Every heading takes the platform's minimum touch height, with or without an arrow, so the
+            // shelves keep one rhythm; only the ones with an arrow are tappable.
+            .minimumInteractiveComponentSize()
             .padding(horizontal = MaterialTheme.spacing.large)
     ) {
         Text(
@@ -366,7 +368,9 @@ private val previewUpcoming = previewShelf(
 private val previewFullRow = previewShelf(
     key = DiscoverShelfKey.Lane(DiscoverLane.POPULAR_THIS_MONTH),
     title = UiText.StringResource(Res.string.discover_popular_this_month),
-    games = (1..DISCOVER_SHELF_ROW_SIZE).map { GameItemUiModel.getDummy().copy(id = it, name = "Game $it") }
+    games = (1..DISCOVER_SHELF_ROW_SIZE).map {
+        GameItemUiModel.getDummy().copy(id = it, name = "Game $it")
+    }
 )
 
 @QuestLogPreviews
