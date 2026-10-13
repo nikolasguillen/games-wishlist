@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -31,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.model.ListSelectorItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
@@ -89,7 +91,10 @@ fun ListSelectorSheet(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                TextButton(onClick = onDismiss) {
+                TextButton(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.appColors.textOnSurface)
+                ) {
                     Text(text = stringResource(Res.string.cancel))
                 }
                 Spacer(modifier = Modifier.width(MaterialTheme.spacing.large))
@@ -108,7 +113,7 @@ private fun WishlistItem(
     modifier: Modifier = Modifier
 ) {
     val outlineColor =
-        if (model.isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+        if (model.isSelected) MaterialTheme.appColors.textOnSurface else MaterialTheme.colorScheme.outline
 
     OutlinedCard(
         border = BorderStroke(
@@ -146,7 +151,7 @@ private fun WishlistItem(
                     painter = painterResource(model.iconRes),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
-                    tint = if (model.isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = if (model.isSelected) MaterialTheme.appColors.textOnSurface else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Spacer(modifier = Modifier.width(MaterialTheme.spacing.medium))
