@@ -38,11 +38,14 @@ import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
+import com.nikolasguillen.questlog.core.model.DiscoverLane
 import com.nikolasguillen.questlog.core.ui.component.ScrollToTopFabDefaults
 import com.nikolasguillen.questlog.core.ui.component.gamecard.CompactGameCard
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
-import com.nikolasguillen.questlog.feature.search.model.RecommendedShelfUiModel
+import com.nikolasguillen.questlog.feature.search.mapper.DISCOVER_SHELF_ROW_SIZE
+import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfKey
+import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfUiModel
 import com.nikolasguillen.questlog.feature.search.resources.Res
 import com.nikolasguillen.questlog.feature.search.resources.discover_because_you_like
 import com.nikolasguillen.questlog.feature.search.resources.discover_dismiss_refresh_prompt
@@ -71,20 +74,20 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun DiscoverFeed(
     hero: GameItemUiModel?,
-    popular: List<GameItemUiModel>,
-    upcoming: List<GameItemUiModel>,
+    popular: DiscoverShelfUiModel?,
+    upcoming: DiscoverShelfUiModel?,
     onGameClick: (Int) -> Unit,
     onSaveClick: (Int) -> Unit,
     onLongClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    recommended: List<RecommendedShelfUiModel> = emptyList(),
+    recommended: List<DiscoverShelfUiModel> = emptyList(),
     isStale: Boolean = false,
     isRefreshing: Boolean = false,
     onRefreshClick: () -> Unit = {},
     onDismissRefreshClick: () -> Unit = {},
     state: LazyListState = rememberLazyListState()
 ) {
-    if (hero == null && popular.isEmpty() && upcoming.isEmpty() && recommended.isEmpty()) {
+    if (hero == null && popular == null && upcoming == null && recommended.isEmpty()) {
         DiscoverPlaceholder(modifier = modifier)
         return
     }
@@ -110,33 +113,32 @@ internal fun DiscoverFeed(
                     )
                 }
             }
+            // Item keys stay strings: on Android a lazy item key has to be storable in a Bundle, which a
+            // shelf's identity (a data class) is not.
             recommended.forEachIndexed { index, shelf ->
                 item(key = "recommended_$index") {
                     DiscoverShelf(
-                        title = shelf.title.asString(),
-                        games = shelf.games,
+                        shelf = shelf,
                         onGameClick = onGameClick,
                         onSaveClick = onSaveClick,
                         onLongClick = onLongClick
                     )
                 }
             }
-            if (upcoming.isNotEmpty()) {
-                item {
+            if (upcoming != null) {
+                item(key = "upcoming") {
                     DiscoverShelf(
-                        title = stringResource(Res.string.discover_most_anticipated),
-                        games = upcoming,
+                        shelf = upcoming,
                         onGameClick = onGameClick,
                         onSaveClick = onSaveClick,
                         onLongClick = onLongClick
                     )
                 }
             }
-            if (popular.isNotEmpty()) {
-                item {
+            if (popular != null) {
+                item(key = "popular") {
                     DiscoverShelf(
-                        title = stringResource(Res.string.discover_popular_this_month),
-                        games = popular,
+                        shelf = popular,
                         onGameClick = onGameClick,
                         onSaveClick = onSaveClick,
                         onLongClick = onLongClick
@@ -234,8 +236,7 @@ private fun DiscoverRefreshPrompt(
 
 @Composable
 private fun DiscoverShelf(
-    title: String,
-    games: List<GameItemUiModel>,
+    shelf: DiscoverShelfUiModel,
     onGameClick: (Int) -> Unit,
     onSaveClick: (Int) -> Unit,
     onLongClick: (Int) -> Unit,
@@ -246,7 +247,7 @@ private fun DiscoverShelf(
         modifier = modifier
     ) {
         Text(
-            text = title,
+            text = shelf.title.asString(),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
@@ -256,7 +257,7 @@ private fun DiscoverShelf(
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
             contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large)
         ) {
-            items(items = games, key = { it.id }) { game ->
+            items(items = shelf.games, key = { it.id }) { game ->
                 CompactGameCard(
                     game = game,
                     onClick = { onGameClick(game.id) },
@@ -275,14 +276,54 @@ private val previewGames = listOf(
     GameItemUiModel.getDummy().copy(id = 3, name = "Hollow Knight: Silksong")
 )
 
+private fun previewShelf(
+    key: DiscoverShelfKey,
+    title: UiText,
+    games: List<GameItemUiModel> = previewGames,
+    hasMore: Boolean = false
+) = DiscoverShelfUiModel(key = key, title = title, games = games, hasMore = hasMore)
+
+private val previewPopular = previewShelf(
+    key = DiscoverShelfKey.Lane(DiscoverLane.POPULAR_THIS_MONTH),
+    title = UiText.StringResource(Res.string.discover_popular_this_month)
+)
+
+private val previewUpcoming = previewShelf(
+    key = DiscoverShelfKey.Lane(DiscoverLane.MOST_ANTICIPATED),
+    title = UiText.StringResource(Res.string.discover_most_anticipated),
+    games = previewGames.drop(1)
+)
+
+/** Exactly as many cards as a row holds: a full row, and still no arrow. */
+private val previewFullRow = previewShelf(
+    key = DiscoverShelfKey.Lane(DiscoverLane.POPULAR_THIS_MONTH),
+    title = UiText.StringResource(Res.string.discover_popular_this_month),
+    games = (1..DISCOVER_SHELF_ROW_SIZE).map { GameItemUiModel.getDummy().copy(id = it, name = "Game $it") }
+)
+
 @QuestLogPreviews
 @Composable
 private fun DiscoverFeedPreview() {
     QuestLogTheme {
         DiscoverFeed(
             hero = previewGames.first(),
-            popular = previewGames,
-            upcoming = previewGames.drop(1),
+            popular = previewPopular,
+            upcoming = previewUpcoming,
+            onGameClick = {},
+            onSaveClick = {},
+            onLongClick = {}
+        )
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun DiscoverFeedFullRowPreview() {
+    QuestLogTheme {
+        DiscoverFeed(
+            hero = previewGames.first(),
+            popular = previewFullRow,
+            upcoming = null,
             onGameClick = {},
             onSaveClick = {},
             onLongClick = {}
@@ -296,17 +337,18 @@ private fun DiscoverFeedRecommendedPreview() {
     QuestLogTheme {
         DiscoverFeed(
             hero = previewGames.first(),
-            popular = previewGames,
-            upcoming = previewGames.drop(1),
+            popular = previewPopular,
+            upcoming = previewUpcoming,
             onGameClick = {},
             onSaveClick = {},
             onLongClick = {},
             recommended = listOf(
-                RecommendedShelfUiModel(
-                    title = UiText.StringResource(Res.string.discover_more_from, "Larian Studios"),
-                    games = previewGames
+                previewShelf(
+                    key = DiscoverShelfKey.ByDeveloper(developerId = 1),
+                    title = UiText.StringResource(Res.string.discover_more_from, "Larian Studios")
                 ),
-                RecommendedShelfUiModel(
+                previewShelf(
+                    key = DiscoverShelfKey.ByGenre(genreId = 12),
                     title = UiText.StringResource(Res.string.discover_because_you_like, "RPG"),
                     games = previewGames.reversed()
                 )
@@ -321,8 +363,8 @@ private fun DiscoverFeedStalePreview() {
     QuestLogTheme {
         DiscoverFeed(
             hero = previewGames.first(),
-            popular = previewGames,
-            upcoming = previewGames.drop(1),
+            popular = previewPopular,
+            upcoming = previewUpcoming,
             onGameClick = {},
             onSaveClick = {},
             onLongClick = {},
@@ -337,8 +379,8 @@ private fun DiscoverFeedRefreshingPreview() {
     QuestLogTheme {
         DiscoverFeed(
             hero = previewGames.first(),
-            popular = previewGames,
-            upcoming = previewGames.drop(1),
+            popular = previewPopular,
+            upcoming = previewUpcoming,
             onGameClick = {},
             onSaveClick = {},
             onLongClick = {},
@@ -354,8 +396,8 @@ private fun DiscoverFeedEmptyPreview() {
     QuestLogTheme {
         DiscoverFeed(
             hero = null,
-            popular = emptyList(),
-            upcoming = emptyList(),
+            popular = null,
+            upcoming = null,
             onGameClick = {},
             onSaveClick = {},
             onLongClick = {}

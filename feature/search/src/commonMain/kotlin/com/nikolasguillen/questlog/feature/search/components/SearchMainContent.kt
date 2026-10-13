@@ -9,17 +9,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.model.DiscoverLane
 import com.nikolasguillen.questlog.core.ui.component.ErrorPage
 import com.nikolasguillen.questlog.core.ui.component.LoadingPage
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.DiscoverContentState
+import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfKey
+import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfUiModel
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchBrowseUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchContentState
 import com.nikolasguillen.questlog.feature.search.model.SearchUiEvent
 import com.nikolasguillen.questlog.feature.search.resources.Res
+import com.nikolasguillen.questlog.feature.search.resources.discover_most_anticipated
+import com.nikolasguillen.questlog.feature.search.resources.discover_popular_this_month
 import com.nikolasguillen.questlog.feature.search.resources.genre_browse_no_results
 import com.nikolasguillen.questlog.feature.search.resources.search_no_results
 import org.jetbrains.compose.resources.stringResource
@@ -134,8 +139,18 @@ private fun SearchMainContentDiscoverPreview() {
         contentState = SearchContentState.Idle,
         discoverState = DiscoverContentState.Content(
             hero = GameItemUiModel.getDummy().copy(id = 3, name = "Hollow Knight: Silksong"),
-            popular = listOf(GameItemUiModel.getDummy()),
-            upcoming = listOf(GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077"))
+            popular = DiscoverShelfUiModel(
+                key = DiscoverShelfKey.Lane(DiscoverLane.POPULAR_THIS_MONTH),
+                title = UiText.StringResource(Res.string.discover_popular_this_month),
+                games = listOf(GameItemUiModel.getDummy()),
+                hasMore = false
+            ),
+            upcoming = DiscoverShelfUiModel(
+                key = DiscoverShelfKey.Lane(DiscoverLane.MOST_ANTICIPATED),
+                title = UiText.StringResource(Res.string.discover_most_anticipated),
+                games = listOf(GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077")),
+                hasMore = false
+            )
         )
     )
 }

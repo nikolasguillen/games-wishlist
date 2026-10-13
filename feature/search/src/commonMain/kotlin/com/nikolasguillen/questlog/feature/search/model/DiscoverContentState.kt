@@ -23,7 +23,10 @@ internal sealed interface DiscoverContentState {
      * [hero] and [upcoming] are disjoint: the top anticipated pick is split out into the hero slot by
      * the mapper, so the composable renders both as given. [recommended] is empty whenever the user's
      * library has not earned a personalised shelf yet, and holds one entry per signal it did earn
-     * otherwise — a recurring developer first, then genres — strongest first.
+     * otherwise — a recurring developer first, then genres — strongest first. [popular] and [upcoming] are
+     * `null` when their lane came back empty, so "render a shelf only if there is one" is decided by the
+     * mapper and not re-derived by the composable. Every shelf row holds at most six games; see
+     * [DiscoverShelfUiModel].
      *
      * [isStale] means the taste profile has moved on from the genres [recommended] was built against —
      * a status, priority or list edit made since this feed loaded — and offers a refresh rather than
@@ -32,10 +35,10 @@ internal sealed interface DiscoverContentState {
      * uses [DiscoverContentState.Loading] instead.
      */
     data class Content(
-        val popular: List<GameItemUiModel>,
-        val upcoming: List<GameItemUiModel>,
+        val popular: DiscoverShelfUiModel?,
+        val upcoming: DiscoverShelfUiModel?,
         val hero: GameItemUiModel? = null,
-        val recommended: List<RecommendedShelfUiModel> = emptyList(),
+        val recommended: List<DiscoverShelfUiModel> = emptyList(),
         val isStale: Boolean = false,
         val isRefreshing: Boolean = false
     ) : DiscoverContentState

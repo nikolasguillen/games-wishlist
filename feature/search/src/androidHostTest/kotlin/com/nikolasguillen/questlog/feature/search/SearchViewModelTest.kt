@@ -212,9 +212,9 @@ class SearchViewModelTest {
             val viewModel = createViewModel()
 
             val contentState = viewModel.uiState.value.discover as DiscoverContentState.Content
-            assertEquals(listOf(1), contentState.popular.map { it.id })
+            assertEquals(listOf(1), contentState.popular?.games?.map { it.id })
             assertEquals(2, contentState.hero?.id)
-            assertEquals(listOf(3), contentState.upcoming.map { it.id })
+            assertEquals(listOf(3), contentState.upcoming?.games?.map { it.id })
         }
 
     @Test
@@ -227,7 +227,7 @@ class SearchViewModelTest {
         val viewModel = createViewModel()
 
         val content = viewModel.uiState.value.discover as DiscoverContentState.Content
-        assertTrue(content.popular.single().isSaved)
+        assertTrue(content.popular!!.games.single().isSaved)
     }
 
     @Test
@@ -271,7 +271,7 @@ class SearchViewModelTest {
         advanceUntilIdle()
 
         val contentState = viewModel.uiState.value.discover as DiscoverContentState.Content
-        assertEquals(listOf(5), contentState.popular.map { it.id })
+        assertEquals(listOf(5), contentState.popular?.games?.map { it.id })
     }
 
     @Test
@@ -364,7 +364,7 @@ class SearchViewModelTest {
             assertTrue(viewModel.uiState.value.contentState is SearchContentState.Success)
             // ...and it was not merely dropped: it landed in its own slot.
             val feed = viewModel.uiState.value.discover as DiscoverContentState.Content
-            assertEquals(listOf(9), feed.popular.map { it.id })
+            assertEquals(listOf(9), feed.popular?.games?.map { it.id })
         }
 
     @Test
@@ -386,7 +386,7 @@ class SearchViewModelTest {
         // Idle is what puts the feed back on screen -- there is no separate "showing" flag.
         assertTrue(viewModel.uiState.value.contentState is SearchContentState.Idle)
         val feed = viewModel.uiState.value.discover as DiscoverContentState.Content
-        assertEquals(listOf(1), feed.popular.map { it.id })
+        assertEquals(listOf(1), feed.popular?.games?.map { it.id })
         assertEquals("", viewModel.textFieldState.text.toString())
         verify(exactly = 1) { getDiscoverFeedUseCase(any()) }
     }
@@ -415,7 +415,7 @@ class SearchViewModelTest {
             advanceUntilIdle()
 
             val restored = viewModel.uiState.value.discover as DiscoverContentState.Content
-            assertEquals(listOf(7), restored.popular.map { it.id })
+            assertEquals(listOf(7), restored.popular?.games?.map { it.id })
             verify(exactly = 1) { getDiscoverFeedUseCase(any()) }
         }
 
@@ -700,7 +700,7 @@ class SearchViewModelTest {
             advanceUntilIdle()
 
             val contentState = viewModel.uiState.value.discover as DiscoverContentState.Content
-            assertEquals(listOf(5), contentState.popular.map { it.id })
+            assertEquals(listOf(5), contentState.popular?.games?.map { it.id })
             assertFalse(contentState.isRefreshing)
         }
 
@@ -731,7 +731,7 @@ class SearchViewModelTest {
 
             advanceUntilIdle()
             val contentState = viewModel.uiState.value.discover as DiscoverContentState.Content
-            assertEquals(listOf(1), contentState.popular.map { it.id })
+            assertEquals(listOf(1), contentState.popular?.games?.map { it.id })
         }
 
     @Test
@@ -752,7 +752,7 @@ class SearchViewModelTest {
 
             val contentState = viewModel.uiState.value.discover as DiscoverContentState.Content
             assertFalse(contentState.isStale)
-            assertEquals(listOf(1), contentState.popular.map { it.id })
+            assertEquals(listOf(1), contentState.popular?.games?.map { it.id })
         }
 
     @Test

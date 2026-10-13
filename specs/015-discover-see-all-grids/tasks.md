@@ -171,7 +171,7 @@ a shelf holding six or fewer shows all of its games; and that the hero is unchan
 **Commit boundary**: T016–T022 are green only together (the shelf fields change type; T014 and T015 compile only
 beside them). Land T014–T023 in one commit, for example `feat(search): cap Discover rows at six games`.
 
-- [ ] T014 [P] [US1] Create
+- [X] T014 [P] [US1] Create
   `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/mapper/DiscoverMapperTest.kt`
   (KDoc header). Build `DiscoverFeed`s from `Game`s, call `toDiscoverContentState(savedIds)` and assert: `popular` with
   0 games is `null`; with 1 game it has that game and `hasMore == false`; with 6 games `hasMore == false`; with 7 games
@@ -184,18 +184,18 @@ beside them). Land T014–T023 in one commit, for example `feat(search): cap Dis
   the order (ids ascending in, ascending out); `DISCOVER_SHELF_ROW_SIZE == 6`. Also `shelfGames`: `Lane(POPULAR…)` is
   `popular`, `Lane(MOST_ANTICIPATED)` is `upcoming.drop(1)`, `ByGenre(id)` / `ByDeveloper(id)` return that shelf's whole
   game list, an unknown key returns `null`, and for every shelf the row's ids are a prefix of `shelfGames(key)`.
-- [ ] T015 [P] [US1] Create
+- [X] T015 [P] [US1] Create
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/model/DiscoverShelfUiModel.kt`:
   `@Immutable internal data class DiscoverShelfUiModel(val key: DiscoverShelfKey, val title: UiText, val games:
   List<GameItemUiModel>, val hasMore: Boolean)`. KDoc: `games` is the row, the first `DISCOVER_SHELF_ROW_SIZE` games of
   the shelf in shelf order; `hasMore` is true exactly when the shelf holds more than that, and is the only case that
   gets an arrow; `title` is both the heading and the grid's placeholder.
-- [ ] T016 [US1] Edit
+- [X] T016 [US1] Edit
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/model/DiscoverContentState.kt`:
   in `Content`, `popular` and `upcoming` become `DiscoverShelfUiModel?` (`null` when the lane is empty, so "render only
   if non-empty" is decided by the mapper) and `recommended` becomes `List<DiscoverShelfUiModel> = emptyList()`.
   `hero`, `isStale`, `isRefreshing` stay. Update the KDoc: `hero` and `upcoming` remain disjoint. Needs T015.
-- [ ] T017 [US1] Edit
+- [X] T017 [US1] Edit
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/mapper/DiscoverMapper.kt`: add
   `internal const val DISCOVER_SHELF_ROW_SIZE = 6` with KDoc (a display cap only; the feed fetches and caches more and
   the grid shows all of it; it stays here and not in `UiConstants` because nothing else reads it). Add
@@ -209,15 +209,15 @@ beside them). Land T014–T023 in one commit, for example `feat(search): cap Dis
   move here from `DiscoverFeed.kt`; import `discover_most_anticipated` and `discover_popular_this_month`), and an empty
   lane maps to `null`. The recommended shelves are built with the keys from `RecommendedShelf.reason`. `hero` and the
   `upcoming.drop(1)` split are unchanged. Needs T015, T016.
-- [ ] T018 [US1] Delete
+- [X] T018 [US1] Delete
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/model/RecommendedShelfUiModel.kt`
   (replaced by `DiscoverShelfUiModel`) and remove every import of it. Needs T017.
-- [ ] T019 [P] [US1] Edit `observeWishlistedGameIds` in
+- [X] T019 [P] [US1] Edit `observeWishlistedGameIds` in
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModel.kt` so the saved-state
   patch follows the new shape: `popular = discover.popular?.let { it.copy(games = it.games.withSavedState(ids)) }`,
   likewise `upcoming`, and `recommended = discover.recommended.map { it.copy(games = it.games.withSavedState(ids)) }`.
   `hero` is patched as today. Needs T016.
-- [ ] T020 [P] [US1] Edit
+- [X] T020 [P] [US1] Edit
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/components/DiscoverFeed.kt`:
   `DiscoverFeed` takes `popular: DiscoverShelfUiModel?`, `upcoming: DiscoverShelfUiModel?` and
   `recommended: List<DiscoverShelfUiModel>` in place of the three lists. The empty-feed check becomes
@@ -226,12 +226,12 @@ beside them). Land T014–T023 in one commit, for example `feat(search): cap Dis
   `shelf.key`. Remove the `stringResource(Res.string.discover_most_anticipated / discover_popular_this_month)` calls and
   their imports (the mapper owns the titles now). No arrow yet. Update the existing previews to build
   `DiscoverShelfUiModel`s and add a preview of a shelf holding exactly six cards. Needs T015.
-- [ ] T021 [US1] Edit
+- [X] T021 [US1] Edit
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/components/SearchMainContent.kt`:
   `DiscoverContent` passes `state.popular`, `state.upcoming` and `state.recommended` to the new `DiscoverFeed`
   parameters, and `SearchMainContentDiscoverPreview` builds `DiscoverContentState.Content(popular =
   DiscoverShelfUiModel(...), upcoming = DiscoverShelfUiModel(...))`. Needs T020.
-- [ ] T022 [P] [US1] Update the existing Discover assertions in
+- [X] T022 [P] [US1] Update the existing Discover assertions in
   `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModelTest.kt` to the new
   accessors: `contentState.popular.map { it.id }` becomes `contentState.popular?.games?.map { it.id }`, `popular.single()`
   becomes `popular?.games?.single()`, and `upcoming` likewise (lines near 210, 212, 225, 269, 362, 384, 413, 698, 729,

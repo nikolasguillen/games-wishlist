@@ -44,6 +44,7 @@ import com.nikolasguillen.questlog.feature.search.mapper.toSuggestionUiModels
 import com.nikolasguillen.questlog.feature.search.mapper.withRelevanceLabel
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.DiscoverContentState
+import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfUiModel
 import com.nikolasguillen.questlog.feature.search.model.FilterBottomSheetState
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.model.ListSelectorState
@@ -803,11 +804,9 @@ class SearchViewModel(
                     val patchedDiscover = if (discover is DiscoverContentState.Content) {
                         discover.copy(
                             hero = discover.hero?.let { it.copy(isSaved = it.id in ids) },
-                            popular = discover.popular.withSavedState(ids),
-                            upcoming = discover.upcoming.withSavedState(ids),
-                            recommended = discover.recommended.map {
-                                it.copy(games = it.games.withSavedState(ids))
-                            }
+                            popular = discover.popular?.withSavedState(ids),
+                            upcoming = discover.upcoming?.withSavedState(ids),
+                            recommended = discover.recommended.map { it.withSavedState(ids) }
                         )
                     } else {
                         discover
@@ -824,6 +823,9 @@ class SearchViewModel(
 
     private fun List<GameItemUiModel>.withSavedState(ids: Set<Int>): List<GameItemUiModel> =
         map { it.copy(isSaved = it.id in ids) }
+
+    private fun DiscoverShelfUiModel.withSavedState(ids: Set<Int>): DiscoverShelfUiModel =
+        copy(games = games.withSavedState(ids))
 
     /**
      * Flags the current feed as reloading before the trigger even reaches the use case, so the prompt
