@@ -236,7 +236,7 @@ beside them). Land T014–T023 in one commit, for example `feat(search): cap Dis
   accessors: `contentState.popular.map { it.id }` becomes `contentState.popular?.games?.map { it.id }`, `popular.single()`
   becomes `popular?.games?.single()`, and `upcoming` likewise (lines near 210, 212, 225, 269, 362, 384, 413, 698, 729,
   750). `hero` and the other assertions are untouched. Needs T016.
-- [ ] T023 [US1] Checkpoint: `./gradlew :feature:search:compileAndroidMain --console=plain -q`, then
+- [X] T023 [US1] Checkpoint: `./gradlew :feature:search:compileAndroidMain --console=plain -q`, then
   `./gradlew :feature:search:testAndroidHostTest --console=plain -q` (`DiscoverMapperTest` and the updated
   `SearchViewModelTest` green), then `./gradlew :androidApp:assembleDebug`. Walk quickstart §3 rows 1 and 2 on an
   emulator (the cap; no arrow exists yet, so only check the arrow's absence). Commit (boundary above).
@@ -359,7 +359,7 @@ Foundational (T006, T009, T011); this phase proves they work for a shelf.
   a genre browse is showing replaces it and empties the text field; the shelf placeholder is
   `activeBrowse.toPlaceholder() == shelf.title` (the same `UiText` as the heading) for a lane and for a formatted
   `ByGenre` title.
-- [ ] T033 [US3] Verify scroll restoration (FR-018) from the code, and record the result. In
+- [X] T033 [US3] Verify scroll restoration (FR-018) from the code, and record the result. In
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchScreen.kt` confirm that
   `discoverListState = rememberLazyListState()` is created in `SearchScreenContent`, above `SearchMainContent`'s `when
   (contentState)`, that `onResetScroll` only touches `gridState`, and that `SearchMainContent` passes the same
@@ -440,16 +440,16 @@ the recent searches are exactly as before (quickstart §3, row 8).
 
 **Purpose**: The static checks, the full suites and the platform verification.
 
-- [ ] T040 Run the static checks of quickstart §2: only `values/` exists in both `composeResources` directories (no locale
+- [X] T040 Run the static checks of quickstart §2: only `values/` exists in both `composeResources` directories (no locale
   to translate); `discover_see_all_shelf` is defined; no `Text("...")` / `contentDescription = "..."` literal in
   `DiscoverFeed.kt`, `SearchBars.kt` or `SearchMainContent.kt`; no new `dp` literal in the `DiscoverFeed.kt` diff (the
   existing `140.dp` card width and the refresh prompt's literals predate this feature); no `take(` in `DiscoverFeed.kt`
   (the cap is applied in the mapper, FR-029). Fix anything found.
-- [ ] T041 Re-run the stale-reference search and fix any hit that is not under `specs/`:
+- [X] T041 Re-run the stale-reference search and fix any hit that is not under `specs/`:
   `grep -rn "RecommendedShelfUiModel\|activeGenre\|keepServerOrder\|isGenreBrowse" --include='*.md' --include='*.kt' .`
   (excluding `/build/`). At planning time no `CLAUDE.md`, `docs/` or roadmap text referred to them. Also confirm
   `docs/tech-debt.md` needs no edit (plan.md, research R11) and leave its entries alone.
-- [ ] T042 Run `./gradlew test --console=plain -q` (every module's host tests, including `SearchResultFacetsTest` in
+- [X] T042 Run `./gradlew test --console=plain -q` (every module's host tests, including `SearchResultFacetsTest` in
   `:core:domain` and `KoinGraphTest` in `:shared`) and `./gradlew :androidApp:assembleDebug`. Expected: all green, no
   test deleted or weakened.
 - [ ] T043 Walk quickstart §3 rows 14–16 on an emulator or device: TalkBack reads a capped shelf's title row as one
@@ -554,3 +554,41 @@ T019  SearchViewModel.kt (observeWishlistedGameIds)     T020  DiscoverFeed.kt   
   `Icons.Default.ChevronRight` does not mirror in RTL; "Because you like %1$s" still formats IGDB's raw genre name.
 - Out of scope, do not add: pagination or a larger fetch, reordering shelves, changing the hero, changing how shelves are
   ranked or de-duplicated, persisting the open grid, any change to Radar or Wishlist, a new module, route or dependency.
+
+## Verification notes (Android emulator, Pixel 10 Pro, API 37, 2026-10-13)
+
+Run on the emulator only, by the owner's choice, and read-only: nothing was saved, long-pressed or submitted as a
+search. The generic shelves loaded from live IGDB; the emulator library has no saved games, so no personalised shelf
+existed.
+
+**Passed** (quickstart §3 row, what was observed):
+
+- Rows 1–2: "Most anticipated" and "Popular this month" each show a capped row and an arrow at the end of the title row.
+- Row 3: tapping "Popular this month" opens the grid at once, no spinner, "39 games found", placeholder "Popular this
+  month", X and the back arrow visible. "Most anticipated" opens 8 games with the hero absent.
+- Row 5 (part): the sort sheet reads "Top picks", selected and descending.
+- Row 6 (part): the filter sheet offers genres (Adventure, RPG, Shooter, Indie, …), platforms and content types from the
+  shelf; Indie + PC narrows 39 to 11 and shows PC and Indie chips on the grid.
+- Row 7: with the feed scrolled, X and the system back both return to the feed with the list still scrolled (the hero
+  cut off at the top). The search bar re-expands to full height on return, which is existing behaviour (research R9).
+  **FR-018 holds.** A first run on the tall emulator screen looked like a loss, but the feed fits that screen and cannot
+  scroll; the check was repeated with the display shortened to 1280x1500 (`wm size`, since reset).
+- Row 10: with airplane mode on, a grid opens exactly as online; covers never cached show the usual placeholder.
+- Row 11 (rotation only): landscape and back keeps the same grid, placeholder and count, no flash of the feed.
+- Row 15: with the app locale set to Arabic, the title sits at the start (right) and the arrow at the end (left),
+  pointing left: it mirrors.
+- Row 16: the title row's bounds are 144px tall at 480dpi, which is exactly 48dp.
+- Row 14 (semantics only, not TalkBack): the row is exposed as a `Button`, focusable, labelled "See all: Most
+  anticipated". Other Button-role nodes (Settings, the wishlist button) also report `clickable=false` in the UI
+  dump, so that flag is not a signal here.
+
+**Not run** (so T031, T034, T037, T039, T043 and T044's simulator part stay unticked):
+
+- Row 4 (save, long-press), row 8 (a submitted search; both write app data) and row 9 (two personalised shelves, which
+  needs a library): skipped by choice or by lack of data. All three are covered by `SearchViewModelTest`.
+- Row 12 (double tap): an adb tap cannot be fast enough to be a double tap before the grid replaces the row. Covered by a
+  unit test.
+- Row 13 (stale prompt), row 5's ascending order, and row 6's "no matches" state: not walked; unit-tested.
+- Row 14 with TalkBack itself, and backgrounding in row 11: not run.
+- **iOS (T044)**: `:shared:linkDebugFrameworkIosSimulatorArm64` and the `xcodebuild` build both succeed on this Mac. The
+  app was not run on a simulator, so **no iOS behaviour is verified**.
