@@ -271,9 +271,10 @@ confirm the recent searches are exactly as before.
 **Constraints on how it is built** *(from the project's own rules; the plan must respect them)*
 
 - **FR-027**: The feature MUST stay inside the Search feature, touching the shared UI or model modules only if
-  needed. It MUST NOT add a module, a navigation route or a dependency between modules. The grid is a content
-  state of Search, not a screen. If this turns out to be impossible, the plan MUST flag it rather than decide
-  on the side.
+  needed. The one exception is the domain module, which may only make the existing shared rule for the filter
+  options visible to the Search feature (owner decision during planning, 2026-10-13). It MUST NOT add a
+  module, a navigation route or a dependency between modules. The grid is a content state of Search, not a
+  screen. If this turns out to be impossible, the plan MUST flag it rather than decide on the side.
 - **FR-028**: Every user-visible string, including the arrow's label and the shelf names shown in the search
   bar, MUST come from string resources. No display text in a model, mapper or composable.
 - **FR-029**: Which shelf is open, and any filtering or sorting, MUST be decided outside composables, which
