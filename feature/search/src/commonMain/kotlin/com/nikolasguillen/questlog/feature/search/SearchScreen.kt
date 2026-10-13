@@ -2,8 +2,6 @@
 
 package com.nikolasguillen.questlog.feature.search
 
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -29,7 +27,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -82,7 +82,7 @@ fun SearchScreen(
             viewModel.uiEffect.collect { effect ->
                 when (effect) {
                     is SearchUiEffect.ShowSnackbar -> {
-                        launch {
+                        this@repeatOnLifecycle.launch {
                             snackbarHostState.currentSnackbarData?.dismiss()
                             snackbarHostState.showSnackbar(effect.message.resolve())
                         }
@@ -214,7 +214,7 @@ internal fun SearchScreenContent(
     // Only fires once a query or a browse (a genre or a Discover shelf) is committed and the bar is collapsed:
     // while expanded, the search bar's own predictive-back handling owns the gesture (collapsing it instead).
     // A browse leaves the field empty, so the text alone cannot say there is something to go back from.
-    BackHandler(
+    BackHandler( // TODO fix
         enabled = searchBarState.currentValue == SearchBarValue.Collapsed &&
             (textFieldState.text.isNotEmpty() || uiState.activeBrowse != null)
     ) {
