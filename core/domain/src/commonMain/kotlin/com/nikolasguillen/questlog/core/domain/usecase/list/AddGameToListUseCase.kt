@@ -1,6 +1,7 @@
 package com.nikolasguillen.questlog.core.domain.usecase.list
 
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
+import com.nikolasguillen.questlog.core.model.Game
 
 /**
  * Use case to associate a game with a specific custom list.
@@ -9,12 +10,12 @@ class AddGameToListUseCase(
     private val repository: GameRepository
 ) {
     /**
-     * Adds the game identified by [gameId] to the list identified by [listId].
+     * Adds [game] to the list identified by [listId], storing the game first if it is not stored yet.
      *
-     * @param gameId The unique identifier of the game to add.
+     * @param game The game to add.
      * @param listId The unique identifier of the target custom list.
      */
-    suspend operator fun invoke(gameId: Int, listId: Long) {
-        repository.addGameToList(gameId, listId)
+    suspend operator fun invoke(game: Game, listId: Long) {
+        repository.addGameToList(game, listId)
     }
 }

@@ -253,7 +253,7 @@ class GameDetailViewModel(
             val toAdd = finalSelectedIds - initialSelectedIds
             val toRemove = initialSelectedIds - finalSelectedIds
 
-            toAdd.forEach { listId -> addGameToListUseCase(game.id, listId) }
+            toAdd.forEach { listId -> addGameToListUseCase(game, listId) }
             toRemove.forEach { listId -> removeGameFromListUseCase(game.id, listId) }
 
             // No manual isWishlisted sync needed: observeGameDetail recombines with the

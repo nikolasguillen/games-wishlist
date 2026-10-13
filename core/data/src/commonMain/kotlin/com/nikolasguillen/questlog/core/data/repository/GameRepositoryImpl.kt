@@ -546,12 +546,7 @@ internal class GameRepositoryImpl(
             gameDao.deleteGameListCrossRef(GameListCrossRef(game.id, defaultListId))
             return false
         } else {
-            // The Game handed in by the search grid or the Discover feed is a catalogue result: no per-platform
-            // dates, no engines, no artworks, and none of the user's own fields. Writing it over a row that a
-            // detail fetch already filled would wipe all of that, so an existing row is left exactly as it is.
-            if (!gameDao.gameExists(game.id)) {
-                saveGameLocal(game)
-            }
+            saveGameIfAbsent(game)
             gameDao.insertGameListCrossRef(GameListCrossRef(game.id, defaultListId))
             return true
         }
@@ -666,6 +661,18 @@ internal class GameRepositoryImpl(
         platformDao.toggleOwnedPlatform(platformId)
     }
 
+    /**
+     * The Game handed in by the search grid or the Discover feed is a catalogue result: no per-platform
+     * dates, no engines, no artworks, and none of the user's own fields. Writing it over a row that a
+     * detail fetch already filled would wipe all of that, so an existing row is left exactly as it is.
+     * A list reads its games through an inner join on the games table, so a cross-ref needs the row.
+     */
+    private suspend fun saveGameIfAbsent(game: Game) {
+        if (!gameDao.gameExists(game.id)) {
+            saveGameLocal(game)
+        }
+    }
+
     private suspend fun saveGameLocal(game: Game) {
         gameDao.saveGame(
             game = game.toEntity(),
@@ -777,8 +784,9 @@ internal class GameRepositoryImpl(
         list.coverImagePath?.let { coverImageStorage.delete(it) }
     }
 
-    override suspend fun addGameToList(gameId: Int, listId: Long) {
-        gameDao.insertGameListCrossRef(GameListCrossRef(gameId, listId))
+    override suspend fun addGameToList(game: Game, listId: Long) {
+        saveGameIfAbsent(game)
+        gameDao.insertGameListCrossRef(GameListCrossRef(game.id, listId))
     }
 
     override suspend fun removeGameFromList(gameId: Int, listId: Long) {

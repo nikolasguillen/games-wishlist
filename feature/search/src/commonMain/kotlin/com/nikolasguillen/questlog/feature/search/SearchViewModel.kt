@@ -443,6 +443,12 @@ class SearchViewModel(
      */
     private fun confirmListSelection() {
         val selectorState = _uiState.value.listSelectorState ?: return
+        // A catalogue game may not be stored yet; the use case stores it so the list can show it.
+        val game = findGame(selectorState.gameId)
+        if (game == null) {
+            _uiState.update { it.copy(listSelectorState = null) }
+            return
+        }
 
         viewModelScope.launch {
             val originalAssignments = getWishlistAssignmentsUseCase(selectorState.gameId).first()
@@ -454,7 +460,7 @@ class SearchViewModel(
             val toAdd = finalSelectedIds - initialSelectedIds
             val toRemove = initialSelectedIds - finalSelectedIds
 
-            toAdd.forEach { listId -> addGameToListUseCase(selectorState.gameId, listId) }
+            toAdd.forEach { listId -> addGameToListUseCase(game, listId) }
             toRemove.forEach { listId -> removeGameFromListUseCase(selectorState.gameId, listId) }
 
             _uiState.update { it.copy(listSelectorState = null) }

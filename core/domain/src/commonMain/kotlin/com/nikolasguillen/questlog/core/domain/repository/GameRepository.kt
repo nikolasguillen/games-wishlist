@@ -188,7 +188,11 @@ interface GameRepository {
      * Deleting an unknown [listId] is a no-op.
      */
     suspend fun deleteList(listId: Long)
-    suspend fun addGameToList(gameId: Int, listId: Long)
+    /**
+     * Adds [game] to the list, storing it first when it is not stored yet: a catalogue result from search or
+     * Discover has no row of its own, and a list only shows games that do. A stored row is never overwritten.
+     */
+    suspend fun addGameToList(game: Game, listId: Long)
     suspend fun removeGameFromList(gameId: Int, listId: Long)
     fun getGamesByList(listId: Long): Flow<List<Game>>
 }

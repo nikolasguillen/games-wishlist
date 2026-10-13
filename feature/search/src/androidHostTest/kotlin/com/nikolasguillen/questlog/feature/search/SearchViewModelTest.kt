@@ -877,9 +877,9 @@ class SearchViewModelTest {
             viewModel.onEvent(SearchUiEvent.OnConfirmListSelection)
             advanceUntilIdle()
 
-            coVerify(exactly = 1) { addGameToListUseCase(1, listB.id) }
-            coVerify(exactly = 0) { addGameToListUseCase(1, listA.id) }
-            coVerify(exactly = 0) { addGameToListUseCase(1, listC.id) }
+            coVerify(exactly = 1) { addGameToListUseCase(match { it.id == 1 }, listB.id) }
+            coVerify(exactly = 0) { addGameToListUseCase(match { it.id == 1 }, listA.id) }
+            coVerify(exactly = 0) { addGameToListUseCase(match { it.id == 1 }, listC.id) }
             coVerify(exactly = 1) { removeGameFromListUseCase(1, listA.id) }
             coVerify(exactly = 0) { removeGameFromListUseCase(1, listB.id) }
             coVerify(exactly = 0) { removeGameFromListUseCase(1, listC.id) }
@@ -1469,6 +1469,29 @@ class SearchViewModelTest {
         coVerify(exactly = 1) { toggleWishlistUseCase(popular.last()) }
         assertEquals(8, viewModel.uiState.value.listSelectorState?.gameId)
     }
+
+    @Test
+    fun `confirming a list chosen on a shelf grid card adds that catalogue game to the list`() =
+        runTest(testDispatcher) {
+            val popular = gamesFrom(firstId = 1, count = 8)
+            givenFeed(DiscoverFeed(popular = popular, upcoming = emptyList()))
+            val list = WishlistList(id = 10, name = "Backlog")
+            every { getWishlistAssignmentsUseCase(8) } returns flowOf(
+                listOf(WishlistAssignment(list, isAssigned = false))
+            )
+            val viewModel = createViewModel()
+            viewModel.openShelf(popularKey)
+
+            viewModel.onEvent(SearchUiEvent.OnOpenListSelector(8))
+            advanceUntilIdle()
+            viewModel.onEvent(SearchUiEvent.OnToggleListSelection(list.id))
+            viewModel.onEvent(SearchUiEvent.OnConfirmListSelection)
+            advanceUntilIdle()
+
+            // The whole game goes down, not its id: it has no stored row yet for the list to show.
+            coVerify(exactly = 1) { addGameToListUseCase(popular.last(), list.id) }
+            assertEquals(null, viewModel.uiState.value.listSelectorState)
+        }
 
     @Test
     fun `a wishlist change marks the cards of an open shelf grid saved`() = runTest(testDispatcher) {

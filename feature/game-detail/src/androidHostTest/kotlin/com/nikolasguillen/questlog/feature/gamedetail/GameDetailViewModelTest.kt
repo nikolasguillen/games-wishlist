@@ -271,7 +271,7 @@ class GameDetailViewModelTest {
         advanceUntilIdle()
 
         coVerify { removeGameFromListUseCase(GAME_ID, listA.id) }
-        coVerify { addGameToListUseCase(GAME_ID, listB.id) }
+        coVerify { addGameToListUseCase(match { it.id == GAME_ID }, listB.id) }
         assertNull(viewModel.uiState.value.wishlistSelectorState)
     }
 
