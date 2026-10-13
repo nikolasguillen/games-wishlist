@@ -333,8 +333,7 @@ private fun DiscoverShelfTitleRow(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(MaterialTheme.spacing.mediumLarge)
+                modifier = Modifier.size(MaterialTheme.spacing.large)
             )
         }
     }
