@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.nikolasguillen.questlog.feature.search
 
@@ -27,14 +27,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
@@ -214,12 +215,12 @@ internal fun SearchScreenContent(
     // Only fires once a query or a browse (a genre or a Discover shelf) is committed and the bar is collapsed:
     // while expanded, the search bar's own predictive-back handling owns the gesture (collapsing it instead).
     // A browse leaves the field empty, so the text alone cannot say there is something to go back from.
-    BackHandler( // TODO fix
-        enabled = searchBarState.currentValue == SearchBarValue.Collapsed &&
-            (textFieldState.text.isNotEmpty() || uiState.activeBrowse != null)
-    ) {
-        onEvent(SearchUiEvent.OnClearSearch)
-    }
+    NavigationBackHandler(
+        state = rememberNavigationEventState(currentInfo = NavigationEventInfo.None),
+        isBackEnabled = searchBarState.currentValue == SearchBarValue.Collapsed &&
+            (textFieldState.text.isNotEmpty() || uiState.activeBrowse != null),
+        onBackCompleted = { onEvent(SearchUiEvent.OnClearSearch) }
+    )
 
     // 4. Dynamic Styles
     // Fades to the scrolled color at zero alpha rather than Color.Transparent: that is transparent *black*,

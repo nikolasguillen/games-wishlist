@@ -6,7 +6,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.coil3.compose)
-            implementation(libs.jetbrains.compose.ui.backhandler)
+            implementation(libs.jetbrains.navigationevent.compose)
         }
     }
 }

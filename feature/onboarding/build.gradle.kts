@@ -5,7 +5,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.jetbrains.compose.ui.backhandler)
+            implementation(libs.jetbrains.navigationevent.compose)
         }
     }
 }

@@ -1,9 +1,5 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
-
 package com.nikolasguillen.questlog.feature.onboarding
 
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,6 +25,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
@@ -158,9 +157,11 @@ private fun OnboardingPager(
     }
 
     // On the first page back leaves the flow like on any root screen; from then on it goes one page back.
-    BackHandler(enabled = pagerState.currentPage > 0) {
-        scrollToPage(pagerState.currentPage - 1)
-    }
+    NavigationBackHandler(
+        state = rememberNavigationEventState(currentInfo = NavigationEventInfo.None),
+        isBackEnabled = pagerState.currentPage > 0,
+        onBackCompleted = { scrollToPage(pagerState.currentPage - 1) }
+    )
 
     Column(modifier = modifier.fillMaxSize().safeDrawingPadding()) {
         // Skip is on every page, the last one included, because FR-004 promises a way out from anywhere.
