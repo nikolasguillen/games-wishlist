@@ -329,7 +329,7 @@ long-pressing a card behave as in a text search result (quickstart §3, rows 3, 
   `onBrowseGenre`, with a comment that the results grid is shared across searches, so it must start at the top, while
   `onResetScroll` does not touch `discoverListState`. The search bar is already collapsed (the arrow is on the feed), so
   no collapse call is needed. Pass `onSeeAllClick = onOpenShelf` to `SearchMainContent`. Needs T029.
-- [ ] T031 [US2] Checkpoint: `./gradlew :feature:search:testAndroidHostTest --console=plain -q` (T024 green), then
+- [X] T031 [US2] Checkpoint: `./gradlew :feature:search:testAndroidHostTest --console=plain -q` (T024 green), then
   `./gradlew :androidApp:assembleDebug`. Walk quickstart §3 rows 1–4, 9, 10 and 12 on an emulator. Commit, for example
   `feat(search): open a Discover shelf as a grid`.
 
@@ -367,7 +367,7 @@ Foundational (T006, T009, T011); this phase proves they work for a shelf.
   "Popular this month", open it, leave by X, back arrow and system back; the feed is where it was) and row 11
   (rotation). If it does **not** hold, do not bend the design: add a note to `specs/015-discover-see-all-grids/plan.md`
   and to FR-018 in `spec.md` stating the gap, as the spec allows (FR-018 is nice-to-have), and tell the owner.
-- [ ] T034 [US3] Walk quickstart §3 rows 3, 7, 8, 11 and 13 on an emulator or device (placeholder and X with an empty
+- [X] T034 [US3] Walk quickstart §3 rows 3, 7, 8, 11 and 13 on an emulator or device (placeholder and X with an empty
   field, the three exits, a submitted query replacing the grid, rotation and backgrounding, the stale prompt not
   showing over the grid) and row 14 with TalkBack for the bar's announced shelf name. Note each row as passed or failed;
   fix any failure in the file it points to (`SearchBars.kt`, `SearchScreen.kt` or `SearchViewModel.kt`).
@@ -407,7 +407,7 @@ phase proves them. A failing test here is a bug in `SearchViewModel.openShelf` o
   a selection nothing matches gives `Success` with `games` empty (not `Empty`), and `OnClearActiveFilters` restores the
   full shelf; `OnOpenFilters` while a shelf is open fills the sheet from `Success.filters` with `matchCount ==
   games.size`.
-- [ ] T037 [US4] Walk quickstart §3 rows 5 and 6 on an emulator (the label and order; every genre offered, AND
+- [X] T037 [US4] Walk quickstart §3 rows 5 and 6 on an emulator (the label and order; every genre offered, AND
   narrowing, and "no matches" with "Clear filters").
 
 **Checkpoint**: Sort and filter on a shelf grid behave like the genre browse, with the facets from the shelf.
@@ -429,7 +429,7 @@ the recent searches are exactly as before (quickstart §3, row 8).
   (`coVerify(exactly = 0)`); after that, `OnSearchTriggered("zelda")` makes `addSearchToHistoryUseCase("zelda")` the
   only call; model it on the 014 tests `a genre browse never writes to the search history` and
   `a query submitted after a browse is the only thing written to history`.
-- [ ] T039 [US5] Walk quickstart §3 row 8 on an emulator (recent searches unchanged after opening grids; a submitted
+- [X] T039 [US5] Walk quickstart §3 row 8 on an emulator (recent searches unchanged after opening grids; a submitted
   query is recorded).
 
 **Checkpoint**: All five stories work.
@@ -452,12 +452,12 @@ the recent searches are exactly as before (quickstart §3, row 8).
 - [X] T042 Run `./gradlew test --console=plain -q` (every module's host tests, including `SearchResultFacetsTest` in
   `:core:domain` and `KoinGraphTest` in `:shared`) and `./gradlew :androidApp:assembleDebug`. Expected: all green, no
   test deleted or weakened.
-- [ ] T043 Walk quickstart §3 rows 14–16 on an emulator or device: TalkBack reads a capped shelf's title row as one
+- [X] T043 Walk quickstart §3 rows 14–16 on an emulator or device: TalkBack reads a capped shelf's title row as one
   button, "See all: <title>", and an uncapped one as plain text; the arrow mirrors under RTL (Arabic, or "Force RTL layout
   direction"); "Show layout bounds" shows the title row at least 48dp tall. These are the only checks of the row's
   semantics and size, since there are no Compose UI tests. If `minimumInteractiveComponentSize()` does not give 48dp on
   either platform, fix the row in `DiscoverFeed.kt` and say so.
-- [ ] T044 **(Mac only)** Build and run on iOS: `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 -q`, then the
+- [X] T044 **(Mac only)** Build and run on iOS: `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 -q`, then the
   `xcodebuild` command in the root `CLAUDE.md`, then repeat quickstart §3 rows 1–9 and 12–13 on the simulator, row 11 as
   backgrounding and returning only, and rows 14–16 with VoiceOver, the right-to-left pseudolanguage and the view
   debugger (quickstart §4). Row 10 (offline) cannot be run on a simulator without taking the Mac offline. If there is no
@@ -582,7 +582,8 @@ existed.
   anticipated". Other Button-role nodes (Settings, the wishlist button) also report `clickable=false` in the UI
   dump, so that flag is not a signal here.
 
-**Not run** (so T031, T034, T037, T039, T043 and T044's simulator part stay unticked):
+**Not run.** T031, T034, T037, T039, T043 and T044 were ticked at the owner's request on 2026-10-13, not because
+these were walked; what was skipped is:
 
 - Row 4 (save, long-press), row 8 (a submitted search; both write app data) and row 9 (two personalised shelves, which
   needs a library): skipped by choice or by lack of data. All three are covered by `SearchViewModelTest`.
