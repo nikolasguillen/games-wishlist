@@ -15,9 +15,11 @@ import com.nikolasguillen.questlog.core.ui.resources.sort_relevance
 import com.nikolasguillen.questlog.core.ui.util.UiConstants
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
+import com.nikolasguillen.questlog.feature.search.model.SearchBrowseUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchSort
 import com.nikolasguillen.questlog.feature.search.model.SortingUiModel
 import com.nikolasguillen.questlog.feature.search.resources.Res
+import com.nikolasguillen.questlog.feature.search.resources.genre_browse_placeholder
 import com.nikolasguillen.questlog.feature.search.resources.sort_top_picks
 import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes
 
@@ -125,17 +127,28 @@ internal fun getInitialSortFilters(): List<SortingUiModel> {
 }
 
 /**
- * Relabels the "Relevance" option for the kind of results on screen: a genre browse is ordered by popularity,
- * not by how well a query matches, so it reads "Top picks". Only the label changes -- which option is
- * selected and in which direction is the user's choice and survives the switch.
+ * Relabels the "Relevance" option for the kind of results on screen: a browse (a genre or a Discover shelf) is
+ * ordered by its source, a popularity ranking or the shelf's own order, not by how well a query matches, so
+ * it reads "Top picks". Only the label changes -- which option is selected and in which direction is the
+ * user's choice and survives the switch.
  */
-internal fun List<SortingUiModel>.withRelevanceLabel(isGenreBrowse: Boolean): List<SortingUiModel> {
-    val label = if (isGenreBrowse) {
+internal fun List<SortingUiModel>.withRelevanceLabel(isBrowse: Boolean): List<SortingUiModel> {
+    val label = if (isBrowse) {
         UiText.StringResource(Res.string.sort_top_picks)
     } else {
         UiText.StringResource(CoreUiRes.string.sort_relevance)
     }
     return map { if (it.sortType == SearchSort.RELEVANCE) it.copy(label = label) else it }
+}
+
+/**
+ * The text the search bar shows while this browse is on screen, in place of a typed query: the field is
+ * empty, so this is what tells the user, and a screen reader, what the grid is. A genre is named in a
+ * sentence ("genre: RPG"); a shelf is its own heading, which already reads as a label.
+ */
+internal fun SearchBrowseUiModel.toPlaceholder(): UiText = when (this) {
+    is SearchBrowseUiModel.Genre -> UiText.StringResource(Res.string.genre_browse_placeholder, genre.label)
+    is SearchBrowseUiModel.Shelf -> title
 }
 
 /**

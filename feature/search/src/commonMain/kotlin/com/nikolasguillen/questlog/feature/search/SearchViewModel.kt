@@ -47,6 +47,7 @@ import com.nikolasguillen.questlog.feature.search.model.DiscoverContentState
 import com.nikolasguillen.questlog.feature.search.model.FilterBottomSheetState
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.model.ListSelectorState
+import com.nikolasguillen.questlog.feature.search.model.SearchBrowseUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchContentState
 import com.nikolasguillen.questlog.feature.search.model.SearchHistoryUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchSort
@@ -536,22 +537,23 @@ class SearchViewModel(
     }
 
     /**
-     * @param keepServerOrder True for a genre browse, where "Relevance" means "Top picks": the order the
-     * server ranked the games in (most rated first). A query-text relevance score has nothing to say about
-     * a browse, and re-scoring it would throw the popularity ranking away. Descending keeps that order,
-     * ascending reverses it; the other sorts are the same as for a text search.
+     * @param keepSourceOrder True for any browse, where "Relevance" means "Top picks": the order the games
+     * arrived in -- the server's popularity ranking for a genre browse, the shelf's own order for a Discover
+     * shelf grid. A query-text relevance score has nothing to say about a browse, and re-scoring it would
+     * throw that order away. Descending keeps it, ascending reverses it; the other sorts are the same as for
+     * a text search.
      */
     private fun sortGames(
         games: List<Game>,
         sortModel: SortingUiModel?,
         query: String = "",
-        keepServerOrder: Boolean = false
+        keepSourceOrder: Boolean = false
     ): List<Game> {
         val currentSort = sortModel ?: return games
 
         return when (currentSort.sortType) {
             SearchSort.RELEVANCE -> {
-                if (keepServerOrder) {
+                if (keepSourceOrder) {
                     if (currentSort.descending) games else games.reversed()
                 } else if (currentSort.descending) games.sortedByDescending {
                     calculateGameRelevanceScore(it, query)
@@ -594,7 +596,7 @@ class SearchViewModel(
             filteredGames,
             _uiState.value.sortBottomSheetState.selectedSorting,
             query,
-            keepServerOrder = _uiState.value.activeGenre != null
+            keepSourceOrder = _uiState.value.activeBrowse != null
         )
 
         _uiState.update {
@@ -617,8 +619,8 @@ class SearchViewModel(
         _uiState.update {
             it.copy(
                 suggestions = SearchSuggestionsUiModel(),
-                activeGenre = null,
-                sortBottomSheetState = it.sortBottomSheetState.withRelevanceLabel(isGenreBrowse = false)
+                activeBrowse = null,
+                sortBottomSheetState = it.sortBottomSheetState.withRelevanceLabel(isBrowse = false)
             )
         }
         suggestionsResetTrigger.tryEmit("")
@@ -670,9 +672,9 @@ class SearchViewModel(
         _uiState.update {
             it.copy(
                 suggestions = SearchSuggestionsUiModel(),
-                activeGenre = genre,
+                activeBrowse = SearchBrowseUiModel.Genre(genre),
                 contentState = SearchContentState.Loading,
-                sortBottomSheetState = it.sortBottomSheetState.withRelevanceLabel(isGenreBrowse = true)
+                sortBottomSheetState = it.sortBottomSheetState.withRelevanceLabel(isBrowse = true)
             )
         }
         suggestionsResetTrigger.tryEmit("")
@@ -687,7 +689,7 @@ class SearchViewModel(
                     val sortedGames = sortGames(
                         searchResult.games,
                         _uiState.value.sortBottomSheetState.selectedSorting,
-                        keepServerOrder = true
+                        keepSourceOrder = true
                     )
 
                     SearchContentState.Success(
@@ -714,8 +716,14 @@ class SearchViewModel(
      * duplicate entry. A genre browse never touches the history, retried or not.
      */
     private fun retrySearch() {
-        val genre = _uiState.value.activeGenre
-        if (genre != null) browseGenre(genre) else performSearch(textFieldState.text.toString())
+        when (val browse = _uiState.value.activeBrowse) {
+            is SearchBrowseUiModel.Genre -> browseGenre(browse.genre)
+            null -> performSearch(textFieldState.text.toString())
+            // Nothing to retry: a shelf grid is only ever Success (see SearchUiState.activeBrowse), so no
+            // Retry button can be on screen for it, and openShelf cancels every search that could have
+            // written an Error before it sets the shelf.
+            is SearchBrowseUiModel.Shelf -> Unit
+        }
     }
 
     private fun initSearchHistory() {
@@ -811,8 +819,8 @@ class SearchViewModel(
         }
     }
 
-    private fun SortBottomSheetState.withRelevanceLabel(isGenreBrowse: Boolean): SortBottomSheetState =
-        copy(sorting = sorting.withRelevanceLabel(isGenreBrowse))
+    private fun SortBottomSheetState.withRelevanceLabel(isBrowse: Boolean): SortBottomSheetState =
+        copy(sorting = sorting.withRelevanceLabel(isBrowse))
 
     private fun List<GameItemUiModel>.withSavedState(ids: Set<Int>): List<GameItemUiModel> =
         map { it.copy(isSaved = it.id in ids) }
@@ -869,9 +877,9 @@ class SearchViewModel(
         _uiState.update {
             it.copy(
                 suggestions = SearchSuggestionsUiModel(),
-                activeGenre = null,
+                activeBrowse = null,
                 contentState = SearchContentState.Idle,
-                sortBottomSheetState = it.sortBottomSheetState.withRelevanceLabel(isGenreBrowse = false)
+                sortBottomSheetState = it.sortBottomSheetState.withRelevanceLabel(isBrowse = false)
             )
         }
     }

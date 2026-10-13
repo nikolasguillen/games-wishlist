@@ -16,6 +16,7 @@ import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.DiscoverContentState
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
+import com.nikolasguillen.questlog.feature.search.model.SearchBrowseUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchContentState
 import com.nikolasguillen.questlog.feature.search.model.SearchUiEvent
 import com.nikolasguillen.questlog.feature.search.resources.Res
@@ -27,8 +28,8 @@ import org.jetbrains.compose.resources.stringResource
  * The screen's single content area, shared by two independent contents. [contentState] decides which:
  * [SearchContentState.Idle] means no search is running, so the area belongs to [discoverState].
  *
- * [activeGenre] is the genre being browsed, if any. A browse renders like a text search, so it only decides
- * which message the empty state shows.
+ * [activeBrowse] is what the grid is showing when it is not a typed query, if anything. A browse renders like
+ * a text search, so it only decides which message the empty state shows.
  */
 @Composable
 internal fun SearchMainContent(
@@ -37,7 +38,7 @@ internal fun SearchMainContent(
     onEvent: (SearchUiEvent) -> Unit,
     onGameClick: (Int) -> Unit,
     gridState: LazyGridState,
-    activeGenre: BrowseGenreUiModel?,
+    activeBrowse: SearchBrowseUiModel?,
     modifier: Modifier = Modifier,
     discoverListState: LazyListState = rememberLazyListState()
 ) {
@@ -54,8 +55,8 @@ internal fun SearchMainContent(
                 onRetryClick = { onEvent(SearchUiEvent.OnRetrySearch) }
             )
             is SearchContentState.Empty -> EmptySearchPlaceholder(
-                message = if (activeGenre != null) {
-                    stringResource(Res.string.genre_browse_no_results, activeGenre.label.asString())
+                message = if (activeBrowse is SearchBrowseUiModel.Genre) {
+                    stringResource(Res.string.genre_browse_no_results, activeBrowse.genre.label.asString())
                 } else {
                     stringResource(Res.string.search_no_results)
                 },
@@ -112,7 +113,7 @@ private fun DiscoverContent(
 private fun SearchMainContentPreview(
     contentState: SearchContentState,
     discoverState: DiscoverContentState = DiscoverContentState.Loading,
-    activeGenre: BrowseGenreUiModel? = null
+    activeBrowse: SearchBrowseUiModel? = null
 ) {
     QuestLogTheme {
         SearchMainContent(
@@ -121,7 +122,7 @@ private fun SearchMainContentPreview(
             onEvent = {},
             onGameClick = {},
             gridState = rememberLazyGridState(),
-            activeGenre = activeGenre
+            activeBrowse = activeBrowse
         )
     }
 }
@@ -167,7 +168,9 @@ private fun SearchMainContentEmptyPreview() {
 private fun SearchMainContentGenreBrowseEmptyPreview() {
     SearchMainContentPreview(
         contentState = SearchContentState.Empty,
-        activeGenre = BrowseGenreUiModel(id = 30, label = UiText.DynamicString("Pinball"))
+        activeBrowse = SearchBrowseUiModel.Genre(
+            BrowseGenreUiModel(id = 30, label = UiText.DynamicString("Pinball"))
+        )
     )
 }
 

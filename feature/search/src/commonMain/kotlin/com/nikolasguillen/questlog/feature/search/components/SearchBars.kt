@@ -79,6 +79,7 @@ import com.nikolasguillen.questlog.core.ui.resources.cancel
 import com.nikolasguillen.questlog.core.ui.resources.proceed_label
 import com.nikolasguillen.questlog.core.ui.util.annotatedStringResource
 import com.nikolasguillen.questlog.feature.search.mapper.defaultBrowseGenres
+import com.nikolasguillen.questlog.feature.search.mapper.toPlaceholder
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.model.GameSuggestionUiModel
@@ -94,7 +95,6 @@ import com.nikolasguillen.questlog.feature.search.resources.clear_history_messag
 import com.nikolasguillen.questlog.feature.search.resources.clear_history_title
 import com.nikolasguillen.questlog.feature.search.resources.clear_search_content_description
 import com.nikolasguillen.questlog.feature.search.resources.expanded_search_initial_message
-import com.nikolasguillen.questlog.feature.search.resources.genre_browse_placeholder
 import com.nikolasguillen.questlog.feature.search.resources.recent_searches
 import com.nikolasguillen.questlog.feature.search.resources.recently_viewed
 import com.nikolasguillen.questlog.feature.search.resources.remove_history_item
@@ -173,7 +173,7 @@ internal fun SearchTopBar(
             shape = searchBarShape,
             onSearch = { onSearch(textFieldState.text.toString()) },
             onClearSearch = { onEvent(SearchUiEvent.OnClearSearch) },
-            activeGenreLabel = uiState.activeGenre?.label
+            browsePlaceholder = uiState.activeBrowse?.toPlaceholder()
         )
     }
 
@@ -227,7 +227,7 @@ internal fun SearchInputField(
     onSearch: () -> Unit,
     onClearSearch: () -> Unit,
     shape: Shape = SearchBarDefaults.inputFieldShape,
-    activeGenreLabel: UiText? = null
+    browsePlaceholder: UiText? = null
 ) {
     val searchInputFieldColor = if (searchBarState.currentValue == SearchBarValue.Collapsed) {
         MaterialTheme.appColors.searchBarInputFieldColor
@@ -235,18 +235,16 @@ internal fun SearchInputField(
         MaterialTheme.appColors.expandedSearchBarColor
     }
 
-    // A genre browse leaves the field empty, so the placeholder is what says what is on screen. A screen
-    // reader skips the default placeholder (hidden from semantics below), so the genre is also announced as
-    // the field's state, or an empty field would be all a TalkBack user hears.
-    val genrePlaceholder = activeGenreLabel?.let {
-        stringResource(Res.string.genre_browse_placeholder, it.asString())
-    }
+    // A browse (a genre or a Discover shelf) leaves the field empty, so the placeholder is what says what is
+    // on screen. A screen reader skips the default placeholder (hidden from semantics below), so the browse is
+    // also announced as the field's state, or an empty field would be all a TalkBack user hears.
+    val browseText = browsePlaceholder?.asString()
 
     SearchBarDefaults.InputField(
         textFieldState = textFieldState,
         searchBarState = searchBarState,
-        modifier = if (genrePlaceholder != null) {
-            Modifier.semantics { stateDescription = genrePlaceholder }
+        modifier = if (browseText != null) {
+            Modifier.semantics { stateDescription = browseText }
         } else {
             Modifier
         },
@@ -259,7 +257,7 @@ internal fun SearchInputField(
         readOnly = searchBarState.currentValue == SearchBarValue.Collapsed,
         placeholder = {
             Text(
-                text = genrePlaceholder ?: stringResource(Res.string.search_placeholder),
+                text = browseText ?: stringResource(Res.string.search_placeholder),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.clearAndSetSemantics {}
@@ -271,8 +269,8 @@ internal fun SearchInputField(
                 // means there is no committed query left, so the content behind the overlay must
                 // fall back to the feed too, or collapsing with a blank field strands the user on
                 // stale results with no way back (there is nothing left to show the clear button on).
-                // A genre browse leaves the field empty yet is just as committed, so it shows the button too.
-                if (textFieldState.text.isNotEmpty() || activeGenreLabel != null) {
+                // A browse leaves the field empty yet is just as committed, so it shows the button too.
+                if (textFieldState.text.isNotEmpty() || browsePlaceholder != null) {
                     IconButton(onClick = onClearSearch) {
                         Icon(
                             imageVector = Icons.Default.Close,
@@ -717,7 +715,7 @@ private fun SearchInputFieldGenreBrowsePreview() {
             searchBarState = rememberContainedSearchBarState(),
             onSearch = {},
             onClearSearch = {},
-            activeGenreLabel = UiText.DynamicString("RPG")
+            browsePlaceholder = UiText.DynamicString("genre: RPG")
         )
     }
 }

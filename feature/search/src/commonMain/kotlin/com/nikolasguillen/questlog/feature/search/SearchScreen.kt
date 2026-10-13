@@ -198,12 +198,12 @@ internal fun SearchScreenContent(
             }
         }
 
-    // Only fires once a query or a genre browse is committed and the bar is collapsed: while expanded, the
-    // search bar's own predictive-back handling owns the gesture (collapsing it instead). A browse leaves the
-    // field empty, so the text alone cannot say there is something to go back from.
+    // Only fires once a query or a browse (a genre or a Discover shelf) is committed and the bar is collapsed:
+    // while expanded, the search bar's own predictive-back handling owns the gesture (collapsing it instead).
+    // A browse leaves the field empty, so the text alone cannot say there is something to go back from.
     BackHandler(
         enabled = searchBarState.currentValue == SearchBarValue.Collapsed &&
-            (textFieldState.text.isNotEmpty() || uiState.activeGenre != null)
+            (textFieldState.text.isNotEmpty() || uiState.activeBrowse != null)
     ) {
         onEvent(SearchUiEvent.OnClearSearch)
     }
@@ -252,7 +252,7 @@ internal fun SearchScreenContent(
             onEvent = onEvent,
             onGameClick = onGameClickWithCollapse,
             gridState = gridState,
-            activeGenre = uiState.activeGenre,
+            activeBrowse = uiState.activeBrowse,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),

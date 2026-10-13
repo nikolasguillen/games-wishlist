@@ -54,7 +54,7 @@ cannot be compiled or run without a Mac and must not be reported as verified unl
 
 **Purpose**: Know the starting point, so a red test later is attributable to this feature.
 
-- [ ] T001 Run `./gradlew :feature:search:testAndroidHostTest :core:domain:testAndroidHostTest --console=plain -q` on
+- [X] T001 Run `./gradlew :feature:search:testAndroidHostTest :core:domain:testAndroidHostTest --console=plain -q` on
   the branch before any change and confirm it is green. If anything is already red, stop and tell the owner instead of
   continuing.
 
@@ -73,13 +73,13 @@ harmless alone). Land T002–T013 in one commit, for example
 `refactor: generalise the genre browse marker into a browse sealed type`. It spans two modules (`:core:domain` and
 `:feature:search`), so the scope is omitted, as `.githooks/commit-msg` says for multi-module changes.
 
-- [ ] T002 [P] Make the facet function public in
+- [X] T002 [P] Make the facet function public in
   `core/domain/src/commonMain/kotlin/com/nikolasguillen/questlog/core/domain/usecase/search/SearchResultFacets.kt`:
   change `internal fun List<Game>.toSearchResult(excludedGenreId: Int? = null)` to a public function. The body does not
   change. Extend its KDoc with one line saying a third caller exists, Search's shelf grid, which passes no exclusion
   because a shelf is not defined by one genre. This is the owner-approved cross-module touch (research R5, spec
   FR-027). No new dependency edge: `:feature:search` already depends on `:core:domain`.
-- [ ] T003 [P] Create
+- [X] T003 [P] Create
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/model/DiscoverShelfKey.kt`:
   `@Immutable internal sealed interface DiscoverShelfKey` with three cases in the same file:
   `data class Lane(val lane: DiscoverLane)` (the `:core:model` enum, import
@@ -87,19 +87,19 @@ harmless alone). Land T002–T013 in one commit, for example
   `data class ByDeveloper(val developerId: Int)`. KDoc: it says *which* shelf, by the id of the signal the shelf was
   built from and never by its displayed name or its position, because a feed refresh can reorder the personalised
   shelves between render and tap (research R2); within one feed a key is unique.
-- [ ] T004 Create
+- [X] T004 Create
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/model/SearchBrowseUiModel.kt`:
   `@Immutable internal sealed interface SearchBrowseUiModel` with, in the same file,
   `data class Genre(val genre: BrowseGenreUiModel)` and `data class Shelf(val key: DiscoverShelfKey, val title: UiText)`
   (`UiText` from `com.nikolasguillen.questlog.core.ui.model.UiText`). KDoc: what the committed grid is showing when it
   is not a typed query; needs T003.
-- [ ] T005 Edit
+- [X] T005 Edit
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/model/SearchUiState.kt`: replace
   `val activeGenre: BrowseGenreUiModel? = null` with `val activeBrowse: SearchBrowseUiModel? = null`. Rewrite the
   `@property` KDoc and keep both invariants stated there: `activeBrowse != null` implies `contentState` is not
   `SearchContentState.Idle`, and `activeBrowse is SearchBrowseUiModel.Shelf` implies `contentState` is
   `SearchContentState.Success`. Needs T004.
-- [ ] T006 Edit
+- [X] T006 Edit
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/mapper/SearchUiMapper.kt`: (a)
   rename the parameter of `List<SortingUiModel>.withRelevanceLabel(isGenreBrowse: Boolean)` to `isBrowse` and update its
   KDoc ("a browse is ordered by its source, not by how well a query matches"); behaviour is unchanged. (b) Add
@@ -107,14 +107,14 @@ harmless alone). Land T002–T013 in one commit, for example
   `UiText.StringResource(Res.string.genre_browse_placeholder, genre.label)` (the existing "genre: %1$s"; a `UiText`
   argument is resolved by `asString()`/`resolve()`), `Shelf` returns `title` as it is. Use an exhaustive `when`. Import
   `genre_browse_placeholder` from the module's own `Res`. Needs T004.
-- [ ] T007 [P] Create
+- [X] T007 [P] Create
   `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/mapper/SearchUiMapperTest.kt`
   (KDoc header saying what it covers). Cases: `Genre(BrowseGenreUiModel(12, label)).toPlaceholder()` equals
   `UiText.StringResource(Res.string.genre_browse_placeholder, label)`; `Shelf(key, title).toPlaceholder()` is
   `title` (same instance), for a `Lane` key and for a `ByGenre` key with a formatted title; `withRelevanceLabel(true)`
   rewrites only the `RELEVANCE` entry to `sort_top_picks` and leaves `selected`, `descending` and the other three
   entries untouched; `withRelevanceLabel(false)` restores `CoreUiRes.string.sort_relevance`. Needs T006.
-- [ ] T008 Edit
+- [X] T008 Edit
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModel.kt` for the rename
   only (research R3 table): `performSearch` sets `activeBrowse = null`; `browseGenre` sets
   `activeBrowse = SearchBrowseUiModel.Genre(genre)`; `clearSearch` sets `activeBrowse = null`; the private helper
@@ -125,7 +125,7 @@ harmless alone). Land T002–T013 in one commit, for example
   `performSearch(textFieldState.text.toString())`, and `Shelf` does nothing, with a comment citing the invariant
   (a shelf grid is only ever `Success`, so Retry cannot be shown for it; research R6). `browseGenre`'s call to
   `sortGames(..., keepServerOrder = true)` becomes `keepSourceOrder = true`. Needs T005, T006.
-- [ ] T009 Edit
+- [X] T009 Edit
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/components/SearchBars.kt`:
   `SearchInputField`'s `activeGenreLabel: UiText?` becomes `browsePlaceholder: UiText?`. It resolves it with
   `asString()` for the placeholder text and the `stateDescription`, and shows the clear (X) button when
@@ -134,23 +134,23 @@ harmless alone). Land T002–T013 in one commit, for example
   `SearchTopBar`, pass `browsePlaceholder = uiState.activeBrowse?.toPlaceholder()`. Update the existing previews
   (`activeGenreLabel = UiText.DynamicString("RPG")` becomes a `browsePlaceholder`). Update the comments that say
   "genre browse" to "browse" where they are now general. Needs T006.
-- [ ] T010 Edit
+- [X] T010 Edit
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/components/SearchMainContent.kt`:
   replace the `activeGenre: BrowseGenreUiModel?` parameter with `activeBrowse: SearchBrowseUiModel?`. The empty state
   shows `genre_browse_no_results` only when `activeBrowse is SearchBrowseUiModel.Genre` (using its
   `genre.label.asString()`), otherwise `search_no_results`. Update the KDoc and the previews
   (`SearchMainContentGenreBrowseEmptyPreview` passes `SearchBrowseUiModel.Genre(BrowseGenreUiModel(...))`). Needs T004.
-- [ ] T011 Edit
+- [X] T011 Edit
   `feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/SearchScreen.kt`: the `BackHandler`
   `enabled` condition reads `uiState.activeBrowse != null` instead of `uiState.activeGenre != null` (update the comment
   above it), and `SearchMainContent(... activeGenre = uiState.activeGenre ...)` passes
   `activeBrowse = uiState.activeBrowse`. Needs T010.
-- [ ] T012 Update `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModelTest.kt`
+- [X] T012 Update `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModelTest.kt`
   for every read of `activeGenre` (`grep -n activeGenre` on the file lists them). Add one private helper beside `sortOption`:
   `private fun SearchViewModel.activeGenre(): BrowseGenreUiModel? = (uiState.value.activeBrowse as? SearchBrowseUiModel.Genre)?.genre`,
   and replace each `uiState.value.activeGenre` / `viewModel.uiState.value.activeGenre` with `viewModel.activeGenre()`. No
   assertion changes; no test is added, removed or weakened. Needs T005.
-- [ ] T013 Checkpoint: `./gradlew :feature:search:compileAndroidMain --console=plain -q`, then
+- [X] T013 Checkpoint: `./gradlew :feature:search:compileAndroidMain --console=plain -q`, then
   `./gradlew :feature:search:testAndroidHostTest :core:domain:testAndroidHostTest --console=plain -q`. Expected: green,
   with exactly the same tests as T001 plus `SearchUiMapperTest`. Commit (boundary above).
 

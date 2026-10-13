@@ -9,10 +9,13 @@ import com.nikolasguillen.questlog.core.model.SearchResult
  * relevant filter chips for this particular result come first. Ties keep the order of first appearance.
  * The games keep their order.
  *
+ * Public because Search's shelf grid builds its filter options from a Discover shelf's games with it too,
+ * without an exclusion: a shelf is not defined by one genre, so every genre it carries narrows something.
+ *
  * @param excludedGenreId A genre left out of the genre facet. A genre browse passes the browsed genre: every
  * game carries it, so offering it as a filter would narrow nothing.
  */
-internal fun List<Game>.toSearchResult(excludedGenreId: Int? = null): SearchResult {
+fun List<Game>.toSearchResult(excludedGenreId: Int? = null): SearchResult {
     val platformCounts = flatMap { it.platforms }.groupingBy { it.id }.eachCount()
     val genreCounts = flatMap { it.genres }.groupingBy { it.id }.eachCount()
 

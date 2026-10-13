@@ -35,6 +35,7 @@ import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.DiscoverContentState
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
+import com.nikolasguillen.questlog.feature.search.model.SearchBrowseUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchContentState
 import com.nikolasguillen.questlog.feature.search.model.SearchSort
 import com.nikolasguillen.questlog.feature.search.model.SearchUiEffect
@@ -158,6 +159,10 @@ class SearchViewModelTest {
 
     private fun SearchViewModel.sortOption(sortType: SearchSort): SortingUiModel =
         uiState.value.sortBottomSheetState.sorting.first { it.sortType == sortType }
+
+    /** The genre of the active browse, or `null` when none is active or the browse is not a genre one. */
+    private fun SearchViewModel.activeGenre(): BrowseGenreUiModel? =
+        (uiState.value.activeBrowse as? SearchBrowseUiModel.Genre)?.genre
 
     private fun TestScope.createViewModel(): SearchViewModel {
         return SearchViewModel(
@@ -890,7 +895,7 @@ class SearchViewModelTest {
             val viewModel = createViewModel()
 
             viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
-            assertEquals(rpgChip, viewModel.uiState.value.activeGenre)
+            assertEquals(rpgChip, viewModel.activeGenre())
             assertEquals(SearchContentState.Loading, viewModel.uiState.value.contentState)
 
             deferred.complete(
@@ -907,7 +912,7 @@ class SearchViewModelTest {
             val genreFilterIds = viewModel.successState().filters
                 .filterIsInstance<GameFilterUiModel.Genre>().map { it.id }
             assertEquals(listOf(32), genreFilterIds)
-            assertEquals(rpgChip, viewModel.uiState.value.activeGenre)
+            assertEquals(rpgChip, viewModel.activeGenre())
         }
 
     @Test
@@ -1002,7 +1007,7 @@ class SearchViewModelTest {
             advanceUntilIdle()
 
             assertEquals(listOf(1), viewModel.successState().games.map { it.id })
-            assertEquals(rpgChip, viewModel.uiState.value.activeGenre)
+            assertEquals(rpgChip, viewModel.activeGenre())
             coVerify(exactly = 2) { browseGenreUseCase(12) }
             coVerify(exactly = 0) { searchGamesUseCase(any()) }
         }
@@ -1017,7 +1022,7 @@ class SearchViewModelTest {
         advanceUntilIdle()
 
         assertEquals(SearchContentState.Empty, viewModel.uiState.value.contentState)
-        assertEquals(pinball, viewModel.uiState.value.activeGenre)
+        assertEquals(pinball, viewModel.activeGenre())
     }
 
     @Test
@@ -1038,7 +1043,7 @@ class SearchViewModelTest {
         )
         advanceUntilIdle()
 
-        assertEquals(indieChip, viewModel.uiState.value.activeGenre)
+        assertEquals(indieChip, viewModel.activeGenre())
         assertEquals(listOf(2), viewModel.successState().games.map { it.id })
     }
 
@@ -1078,7 +1083,7 @@ class SearchViewModelTest {
 
             viewModel.onEvent(SearchUiEvent.OnClearSearch)
 
-            assertEquals(null, viewModel.uiState.value.activeGenre)
+            assertEquals(null, viewModel.activeGenre())
             assertEquals(SearchContentState.Idle, viewModel.uiState.value.contentState)
         }
 
@@ -1096,7 +1101,7 @@ class SearchViewModelTest {
             viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
             advanceUntilIdle()
 
-            assertEquals(null, viewModel.uiState.value.activeGenre)
+            assertEquals(null, viewModel.activeGenre())
             assertEquals(listOf(7), viewModel.successState().games.map { it.id })
             coVerify(exactly = 1) { searchGamesUseCase("zelda") }
         }
@@ -1112,12 +1117,12 @@ class SearchViewModelTest {
 
             viewModel.setQuery("ze")
             advanceUntilIdle()
-            assertEquals(rpgChip, viewModel.uiState.value.activeGenre)
+            assertEquals(rpgChip, viewModel.activeGenre())
             assertEquals(before, viewModel.uiState.value.contentState)
 
             viewModel.setQuery("")
             advanceUntilIdle()
-            assertEquals(rpgChip, viewModel.uiState.value.activeGenre)
+            assertEquals(rpgChip, viewModel.activeGenre())
             assertEquals(before, viewModel.uiState.value.contentState)
         }
 
@@ -1138,7 +1143,7 @@ class SearchViewModelTest {
 
             assertEquals(listOf(1), viewModel.successState().games.map { it.id })
             assertEquals("", viewModel.textFieldState.text.toString())
-            assertEquals(rpgChip, viewModel.uiState.value.activeGenre)
+            assertEquals(rpgChip, viewModel.activeGenre())
         }
 
     @Test
@@ -1153,7 +1158,7 @@ class SearchViewModelTest {
         advanceUntilIdle()
 
         assertEquals(first, viewModel.successState().games.map { it.id })
-        assertEquals(rpgChip, viewModel.uiState.value.activeGenre)
+        assertEquals(rpgChip, viewModel.activeGenre())
     }
 
     @Test
@@ -1169,7 +1174,7 @@ class SearchViewModelTest {
         viewModel.onEvent(SearchUiEvent.OnSearchTriggered("   "))
         advanceUntilIdle()
 
-        assertEquals(rpgChip, viewModel.uiState.value.activeGenre)
+        assertEquals(rpgChip, viewModel.activeGenre())
         assertEquals(contentBefore, viewModel.uiState.value.contentState)
         assertEquals(sortingBefore, viewModel.uiState.value.sortBottomSheetState.sorting)
         coVerify(exactly = 0) { searchGamesUseCase(any()) }
