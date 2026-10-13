@@ -35,6 +35,7 @@ import com.nikolasguillen.questlog.core.model.WishlistList
 import com.nikolasguillen.questlog.core.ui.resources.genre_adventure
 import com.nikolasguillen.questlog.core.ui.resources.sort_relevance
 import com.nikolasguillen.questlog.core.ui.model.UiText
+import com.nikolasguillen.questlog.feature.search.mapper.toPlaceholder
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.DiscoverContentState
 import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfKey
@@ -1590,6 +1591,372 @@ class SearchViewModelTest {
         // Retry on a shelf grid is a no-op: it must not re-run the old text search either.
         coVerify(exactly = 1) { searchGamesUseCase("zelda") }
     }
+
+    // endregion
+
+    // region Shelf grid: leaving it, sorting it, filtering it
+
+    private fun givenPopular(vararg games: Game) {
+        givenFeed(DiscoverFeed(popular = games.toList(), upcoming = emptyList()))
+    }
+
+    private fun gamesWithOrder(pc: Platform) = listOf(
+        // Deliberately neither alphabetical nor by rating: only the shelf's own order explains [3, 1, 2, 4].
+        testGame(id = 3, name = "Charlie", rating = 10.0, platforms = listOf(pc)),
+        testGame(id = 1, name = "Alpha", rating = 90.0, platforms = listOf(pc)),
+        testGame(id = 2, name = "Bravo", rating = 50.0),
+        testGame(id = 4, name = "Delta", rating = 70.0, platforms = listOf(pc))
+    )
+
+    @Test
+    fun `OnClearSearch from a shelf grid returns to the feed without fetching it again`() =
+        runTest(testDispatcher) {
+            givenFeed(DiscoverFeed(popular = gamesFrom(firstId = 1, count = 8), upcoming = emptyList()))
+            val viewModel = createViewModel()
+            viewModel.openShelf(popularKey)
+
+            viewModel.onEvent(SearchUiEvent.OnClearSearch)
+
+            assertEquals(null, viewModel.uiState.value.activeBrowse)
+            assertEquals(SearchContentState.Idle, viewModel.uiState.value.contentState)
+            verify(exactly = 1) { getDiscoverFeedUseCase(any()) }
+        }
+
+    @Test
+    fun `a submitted query replaces a shelf grid with text results`() = runTest(testDispatcher) {
+        givenFeed(DiscoverFeed(popular = gamesFrom(firstId = 1, count = 8), upcoming = emptyList()))
+        coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
+            SearchResult(games = listOf(testGame(id = 900)), platforms = emptyList(), genres = emptyList())
+        )
+        val viewModel = createViewModel()
+        viewModel.openShelf(popularKey)
+
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
+        advanceUntilIdle()
+
+        assertEquals(null, viewModel.uiState.value.activeBrowse)
+        assertEquals(listOf(900), viewModel.successState().allGames.map { it.id })
+    }
+
+    @Test
+    fun `a genre tapped while a shelf grid is open replaces it`() = runTest(testDispatcher) {
+        givenFeed(DiscoverFeed(popular = gamesFrom(firstId = 1, count = 8), upcoming = emptyList()))
+        givenBrowse(12, testGame(id = 700))
+        val viewModel = createViewModel()
+        viewModel.openShelf(popularKey)
+
+        viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+        advanceUntilIdle()
+
+        assertEquals(rpgChip, viewModel.activeGenre())
+        assertEquals(listOf(700), viewModel.successState().allGames.map { it.id })
+    }
+
+    @Test
+    fun `a shelf opened while a genre browse is showing replaces it`() = runTest(testDispatcher) {
+        givenFeed(DiscoverFeed(popular = gamesFrom(firstId = 1, count = 8), upcoming = emptyList()))
+        givenBrowse(12, testGame(id = 700))
+        val viewModel = createViewModel()
+        viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+        advanceUntilIdle()
+
+        viewModel.openShelf(popularKey)
+
+        assertEquals(null, viewModel.activeGenre())
+        assertTrue(viewModel.uiState.value.activeBrowse is SearchBrowseUiModel.Shelf)
+        assertEquals((1..8).toList(), viewModel.successState().allGames.map { it.id })
+    }
+
+    @Test
+    fun `typing during a shelf grid leaves it on screen, even if the text is deleted again`() =
+        runTest(testDispatcher) {
+            givenFeed(DiscoverFeed(popular = gamesFrom(firstId = 1, count = 8), upcoming = emptyList()))
+            val viewModel = createViewModel()
+            viewModel.openShelf(popularKey)
+            val open = viewModel.uiState.value.activeBrowse
+
+            viewModel.setQuery("ze")
+            advanceUntilIdle()
+            viewModel.setQuery("")
+            advanceUntilIdle()
+
+            assertEquals(open, viewModel.uiState.value.activeBrowse)
+            assertEquals((1..8).toList(), viewModel.successState().allGames.map { it.id })
+        }
+
+    @Test
+    fun `the search bar shows the shelf's own title while its grid is open`() = runTest(testDispatcher) {
+        givenFeed(
+            DiscoverFeed(
+                popular = gamesFrom(firstId = 1, count = 8),
+                upcoming = emptyList(),
+                recommended = listOf(genreShelfOf(genreId = 12, name = "RPG", games = gamesFrom(firstId = 101, count = 8)))
+            )
+        )
+        val viewModel = createViewModel()
+
+        listOf(popularKey, DiscoverShelfKey.ByGenre(12)).forEach { key ->
+            val shelf = viewModel.shelf(key)
+            viewModel.openShelf(key)
+
+            assertEquals(shelf.title, viewModel.uiState.value.activeBrowse!!.toPlaceholder())
+            viewModel.onEvent(SearchUiEvent.OnClearSearch)
+        }
+    }
+
+    @Test
+    fun `Relevance reads Top picks while a shelf grid is open and Relevance again after it`() =
+        runTest(testDispatcher) {
+            givenFeed(DiscoverFeed(popular = gamesFrom(firstId = 1, count = 8), upcoming = emptyList()))
+            coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
+                SearchResult(games = listOf(testGame(id = 900)), platforms = emptyList(), genres = emptyList())
+            )
+            val viewModel = createViewModel()
+            val topPicks = UiText.StringResource(Res.string.sort_top_picks)
+            val relevance = UiText.StringResource(CoreUiRes.string.sort_relevance)
+            assertEquals(relevance, viewModel.sortOption(SearchSort.RELEVANCE).label)
+
+            viewModel.openShelf(popularKey)
+            assertEquals(topPicks, viewModel.sortOption(SearchSort.RELEVANCE).label)
+
+            viewModel.onEvent(SearchUiEvent.OnClearSearch)
+            assertEquals(relevance, viewModel.sortOption(SearchSort.RELEVANCE).label)
+
+            viewModel.openShelf(popularKey)
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
+            advanceUntilIdle()
+            assertEquals(relevance, viewModel.sortOption(SearchSort.RELEVANCE).label)
+        }
+
+    @Test
+    fun `the selected sort and its direction survive a shelf grid opening and closing`() =
+        runTest(testDispatcher) {
+            givenFeed(DiscoverFeed(popular = gamesFrom(firstId = 1, count = 8), upcoming = emptyList()))
+            val viewModel = createViewModel()
+            viewModel.onEvent(SearchUiEvent.OnSortChanged(viewModel.sortOption(SearchSort.RATING)))
+            viewModel.onEvent(SearchUiEvent.OnSortChanged(viewModel.sortOption(SearchSort.RATING)))
+            val before = viewModel.uiState.value.sortBottomSheetState
+            assertEquals(false, viewModel.sortOption(SearchSort.RATING).descending)
+
+            viewModel.openShelf(popularKey)
+            val during = viewModel.uiState.value.sortBottomSheetState
+            viewModel.onEvent(SearchUiEvent.OnClearSearch)
+            val after = viewModel.uiState.value.sortBottomSheetState
+
+            listOf(during, after).forEach { state ->
+                assertEquals(before.isSortActive, state.isSortActive)
+                assertEquals(
+                    before.sorting.map { Triple(it.sortType, it.selected, it.descending) },
+                    state.sorting.map { Triple(it.sortType, it.selected, it.descending) }
+                )
+            }
+        }
+
+    @Test
+    fun `a shelf grid opens in the order of a sort already chosen`() = runTest(testDispatcher) {
+        val pc = Platform(id = 1, name = "PC")
+        givenPopular(*gamesWithOrder(pc).toTypedArray())
+        val viewModel = createViewModel()
+        viewModel.onEvent(SearchUiEvent.OnSortChanged(viewModel.sortOption(SearchSort.NAME)))
+
+        viewModel.openShelf(popularKey)
+
+        assertEquals(listOf("Delta", "Charlie", "Bravo", "Alpha"), viewModel.successState().games.map { it.name })
+        // allGames stays in the shelf's own order, so Top picks can be recovered.
+        assertEquals(listOf(3, 1, 2, 4), viewModel.successState().allGames.map { it.id })
+    }
+
+    @Test
+    fun `Top picks keeps the shelf's order and ascending reverses it, even after a filter`() =
+        runTest(testDispatcher) {
+            val pc = Platform(id = 1, name = "PC")
+            givenPopular(*gamesWithOrder(pc).toTypedArray())
+            val viewModel = createViewModel()
+            viewModel.openShelf(popularKey)
+
+            assertEquals(listOf(3, 1, 2, 4), viewModel.successState().games.map { it.id })
+
+            viewModel.onEvent(SearchUiEvent.OnSortChanged(viewModel.sortOption(SearchSort.RELEVANCE)))
+            assertEquals(listOf(4, 2, 1, 3), viewModel.successState().games.map { it.id })
+
+            viewModel.onEvent(SearchUiEvent.OnSortChanged(viewModel.sortOption(SearchSort.RELEVANCE)))
+            val platformFilter =
+                viewModel.successState().filters.filterIsInstance<GameFilterUiModel.Platform>().first()
+            viewModel.onEvent(SearchUiEvent.OnFilterClick(platformFilter))
+            assertEquals(listOf(3, 1, 4), viewModel.successState().games.map { it.id })
+        }
+
+    @Test
+    fun `Name, Rating and Release date sort a shelf grid as they sort a text search`() =
+        runTest(testDispatcher) {
+            givenPopular(
+                testGame(id = 3, name = "Charlie", rating = 10.0, ratingCount = 5).copy(releaseDate = "2024-01-01"),
+                testGame(id = 1, name = "Alpha", rating = 90.0, ratingCount = 5).copy(releaseDate = "2025-06-01"),
+                testGame(id = 2, name = "Bravo", rating = 50.0, ratingCount = 5).copy(releaseDate = "2023-03-01")
+            )
+            val viewModel = createViewModel()
+            viewModel.openShelf(popularKey)
+
+            viewModel.onEvent(SearchUiEvent.OnSortChanged(viewModel.sortOption(SearchSort.NAME)))
+            assertEquals(listOf(3, 2, 1), viewModel.successState().games.map { it.id })
+
+            viewModel.onEvent(SearchUiEvent.OnSortChanged(viewModel.sortOption(SearchSort.RATING)))
+            assertEquals(listOf(1, 2, 3), viewModel.successState().games.map { it.id })
+
+            viewModel.onEvent(SearchUiEvent.OnSortChanged(viewModel.sortOption(SearchSort.RELEASE_DATE)))
+            assertEquals(listOf(1, 3, 2), viewModel.successState().games.map { it.id })
+        }
+
+    @Test
+    fun `a shelf grid offers every genre its games carry, with none withheld`() = runTest(testDispatcher) {
+        val rpg = Genre(12, "RPG")
+        val adventure = Genre(31, "Adventure")
+        val shooter = Genre(5, "Shooter")
+        val pc = Platform(id = 1, name = "PC")
+        givenPopular(
+            testGame(id = 1, platforms = listOf(pc), genres = listOf(rpg, adventure)),
+            testGame(id = 2, genres = listOf(rpg, shooter)),
+            testGame(id = 3, genres = listOf(rpg))
+        )
+        val viewModel = createViewModel()
+
+        viewModel.openShelf(popularKey)
+
+        val filters = viewModel.successState().filters
+        // Ordered by how many of the games carry each, as for a text search: RPG (3), then the two singles.
+        assertEquals(listOf(12, 31, 5), filters.filterIsInstance<GameFilterUiModel.Genre>().map { it.id })
+        assertEquals(listOf(1), filters.filterIsInstance<GameFilterUiModel.Platform>().map { it.id })
+        assertTrue(filters.filterIsInstance<GameFilterUiModel.GameType>().isNotEmpty())
+        coVerify(exactly = 0) { browseGenreUseCase(any()) }
+    }
+
+    @Test
+    fun `a shelf grid starts with every filter unselected, even after a filtered text search`() =
+        runTest(testDispatcher) {
+            val pc = Platform(id = 1, name = "PC")
+            givenPopular(testGame(id = 1, platforms = listOf(pc)), testGame(id = 2))
+            coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
+                SearchResult(
+                    games = listOf(testGame(id = 7, platforms = listOf(pc))),
+                    platforms = listOf(pc),
+                    genres = emptyList()
+                )
+            )
+            val viewModel = createViewModel()
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
+            advanceUntilIdle()
+            viewModel.onEvent(
+                SearchUiEvent.OnFilterClick(
+                    viewModel.successState().filters.filterIsInstance<GameFilterUiModel.Platform>().first()
+                )
+            )
+            assertTrue(viewModel.successState().filters.any { it.selected })
+
+            viewModel.openShelf(popularKey)
+
+            assertTrue(viewModel.successState().filters.none { it.selected })
+            assertEquals(listOf(1, 2), viewModel.successState().games.map { it.id })
+        }
+
+    @Test
+    fun `filters on a shelf grid narrow with AND semantics in the shelf's order`() = runTest(testDispatcher) {
+        val pc = Platform(id = 1, name = "PC")
+        val rpg = Genre(12, "RPG")
+        val indie = Genre(32, "Indie")
+        givenPopular(
+            testGame(id = 4, platforms = listOf(pc), genres = listOf(rpg, indie)),
+            testGame(id = 3, genres = listOf(rpg, indie)),
+            testGame(id = 2, platforms = listOf(pc), genres = listOf(rpg)),
+            testGame(id = 1, platforms = listOf(pc), genres = listOf(rpg, indie))
+        )
+        val viewModel = createViewModel()
+        viewModel.openShelf(popularKey)
+
+        viewModel.successState().filters
+            .filter { it is GameFilterUiModel.Platform || it is GameFilterUiModel.Genre }
+            .forEach { viewModel.onEvent(SearchUiEvent.OnFilterClick(it)) }
+
+        assertEquals(listOf(4, 1), viewModel.successState().games.map { it.id })
+    }
+
+    @Test
+    fun `filters that match nothing leave a Success with no games, and clearing them restores the shelf`() =
+        runTest(testDispatcher) {
+            val pc = Platform(id = 1, name = "PC")
+            val indie = Genre(32, "Indie")
+            givenPopular(
+                testGame(id = 1, platforms = listOf(pc)),
+                testGame(id = 2, genres = listOf(indie))
+            )
+            val viewModel = createViewModel()
+            viewModel.openShelf(popularKey)
+
+            viewModel.successState().filters
+                .filter { it is GameFilterUiModel.Platform || it is GameFilterUiModel.Genre }
+                .forEach { viewModel.onEvent(SearchUiEvent.OnFilterClick(it)) }
+
+            // Success, not Empty: Empty would drop the filter chips and the way to clear them.
+            assertEquals(emptyList<Int>(), viewModel.successState().games.map { it.id })
+            assertTrue(viewModel.uiState.value.activeBrowse is SearchBrowseUiModel.Shelf)
+
+            viewModel.onEvent(SearchUiEvent.OnClearActiveFilters)
+
+            assertEquals(listOf(1, 2), viewModel.successState().games.map { it.id })
+        }
+
+    @Test
+    fun `the filter sheet opens on a shelf grid with the shelf's filters and match count`() =
+        runTest(testDispatcher) {
+            val pc = Platform(id = 1, name = "PC")
+            givenPopular(testGame(id = 1, platforms = listOf(pc)), testGame(id = 2))
+            val viewModel = createViewModel()
+            viewModel.openShelf(popularKey)
+
+            viewModel.onEvent(SearchUiEvent.OnOpenFilters)
+
+            val sheet = viewModel.uiState.value.filtersBottomSheetState
+            assertTrue(sheet.isVisible)
+            assertEquals(2, sheet.matchCount)
+            assertEquals(viewModel.successState().filters, sheet.filters)
+        }
+
+    @Test
+    fun `opening shelf grids never writes to the search history`() = runTest(testDispatcher) {
+        givenFeed(
+            DiscoverFeed(
+                popular = gamesFrom(firstId = 1, count = 8),
+                upcoming = gamesFrom(firstId = 101, count = 9),
+                recommended = listOf(genreShelfOf(genreId = 12, name = "RPG", games = gamesFrom(firstId = 201, count = 8)))
+            )
+        )
+        val viewModel = createViewModel()
+
+        listOf(popularKey, anticipatedKey, DiscoverShelfKey.ByGenre(12)).forEach { key ->
+            viewModel.openShelf(key)
+            advanceUntilIdle()
+            viewModel.onEvent(SearchUiEvent.OnClearSearch)
+        }
+
+        coVerify(exactly = 0) { addSearchToHistoryUseCase(any()) }
+    }
+
+    @Test
+    fun `a query submitted after a shelf grid is the only thing written to history`() =
+        runTest(testDispatcher) {
+            givenFeed(DiscoverFeed(popular = gamesFrom(firstId = 1, count = 8), upcoming = emptyList()))
+            coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
+                SearchResult(games = listOf(testGame(id = 900)), platforms = emptyList(), genres = emptyList())
+            )
+            val viewModel = createViewModel()
+
+            viewModel.openShelf(popularKey)
+            advanceUntilIdle()
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
+            advanceUntilIdle()
+
+            coVerify(exactly = 1) { addSearchToHistoryUseCase(any()) }
+            coVerify(exactly = 1) { addSearchToHistoryUseCase("zelda") }
+        }
 
     // endregion
 }

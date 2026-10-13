@@ -349,7 +349,7 @@ placeholder at the scroll position it had (quickstart §3, rows 3, 7, 8, 11, 13,
 **Dependency**: US2 (a grid to leave). The placeholder, the X button and the back handler were generalised in
 Foundational (T006, T009, T011); this phase proves they work for a shelf.
 
-- [ ] T032 [US3] Add exit and replacement cases to
+- [X] T032 [US3] Add exit and replacement cases to
   `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModelTest.kt`, next to
   T024's block: `OnClearSearch` from a shelf grid gives `activeBrowse == null`, `contentState` `Idle` and the sort label
   back to "Relevance", and does not re-invoke `getDiscoverFeedUseCase`; `OnSearchTriggered("zelda")`
@@ -389,7 +389,7 @@ platforms, genres and game types from the shelf's games, and that selecting some
 **Dependency**: US2. The label, `keepSourceOrder` and the facet derivation were written in T006, T008 and T027; this
 phase proves them. A failing test here is a bug in `SearchViewModel.openShelf` or `sortGames`, to be fixed there.
 
-- [ ] T035 [US4] Add label and order cases to
+- [X] T035 [US4] Add label and order cases to
   `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModelTest.kt`: the
   `RELEVANCE` option's label is `UiText.StringResource(Res.string.sort_top_picks)` while a shelf is open and
   `UiText.StringResource(CoreUiRes.string.sort_relevance)` after `OnClearSearch` and after a submitted query; select
@@ -398,7 +398,7 @@ phase proves them. A failing test here is a bug in `SearchViewModel.openShelf` o
   reversed, and both stay true after a filter is applied (follow the existing 014 test
   `Top picks keeps the server order and ascending reverses it, even after a filter`); Name, Rating and Release date sort
   a shelf grid as they sort a text search.
-- [ ] T036 [US4] Add filter cases to
+- [X] T036 [US4] Add filter cases to
   `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModelTest.kt`: a shelf
   whose games carry genres 12, 31 and 5 offers all three in `Success.filters` (none withheld, and
   `browseGenreUseCase` never called); platforms and the initial game types are offered; every filter starts unselected,
@@ -423,7 +423,7 @@ the recent searches are exactly as before (quickstart §3, row 8).
 
 **Dependency**: US2.
 
-- [ ] T038 [US5] Add to
+- [X] T038 [US5] Add to
   `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModelTest.kt`: opening
   three different shelves in turn (clearing in between) never calls `addSearchToHistoryUseCase`
   (`coVerify(exactly = 0)`); after that, `OnSearchTriggered("zelda")` makes `addSearchToHistoryUseCase("zelda")` the
