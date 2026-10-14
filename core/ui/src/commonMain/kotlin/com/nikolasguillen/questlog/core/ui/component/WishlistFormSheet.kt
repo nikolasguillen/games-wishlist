@@ -30,7 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -158,11 +157,8 @@ fun WishlistFormSheet(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                TextButton(onClick = onDismiss) {
-                    Text(
-                        text = stringResource(Res.string.cancel),
-                        color = MaterialTheme.appColors.textOnSurface
-                    )
+                CustomTextButton(onClick = onDismiss) {
+                    Text(text = stringResource(Res.string.cancel))
                 }
                 Spacer(modifier = Modifier.width(MaterialTheme.spacing.large))
                 Button(

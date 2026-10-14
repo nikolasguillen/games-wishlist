@@ -10,10 +10,8 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.input.TextFieldState
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,8 +28,8 @@ import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
+import com.nikolasguillen.questlog.core.ui.component.CustomTextButton
 import com.nikolasguillen.questlog.core.ui.component.LoadingPage
 import com.nikolasguillen.questlog.core.ui.util.rememberNotificationPermissionState
 import com.nikolasguillen.questlog.feature.onboarding.components.OnboardingBottomBar
@@ -171,9 +169,8 @@ private fun OnboardingPager(
                 .padding(horizontal = MaterialTheme.spacing.large),
             horizontalArrangement = Arrangement.End
         ) {
-            TextButton(
+            CustomTextButton(
                 onClick = { onEvent(OnboardingUiEvent.SkipClicked) },
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.appColors.textOnSurface)
             ) {
                 Text(text = stringResource(Res.string.onboarding_skip))
             }

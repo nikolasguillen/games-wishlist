@@ -17,12 +17,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,10 +32,10 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.font.FontWeight
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.CustomFilterChip
 import com.nikolasguillen.questlog.core.ui.component.CustomModalBottomSheet
+import com.nikolasguillen.questlog.core.ui.component.CustomTextButton
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.search.model.FilterBottomSheetState
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
@@ -66,9 +64,8 @@ internal fun SearchFilterBottomSheet(
             modifier = modifier,
             title = stringResource(Res.string.filters_title),
             titleTrailingContent = {
-                TextButton(
+                CustomTextButton(
                     onClick = { onEvent(SearchUiEvent.OnClearFilters) },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.appColors.textOnSurface)
                 ) {
                     Text(text = stringResource(Res.string.clear_all))
                 }
@@ -164,9 +161,8 @@ private fun FilterSection(
         }
 
         if (filters.size > 10) {
-            TextButton(
+            CustomTextButton(
                 onClick = { isExpanded = !isExpanded },
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.appColors.textOnSurface),
                 modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium)
             ) {
                 Row(

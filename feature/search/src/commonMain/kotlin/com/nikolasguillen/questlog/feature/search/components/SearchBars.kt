@@ -27,7 +27,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.History
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -43,7 +42,6 @@ import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberContainedSearchBarState
@@ -71,6 +69,7 @@ import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.CustomAlertDialog
 import com.nikolasguillen.questlog.core.ui.component.CustomChipRow
+import com.nikolasguillen.questlog.core.ui.component.CustomTextButton
 import com.nikolasguillen.questlog.core.ui.component.MainScreenHeader
 import com.nikolasguillen.questlog.core.ui.component.gamecard.RecentGameCard
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
@@ -563,9 +562,8 @@ private fun RecentSearchesSection(
                 style = MaterialTheme.typography.titleMedium
             )
 
-            TextButton(
+            CustomTextButton(
                 onClick = onClearRecentSearches,
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.appColors.textOnSurface)
             ) {
                 Text(stringResource(Res.string.clear_all))
             }

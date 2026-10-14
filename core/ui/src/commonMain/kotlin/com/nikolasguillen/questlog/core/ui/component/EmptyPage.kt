@@ -11,11 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SearchOff
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,7 +22,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.core.ui.util.UiConstants
@@ -82,9 +79,8 @@ fun EmptyPage(
                 )
             }
             if (actionLabel != null && onActionClick != null) {
-                TextButton(
+                CustomTextButton(
                     onClick = onActionClick,
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.appColors.textOnSurface)
                 ) {
                     Text(text = actionLabel.asString())
                 }
