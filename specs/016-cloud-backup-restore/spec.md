@@ -146,7 +146,12 @@ that signing in again starts with no backup.
 - **Backup made by a newer version of the app** than the one restoring it: the restore refuses with a message
   asking the user to update the app, and changes nothing.
 - **Account deletion needs a recent sign-in**: if the platform requires the user to have signed in recently, the
-  app asks them to sign in again and then continues, instead of failing with no explanation.
+  app asks them to sign in again and then continues, instead of failing with no explanation. When Apple is one
+  of the account's sign-in methods, that fresh Apple sign-in is also what lets the app withdraw the app's
+  access to the Apple ID, which Apple requires on deletion.
+- **Same email, provider that cannot vouch for it**: signing in with a Google work address that is already
+  registered through Apple does not create a second account; the user is told to sign in with Apple and link
+  Google from there.
 - **Restore replaces local data only**: release reminders, search history, settings and cached game data are
   not part of a backup, so they are not touched by a restore.
 - **Lists the user deleted after backing up** come back on restore; the backup is a snapshot, not a log.
@@ -164,7 +169,10 @@ that signing in again starts with no backup.
 - **FR-002**: Users MUST be able to sign in with a Google account on both Android and iOS.
 - **FR-003**: Users MUST be able to sign in with an Apple account on both Android and iOS.
 - **FR-004**: Signing in with a Google account and with an Apple account that share the same verified email
-  address MUST lead to the same user account and the same backup.
+  address MUST lead to the same user account and the same backup. Where the sign-in service cannot vouch for
+  the address on its own (a Google account on a domain Google does not host, such as a work address), the
+  app MUST NOT create a second account: it MUST tell the user that the address is already registered with
+  another sign-in method and that they can sign in with that method and link this one (FR-005).
 - **FR-005**: Users MUST be able to link a second sign-in method to their signed-in account from Settings, so
   that an Apple private relay address (or any address that differs from the first) can still reach the same
   account.
@@ -181,8 +189,9 @@ that signing in again starts with no backup.
 
 - **FR-010**: A signed-in user MUST be able to start a backup from Settings with a "Back up now" action. There
   MUST be no automatic or background backup.
-- **FR-011**: A backup MUST contain the user's lists (including which list is the default wishlist), the saved
-  games and their status, which list(s) each saved game belongs to, and the platforms the user owns.
+- **FR-011**: A backup MUST contain the user's lists (including which list is the default wishlist and each
+  list's custom cover photo), the saved games with their status, priority and notes, which list(s) each saved
+  game belongs to, and the platforms the user owns.
 - **FR-012**: A backup MUST NOT contain search history, app settings, or data that can be re-fetched from the
   game database (cached game details, Discover feed, translations, release-reminder entries).
 - **FR-013**: A new backup MUST replace the user's previous backup; only one backup per account is kept.
@@ -268,11 +277,12 @@ that signing in again starts with no backup.
 - **Platforms and providers**: both Android and iOS ship with both Google and Apple sign-in in the first
   version. Sign in with Apple requires a paid Apple Developer account, which the owner must have before the
   Apple half can be built and tested.
-- **Backend (owner's decision)**: Firebase Authentication and Firestore are the chosen backend, using the
-  provider's same-email account linking. The plan decides the library layer and the data layout; the
-  Firebase project, its sign-in providers and its security rules are configured by the owner in the console.
-  Whether the same-email linking setting is available on the free plan is not yet confirmed and may require a
-  billing account.
+- **Backend (owner's decision)**: Firebase Authentication and Firestore are the chosen backend, using
+  Firebase Authentication's default "one account per email address" setting. Under it, Apple and Google
+  (for addresses Google hosts) are trusted providers and are linked automatically when the verified email
+  matches, on the free plan; no Identity Platform upgrade or billing account is needed. The plan decides the
+  library layer and the data layout; the Firebase project, its sign-in providers and its security rules are
+  configured by the owner in the console.
 - **Identity matching**: two providers are treated as the same person only when both report the same *verified*
   email address. An unverified address never merges accounts.
 - **Backup scope**: the saved games in a backup carry what the app stores for them, so that a restored
