@@ -8,6 +8,11 @@ import com.nikolasguillen.questlog.core.domain.usecase.RefreshGameDetailUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.SetGameStatusUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.ToggleWishlistUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.UpdateGameUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.account.ObserveAccountUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.account.SignInUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.backup.BackUpUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.backup.GetBackupInfoUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.backup.HasLocalUserDataUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetDiscoverFeedUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetKnownPlatformsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatformIdsUseCase
@@ -62,6 +67,11 @@ val domainModule = module {
     factoryOf(::SetGameStatusUseCase)
     factoryOf(::ToggleWishlistUseCase)
     factoryOf(::UpdateGameUseCase)
+    factoryOf(::ObserveAccountUseCase)
+    factoryOf(::SignInUseCase)
+    factoryOf(::GetBackupInfoUseCase)
+    factoryOf(::BackUpUseCase)
+    factoryOf(::HasLocalUserDataUseCase)
     factoryOf(::GetDiscoverFeedUseCase)
     factoryOf(::GetKnownPlatformsUseCase)
     factoryOf(::GetSelectedPlatformIdsUseCase)
