@@ -8,12 +8,11 @@ import com.nikolasguillen.questlog.core.model.AuthProvider
  *
  * @property email The address the provider reported, `null` when none of the linked methods shares one. It is data
  * from the provider, never a resource, so it stays a plain string.
- * @property linkedProviders The methods already linked to the account.
- * @property linkableProviders The methods that can still be linked.
+ * @property linkedProviders The methods linked to the account. Another platform's method appears here once Firebase has
+ * linked it by email.
  */
 @Immutable
 internal data class AccountUiModel(
     val email: String?,
-    val linkedProviders: List<AuthProvider>,
-    val linkableProviders: List<AuthProvider>
+    val linkedProviders: List<AuthProvider>
 )

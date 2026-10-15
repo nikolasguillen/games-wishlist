@@ -44,19 +44,26 @@ class AccountRepositoryImplTest {
     }
 
     @Test
-    fun `signIn with Google returns the mapped account`() = runTest {
-        val result = repository.signIn(AuthProvider.GOOGLE)
+    fun `the sign-in provider is the one the platform offers`() {
+        assertEquals(AuthProvider.GOOGLE, AccountRepositoryImpl(FakeCloudAuth(provider = CloudProvider.GOOGLE)).signInProvider)
+        assertEquals(AuthProvider.APPLE, AccountRepositoryImpl(FakeCloudAuth(provider = CloudProvider.APPLE)).signInProvider)
+    }
 
-        assertEquals(listOf(CloudProvider.GOOGLE), auth.signInCalls)
+    @Test
+    fun `signIn returns the mapped account`() = runTest {
+        val result = repository.signIn()
+
+        assertEquals(1, auth.signInCalls)
         assertEquals(setOf(AuthProvider.GOOGLE), (result as AppResult.Success).data.providers)
         assertEquals("ada@example.com", result.data.email)
     }
 
     @Test
-    fun `signIn with Apple returns the mapped account`() = runTest {
-        val result = repository.signIn(AuthProvider.APPLE)
+    fun `signIn on an Apple platform returns an Apple account`() = runTest {
+        val apple = FakeCloudAuth(provider = CloudProvider.APPLE)
 
-        assertEquals(listOf(CloudProvider.APPLE), auth.signInCalls)
+        val result = AccountRepositoryImpl(apple).signIn()
+
         assertEquals(setOf(AuthProvider.APPLE), (result as AppResult.Success).data.providers)
     }
 
@@ -64,7 +71,7 @@ class AccountRepositoryImplTest {
     fun `a closed sign-in becomes sign-in cancelled`() = runTest {
         auth.signInFailure = CloudSignInCancelledException()
 
-        val result = repository.signIn(AuthProvider.GOOGLE)
+        val result = repository.signIn()
 
         assertEquals(RepositoryError.SignInCancelled, (result as AppResult.Failure).error)
     }
@@ -73,7 +80,7 @@ class AccountRepositoryImplTest {
     fun `a credential collision becomes account exists with other method`() = runTest {
         auth.signInFailure = CloudCredentialCollisionException()
 
-        val result = repository.signIn(AuthProvider.APPLE)
+        val result = repository.signIn()
 
         assertEquals(RepositoryError.AccountExistsWithOtherMethod, (result as AppResult.Failure).error)
     }
@@ -83,7 +90,7 @@ class AccountRepositoryImplTest {
         auth.signInFailure = CancellationException("scope closed")
 
         assertThrows(CancellationException::class.java) {
-            kotlinx.coroutines.runBlocking { repository.signIn(AuthProvider.GOOGLE) }
+            kotlinx.coroutines.runBlocking { repository.signIn() }
         }
     }
 }

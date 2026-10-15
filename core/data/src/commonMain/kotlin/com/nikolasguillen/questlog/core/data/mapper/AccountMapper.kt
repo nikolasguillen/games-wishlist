@@ -15,8 +15,3 @@ internal fun CloudProvider.toAuthProvider(): AuthProvider = when (this) {
     CloudProvider.GOOGLE -> AuthProvider.GOOGLE
     CloudProvider.APPLE -> AuthProvider.APPLE
 }
-
-internal fun AuthProvider.toCloudProvider(): CloudProvider = when (this) {
-    AuthProvider.GOOGLE -> CloudProvider.GOOGLE
-    AuthProvider.APPLE -> CloudProvider.APPLE
-}

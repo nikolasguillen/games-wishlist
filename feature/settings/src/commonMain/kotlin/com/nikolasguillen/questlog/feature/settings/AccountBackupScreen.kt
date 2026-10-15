@@ -169,16 +169,15 @@ private fun SignedOutContent(state: AccountBackupUiState, onEvent: (AccountBacku
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
     ProviderSignInButton(
-        label = stringResource(Res.string.account_backup_continue_with_google),
-        loading = state.runningOperation == CloudOperation.SIGN_IN_GOOGLE,
+        label = stringResource(
+            when (state.signInProvider) {
+                AuthProvider.GOOGLE -> Res.string.account_backup_continue_with_google
+                AuthProvider.APPLE -> Res.string.account_backup_sign_in_with_apple
+            }
+        ),
+        loading = state.runningOperation == CloudOperation.SIGN_IN,
         enabled = !busy,
-        onClick = { onEvent(AccountBackupUiEvent.SignIn(AuthProvider.GOOGLE)) }
-    )
-    ProviderSignInButton(
-        label = stringResource(Res.string.account_backup_sign_in_with_apple),
-        loading = state.runningOperation == CloudOperation.SIGN_IN_APPLE,
-        enabled = !busy,
-        onClick = { onEvent(AccountBackupUiEvent.SignIn(AuthProvider.APPLE)) }
+        onClick = { onEvent(AccountBackupUiEvent.SignIn) }
     )
 }
 
@@ -197,11 +196,24 @@ private fun AccountBackupSignedOutPreview() {
 
 @QuestLogPreviews
 @Composable
+private fun AccountBackupSignedOutAppleiOSPreview() {
+    QuestLogTheme {
+        AccountBackupContent(
+            state = AccountBackupUiState(signInProvider = AuthProvider.APPLE),
+            onEvent = {},
+            onBackClick = {},
+            snackbarHostState = remember { SnackbarHostState() }
+        )
+    }
+}
+
+@QuestLogPreviews
+@Composable
 private fun AccountBackupSignedInNoBackupPreview() {
     QuestLogTheme {
         AccountBackupContent(
             state = AccountBackupUiState(
-                account = AccountUiModel("ada@example.com", listOf(AuthProvider.GOOGLE), listOf(AuthProvider.APPLE)),
+                account = AccountUiModel("ada@example.com", listOf(AuthProvider.GOOGLE)),
                 backup = BackupStatusUiModel.None
             ),
             onEvent = {},
@@ -217,7 +229,7 @@ private fun AccountBackupSignedInWithBackupPreview() {
     QuestLogTheme {
         AccountBackupContent(
             state = AccountBackupUiState(
-                account = AccountUiModel("ada@example.com", listOf(AuthProvider.GOOGLE), listOf(AuthProvider.APPLE)),
+                account = AccountUiModel("ada@example.com", listOf(AuthProvider.GOOGLE)),
                 backup = BackupStatusUiModel.Available(
                     lastBackup = UiText.DynamicString("Last backup: Mar 15, 2024, 8:00 AM"),
                     summary = UiText.DynamicString("3 lists, 20 games")
@@ -236,7 +248,7 @@ private fun AccountBackupBusyPreview() {
     QuestLogTheme {
         AccountBackupContent(
             state = AccountBackupUiState(
-                account = AccountUiModel("ada@example.com", listOf(AuthProvider.GOOGLE), listOf(AuthProvider.APPLE)),
+                account = AccountUiModel("ada@example.com", listOf(AuthProvider.GOOGLE)),
                 backup = BackupStatusUiModel.None,
                 runningOperation = CloudOperation.BACK_UP
             ),
@@ -253,7 +265,7 @@ private fun AccountBackupEmptyDialogPreview() {
     QuestLogTheme {
         AccountBackupContent(
             state = AccountBackupUiState(
-                account = AccountUiModel("ada@example.com", listOf(AuthProvider.GOOGLE), listOf(AuthProvider.APPLE)),
+                account = AccountUiModel("ada@example.com", listOf(AuthProvider.GOOGLE)),
                 backup = BackupStatusUiModel.None,
                 dialog = AccountBackupDialog.ConfirmEmptyBackup
             ),

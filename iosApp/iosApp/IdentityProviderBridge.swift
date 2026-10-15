@@ -1,57 +1,22 @@
 import AuthenticationServices
 import CryptoKit
 import FirebaseAuth
-import FirebaseCore
 import Foundation
-import GoogleSignIn
 import QuestLogShared
 import UIKit
 import os
 
-/// Google and Apple sign-in behind the Kotlin `CloudIdentityProviderBridge`.
+/// Sign in with Apple behind the Kotlin `CloudIdentityProviderBridge`. Apple is the only sign-in method iOS offers.
 ///
-/// GoogleSignIn-iOS and AuthenticationServices cannot be imported from Kotlin/Native, so the Kotlin side reaches them
-/// through this class, which `AppDelegate` hands to `startQuestLog`. Swift owns everything about presentation: the
-/// view controller the sheets come from, the Apple nonce and the Google client id. Each `onResult` is called exactly
-/// once. No token is ever logged.
+/// AuthenticationServices cannot be imported from Kotlin/Native, so the Kotlin side reaches it through this class,
+/// which `AppDelegate` hands to `startQuestLog`. Swift owns everything about presentation: the view controller the
+/// sheet comes from and the Apple nonce. Each `onResult` is called exactly once. No token is ever logged.
 final class IdentityProviderBridge: NSObject, CloudIdentityProviderBridge {
 
     private static let logger = Logger(subsystem: "com.nikolasguillen.questlog", category: "sign-in")
 
     /// The Apple sign-in in flight. `ASAuthorizationController` keeps its delegate weakly, so it lives here.
     private var appleSignIn: AppleSignIn?
-
-    func signInWithGoogle(onResult: @escaping (CloudGoogleSignInResult) -> Void) {
-        DispatchQueue.main.async {
-            guard let clientID = FirebaseApp.app()?.options.clientID,
-                  let presenter = Self.topViewController() else {
-                Self.logger.error("Google sign-in cannot start: no client id or no view controller")
-                onResult(CloudGoogleSignInResult(outcome: .failed, idToken: nil, accessToken: nil))
-                return
-            }
-            GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientID)
-            GIDSignIn.sharedInstance.signIn(withPresenting: presenter) { result, error in
-                if let error = error as NSError? {
-                    let cancelled = error.domain == kGIDSignInErrorDomain
-                        && error.code == GIDSignInError.canceled.rawValue
-                    if !cancelled {
-                        Self.logger.error("Google sign-in failed: \(error.domain, privacy: .public) \(error.code)")
-                    }
-                    onResult(CloudGoogleSignInResult(
-                        outcome: cancelled ? .cancelled : .failed, idToken: nil, accessToken: nil
-                    ))
-                    return
-                }
-                guard let user = result?.user, let idToken = user.idToken?.tokenString else {
-                    onResult(CloudGoogleSignInResult(outcome: .failed, idToken: nil, accessToken: nil))
-                    return
-                }
-                onResult(CloudGoogleSignInResult(
-                    outcome: .success, idToken: idToken, accessToken: user.accessToken.tokenString
-                ))
-            }
-        }
-    }
 
     func signInWithApple(onResult: @escaping (CloudAppleSignInResult) -> Void) {
         DispatchQueue.main.async {
@@ -76,10 +41,6 @@ final class IdentityProviderBridge: NSObject, CloudIdentityProviderBridge {
             }
             onResult(KotlinBoolean(bool: error == nil))
         }
-    }
-
-    func signOutGoogle() {
-        GIDSignIn.sharedInstance.signOut()
     }
 
     /// The view controller a sign-in sheet is presented from: the topmost one of the active window scene.

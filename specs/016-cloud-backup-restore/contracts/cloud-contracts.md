@@ -13,17 +13,18 @@ platform Koin module, `:shared` assembling them, and fakes in the consuming modu
 
 ```kotlin
 interface CloudAuth {
+    val provider: CloudProvider                // the one method this platform offers: GOOGLE on Android, APPLE on iOS
     val currentUser: Flow<CloudUser?>          // Firebase.auth.authStateChanged, mapped
-    suspend fun signIn(provider: CloudProvider): CloudUser
-    suspend fun link(provider: CloudProvider): CloudUser
-    suspend fun reauthenticate()               // Apple if linked, else Google; keeps Apple's revocation grant
+    suspend fun signIn(): CloudUser
+    suspend fun reauthenticate()               // a fresh sign-in with `provider`; keeps Apple's revocation grant
     suspend fun signOut()                      // also clears the provider's cached credential and any grant
     suspend fun deleteUser()                   // revokes the held Apple grant (best effort), then deletes
 }
 ```
 
 - Throws only `CloudException` subtypes, plus `CancellationException`, which is always rethrown.
-- `link` on a provider that is already linked returns the current user unchanged.
+- Each platform offers one method (2026-10-16 clarification in the spec), so there is no `link`: the other platform's
+  method reaches the same account only when Firebase links it by email.
 - `deleteUser` without a fresh `reauthenticate` throws `CloudRecentLoginRequiredException`. `AccountRepositoryImpl`
   never lets that happen, because `DeleteAccountUseCase` always re-authenticates first.
 - The provider-specific half is delegated to `PlatformProviderAuth`, which is the only thing that differs per platform.
@@ -51,25 +52,25 @@ interface CloudBackupStore {
 
 ```kotlin
 internal interface PlatformProviderAuth {
-    suspend fun signIn(provider: CloudProvider)                  // ends with Firebase signed in
-    suspend fun link(provider: CloudProvider)                    // links to Firebase's current user
-    suspend fun reauthenticate(provider: CloudProvider): AppleGrant?   // non-null only for APPLE
+    val provider: CloudProvider                                  // GOOGLE on Android, APPLE on iOS
+    suspend fun signIn()                                         // ends with Firebase signed in
+    suspend fun reauthenticate(): AppleGrant?                    // non-null only where a grant must be revoked (Apple)
     suspend fun revokeApple(grant: AppleGrant)
     suspend fun clearProviderState()                             // on sign-out
 }
 
-/** Opaque to common code: an authorization code (iOS) or an OAuth access token (Android). */
+/** Opaque to common code: the authorization code Apple issues on iOS. */
 class AppleGrant internal constructor(internal val value: String)
 ```
 
 | | Android (`androidMain`) | iOS (`iosMain`) |
 |---|---|---|
-| Google sign-in, link, re-auth | Credential Manager `GetSignInWithGoogleOption(webClientId)` on the tracked Activity → `GoogleAuthProvider.credential(idToken, null)` → GitLive `signInWithCredential` / `linkWithCredential` / `reauthenticate` | `IdentityProviderBridge.signInWithGoogle` → tokens → the same GitLive calls |
-| Apple sign-in, link, re-auth | `OAuthProvider.newBuilder("apple.com")` + `startActivityFor{SignIn,Link,Reauthenticate}WithProvider` through GitLive's `.android`, after `pendingAuthResult` | `IdentityProviderBridge.signInWithApple` → identity token + raw nonce + authorization code → `OAuthProvider.credential("apple.com", idToken, rawNonce)` → GitLive |
-| Apple grant | `(authResult.credential as OAuthCredential).accessToken` | the authorization code |
-| `revokeApple` | `FirebaseAuth.revokeAccessToken(token)` | `IdentityProviderBridge.revokeAppleToken(code, …)` (Swift: `Auth.auth().revokeToken(withAuthorizationCode:)`) |
-| `clearProviderState` | `CredentialManager.clearCredentialState` | `IdentityProviderBridge.signOutGoogle()` |
-| Cancelled by the user | `GetCredentialCancellationException`, the Apple flow's cancel → `CloudSignInCancelledException` | the bridge's `CANCELLED` result → same |
+| `provider` | `GOOGLE` | `APPLE` |
+| Sign-in, re-auth | Credential Manager `GetSignInWithGoogleOption(webClientId)` on the tracked Activity → `GoogleAuthProvider.credential(idToken, null)` → GitLive `signInWithCredential` / `reauthenticate` | `IdentityProviderBridge.signInWithApple` → identity token + raw nonce + authorization code → `OAuthProvider.credential("apple.com", idToken, rawNonce)` → GitLive |
+| Grant | none (`reauthenticate` returns `null`) | the authorization code |
+| `revokeApple` | no-op: Google keeps nothing to revoke | `IdentityProviderBridge.revokeAppleToken(code, …)` (Swift: `Auth.auth().revokeToken(withAuthorizationCode:)`) |
+| `clearProviderState` | `CredentialManager.clearCredentialState` | no-op: Apple holds nothing on the device |
+| Cancelled by the user | `GetCredentialCancellationException`, no Google account → `CloudSignInCancelledException` | the bridge's `CANCELLED` result → same |
 
 ### `CurrentActivityTracker` (Android only, `androidMain`)
 
@@ -82,20 +83,17 @@ registered by a Koin `single(createdAtStart = true)` in `cloudPlatformModule`. W
 | | Android | iOS |
 |---|---|---|
 | Firebase start-up | google-services plugin (content provider, before `Application.onCreate`) | `FirebaseApp.configure()`, the first line of `AppDelegate.didFinishLaunching` |
-| Google client id | Koin property `google_web_client_id`, set by `QuestLogApp` from `R.string.default_web_client_id` | `FirebaseApp.app()?.options.clientID`, read in Swift; `REVERSED_CLIENT_ID` URL scheme in `Info.plist` |
+| Google client id | Koin property `google_web_client_id`, set by `QuestLogApp` from `R.string.default_web_client_id` | not used: iOS offers no Google sign-in |
 | Apple | Services ID, Team ID, key and key id configured in the Firebase console's Apple provider | **Sign in with Apple** capability on the `iosApp` target |
 
 ## Swift → Kotlin: `IdentityProviderBridge` (`:core:cloud` `iosMain`, implemented in `iosApp/`)
 
 ```kotlin
 interface IdentityProviderBridge {
-    fun signInWithGoogle(onResult: (GoogleSignInResult) -> Unit)
     fun signInWithApple(onResult: (AppleSignInResult) -> Unit)
     fun revokeAppleToken(authorizationCode: String, onResult: (Boolean) -> Unit)
-    fun signOutGoogle()
 }
 
-class GoogleSignInResult(val outcome: ProviderOutcome, val idToken: String?, val accessToken: String?)
 class AppleSignInResult(
     val outcome: ProviderOutcome,
     val idToken: String?, val rawNonce: String?, val authorizationCode: String?
@@ -106,8 +104,8 @@ enum class ProviderOutcome { SUCCESS, CANCELLED, FAILED }
 - **Nothing is `suspend`**: the same reasons as `AppleLanguageModelBridge`. Kotlin wraps each call in
   `suspendCancellableCoroutine`.
 - `onResult` is called exactly once, on any thread.
-- Swift owns presentation (the top `UIViewController`, `ASAuthorizationControllerPresentationContextProviding`), the
-  Apple nonce (random, with its SHA-256 sent to Apple) and the Google `clientID`.
+- Swift owns presentation (the top `UIViewController`, `ASAuthorizationControllerPresentationContextProviding`) and the
+  Apple nonce (random, with its SHA-256 sent to Apple).
 - `startQuestLog(languageModelBridge:appRefreshTaskBridge:identityProviderBridge:)` binds it, like the other two.
 
 ## Existing contracts this feature changes
@@ -136,5 +134,5 @@ internal expect fun renderLocalDateTime(dateTime: LocalDateTime, dateStyle: Date
 
 ### Capability exception register
 
-No row is added. Both platforms offer the same capability: Google and Apple sign-in, backup and restore. The
-mechanisms differ (above), but nothing the user sees differs.
+No row is added. Both platforms offer the same capability: sign-in, backup and restore. The sign-in method differs by
+design (Google on Android, Apple on iOS, 2026-10-16 clarification in the spec), and the mechanisms differ (above).

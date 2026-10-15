@@ -52,8 +52,7 @@ private fun AccountCardPreview() {
         AccountCard(
             account = AccountUiModel(
                 email = "ada@example.com",
-                linkedProviders = listOf(AuthProvider.GOOGLE),
-                linkableProviders = listOf(AuthProvider.APPLE)
+                linkedProviders = listOf(AuthProvider.GOOGLE)
             )
         )
     }

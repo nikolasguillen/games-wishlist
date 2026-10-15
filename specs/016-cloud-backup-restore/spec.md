@@ -8,6 +8,21 @@
 
 **Input**: User description: "Cloud backup and restore of the user's data, tied to a Google or Apple account. Today the wishlist lives only on the device, so losing or replacing the phone loses every list. The user wants to back it up and get it back, including on a device of the other platform (Android <-> iPhone). Sign in with Google or Sign in with Apple on both platforms; the app stays fully usable without an account. A Google account and an Apple account that share the same verified email resolve to the same user, with a manual link for when Apple's 'Hide My Email' gives a different address. Sign out and delete account. Back up the lists (including the default wishlist), the saved games and their status, which list each game belongs to, and the owned platforms; not search history, settings or anything re-fetchable. Manual 'Back up now' and 'Restore' only; restore replaces local data after a confirmation, all-or-nothing. Settings shows the signed-in account and the last successful backup time. Network failures, being signed out mid-operation and a missing backup are shown as clear errors with nothing half-written."
 
+## Clarifications
+
+### 2026-10-16: one sign-in method per platform
+
+The owner decided each platform offers exactly one sign-in method: **Google on Android, Apple on iOS**. A device never
+shows the other platform's button. The consequences, accepted by the owner's decision:
+
+- Cross-platform data sharing relies on the two accounts sharing a verified email address, which Firebase links by
+  itself (FR-004). There is **no manual link**: a device cannot sign in with the method it does not offer, so User
+  Story 3's linking half (FR-005, FR-006) is dropped.
+- An Apple ID that hides its email (private relay) gets a separate, empty account that cannot be joined to a Google
+  account later. The user can still back up and restore between iPhones with it.
+- Sign in with Apple is the only third-party sign-in on iOS, so App Store guideline 4.8 is satisfied without offering
+  Google there. Apple token revocation on account deletion applies on iOS only.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Back up my wishlist to my account (Priority: P1)
@@ -71,12 +86,11 @@ wishlist and the owned platforms match the first device.
 
 ---
 
-### User Story 3 - One account whether I sign in with Google or Apple (Priority: P2)
+### User Story 3 - One account whether I sign in with Google on Android or Apple on iPhone (Priority: P2)
 
 A user who signs in with Google on their Android phone and with Apple on their iPhone, using the same verified
-email address, reaches the same backup from both. If Apple hides their email behind a private relay address so
-the two do not match, they can link the second sign-in method to their account manually from Settings and then
-see the same backup.
+email address, reaches the same backup from both. (There is no manual link: see the 2026-10-16 clarification. If
+Apple hides their email behind a private relay address the two do not match, and the iPhone has its own account.)
 
 **Why this priority**: This is what makes a cross-platform restore possible for people who use a different
 provider on each platform. It is not needed for a single-platform user, so it ranks below the basic loop.
@@ -166,18 +180,15 @@ that signing in again starts with no backup.
 
 - **FR-001**: The app MUST remain fully usable without an account; signing in is only required for backup,
   restore, linking and account deletion.
-- **FR-002**: Users MUST be able to sign in with a Google account on both Android and iOS.
-- **FR-003**: Users MUST be able to sign in with an Apple account on both Android and iOS.
+- **FR-002**: On Android, users MUST be able to sign in with a Google account, and it is the only method offered.
+- **FR-003**: On iOS, users MUST be able to sign in with an Apple account, and it is the only method offered.
 - **FR-004**: Signing in with a Google account and with an Apple account that share the same verified email
   address MUST lead to the same user account and the same backup. Where the sign-in service cannot vouch for
   the address on its own (a Google account on a domain Google does not host, such as a work address), the
   app MUST NOT create a second account: it MUST tell the user that the address is already registered with
   another sign-in method and that they can sign in with that method and link this one (FR-005).
-- **FR-005**: Users MUST be able to link a second sign-in method to their signed-in account from Settings, so
-  that an Apple private relay address (or any address that differs from the first) can still reach the same
-  account.
-- **FR-006**: The app MUST refuse to link a sign-in method that already belongs to a different account, and
-  MUST say why.
+- **FR-005**: *(Dropped, 2026-10-16 clarification.)* There is no manual linking: each platform offers one method.
+- **FR-006**: *(Dropped, 2026-10-16 clarification.)*
 - **FR-007**: Users MUST be able to sign out; signing out MUST leave the data on the device and the cloud
   backup unchanged.
 - **FR-008**: Users MUST be able to delete their account from within the app after an explicit confirmation;

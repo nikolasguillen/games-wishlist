@@ -4,14 +4,14 @@ import com.nikolasguillen.questlog.core.cloud.model.CloudProvider
 
 /** The provider-specific half of sign-in, the only thing that differs per platform. */
 internal interface PlatformProviderAuth {
+    /** The only sign-in method this platform offers: Google on Android, Apple on iOS. */
+    val provider: CloudProvider
+
     /** Opens [provider]'s sign-in; ends with Firebase signed in. */
-    suspend fun signIn(provider: CloudProvider)
+    suspend fun signIn()
 
-    /** Opens [provider]'s sign-in and links the result to Firebase's current user. */
-    suspend fun link(provider: CloudProvider)
-
-    /** Signs in again with [provider]. Returns a grant only for [CloudProvider.APPLE]. */
-    suspend fun reauthenticate(provider: CloudProvider): AppleGrant?
+    /** Signs in again with [provider]. Returns a grant only where one has to be revoked later (Apple). */
+    suspend fun reauthenticate(): AppleGrant?
 
     /** Tells Apple to revoke the app's access, as the App Store requires on account deletion. */
     suspend fun revokeApple(grant: AppleGrant)

@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.feature.settings
 
+import com.nikolasguillen.questlog.core.domain.usecase.account.GetSignInProviderUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.account.ObserveAccountUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.account.SignInUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.BackUpUseCase
@@ -55,6 +56,7 @@ class AccountBackupViewModelTest {
     private val account = MutableStateFlow<Account?>(null)
     private val observeAccountUseCase = mockk<ObserveAccountUseCase>()
     private val signInUseCase = mockk<SignInUseCase>()
+    private val getSignInProviderUseCase = mockk<GetSignInProviderUseCase>()
     private val getBackupInfoUseCase = mockk<GetBackupInfoUseCase>()
     private val backUpUseCase = mockk<BackUpUseCase>()
     private val hasLocalUserDataUseCase = mockk<HasLocalUserDataUseCase>()
@@ -66,6 +68,7 @@ class AccountBackupViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         every { observeAccountUseCase() } returns account
+        every { getSignInProviderUseCase() } returns AuthProvider.GOOGLE
         coEvery { getBackupInfoUseCase() } returns AppResult.success(null)
         coEvery { hasLocalUserDataUseCase() } returns true
     }
@@ -76,13 +79,20 @@ class AccountBackupViewModelTest {
     }
 
     private fun viewModel() = AccountBackupViewModel(
-        observeAccountUseCase, signInUseCase, getBackupInfoUseCase, backUpUseCase, hasLocalUserDataUseCase
+        observeAccountUseCase, signInUseCase, getSignInProviderUseCase, getBackupInfoUseCase, backUpUseCase, hasLocalUserDataUseCase
     )
 
     private fun kotlinx.coroutines.test.TestScope.collectEffects(viewModel: AccountBackupViewModel): List<AccountBackupUiEffect> {
         val effects = mutableListOf<AccountBackupUiEffect>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiEffect.collect { effects += it } }
         return effects
+    }
+
+    @Test
+    fun `the screen names the sign-in method the platform offers`() = runTest(testDispatcher) {
+        every { getSignInProviderUseCase() } returns AuthProvider.APPLE
+
+        assertEquals(AuthProvider.APPLE, viewModel().uiState.value.signInProvider)
     }
 
     @Test
@@ -97,31 +107,30 @@ class AccountBackupViewModelTest {
 
     @Test
     fun `signing in succeeds and shows the account`() = runTest(testDispatcher) {
-        coEvery { signInUseCase(AuthProvider.GOOGLE) } coAnswers {
+        coEvery { signInUseCase() } coAnswers {
             account.value = signedIn
             AppResult.success(signedIn)
         }
         val viewModel = viewModel()
         val effects = collectEffects(viewModel)
 
-        viewModel.onEvent(AccountBackupUiEvent.SignIn(AuthProvider.GOOGLE))
+        viewModel.onEvent(AccountBackupUiEvent.SignIn)
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
         assertEquals("ada@example.com", state.account?.email)
         assertEquals(listOf(AuthProvider.GOOGLE), state.account?.linkedProviders)
-        assertEquals(listOf(AuthProvider.APPLE), state.account?.linkableProviders)
         assertNull(state.runningOperation)
         assertTrue(effects.isEmpty())
     }
 
     @Test
     fun `a failed sign-in shows its cause`() = runTest(testDispatcher) {
-        coEvery { signInUseCase(AuthProvider.APPLE) } returns AppResult.failure(RepositoryError.AccountExistsWithOtherMethod)
+        coEvery { signInUseCase() } returns AppResult.failure(RepositoryError.AccountExistsWithOtherMethod)
         val viewModel = viewModel()
         val effects = collectEffects(viewModel)
 
-        viewModel.onEvent(AccountBackupUiEvent.SignIn(AuthProvider.APPLE))
+        viewModel.onEvent(AccountBackupUiEvent.SignIn)
         advanceUntilIdle()
 
         assertEquals(
@@ -135,11 +144,11 @@ class AccountBackupViewModelTest {
 
     @Test
     fun `a closed sign-in sheet shows nothing`() = runTest(testDispatcher) {
-        coEvery { signInUseCase(AuthProvider.GOOGLE) } returns AppResult.failure(RepositoryError.SignInCancelled)
+        coEvery { signInUseCase() } returns AppResult.failure(RepositoryError.SignInCancelled)
         val viewModel = viewModel()
         val effects = collectEffects(viewModel)
 
-        viewModel.onEvent(AccountBackupUiEvent.SignIn(AuthProvider.GOOGLE))
+        viewModel.onEvent(AccountBackupUiEvent.SignIn)
         advanceUntilIdle()
 
         assertTrue(effects.isEmpty())

@@ -2,6 +2,7 @@ package com.nikolasguillen.questlog.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nikolasguillen.questlog.core.domain.usecase.account.GetSignInProviderUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.account.ObserveAccountUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.account.SignInUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.BackUpUseCase
@@ -9,7 +10,6 @@ import com.nikolasguillen.questlog.core.domain.usecase.backup.GetBackupInfoUseCa
 import com.nikolasguillen.questlog.core.domain.usecase.backup.HasLocalUserDataUseCase
 import com.nikolasguillen.questlog.core.model.Account
 import com.nikolasguillen.questlog.core.model.AppResult
-import com.nikolasguillen.questlog.core.model.AuthProvider
 import com.nikolasguillen.questlog.core.model.RepositoryError
 import com.nikolasguillen.questlog.core.ui.mapper.toUiText
 import com.nikolasguillen.questlog.core.ui.model.UiText
@@ -33,12 +33,13 @@ import kotlinx.coroutines.launch
 class AccountBackupViewModel(
     private val observeAccountUseCase: ObserveAccountUseCase,
     private val signInUseCase: SignInUseCase,
+    getSignInProviderUseCase: GetSignInProviderUseCase,
     private val getBackupInfoUseCase: GetBackupInfoUseCase,
     private val backUpUseCase: BackUpUseCase,
     private val hasLocalUserDataUseCase: HasLocalUserDataUseCase
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AccountBackupUiState())
+    private val _uiState = MutableStateFlow(AccountBackupUiState(signInProvider = getSignInProviderUseCase()))
     internal val uiState: StateFlow<AccountBackupUiState> = _uiState.asStateFlow()
 
     private val _uiEffect = Channel<AccountBackupUiEffect>(Channel.BUFFERED)
@@ -54,7 +55,7 @@ class AccountBackupViewModel(
 
     internal fun onEvent(event: AccountBackupUiEvent) {
         when (event) {
-            is AccountBackupUiEvent.SignIn -> signIn(event.provider)
+            AccountBackupUiEvent.SignIn -> signIn()
             AccountBackupUiEvent.BackUp -> backUp()
             AccountBackupUiEvent.ConfirmEmptyBackup -> {
                 _uiState.update { it.copy(dialog = null) }
@@ -102,13 +103,9 @@ class AccountBackupViewModel(
         }
     }
 
-    private fun signIn(provider: AuthProvider) {
-        val operation = when (provider) {
-            AuthProvider.GOOGLE -> CloudOperation.SIGN_IN_GOOGLE
-            AuthProvider.APPLE -> CloudOperation.SIGN_IN_APPLE
-        }
-        launchOperation(operation) {
-            signInUseCase(provider).onFailure { showFailure(it) }
+    private fun signIn() {
+        launchOperation(CloudOperation.SIGN_IN) {
+            signInUseCase().onFailure { showFailure(it) }
         }
     }
 

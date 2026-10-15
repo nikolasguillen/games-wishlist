@@ -9,12 +9,8 @@ import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.FirebaseAuth
 import dev.gitlive.firebase.auth.FirebaseUser
 import dev.gitlive.firebase.auth.auth
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlin.coroutines.cancellation.CancellationException
 
 private const val GOOGLE_PROVIDER_ID = "google.com"
@@ -25,38 +21,21 @@ internal class FirebaseCloudAuth(
     private val auth: FirebaseAuth = Firebase.auth
 ) : CloudAuth {
 
-    // Linking a provider changes the user's providers without changing who is signed in, so the auth-state listener
-    // stays silent; this nudges the flow to read the user again.
-    private val userChanged = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-
     private var appleGrant: AppleGrant? = null
     private var reauthenticated = false
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override val currentUser: Flow<CloudUser?> = auth.authStateChanged.flatMapLatest { user ->
-        flow {
-            emit(user?.toCloudUser())
-            userChanged.collect { emit(auth.currentUser?.toCloudUser()) }
-        }
-    }
+    override val provider: CloudProvider get() = platform.provider
 
-    override suspend fun signIn(provider: CloudProvider): CloudUser = guard {
-        platform.signIn(provider)
-        requireUser().toCloudUser()
-    }
+    override val currentUser: Flow<CloudUser?> = auth.authStateChanged.map { it?.toCloudUser() }
 
-    override suspend fun link(provider: CloudProvider): CloudUser = guard {
-        val user = requireUser().toCloudUser()
-        if (provider in user.providers) return@guard user
-        platform.link(provider)
-        userChanged.tryEmit(Unit)
+    override suspend fun signIn(): CloudUser = guard {
+        platform.signIn()
         requireUser().toCloudUser()
     }
 
     override suspend fun reauthenticate() = guard {
-        val user = requireUser().toCloudUser()
-        val provider = if (CloudProvider.APPLE in user.providers) CloudProvider.APPLE else CloudProvider.GOOGLE
-        platform.reauthenticate(provider)?.let { appleGrant = it }
+        requireUser()
+        platform.reauthenticate()?.let { appleGrant = it }
         reauthenticated = true
     }
 

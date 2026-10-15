@@ -16,11 +16,9 @@ import com.nikolasguillen.questlog.feature.settings.resources.account_backup_sum
 
 private const val SUMMARY_SEPARATOR = ", "
 
-/** The providers not yet linked are the ones the screen still offers to link. */
 internal fun Account.toUiModel() = AccountUiModel(
     email = email,
-    linkedProviders = AuthProvider.entries.filter { it in providers },
-    linkableProviders = AuthProvider.entries.filterNot { it in providers }
+    linkedProviders = AuthProvider.entries.filter { it in providers }
 )
 
 /**

@@ -10,13 +10,19 @@ import kotlinx.coroutines.flow.Flow
  * it: it is the owner-approved second repository, and has its own implementation in `:core:data`.
  */
 interface AccountRepository {
+    /**
+     * The only sign-in method this platform offers: Google on Android, Apple on iOS. Both reach the same account when
+     * they share an email address.
+     */
+    val signInProvider: AuthProvider
+
     /** The signed-in account, or `null` when nobody is. Emits again when a sign-in method is linked. */
     fun observeAccount(): Flow<Account?>
 
     /**
-     * Opens [provider]'s sign-in and signs in with it. A signed-out caller is the normal case here.
+     * Opens [signInProvider]'s sign-in and signs in with it. A signed-out caller is the normal case here.
      *
      * Fails with `SignInCancelled` when the user closes the sign-in, which is not an error to show.
      */
-    suspend fun signIn(provider: AuthProvider): AppResult<Account>
+    suspend fun signIn(): AppResult<Account>
 }

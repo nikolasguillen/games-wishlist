@@ -631,44 +631,20 @@ damaged backup refused (23).
 
 ---
 
-## Phase 5: User Story 3 - One account whether I sign in with Google or Apple (Priority: P2)
+## Phase 5: User Story 3 - One account across Google on Android and Apple on iPhone (Priority: P2)
 
-**Goal**: A Google and an Apple sign-in that share a verified email reach the same account (Firebase does this by itself for
-trusted providers, research R3). When they cannot match (a hidden Apple address, or a Google work address), the user can link
-the second method manually from Settings, and the app never claims accounts are linked when they are not.
+**Superseded on 2026-10-16.** The owner decided each platform offers one sign-in method (Google on Android, Apple on iOS),
+so there is nothing to link on a device and tasks T076–T081 (the `linkProvider` API, the `Link` event and the "Link Google /
+Link Apple" actions) are **dropped, not deferred**. Firebase still links a Google and an Apple sign-in by itself when they
+share a verified email, which needs no code. The per-platform change itself was made in the commit that introduced this
+note: `CloudAuth.provider`, a parameterless `signIn()`, Google-only `AndroidProviderAuth`, Apple-only `IosProviderAuth` and
+`IdentityProviderBridge`, and no `GoogleSignIn-iOS` package.
 
-**Independent Test**: Quickstart §4 rows 9 and 14–16: Apple with the same Gmail address reaches the same backup (9); a
-hidden-email Apple ID starts empty (14); linking it from the Google account makes both reach the backup (15); linking a method
-that belongs to another account is refused and changes nothing (16).
+**Independent Test**: Quickstart §4 row 9 only: sign in with Google on Android and back up; sign in with Apple on an iPhone
+using the same Gmail address and confirm the same backup is offered. A hidden-email Apple ID starts empty (row 14) and cannot
+be joined later: record that, do not treat it as a failure.
 
-### Tests for User Story 3 (write first)
-
-- [ ] T076 [P] [US3] Extend `AccountRepositoryImplTest.kt`: `linkProvider(APPLE)` returns the account with both providers; a
-  `CloudCredentialAlreadyLinkedException` becomes `MethodLinkedToOtherAccount`; a `CloudSignInCancelledException` becomes
-  `SignInCancelled`; signed out returns `NotSignedIn`.
-- [ ] T077 [P] [US3] Extend `AccountBackupViewModelTest.kt`: `Link(provider)` runs `LinkProviderUseCase`, refreshes the account on
-  success and emits the success message; `MethodLinkedToOtherAccount` emits its text and the account is unchanged;
-  `SignInCancelled` emits nothing; a sign-in that fails with `AccountExistsWithOtherMethod` emits that text (FR-004); only the
-  providers **not** yet linked are offered (`linkableProviders`).
-
-### Implementation for User Story 3
-
-- [ ] T078 [US3] Add `suspend fun linkProvider(provider: AuthProvider): AppResult<Account>` to `AccountRepository`, implement it in
-  `AccountRepositoryImpl.kt` over `cloudAuth.link(...)`, and create
-  `core/domain/src/commonMain/kotlin/<pkg>/core/domain/usecase/account/LinkProviderUseCase.kt`, registered in `DomainKoin.kt`.
-  T076 passes.
-- [ ] T079 [US3] Add `Link(provider)` to `AccountBackupUiEvent` and its handling to `AccountBackupViewModel` (T077 passes). Add
-  strings: `account_backup_link_google`, `account_backup_link_apple`, `account_backup_linked_success` (`%1$s` provider name as a
-  resource, not hardcoded).
-- [ ] T080 [US3] Add the "Link Google" / "Link Apple" actions for `AccountUiModel.linkableProviders` to `components/AccountCard.kt`
-  (busy while the matching `LINK_*` operation runs), with a preview showing one linked and one linkable provider.
-- [ ] T081 [US3] Checkpoint: the suites from T062 plus quickstart §4 rows 9 and 14–16 with the three test accounts (a Gmail
-  Google account, an Apple ID on the same Gmail, an Apple ID that hides its email). **(Mac only)** the iOS rows. Also try
-  signing in with a Google work-domain account whose address is already registered through Apple and confirm the app shows
-  the "already registered with another sign-in method" message and creates no second account (spec edge case). Record what
-  Firebase actually did, because that case depends on Firebase's behaviour for untrusted Google domains (research R3).
-
-**Checkpoint**: Stories 1–3 work: cross-provider access, with the manual link for the cases that cannot match.
+**Checkpoint**: Both platforms reach the same account when their emails match.
 
 ---
 
