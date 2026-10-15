@@ -22,6 +22,9 @@ class QuestLogApp : Application(), Configuration.Provider {
         super.onCreate()
         initKoin(isDebugBuild = BuildConfig.DEBUG) {
             androidContext(this@QuestLogApp)
+            // The OAuth web client the google-services plugin generates from google-services.json. A compile-time
+            // reference, so resource shrinking cannot strip it.
+            properties(mapOf("google_web_client_id" to getString(R.string.default_web_client_id)))
         }
         releaseRefreshScheduler.schedulePeriodicRefresh()
     }

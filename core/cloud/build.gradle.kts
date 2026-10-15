@@ -1,9 +1,19 @@
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("questlog.kmp.library")
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
 }
 
 kotlin {
+    // GitLive's `set` and `data` are inline functions built for JVM 17, and Kotlin cannot inline them into Java 11
+    // bytecode. Only this module calls them, and the app already runs GitLive's own 17 bytecode, so the exception stays
+    // here instead of moving the convention plugin's target.
+    targets.withType<KotlinMultiplatformAndroidLibraryTarget>().configureEach {
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(libs.gitlive.firebase.auth)

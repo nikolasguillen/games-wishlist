@@ -19,7 +19,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         ReleaseRefreshTask.register()
         QuestLogIosKt.startQuestLog(
             languageModelBridge: FoundationModelsBridge(),
-            appRefreshTaskBridge: ReleaseRefreshTask()
+            appRefreshTaskBridge: ReleaseRefreshTask(),
+            identityProviderBridge: IdentityProviderBridge()
         )
         return true
     }

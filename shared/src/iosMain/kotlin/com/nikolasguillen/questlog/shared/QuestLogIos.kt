@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.shared
 
+import com.nikolasguillen.questlog.core.cloud.IdentityProviderBridge
 import com.nikolasguillen.questlog.core.data.notification.ReleaseReminderCoordinator
 import com.nikolasguillen.questlog.core.data.notification.ReminderSyncTriggers
 import com.nikolasguillen.questlog.core.data.scheduler.AppRefreshTaskBridge
@@ -34,13 +35,14 @@ private val reminderNotificationDelegate = ReleaseReminderNotificationDelegate()
  * returns: a tap on a reminder that launched the app is delivered as soon as a delegate exists, and one set later
  * would miss it.
  *
- * Swift supplies the bridges because only Swift can call FoundationModels and BackgroundTasks. A second call does
- * nothing, so the bridges that were bound first stay: they keep no state.
+ * Swift supplies the bridges because only Swift can call FoundationModels, BackgroundTasks, GoogleSignIn and
+ * AuthenticationServices. A second call does nothing, so the bridges that were bound first stay: they keep no state.
  */
 @OptIn(ExperimentalNativeApi::class)
 fun startQuestLog(
     languageModelBridge: AppleLanguageModelBridge,
-    appRefreshTaskBridge: AppRefreshTaskBridge
+    appRefreshTaskBridge: AppRefreshTaskBridge,
+    identityProviderBridge: IdentityProviderBridge
 ) {
     UNUserNotificationCenter.currentNotificationCenter().delegate = reminderNotificationDelegate
     if (KoinPlatform.getKoinOrNull() != null) return
@@ -49,6 +51,7 @@ fun startQuestLog(
             module {
                 single<AppleLanguageModelBridge> { languageModelBridge }
                 single<AppRefreshTaskBridge> { appRefreshTaskBridge }
+                single<IdentityProviderBridge> { identityProviderBridge }
                 single<ReminderSyncTriggers> { IosReminderSyncTriggers() }
             }
         )
