@@ -292,6 +292,12 @@ when `:androidApp:assembleDebug` builds, `xcodebuild` links, and both apps reach
 If it fails on iOS, the design switches to R1's fallback before any feature code is written. That decision is hard
 to undo later, so it is made here.
 
+**Outcome (passed)**: both platforms built, started Firebase and reached Firestore. GitLive reports the same
+`FirestoreExceptionCode` names on both: a server read with no user is `PERMISSION_DENIED`, and the same read offline
+is `UNAVAILABLE` (Android message "Failed to get document because the client is offline.", iOS the same text inside
+an `NSError` for `FIRFirestoreErrorDomain` code 14). The spike exercised Firestore only, so the Auth code strings
+are still to be verified on both platforms by T021.
+
 **Risk noted**: an iOS **test** binary for a module that depends on `:core:cloud` would need the Firebase frameworks
 to link. No such test exists (`:core:network` is the only module with iOS tests), and `:core:cloud` gets none.
 

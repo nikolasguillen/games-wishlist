@@ -12,6 +12,7 @@ plugins {
     alias(libs.plugins.jetbrains.compose) apply false
     alias(libs.plugins.androidx.room) apply false
     alias(libs.plugins.buildconfig) apply false
+    alias(libs.plugins.google.services) apply false
 }
 
 // A multiplatform module has no `test` task: its JVM tests are `testAndroidHostTest`. This root task keeps

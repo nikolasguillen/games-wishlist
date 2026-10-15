@@ -1,5 +1,8 @@
 plugins {
     id("questlog.android.application")
+    // :androidApp owns google-services.json and the application id, so the plugin is applied here and not in a
+    // convention plugin.
+    alias(libs.plugins.google.services)
 }
 
 android {

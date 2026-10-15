@@ -75,10 +75,10 @@ files re-downloaded after that (they must carry an OAuth client: `CLIENT_ID`/`RE
 `client_type: 3` entry in the json), and a Firestore database created with the rules published. Do not start T007 until
 the owner confirms.
 
-- [ ] T001 Run `./gradlew test --console=plain -q` and `./gradlew :androidApp:assembleDebug --console=plain -q` on the
+- [X] T001 Run `./gradlew test --console=plain -q` and `./gradlew :androidApp:assembleDebug --console=plain -q` on the
   branch before any change and confirm both are green. If anything is already red, stop and tell the owner instead of
   continuing. Then ask the owner to confirm the prerequisite above.
-- [ ] T002 In `gradle/libs.versions.toml` add under `[versions]`: `gitliveFirebase = "2.7.0"`,
+- [X] T002 In `gradle/libs.versions.toml` add under `[versions]`: `gitliveFirebase = "2.7.0"`,
   `androidxCredentials = "1.6.0"`, `googleId = "1.2.1"`, `googleServices = "4.5.0"`; under `[libraries]`:
   `gitlive-firebase-auth` and `gitlive-firebase-firestore` (`dev.gitlive:firebase-auth` / `firebase-firestore`,
   `version.ref = "gitliveFirebase"`), `androidx-credentials` (`androidx.credentials:credentials`),
@@ -86,14 +86,14 @@ the owner confirms.
   `androidxCredentials`, and `googleid` (`com.google.android.libraries.identity.googleid:googleid`, `googleId`);
   under `[plugins]`: `google-services` (`com.google.gms.google-services`, `googleServices`). Keep the file's
   alphabetical-by-group style.
-- [ ] T003 In the root `build.gradle.kts` add `alias(libs.plugins.google.services) apply false` to the `plugins`
+- [X] T003 In the root `build.gradle.kts` add `alias(libs.plugins.google.services) apply false` to the `plugins`
   block, and apply `alias(libs.plugins.google.services)` in `androidApp/build.gradle.kts` (not in the convention
   plugin: `:androidApp` owns `google-services.json` and the application id, research R14). Run
   `./gradlew :androidApp:assembleDebug --console=plain -q`: it must still pass, and the task that merges the json's
   values into resources must have run.
-- [ ] T004 In `settings.gradle.kts` add `include(":core:cloud")` next to the other `:core:*` includes, and add `cloud` to
+- [X] T004 In `settings.gradle.kts` add `include(":core:cloud")` next to the other `:core:*` includes, and add `cloud` to
   `SCOPES` in `.githooks/commit-msg` (CLAUDE.md: the hook's list is authoritative), keeping the list's format.
-- [ ] T005 Create `core/cloud/build.gradle.kts` applying `id("questlog.kmp.library")` and
+- [X] T005 Create `core/cloud/build.gradle.kts` applying `id("questlog.kmp.library")` and
   `alias(libs.plugins.jetbrains.kotlin.plugin.serialization)` (copy the shape of `core/network/build.gradle.kts`).
   `commonMain.dependencies`: `libs.gitlive.firebase.auth`, `libs.gitlive.firebase.firestore`, `libs.koin.core`,
   `libs.kotlinx.coroutines.core`, `libs.kotlinx.serialization.core`, `libs.kotlinx.serialization.json`; **no
@@ -103,30 +103,30 @@ the owner confirms.
   `libs.mockk` (as `core/data/build.gradle.kts`). Create the directory
   `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/` with a placeholder `package-info`-free file only if Gradle
   needs a source to compile. Run `./gradlew :core:cloud:compileAndroidMain --console=plain -q`.
-- [ ] T006 [P] **(Mac only)** Re-pin the Firebase iOS SDK (research R2). In Xcode, Project → Package Dependencies →
+- [X] T006 [P] **(Mac only)** Re-pin the Firebase iOS SDK (research R2). In Xcode, Project → Package Dependencies →
   `firebase-ios-sdk`: set the rule to **Up to Next Major Version** with `11.15.0`, then **File → Packages → Reset
   Package Caches** and **Resolve Package Versions** if resolution fails (the cache issue seen earlier). Confirm
   `iosApp/iosApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved` lists `firebase-ios-sdk`
   `11.15.0` and `app-check` `11.x`, and that `FirebaseAuth` and `FirebaseFirestore` are still on the `iosApp` target.
   Commit `project.pbxproj` and `Package.resolved` only (`build: re-pin firebase-ios-sdk to 11.x for GitLive`). Verify
   with `git status` that the plist is not staged.
-- [ ] T007 Create the temporary probe `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/CloudSpike.kt`: a public
+- [X] T007 Create the temporary probe `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/CloudSpike.kt`: a public
   `object CloudSpike { suspend fun run(): String }` that returns a one-line report of
   `Firebase.auth.currentUser?.uid`, and the outcome of
   `Firebase.firestore.document("users/spike").get(Source.SERVER)` (exists, or the caught
   `FirebaseFirestoreException.code`, or the exception class name for anything else). It exists only to pass the gate:
   T011 deletes it.
-- [ ] T008 In `shared/build.gradle.kts` add `implementation(project(":core:cloud"))` to `commonMain.dependencies` (the
+- [X] T008 In `shared/build.gradle.kts` add `implementation(project(":core:cloud"))` to `commonMain.dependencies` (the
   permanent edge, plan Complexity Tracking). In `shared/src/commonMain/kotlin/<pkg>/shared/di/SharedKoin.kt`, at the
   end of `initKoin`, add a temporary `if (isDebugBuild)` block that launches
   `println("CloudSpike: " + CloudSpike.run())` on `koin.get<CoroutineScope>()` (the app scope `dataModule` registers).
   Run `./gradlew :androidApp:assembleDebug --console=plain -q`.
-- [ ] T009 **(Mac only to verify)** In `iosApp/iosApp/AppDelegate.swift` add `import FirebaseCore` and make
+- [X] T009 **(Mac only to verify)** In `iosApp/iosApp/AppDelegate.swift` add `import FirebaseCore` and make
   `FirebaseApp.configure()` the first statement of `application(_:didFinishLaunchingWithOptions:)`, before
   `ReleaseRefreshTask.register()` and `startQuestLog`. This line is permanent. If `import FirebaseCore` does not
   resolve, add the `FirebaseCore` product to the `iosApp` target. Update the type's KDoc comment to mention that
   Firebase starts first and why (providers and the notification delegate may need it at launch).
-- [ ] T010 **GATE (Mac for iOS)**. Run quickstart §1 in full: `./gradlew :androidApp:assembleDebug`,
+- [X] T010 **GATE (Mac for iOS)**. Run quickstart §1 in full: `./gradlew :androidApp:assembleDebug`,
   `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 -q`, then the `xcodebuild` command. Run the Android app and the
   iOS app (simulator is enough) and read the `CloudSpike:` line on each. **Pass**: both builds succeed and both lines
   show Firebase answered (a missing document or a `PERMISSION_DENIED` is a valid answer; a link error, a crash on the
@@ -135,7 +135,7 @@ the owner confirms.
   report the exact error to the owner. The plan then switches to native Firebase SDKs behind the same `CloudAuth` and
   `CloudBackupStore` interfaces (research R1) before anything else is built, which changes `:core:cloud`'s
   dependencies and this task list.
-- [ ] T011 Delete `CloudSpike.kt` and the temporary block in `SharedKoin.kt` (keep the `:core:cloud` dependency from
+- [X] T011 Delete `CloudSpike.kt` and the temporary block in `SharedKoin.kt` (keep the `:core:cloud` dependency from
   T008 and the Swift line from T009). Run `./gradlew :androidApp:assembleDebug --console=plain -q` and commit
   (`build(cloud): add the cloud module and Firebase dependencies`) with T002–T005, T008's dependency line and T009.
 
@@ -733,7 +733,7 @@ account cannot read the first's backup (21).
 **Purpose**: Rules, documentation and instructions that must change in the same change set, the static checks, and the
 verification record.
 
-- [ ] T091 [P] Create `firebase/firestore.rules` with exactly the rules in contracts/firestore.md (a signed-in user reads and writes
+- [X] T091 [P] Create `firebase/firestore.rules` with exactly the rules in contracts/firestore.md (a signed-in user reads and writes
   `users/{uid}/{document=**}` only when `request.auth.uid == uid`; everything else denied). Ask the owner to paste it into the
   console's Rules tab (the project has no Firebase CLI) and confirm the published copy matches.
 - [ ] T092 [P] In `README.md` add a "Firebase configuration" step to Installation (and to Run on iOS): download
