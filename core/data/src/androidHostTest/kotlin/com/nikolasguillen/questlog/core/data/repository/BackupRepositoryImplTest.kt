@@ -23,8 +23,13 @@ import com.nikolasguillen.questlog.core.database.userdata.UserDataRows
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.BackupInfo
 import com.nikolasguillen.questlog.core.model.GameStatus
+import com.nikolasguillen.questlog.core.model.GameStatus.COMPLETED
 import com.nikolasguillen.questlog.core.model.RepositoryError
 import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.just
+import io.mockk.runs
+import io.mockk.slot
 import io.mockk.mockk
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -244,5 +249,164 @@ class BackupRepositoryImplTest {
         assertEquals(2, store.calls.count { it == "readManifest" })
         assertEquals(1, store.maxInFlightReads)
         assertEquals(2, store.calls.count { it == "writeManifest" })
+    }
+
+    // ---- restore ----
+
+    /** A second device: its own database and cover files, sharing only the cloud store with the one that backed up. */
+    private inner class RestoringDevice {
+        val covers = FakeWishlistCoverImageStorage()
+        val dao = mockk<UserDataDao>()
+        val replaced = slot<UserDataRows>()
+        val repository = BackupRepositoryImpl(
+            cloudAuth = auth,
+            cloudBackupStore = store,
+            userDataDao = dao,
+            coverStorage = covers,
+            appVersionProvider = object : AppVersionProvider { override val versionName = "1.0" },
+            clock = object : Clock { override fun now() = this@BackupRepositoryImplTest.now },
+            json = json
+        )
+
+        init {
+            coEvery { dao.readCoverPaths() } returns emptyList()
+            coEvery { dao.replaceUserData(capture(replaced)) } just runs
+        }
+    }
+
+    private suspend fun backUpFirst() {
+        givenRows()
+        repository().backUp()
+        store.calls.clear()
+    }
+
+    @Test
+    fun `restore without a backup returns not found and reads no part`() = runTest {
+        val device = RestoringDevice()
+
+        val result = device.repository.restore()
+
+        assertEquals(RepositoryError.BackupNotFound, (result as AppResult.Failure).error)
+        assertTrue(store.calls.none { it.startsWith("readPart") })
+        coVerify(exactly = 0) { device.dao.replaceUserData(any()) }
+    }
+
+    @Test
+    fun `restore of a newer format is refused before any part is read`() = runTest {
+        backUpFirst()
+        store.manifests["uid-1"] = store.manifests.getValue("uid-1").copy(formatVersion = BACKUP_FORMAT_VERSION + 1)
+        val device = RestoringDevice()
+
+        val result = device.repository.restore()
+
+        assertEquals(RepositoryError.BackupFromNewerVersion, (result as AppResult.Failure).error)
+        assertTrue(store.calls.none { it.startsWith("readPart") })
+        coVerify(exactly = 0) { device.dao.replaceUserData(any()) }
+    }
+
+    @Test
+    fun `a missing part is unreadable and changes nothing`() = runTest {
+        backUpFirst()
+        val cover = store.manifests.getValue("uid-1").streams.last()
+        store.parts.remove(cover.partIds.first())
+        val device = RestoringDevice()
+
+        val result = device.repository.restore()
+
+        assertEquals(RepositoryError.BackupUnreadable, (result as AppResult.Failure).error)
+        coVerify(exactly = 0) { device.dao.replaceUserData(any()) }
+        assertTrue(device.covers.files.isEmpty())
+    }
+
+    @Test
+    fun `a stream whose length differs from the manifest is unreadable`() = runTest {
+        backUpFirst()
+        val manifest = store.manifests.getValue("uid-1")
+        store.manifests["uid-1"] = manifest.copy(
+            streams = manifest.streams.map { if (it.name == "data") it.copy(byteLength = it.byteLength + 1) else it }
+        )
+        val device = RestoringDevice()
+
+        val result = device.repository.restore()
+
+        assertEquals(RepositoryError.BackupUnreadable, (result as AppResult.Failure).error)
+        coVerify(exactly = 0) { device.dao.replaceUserData(any()) }
+    }
+
+    @Test
+    fun `a part from another snapshot is unreadable`() = runTest {
+        backUpFirst()
+        val partId = store.manifests.getValue("uid-1").streams.first().partIds.first()
+        store.parts[partId] = store.parts.getValue(partId).copy(snapshotId = "stale")
+        val device = RestoringDevice()
+
+        val result = device.repository.restore()
+
+        assertEquals(RepositoryError.BackupUnreadable, (result as AppResult.Failure).error)
+    }
+
+    @Test
+    fun `a failing transaction deletes the imported covers and returns the error`() = runTest {
+        backUpFirst()
+        val device = RestoringDevice()
+        coEvery { device.dao.replaceUserData(any()) } throws IllegalStateException("disk full")
+
+        val result = device.repository.restore()
+
+        assertTrue((result as AppResult.Failure).error is RepositoryError.Unknown)
+        assertEquals(1, device.covers.imported.size)
+        assertTrue(device.covers.files.isEmpty())
+    }
+
+    @Test
+    fun `restore replaces the data, sweeps first and deletes the old covers last`() = runTest {
+        backUpFirst()
+        val device = RestoringDevice()
+        coEvery { device.dao.readCoverPaths() } returns listOf("/covers/old.jpg")
+        device.covers.files["/covers/old.jpg"] = byteArrayOf(9)
+
+        val result = device.repository.restore()
+
+        assertEquals(BackupInfo(createdAt = now, listCount = 2, gameCount = 1), (result as AppResult.Success).data)
+        val rows = device.replaced.captured
+        assertEquals(listOf(1L, 2L), rows.lists.map { it.id })
+        assertEquals(1L, rows.defaultListId)
+        assertEquals(COMPLETED, rows.savedGames.single().game.status)
+        val importedPath = device.covers.imported.single()
+        assertEquals(importedPath, rows.lists[1].coverImagePath)
+        assertArrayEquals(byteArrayOf(1, 2, 3, 4), device.covers.files.getValue(importedPath))
+
+        val calls = device.covers.calls
+        assertEquals("deleteAllExcept", calls.first())
+        assertTrue(calls.indexOf("import") < calls.indexOf("delete:/covers/old.jpg"))
+        assertFalse("/covers/old.jpg" in device.covers.files)
+        assertTrue(importedPath in device.covers.files)
+    }
+
+    @Test
+    fun `restore signed out returns not signed in without touching the store`() = runTest {
+        auth.user.value = null
+        val device = RestoringDevice()
+
+        val result = device.repository.restore()
+
+        assertEquals(RepositoryError.NotSignedIn, (result as AppResult.Failure).error)
+        assertTrue(store.calls.isEmpty())
+    }
+
+    @Test
+    fun `restore and backup never overlap`() = runTest {
+        backUpFirst()
+        store.readManifestDelayMillis = 100
+        val device = RestoringDevice()
+        coEvery { device.dao.readUserData() } returns rows
+
+        // One repository, as the app has: its lock is what keeps the two operations apart.
+        launch { device.repository.backUp() }
+        launch { device.repository.restore() }
+        advanceUntilIdle()
+
+        assertEquals(1, store.maxInFlightReads)
+        assertEquals(2, store.calls.count { it == "readManifest" })
     }
 }

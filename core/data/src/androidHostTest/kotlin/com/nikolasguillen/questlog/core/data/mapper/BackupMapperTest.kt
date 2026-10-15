@@ -1,6 +1,7 @@
 package com.nikolasguillen.questlog.core.data.mapper
 
 import com.nikolasguillen.questlog.core.data.backup.BACKUP_FORMAT_VERSION
+import com.nikolasguillen.questlog.core.data.backup.BackupUnreadableException
 import com.nikolasguillen.questlog.core.database.entity.CompanyEntity
 import com.nikolasguillen.questlog.core.database.entity.EngineEntity
 import com.nikolasguillen.questlog.core.database.entity.GameArtworkEntity
@@ -21,6 +22,7 @@ import com.nikolasguillen.questlog.core.model.WishlistIcon
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.time.Instant
@@ -188,5 +190,60 @@ class BackupMapperTest {
         assertEquals(WishlistIcon.BACKLOG, "BACKLOG".toWishlistIconOrNull())
         assertNull("ROCKET".toWishlistIconOrNull())
         assertNull(null.toWishlistIconOrNull())
+    }
+
+    @Test
+    fun `the inverse mapping restores every row except last viewed and cover paths`() {
+        val restored = snapshot().toUserDataRows(coverPaths = mapOf(2L to "/covers/new.jpg"))
+
+        val expected = rows.copy(
+            lists = listOf(rows.lists[0], rows.lists[1].copy(coverImagePath = "/covers/new.jpg")),
+            // The snapshot keeps the gallery order, and the device keeps its own last viewed.
+            savedGames = listOf(
+                game.copy(
+                    game = game.game.copy(lastViewedAt = null),
+                    artworks = game.artworks.sortedBy { it.position }
+                )
+            )
+        )
+        assertEquals(expected, restored)
+    }
+
+    @Test
+    fun `a list with a cover takes the supplied path and one without gets none`() {
+        val restored = snapshot().toUserDataRows(coverPaths = mapOf(1L to "/covers/ignored.jpg", 2L to "/covers/b.jpg"))
+
+        assertNull(restored.lists[0].coverImagePath)
+        assertEquals("/covers/b.jpg", restored.lists[1].coverImagePath)
+    }
+
+    @Test
+    fun `a snapshot whose default list is not among its lists is unreadable`() {
+        val broken = snapshot().copy(defaultListId = 99)
+
+        assertThrows(BackupUnreadableException::class.java) { broken.toUserDataRows(emptyMap()) }
+    }
+
+    @Test
+    fun `a membership of a list the snapshot does not hold is dropped`() {
+        val withOrphan = snapshot().copy(
+            memberships = snapshot().memberships + com.nikolasguillen.questlog.core.data.backup.model.BackupMembership(7, 42)
+        )
+
+        assertEquals(listOf(GameListCrossRef(119133, 2)), withOrphan.toUserDataRows(emptyMap()).memberships)
+    }
+
+    @Test
+    fun `unknown status and icon names in a snapshot read back as null`() {
+        val snapshot = snapshot()
+        val newer = snapshot.copy(
+            lists = snapshot.lists.map { it.copy(icon = "ROCKET") },
+            games = snapshot.games.map { it.copy(status = "SPEEDRUNNING") }
+        )
+
+        val restored = newer.toUserDataRows(emptyMap())
+
+        assertNull(restored.lists[0].icon)
+        assertNull(restored.savedGames.single().game.status)
     }
 }

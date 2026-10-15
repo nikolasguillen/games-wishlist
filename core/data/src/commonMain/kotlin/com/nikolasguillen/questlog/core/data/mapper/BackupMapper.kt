@@ -1,6 +1,7 @@
 package com.nikolasguillen.questlog.core.data.mapper
 
 import com.nikolasguillen.questlog.core.data.backup.BACKUP_FORMAT_VERSION
+import com.nikolasguillen.questlog.core.data.backup.BackupUnreadableException
 import com.nikolasguillen.questlog.core.data.backup.model.BackupArtwork
 import com.nikolasguillen.questlog.core.data.backup.model.BackupCompany
 import com.nikolasguillen.questlog.core.data.backup.model.BackupEngine
@@ -12,8 +13,19 @@ import com.nikolasguillen.questlog.core.data.backup.model.BackupMembership
 import com.nikolasguillen.questlog.core.data.backup.model.BackupPlatform
 import com.nikolasguillen.questlog.core.data.backup.model.BackupRelatedGame
 import com.nikolasguillen.questlog.core.data.backup.model.BackupSnapshot
+import com.nikolasguillen.questlog.core.database.entity.CompanyEntity
+import com.nikolasguillen.questlog.core.database.entity.EngineEntity
+import com.nikolasguillen.questlog.core.database.entity.GameArtworkEntity
+import com.nikolasguillen.questlog.core.database.entity.GameCompanyCrossRef
+import com.nikolasguillen.questlog.core.database.entity.GameEntity
+import com.nikolasguillen.questlog.core.database.entity.GameListCrossRef
+import com.nikolasguillen.questlog.core.database.entity.GamePlatformCrossRef
+import com.nikolasguillen.questlog.core.database.entity.GenreEntity
 import com.nikolasguillen.questlog.core.database.entity.ListEntity
+import com.nikolasguillen.questlog.core.database.entity.RelatedGameEntity
 import com.nikolasguillen.questlog.core.database.entity.PlatformEntity
+import com.nikolasguillen.questlog.core.database.relation.GameCompanyWithDetails
+import com.nikolasguillen.questlog.core.database.relation.GamePlatformWithDetails
 import com.nikolasguillen.questlog.core.database.relation.GameWithAllDetails
 import com.nikolasguillen.questlog.core.database.userdata.UserDataRows
 import com.nikolasguillen.questlog.core.model.GameStatus
@@ -106,6 +118,91 @@ private fun GameWithAllDetails.toBackupGame() = BackupGame(
             relationType = it.relationType
         )
     }
+)
+
+/**
+ * The inverse of [toBackupSnapshot]. [coverPaths] holds, per list id, the file a cover was imported to on this device; a
+ * list with `hasCover` takes it and any other list has none. `lastViewedAt` is left empty: the device keeps its own.
+ *
+ * Throws [BackupUnreadableException] when the default list is not among the lists, because a pointer to nothing would
+ * leave the app without a default wishlist. A membership of a list the snapshot does not hold is dropped: it points at
+ * nothing the user can see.
+ */
+internal fun BackupSnapshot.toUserDataRows(coverPaths: Map<Long, String>): UserDataRows {
+    if (lists.none { it.id == defaultListId }) {
+        throw BackupUnreadableException("The default list $defaultListId is not among the backup's lists")
+    }
+    val listIds = lists.mapTo(mutableSetOf()) { it.id }
+    return UserDataRows(
+        lists = lists.map {
+            ListEntity(
+                id = it.id,
+                name = it.name,
+                description = it.description,
+                icon = it.icon.toWishlistIconOrNull(),
+                coverImagePath = if (it.hasCover) coverPaths[it.id] else null
+            )
+        },
+        defaultListId = defaultListId,
+        memberships = memberships.filter { it.listId in listIds }.map { GameListCrossRef(gameId = it.gameId, listId = it.listId) },
+        ownedPlatformIds = ownedPlatformIds,
+        ownedPlatforms = ownedPlatforms.map {
+            PlatformEntity(
+                id = it.id, name = it.name, abbreviation = it.abbreviation, generation = it.generation,
+                category = it.category, platformFamily = it.platformFamily
+            )
+        },
+        savedGames = games.map { it.toGameWithAllDetails() }
+    )
+}
+
+private fun BackupGame.toGameWithAllDetails() = GameWithAllDetails(
+    game = GameEntity(
+        id = id,
+        name = name,
+        description = description,
+        released = released,
+        backgroundImage = backgroundImage,
+        rating = rating,
+        ratingCount = ratingCount,
+        hypes = hypes,
+        metacritic = metacritic,
+        gameTypeId = gameTypeId,
+        notes = notes,
+        priority = priority,
+        status = status.toGameStatusOrNull(),
+        url = url,
+        lastViewedAt = null,
+        detailsFetchedAt = detailsFetchedAt
+    ),
+    platformRefs = platforms.map {
+        GamePlatformWithDetails(
+            crossRef = GamePlatformCrossRef(
+                gameId = id, platformId = it.id, releaseDate = it.releaseDate, releaseDatePrecision = it.releaseDatePrecision
+            ),
+            platform = PlatformEntity(
+                id = it.id, name = it.name, abbreviation = it.abbreviation, generation = it.generation,
+                category = it.category, platformFamily = it.platformFamily
+            )
+        )
+    },
+    genres = genres.map { GenreEntity(id = it.id, name = it.name) },
+    companyRefs = companies.map {
+        GameCompanyWithDetails(
+            crossRef = GameCompanyCrossRef(
+                gameId = id, companyId = it.id, isDeveloper = it.isDeveloper, isPublisher = it.isPublisher
+            ),
+            company = CompanyEntity(id = it.id, name = it.name)
+        )
+    },
+    relatedGames = relatedGames.map {
+        RelatedGameEntity(
+            parentId = id, relatedGameId = it.relatedGameId, name = it.name,
+            coverUrl = it.coverUrl, relationType = it.relationType
+        )
+    },
+    engines = engines.map { EngineEntity(id = it.id, name = it.name) },
+    artworks = artworks.map { GameArtworkEntity(gameId = id, position = it.position, url = it.url) }
 )
 
 /** A status name written by a newer build, which this one does not know, reads back as no status. */

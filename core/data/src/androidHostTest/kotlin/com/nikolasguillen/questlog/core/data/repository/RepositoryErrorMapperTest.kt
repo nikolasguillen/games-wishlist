@@ -6,6 +6,7 @@ import com.nikolasguillen.questlog.core.cloud.error.CloudCredentialCollisionExce
 import com.nikolasguillen.questlog.core.cloud.error.CloudSignInCancelledException
 import com.nikolasguillen.questlog.core.cloud.error.CloudTimeoutException
 import com.nikolasguillen.questlog.core.cloud.error.CloudUnauthenticatedException
+import com.nikolasguillen.questlog.core.data.backup.BackupUnreadableException
 import com.nikolasguillen.questlog.core.model.RepositoryError
 import com.nikolasguillen.questlog.core.network.IgdbConnectivityException
 import com.nikolasguillen.questlog.core.network.IgdbHttpException
@@ -116,6 +117,11 @@ class RepositoryErrorMapperTest {
             RepositoryError.MethodLinkedToOtherAccount,
             CloudCredentialAlreadyLinkedException().toRepositoryError()
         )
+    }
+
+    @Test
+    fun `an unreadable backup maps to backup unreadable`() {
+        assertEquals(RepositoryError.BackupUnreadable, BackupUnreadableException("short").toRepositoryError())
     }
 
     @Test

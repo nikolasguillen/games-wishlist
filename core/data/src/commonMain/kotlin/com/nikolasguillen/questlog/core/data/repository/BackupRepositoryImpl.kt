@@ -7,19 +7,25 @@ import com.nikolasguillen.questlog.core.cloud.model.BackupPartDocument
 import com.nikolasguillen.questlog.core.cloud.model.BackupStreamDocument
 import com.nikolasguillen.questlog.core.common.AppVersionProvider
 import com.nikolasguillen.questlog.core.data.backup.BACKUP_FORMAT_VERSION
+import com.nikolasguillen.questlog.core.data.backup.BackupUnreadableException
 import com.nikolasguillen.questlog.core.data.backup.MAX_BACKUP_PARTS
 import com.nikolasguillen.questlog.core.data.backup.model.BackupSnapshot
+import com.nikolasguillen.questlog.core.data.backup.joinParts
 import com.nikolasguillen.questlog.core.data.backup.toParts
 import com.nikolasguillen.questlog.core.data.local.WishlistCoverImageStorage
 import com.nikolasguillen.questlog.core.data.mapper.toBackupSnapshot
+import com.nikolasguillen.questlog.core.data.mapper.toUserDataRows
 import com.nikolasguillen.questlog.core.database.dao.UserDataDao
 import com.nikolasguillen.questlog.core.domain.repository.BackupRepository
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.BackupInfo
 import com.nikolasguillen.questlog.core.model.RepositoryError
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
@@ -111,7 +117,77 @@ internal class BackupRepositoryImpl(
         }
     }
 
+    override suspend fun restore(): AppResult<BackupInfo> = operationLock.withLock {
+        // The cover files this restore writes. Until the transaction commits they are garbage, so any exit before that
+        // deletes them, a cancellation included.
+        val imported = mutableListOf<String>()
+        var committed = false
+        try {
+            val uid = currentUid() ?: return@withLock AppResult.failure(RepositoryError.NotSignedIn)
+
+            // Files a killed earlier restore imported and never used.
+            val oldCoverPaths = userDataDao.readCoverPaths()
+            coverStorage.deleteAllExcept(oldCoverPaths.toSet())
+
+            val manifest = cloudBackupStore.readManifest(uid)
+                ?: return@withLock AppResult.failure(RepositoryError.BackupNotFound)
+            if (manifest.formatVersion > BACKUP_FORMAT_VERSION) {
+                return@withLock AppResult.failure(RepositoryError.BackupFromNewerVersion)
+            }
+
+            val streams = manifest.streams.associate { stream -> stream.name to downloadStream(uid, manifest, stream) }
+            val data = streams[DATA_STREAM] ?: throw BackupUnreadableException("The backup has no data stream")
+            val snapshot = try {
+                json.decodeFromString(BackupSnapshot.serializer(), data.decodeToString())
+            } catch (e: SerializationException) {
+                throw BackupUnreadableException("The backup data cannot be decoded", e)
+            } catch (e: IllegalArgumentException) {
+                throw BackupUnreadableException("The backup data cannot be decoded", e)
+            }
+
+            val coverPaths = mutableMapOf<Long, String>()
+            for (list in snapshot.lists.filter { it.hasCover }) {
+                val bytes = streams["cover-${list.id}"] ?: throw BackupUnreadableException("Cover of list ${list.id} is missing")
+                val path = coverStorage.import(bytes) ?: return@withLock AppResult.failure(RepositoryError.FileStorage)
+                imported += path
+                coverPaths[list.id] = path
+            }
+
+            userDataDao.replaceUserData(snapshot.toUserDataRows(coverPaths))
+            committed = true
+
+            // The replaced lists' own cover files are garbage now. Best effort: a leftover is swept by the next restore.
+            withContext(NonCancellable) {
+                oldCoverPaths.forEach { path ->
+                    try {
+                        coverStorage.delete(path)
+                    } catch (e: Exception) {
+                        if (e is CancellationException) throw e
+                    }
+                }
+            }
+            AppResult.success(manifest.toBackupInfo())
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        } finally {
+            if (!committed) withContext(NonCancellable) { imported.forEach { coverStorage.delete(it) } }
+        }
+    }
+
     override suspend fun hasLocalUserData(): Boolean = userDataDao.hasUserData()
+
+    /** Reads exactly the parts the manifest lists for [stream] and puts them back together, checking the length. */
+    private suspend fun downloadStream(uid: String, manifest: BackupManifestDocument, stream: BackupStreamDocument): ByteArray {
+        val texts = stream.partIds.map { partId ->
+            val part = cloudBackupStore.readPart(uid, partId)
+                ?: throw BackupUnreadableException("Part $partId is missing")
+            if (part.snapshotId != manifest.snapshotId) {
+                throw BackupUnreadableException("Part $partId belongs to another snapshot")
+            }
+            part.data
+        }
+        return texts.joinParts(stream.byteLength)
+    }
 
     private suspend fun currentUid(): String? = cloudAuth.currentUser.first()?.uid
 

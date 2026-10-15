@@ -71,6 +71,27 @@ internal class WishlistCoverImageStorageImpl(
         }
     }
 
+    override suspend fun import(bytes: ByteArray): String? = withContext(Dispatchers.IO) {
+        val extension = if (bytes.startsWithPngSignature()) "png" else "jpg"
+        val file = File(coversDir.apply { mkdirs() }, "${UUID.randomUUID()}.$extension")
+        try {
+            file.writeBytes(bytes)
+            file.absolutePath
+        } catch (_: IOException) {
+            file.delete()
+            null
+        }
+    }
+
+    override suspend fun deleteAllExcept(paths: Set<String>): Unit = withContext(Dispatchers.IO) {
+        coversDir.listFiles()?.forEach { file ->
+            if (file.absolutePath !in paths) file.delete()
+        }
+    }
+
+    private fun ByteArray.startsWithPngSignature(): Boolean =
+        size >= PNG_SIGNATURE.size && PNG_SIGNATURE.indices.all { this[it] == PNG_SIGNATURE[it] }
+
     /**
      * Decodes [source] straight into the target size, so a full-resolution bitmap is never
      * held in memory. [ImageDecoder] also applies the EXIF orientation for us.
@@ -100,6 +121,8 @@ internal class WishlistCoverImageStorageImpl(
 
     private companion object {
         const val COVERS_DIR_NAME = "wishlist_covers"
+
+        val PNG_SIGNATURE = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47)
 
         /**
          * Longest-side cap in pixels. Covers the full-bleed header of the wishlist detail

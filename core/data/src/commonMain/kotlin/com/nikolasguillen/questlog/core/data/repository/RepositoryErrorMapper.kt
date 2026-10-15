@@ -6,6 +6,7 @@ import com.nikolasguillen.questlog.core.cloud.error.CloudCredentialCollisionExce
 import com.nikolasguillen.questlog.core.cloud.error.CloudSignInCancelledException
 import com.nikolasguillen.questlog.core.cloud.error.CloudTimeoutException
 import com.nikolasguillen.questlog.core.cloud.error.CloudUnauthenticatedException
+import com.nikolasguillen.questlog.core.data.backup.BackupUnreadableException
 import com.nikolasguillen.questlog.core.model.RepositoryError
 import com.nikolasguillen.questlog.core.network.IgdbHttpException
 import kotlinx.coroutines.CancellationException
@@ -32,6 +33,9 @@ internal fun Throwable.toRepositoryError(): RepositoryError {
         this is CloudCredentialCollisionException -> RepositoryError.AccountExistsWithOtherMethod
 
         this is CloudCredentialAlreadyLinkedException -> RepositoryError.MethodLinkedToOtherAccount
+
+        // A backup stream that cannot be put back together: a part missing, a length that is off, JSON that is not ours.
+        this is BackupUnreadableException -> RepositoryError.BackupUnreadable
 
         else -> RepositoryError.Unknown(this)
     }

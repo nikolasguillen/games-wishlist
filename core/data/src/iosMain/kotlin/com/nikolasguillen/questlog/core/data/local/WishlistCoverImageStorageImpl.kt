@@ -15,6 +15,7 @@ import platform.CoreGraphics.CGSizeMake
 import platform.Foundation.NSData
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSUUID
+import platform.Foundation.create
 import platform.Foundation.dataWithContentsOfFile
 import platform.Foundation.writeToFile
 import platform.UIKit.UIGraphicsImageRenderer
@@ -27,6 +28,8 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 private const val COVERS_DIR_NAME = "wishlist_covers"
+
+private val PNG_SIGNATURE = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47)
 
 // Longest side in pixels, the same cap as on Android: enough for the full-bleed header of the wishlist detail
 // screen without storing camera-resolution originals.
@@ -72,6 +75,32 @@ internal class WishlistCoverImageStorageImpl : WishlistCoverImageStorage {
     override suspend fun read(path: String): ByteArray? = withContext(Dispatchers.IO) {
         if (path.substringBeforeLast('/') != coversDir) return@withContext null
         NSData.dataWithContentsOfFile(path)?.toByteArray()
+    }
+
+    override suspend fun import(bytes: ByteArray): String? = withContext(Dispatchers.IO) {
+        val extension = if (bytes.startsWithPngSignature()) "png" else "jpg"
+        NSFileManager.defaultManager.createDirectoryAtPath(
+            coversDir, withIntermediateDirectories = true, attributes = null, error = null
+        )
+        val path = "$coversDir/${NSUUID().UUIDString}.$extension"
+        if (bytes.toNSData().writeToFile(path, atomically = true)) path else null
+    }
+
+    override suspend fun deleteAllExcept(paths: Set<String>): Unit = withContext(Dispatchers.IO) {
+        val fileManager = NSFileManager.defaultManager
+        (fileManager.contentsOfDirectoryAtPath(coversDir, error = null) ?: emptyList<Any?>()).forEach { name ->
+            val path = "$coversDir/$name"
+            if (path !in paths) fileManager.removeItemAtPath(path, error = null)
+        }
+    }
+
+    private fun ByteArray.startsWithPngSignature(): Boolean =
+        size >= PNG_SIGNATURE.size && PNG_SIGNATURE.indices.all { this[it] == PNG_SIGNATURE[it] }
+
+    private fun ByteArray.toNSData(): NSData = if (isEmpty()) {
+        NSData()
+    } else {
+        usePinned { NSData.create(bytes = it.addressOf(0), length = size.toULong()) }
     }
 
     private fun NSData.toByteArray(): ByteArray {

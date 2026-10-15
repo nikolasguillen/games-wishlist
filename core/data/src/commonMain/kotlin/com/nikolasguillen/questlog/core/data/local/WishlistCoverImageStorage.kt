@@ -24,4 +24,17 @@ internal interface WishlistCoverImageStorage {
      * path cannot read an unrelated file into a backup.
      */
     suspend fun read(path: String): ByteArray?
+
+    /**
+     * Writes bytes that [persist] produced on some device (so they are already downscaled) as a new file in the covers
+     * directory and returns its path, or `null` when it could not be written. The extension is sniffed from the magic
+     * bytes: PNG when they start `89 50 4E 47`, JPEG otherwise. Nothing is re-encoded.
+     */
+    suspend fun import(bytes: ByteArray): String?
+
+    /**
+     * Deletes every file in the covers directory that is not in [paths]. A restore that was killed after importing its
+     * covers and before the database transaction leaves such orphans, and this clears them before the next one.
+     */
+    suspend fun deleteAllExcept(paths: Set<String>)
 }
