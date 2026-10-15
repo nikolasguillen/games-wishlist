@@ -66,6 +66,11 @@ Last audited: 2026-10-09.
   simulator and the Discover shelves and the search grid scroll with every cover loading, but frame pacing needs
   a device (Instruments' Animation Hitches template refuses to record on a simulator). A simulator also cannot be
   taken offline without switching the Mac's network off (the Darwin error mapping is unit-tested instead).
+- **The cloud backup has no reminder**: backup and restore are manual buttons in Settings, so a user who never
+  presses "Back up now" has nothing to restore after losing the device. The follow-up is a dialog (built on
+  `CustomAlertDialog`) that offers a backup when the last successful one is older than a threshold or has never
+  happened, with a "not now" that snoozes it. It needs the last-backup timestamp stored on the device, which the
+  manual backup should write anyway. Left out of the first version to keep it to the two buttons.
 
 ## Infrastructure
 
