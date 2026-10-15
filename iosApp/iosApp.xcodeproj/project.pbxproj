@@ -7,28 +7,40 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		179473593080BC4400CE6AA8 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 179473583080BC4400CE6AA8 /* GoogleService-Info.plist */; };
 		A10000000000000000000001 /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000002 /* iOSApp.swift */; };
 		A10000000000000000000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000004 /* ContentView.swift */; };
-		A1000000000000000000001A /* FoundationModelsBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001B /* FoundationModelsBridge.swift */; };
-		A1000000000000000000001C /* FoundationModelsGeneration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001D /* FoundationModelsGeneration.swift */; };
 		A10000000000000000000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000006 /* Assets.xcassets */; };
 		A10000000000000000000007 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000008 /* LaunchScreen.storyboard */; };
+		A1000000000000000000001A /* FoundationModelsBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001B /* FoundationModelsBridge.swift */; };
+		A1000000000000000000001C /* FoundationModelsGeneration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001D /* FoundationModelsGeneration.swift */; };
 		A1000000000000000000001E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001F /* AppDelegate.swift */; };
 		A10000000000000000000020 /* ReleaseRefreshTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000021 /* ReleaseRefreshTask.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		A10000000000000000000009 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		179473583080BC4400CE6AA8 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		A10000000000000000000002 /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
 		A10000000000000000000004 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		A1000000000000000000001B /* FoundationModelsBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsBridge.swift; sourceTree = "<group>"; };
-		A1000000000000000000001D /* FoundationModelsGeneration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsGeneration.swift; sourceTree = "<group>"; };
 		A10000000000000000000006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A10000000000000000000008 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		A10000000000000000000009 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1000000000000000000000A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A1000000000000000000001B /* FoundationModelsBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsBridge.swift; sourceTree = "<group>"; };
+		A1000000000000000000001D /* FoundationModelsGeneration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsGeneration.swift; sourceTree = "<group>"; };
 		A1000000000000000000001F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A10000000000000000000021 /* ReleaseRefreshTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseRefreshTask.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A10000000000000000000012 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		A1000000000000000000000B = {
@@ -51,6 +63,7 @@
 				A10000000000000000000006 /* Assets.xcassets */,
 				A10000000000000000000008 /* LaunchScreen.storyboard */,
 				A1000000000000000000000A /* Info.plist */,
+				179473583080BC4400CE6AA8 /* GoogleService-Info.plist */,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -124,20 +137,11 @@
 			files = (
 				A10000000000000000000005 /* Assets.xcassets in Resources */,
 				A10000000000000000000007 /* LaunchScreen.storyboard in Resources */,
+				179473593080BC4400CE6AA8 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXFrameworksBuildPhase section */
-		A10000000000000000000012 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		A10000000000000000000010 /* Compile Kotlin Framework */ = {
@@ -185,21 +189,21 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				SDKROOT = iphoneos;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				ENABLE_TESTABILITY = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -212,15 +216,15 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				SDKROOT = iphoneos;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_NS_ASSERTIONS = NO;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -297,20 +301,20 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A10000000000000000000015 /* Build configuration list for PBXProject "iosApp" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A10000000000000000000016 /* Debug */,
-				A10000000000000000000017 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		A1000000000000000000000F /* Build configuration list for PBXNativeTarget "iosApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A10000000000000000000018 /* Debug */,
 				A10000000000000000000019 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000000000000000000015 /* Build configuration list for PBXProject "iosApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000016 /* Debug */,
+				A10000000000000000000017 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

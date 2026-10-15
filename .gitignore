@@ -18,6 +18,7 @@ out/
 # Local configuration files
 local.properties
 google-services.json
+GoogleService-Info.plist
 
 # Signing files (Never commit these!)
 *.jks
