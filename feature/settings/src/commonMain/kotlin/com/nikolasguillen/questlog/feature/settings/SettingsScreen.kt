@@ -11,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
@@ -63,8 +64,10 @@ import com.nikolasguillen.questlog.feature.settings.model.SettingsUiState
 import com.nikolasguillen.questlog.feature.settings.model.TranslationModelRowState
 import com.nikolasguillen.questlog.feature.settings.resources.Res
 import com.nikolasguillen.questlog.feature.settings.resources.settings_about
+import com.nikolasguillen.questlog.feature.settings.resources.settings_account_backup
 import com.nikolasguillen.questlog.feature.settings.resources.settings_group_app
 import com.nikolasguillen.questlog.feature.settings.resources.settings_group_appearance
+import com.nikolasguillen.questlog.feature.settings.resources.settings_group_backup
 import com.nikolasguillen.questlog.feature.settings.resources.settings_group_game_profile
 import com.nikolasguillen.questlog.feature.settings.resources.settings_group_notifications
 import com.nikolasguillen.questlog.feature.settings.resources.settings_notification_permission_blocked
@@ -96,6 +99,7 @@ fun SettingsScreen(
     onBackClick: () -> Unit,
     onOwnedPlatformsClick: () -> Unit,
     onReleaseNotificationsClick: () -> Unit,
+    onAccountBackupClick: () -> Unit,
     onShowWelcomeTourClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -131,6 +135,7 @@ fun SettingsScreen(
         onBackClick = onBackClick,
         onOwnedPlatformsClick = onOwnedPlatformsClick,
         onReleaseNotificationsClick = onReleaseNotificationsClick,
+        onAccountBackupClick = onAccountBackupClick,
         onShowWelcomeTourClick = onShowWelcomeTourClick,
         onFixNotificationPermissionClick = permissionState.request,
         modifier = modifier
@@ -166,6 +171,7 @@ internal fun SettingsContent(
     onBackClick: () -> Unit,
     onOwnedPlatformsClick: () -> Unit,
     onReleaseNotificationsClick: () -> Unit,
+    onAccountBackupClick: () -> Unit,
     onShowWelcomeTourClick: () -> Unit,
     onFixNotificationPermissionClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -248,6 +254,15 @@ internal fun SettingsContent(
                         onClick = onFixNotificationPermissionClick
                     )
                 }
+            }
+
+            SettingsGroup(title = stringResource(Res.string.settings_group_backup)) {
+                SettingsRow(
+                    icon = Icons.Default.CloudUpload,
+                    title = stringResource(Res.string.settings_account_backup),
+                    subtitle = state.accountSummary?.asString(),
+                    onClick = onAccountBackupClick
+                )
             }
 
             SettingsGroup(title = stringResource(Res.string.settings_group_app)) {
@@ -356,6 +371,7 @@ private fun SettingsContentPreview() {
         SettingsContent(
             state = SettingsUiState(
                 ownedPlatformsSummary = UiText.DynamicString("PS5, PC, Switch"),
+                accountSummary = UiText.DynamicString("ada@example.com"),
                 appVersion = "1.0",
                 appearanceMode = AppearanceMode.LIGHT
             ),
@@ -363,6 +379,7 @@ private fun SettingsContentPreview() {
             onBackClick = {},
             onOwnedPlatformsClick = {},
             onReleaseNotificationsClick = {},
+            onAccountBackupClick = {},
             onShowWelcomeTourClick = {},
             onFixNotificationPermissionClick = {}
         )
@@ -382,6 +399,7 @@ private fun SettingsContentNoFilterPreview() {
             onBackClick = {},
             onOwnedPlatformsClick = {},
             onReleaseNotificationsClick = {},
+            onAccountBackupClick = {},
             onShowWelcomeTourClick = {},
             onFixNotificationPermissionClick = {}
         )
@@ -402,6 +420,7 @@ private fun SettingsContentTranslationDownloadablePreview() {
             onBackClick = {},
             onOwnedPlatformsClick = {},
             onReleaseNotificationsClick = {},
+            onAccountBackupClick = {},
             onShowWelcomeTourClick = {},
             onFixNotificationPermissionClick = {}
         )
@@ -422,6 +441,7 @@ private fun SettingsContentTranslationDownloadingPreview() {
             onBackClick = {},
             onOwnedPlatformsClick = {},
             onReleaseNotificationsClick = {},
+            onAccountBackupClick = {},
             onShowWelcomeTourClick = {},
             onFixNotificationPermissionClick = {}
         )
@@ -442,6 +462,7 @@ private fun SettingsContentTranslationReadyPreview() {
             onBackClick = {},
             onOwnedPlatformsClick = {},
             onReleaseNotificationsClick = {},
+            onAccountBackupClick = {},
             onShowWelcomeTourClick = {},
             onFixNotificationPermissionClick = {}
         )
@@ -462,6 +483,7 @@ private fun SettingsContentTranslationFailedPreview() {
             onBackClick = {},
             onOwnedPlatformsClick = {},
             onReleaseNotificationsClick = {},
+            onAccountBackupClick = {},
             onShowWelcomeTourClick = {},
             onFixNotificationPermissionClick = {}
         )

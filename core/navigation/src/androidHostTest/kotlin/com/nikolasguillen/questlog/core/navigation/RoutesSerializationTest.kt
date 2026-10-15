@@ -24,6 +24,7 @@ class RoutesSerializationTest {
         SettingsRoute,
         OwnedPlatformsRoute,
         ReleaseNotificationsRoute,
+        AccountBackupRoute,
         OnboardingRoute,
         WishlistRoute(listId = 42L),
         GameDetailRoute(gameId = 1942)

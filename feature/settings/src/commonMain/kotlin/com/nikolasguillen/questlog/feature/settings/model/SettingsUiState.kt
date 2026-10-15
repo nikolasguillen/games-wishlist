@@ -24,6 +24,8 @@ import com.nikolasguillen.questlog.core.ui.model.UiText
  * composition-only permission read reports otherwise, rather than flashing "blocked" on every launch.
  * @property appearanceMode The user's current Appearance selection, reflected by the segmented control in
  * the App group. Starts `SYSTEM`, matching the persisted default.
+ * @property accountSummary The signed-in address, or "Not signed in", shown as the Account & backup row's subtitle.
+ * `null` until the first emission, like [ownedPlatformsSummary].
  */
 @Immutable
 internal data class SettingsUiState(
@@ -32,5 +34,6 @@ internal data class SettingsUiState(
     val translationModel: TranslationModelRowState = TranslationModelRowState.Hidden,
     val releaseNotificationCount: Int = 0,
     val notificationPermission: NotificationPermissionRowState = NotificationPermissionRowState.Granted,
-    val appearanceMode: AppearanceMode = AppearanceMode.SYSTEM
+    val appearanceMode: AppearanceMode = AppearanceMode.SYSTEM,
+    val accountSummary: UiText? = null
 )

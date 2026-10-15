@@ -2,20 +2,26 @@ package com.nikolasguillen.questlog.feature.settings
 
 import com.nikolasguillen.questlog.core.common.AppVersionProvider
 import com.nikolasguillen.questlog.core.common.NetworkStatusProvider
+import com.nikolasguillen.questlog.core.domain.usecase.account.ObserveAccountUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatformsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.settings.GetAppearanceModeUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.settings.SetAppearanceModeUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.DownloadTranslationModelUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.GetTranslationModelStatusUseCase
+import com.nikolasguillen.questlog.core.model.Account
 import com.nikolasguillen.questlog.core.model.AppearanceMode
+import com.nikolasguillen.questlog.core.model.AuthProvider
 import com.nikolasguillen.questlog.core.model.TranslationModelDownload
 import com.nikolasguillen.questlog.core.model.TranslationModelStatus
+import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.settings.model.NotificationPermissionRowState
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEffect
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiState
 import com.nikolasguillen.questlog.feature.settings.model.TranslationModelRowState
+import com.nikolasguillen.questlog.feature.settings.resources.Res
+import com.nikolasguillen.questlog.feature.settings.resources.settings_account_not_signed_in
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -65,6 +71,7 @@ class SettingsViewModelTest {
     private val setAppearanceModeUseCase = mockk<SetAppearanceModeUseCase>(relaxed = true)
     private val networkStatusProvider =
         mockk<NetworkStatusProvider> { every { isUnmeteredNetworkAvailable } returns true }
+    private val observeAccountUseCase = mockk<ObserveAccountUseCase>()
 
     @Before
     fun setUp() {
@@ -72,6 +79,7 @@ class SettingsViewModelTest {
         every { getSelectedPlatformsUseCase() } returns flowOf(emptyList())
         every { getReleaseNotificationGameIdsUseCase() } returns flowOf(emptySet())
         every { getAppearanceModeUseCase() } returns flowOf(AppearanceMode.SYSTEM)
+        every { observeAccountUseCase() } returns flowOf(null)
     }
 
     @After
@@ -87,7 +95,8 @@ class SettingsViewModelTest {
         getReleaseNotificationGameIdsUseCase = getReleaseNotificationGameIdsUseCase,
         getAppearanceModeUseCase = getAppearanceModeUseCase,
         setAppearanceModeUseCase = setAppearanceModeUseCase,
-        networkStatusProvider = networkStatusProvider
+        networkStatusProvider = networkStatusProvider,
+        observeAccountUseCase = observeAccountUseCase
     )
 
     // uiState is WhileSubscribed(5000): nothing upstream runs until something collects it.
@@ -374,6 +383,38 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) { setAppearanceModeUseCase(AppearanceMode.LIGHT) }
+        job.cancel()
+    }
+
+    @Test
+    fun `the account row shows the signed-in address`() = runTest {
+        every { observeAccountUseCase() } returns flowOf(
+            Account(id = "uid-1", email = "ada@example.com", providers = setOf(AuthProvider.GOOGLE))
+        )
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.UNSUPPORTED
+
+        val viewModel = viewModel()
+        val states = mutableListOf<SettingsUiState>()
+        val job = collectStates(viewModel, states)
+        advanceUntilIdle()
+
+        assertEquals(UiText.DynamicString("ada@example.com"), states.last().accountSummary)
+        job.cancel()
+    }
+
+    @Test
+    fun `the account row says not signed in when nobody is`() = runTest {
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.UNSUPPORTED
+
+        val viewModel = viewModel()
+        val states = mutableListOf<SettingsUiState>()
+        val job = collectStates(viewModel, states)
+        advanceUntilIdle()
+
+        assertEquals(
+            UiText.StringResource(Res.string.settings_account_not_signed_in),
+            states.last().accountSummary
+        )
         job.cancel()
     }
 }

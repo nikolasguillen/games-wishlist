@@ -20,6 +20,7 @@ val GameNavSavedStateConfiguration = SavedStateConfiguration {
             subclass(SettingsRoute::class)
             subclass(OwnedPlatformsRoute::class)
             subclass(ReleaseNotificationsRoute::class)
+            subclass(AccountBackupRoute::class)
             subclass(OnboardingRoute::class)
             subclass(WishlistRoute::class)
             subclass(GameDetailRoute::class)

@@ -353,22 +353,22 @@ manifest is unchanged (8), and an empty device asks first (20).
 
 ### Tests for User Story 1 (write first)
 
-- [ ] T039 [P] [US1] Create `core/data/src/androidHostTest/kotlin/<pkg>/core/data/backup/BackupChunkerTest.kt`: chunks are
+- [X] T039 [P] [US1] Create `core/data/src/androidHostTest/kotlin/<pkg>/core/data/backup/BackupChunkerTest.kt`: chunks are
   at most `PART_MAX_CHARS` (**700,000** characters), rejoin to the identical bytes, an empty byte array yields one empty
   part (or zero parts, whichever T051 documents, asserted either way), non-ASCII text in the source survives, and
   `joinParts` rejects a result whose decoded length differs from `expectedLength` with `BackupUnreadable`-mapped
   failure (assert on the exception type T051 throws).
-- [ ] T040 [P] [US1] Create `core/data/src/androidHostTest/kotlin/<pkg>/core/data/mapper/BackupMapperTest.kt`:
+- [X] T040 [P] [US1] Create `core/data/src/androidHostTest/kotlin/<pkg>/core/data/mapper/BackupMapperTest.kt`:
   `UserDataRows.toBackupSnapshot(...)` carries every field (a list with an icon and a cover, a game with every child
   collection, an owned platform, the default list id, a membership); `lastViewedAt` is **not** in the snapshot; a
   `GameStatus` or `WishlistIcon` name this build does not know decodes to `null`; a list whose cover file is missing is
   written with `hasCover = false`. (The inverse mapping is added in US2.)
-- [ ] T041 [P] [US1] Create `core/data/src/androidHostTest/kotlin/<pkg>/core/data/repository/AccountRepositoryImplTest.kt`
+- [X] T041 [P] [US1] Create `core/data/src/androidHostTest/kotlin/<pkg>/core/data/repository/AccountRepositoryImplTest.kt`
   with a hand-written `FakeCloudAuth` in the same source set: `observeAccount` maps `CloudUser` → `Account` and `null`
   → `null`; `signIn(GOOGLE)` / `signIn(APPLE)` return the mapped account; a `CloudSignInCancelledException` becomes
   `RepositoryError.SignInCancelled`; a `CloudCredentialCollisionException` becomes `AccountExistsWithOtherMethod`; a
   `CancellationException` is rethrown, not mapped.
-- [ ] T042 [P] [US1] Create `core/data/src/androidHostTest/kotlin/<pkg>/core/data/repository/BackupRepositoryImplTest.kt`
+- [X] T042 [P] [US1] Create `core/data/src/androidHostTest/kotlin/<pkg>/core/data/repository/BackupRepositoryImplTest.kt`
   with `FakeCloudAuth`, a `FakeCloudBackupStore` (records the order of calls, can be told to fail the nth write), a
   fake cover storage and a MockK `UserDataDao`: **every part is written before the manifest, and the manifest last**; a
   part write that fails leaves `writeManifest` uncalled and returns the mapped error; after a successful backup the
@@ -377,7 +377,7 @@ manifest is unchanged (8), and an empty device asks first (20).
   with no store call; `getBackupInfo` returns `Success(null)` when there is no manifest and the mapped `BackupInfo`
   when there is; `hasLocalUserData` delegates to the DAO; two concurrent `backUp` calls run one after the other (the
   `Mutex`).
-- [ ] T043 [P] [US1] Create `feature/settings/src/androidHostTest/kotlin/<pkg>/feature/settings/AccountBackupViewModelTest.kt`
+- [X] T043 [P] [US1] Create `feature/settings/src/androidHostTest/kotlin/<pkg>/feature/settings/AccountBackupViewModelTest.kt`
   (KDoc header, `StandardTestDispatcher`, `Dispatchers.setMain`/`resetMain`, use cases mocked as
   `SettingsViewModelTest` does): signed-out state when `ObserveAccountUseCase` emits `null`; sign-in success; sign-in
   failure emits `ShowMessage(error.toUiText())`; `SignInCancelled` emits **no** message (FR-027); once signed in the
@@ -389,23 +389,23 @@ manifest is unchanged (8), and an empty device asks first (20).
 
 ### Implementation for User Story 1
 
-- [ ] T044 [US1] Create `core/domain/src/commonMain/kotlin/<pkg>/core/domain/repository/AccountRepository.kt` with
+- [X] T044 [US1] Create `core/domain/src/commonMain/kotlin/<pkg>/core/domain/repository/AccountRepository.kt` with
   `fun observeAccount(): Flow<Account?>` and `suspend fun signIn(provider: AuthProvider): AppResult<Account>`, and
   `.../repository/BackupRepository.kt` with `suspend fun getBackupInfo(): AppResult<BackupInfo?>` ("`Success(null)`:
   signed in, no backup yet"), `suspend fun backUp(): AppResult<BackupInfo>` and `suspend fun hasLocalUserData(): Boolean`
   ("DB-only, hence no `AppResult`: anything beyond a fresh install's seeded default wishlist"). KDoc on each says what
   it returns for a signed-out caller. These are the owner-approved second and third repositories (plan Complexity
   Tracking); later stories add their members here.
-- [ ] T045 [P] [US1] Create the use cases in `core/domain/src/commonMain/kotlin/<pkg>/core/domain/usecase/account/`
+- [X] T045 [P] [US1] Create the use cases in `core/domain/src/commonMain/kotlin/<pkg>/core/domain/usecase/account/`
   (`ObserveAccountUseCase`, `SignInUseCase`) and `.../usecase/backup/` (`GetBackupInfoUseCase`, `BackUpUseCase`,
   `HasLocalUserDataUseCase`): plain classes with `operator fun invoke(...)`, no base type. Register each with
   `factoryOf` in `core/domain/src/commonMain/kotlin/<pkg>/core/domain/di/DomainKoin.kt`, next to its neighbours.
-- [ ] T046 [US1] Create `core/database/src/commonMain/kotlin/<pkg>/core/database/userdata/UserDataRows.kt` exactly as in
+- [X] T046 [US1] Create `core/database/src/commonMain/kotlin/<pkg>/core/database/userdata/UserDataRows.kt` exactly as in
   data-model.md (`lists: List<ListEntity>`, `defaultListId: Long`, `memberships: List<GameListCrossRef>`,
   `ownedPlatformIds: List<Int>`, `ownedPlatforms: List<PlatformEntity>`, `savedGames: List<GameWithAllDetails>`). It
   lives in `userdata/`, not `entity/` or `relation/`: `entity/` must match the exported schema and `relation/` holds
   query results.
-- [ ] T047 [US1] Create `core/database/src/commonMain/kotlin/<pkg>/core/database/dao/UserDataDao.kt` as
+- [X] T047 [US1] Create `core/database/src/commonMain/kotlin/<pkg>/core/database/dao/UserDataDao.kt` as
   `@Dao abstract class UserDataDao(private val database: QuestLogDatabase)` (research R10: an interface DAO cannot call
   another DAO). Read half: `@Transaction open suspend fun readUserData(): UserDataRows` reading, in one transaction,
   every `ListEntity`, the default list id, every `GameListCrossRef`, the owned platform ids with their `PlatformEntity`
@@ -417,7 +417,7 @@ manifest is unchanged (8), and an empty device asks first (20).
   `core/database/src/commonMain/kotlin/<pkg>/core/database/di/DatabaseKoin.kt` next to the other DAOs. **No entity
   changes.** Run `./gradlew :core:database:compileAndroidMain --console=plain -q` and confirm
   `core/database/schemas/` is unchanged (`git status`).
-- [ ] T048 [P] [US1] In `core/common/src/commonMain/kotlin/<pkg>/core/common/DateUtils.kt` add
+- [X] T048 [P] [US1] In `core/common/src/commonMain/kotlin/<pkg>/core/common/DateUtils.kt` add
   `formatDateTime(instant: Instant, dateStyle: DateStyle, timeStyle: TimeStyle): String`; create
   `.../common/TimeStyle.kt` (`enum class TimeStyle { SHORT, MEDIUM }`); declare
   `internal expect fun renderLocalDateTime(dateTime: LocalDateTime, dateStyle: DateStyle, timeStyle: TimeStyle): String`
@@ -427,13 +427,13 @@ manifest is unchanged (8), and an empty device asks first (20).
   `core/common/src/iosMain/kotlin/<pkg>/core/common/DateRendering.ios.kt` (`NSDateFormatter` with `dateStyle`/`timeStyle`
   mapped and `NSLocale.currentLocale`). Extend `core/common/src/androidHostTest/.../DateUtilsTest.kt` with one case that
   formats a fixed instant in a fixed time zone. Dates use `kotlinx-datetime`, not `java.time`, in `commonMain`.
-- [ ] T049 [P] [US1] Add `read(path: String): ByteArray?` to
+- [X] T049 [P] [US1] Add `read(path: String): ByteArray?` to
   `core/data/src/commonMain/kotlin/<pkg>/core/data/local/WishlistCoverImageStorage.kt` ("the stored bytes, `null` if
   missing, and only for files inside the covers directory, the same guard `delete` uses") and implement it in
   `core/data/src/androidMain/kotlin/<pkg>/core/data/local/WishlistCoverImageStorageImpl.kt` and
   `core/data/src/iosMain/kotlin/<pkg>/core/data/local/WishlistCoverImageStorageImpl.kt` (`NSData(contentsOfFile:)`).
   Update any test double of the interface so existing tests still compile (their assertions do not change).
-- [ ] T050 [US1] Create `core/data/src/commonMain/kotlin/<pkg>/core/data/backup/BackupConstants.kt` with
+- [X] T050 [US1] Create `core/data/src/commonMain/kotlin/<pkg>/core/data/backup/BackupConstants.kt` with
   `internal const val BACKUP_FORMAT_VERSION = 1`, `internal const val PART_MAX_CHARS = 700_000` ("~33% headroom under
   1 MiB for the other fields and encoding overhead", research R6) and `internal const val MAX_BACKUP_PARTS = 40`
   ("about 28 MB of base64: beyond a plausible collection, refused with `BackupTooLarge`"). Create the `@Serializable`
@@ -446,18 +446,18 @@ manifest is unchanged (8), and an empty device asks first (20).
   (id, name), `BackupCompany` (id, name, `isDeveloper`, `isPublisher`), `BackupArtwork` (`position`, `url`),
   `BackupRelatedGame` (`relatedGameId`, `name`, `coverUrl`, `relationType`), `BackupPlatform` (`PlatformEntity`
   fields), `BackupMembership` (`gameId`, `listId`). All are `internal`.
-- [ ] T051 [US1] Create `core/data/src/commonMain/kotlin/<pkg>/core/data/backup/BackupChunker.kt`:
+- [X] T051 [US1] Create `core/data/src/commonMain/kotlin/<pkg>/core/data/backup/BackupChunker.kt`:
   `internal fun ByteArray.toParts(maxChars: Int = PART_MAX_CHARS): List<String>` (base64, then cut so every part is at
   most `maxChars` characters; base64 is ASCII, so characters equal bytes) and
   `internal fun List<String>.joinParts(expectedLength: Long): ByteArray` (join, decode, throw a typed
   `BackupUnreadableException` (a private `internal class` in the same package, mapped to `BackupUnreadable` by the
   repository) when the decoded length differs). Use `kotlin.io.encoding.Base64` (stdlib), no new dependency. T039 passes.
-- [ ] T052 [US1] Create `core/data/src/commonMain/kotlin/<pkg>/core/data/mapper/BackupMapper.kt`:
+- [X] T052 [US1] Create `core/data/src/commonMain/kotlin/<pkg>/core/data/mapper/BackupMapper.kt`:
   `internal fun UserDataRows.toBackupSnapshot(createdAt: Instant, appVersion: String, coverListIds: Set<Long>):
   BackupSnapshot` as top-level extensions (`core/data/CLAUDE.md`), enums written as `name`. Create
   `.../mapper/AccountMapper.kt`: `CloudUser.toAccount()`, `CloudProvider.toAuthProvider()` and
   `AuthProvider.toCloudProvider()`. T040 passes.
-- [ ] T053 [US1] Create `core/data/src/commonMain/kotlin/<pkg>/core/data/repository/AccountRepositoryImpl.kt`
+- [X] T053 [US1] Create `core/data/src/commonMain/kotlin/<pkg>/core/data/repository/AccountRepositoryImpl.kt`
   (`observeAccount`, `signIn`; every call in `try/catch` building results with `AppResult.success` /
   `AppResult.failure(e.toRepositoryError())`, `CancellationException` rethrown) and
   `.../repository/BackupRepositoryImpl.kt` with `getBackupInfo`, `backUp`, `hasLocalUserData` and a private `Mutex` the
@@ -469,12 +469,12 @@ manifest is unchanged (8), and an empty device asks first (20).
   delete the parts under `users/{uid}/parts` the new manifest does not list. Constructor takes `CloudAuth`,
   `CloudBackupStore`, `UserDataDao`, `WishlistCoverImageStorage`, `AppVersionProvider`, a `Clock` and a `Json`. Use
   `kotlin.uuid.Uuid.random()` for the id (opt in if it is still experimental in 2.4.20). T041 and T042 pass.
-- [ ] T054 [US1] In `core/data/src/commonMain/kotlin/<pkg>/core/data/di/DataKoin.kt` bind
+- [X] T054 [US1] In `core/data/src/commonMain/kotlin/<pkg>/core/data/di/DataKoin.kt` bind
   `singleOf(::AccountRepositoryImpl) { bind<AccountRepository>() }`, `singleOf(::BackupRepositoryImpl) {
   bind<BackupRepository>() }` and a `single { Json { ignoreUnknownKeys = true; explicitNulls = false } }` with a comment
   saying why (a newer backup's extra keys must not break reading, research R7). Run
   `./gradlew :shared:testAndroidHostTest --console=plain -q` (`KoinGraphTest`).
-- [ ] T055 [P] [US1] Add `data object AccountBackupRoute : GameNavKey` to
+- [X] T055 [P] [US1] Add `data object AccountBackupRoute : GameNavKey` to
   `core/navigation/src/commonMain/kotlin/<pkg>/core/navigation/Routes.kt` (with its `@Serializable` and KDoc like its
   neighbours), its `subclass(...)` line in `.../navigation/GameNavSavedStateConfiguration.kt` (`RoutesSerializationTest`
   fails without it), and in `shared/src/commonMain/kotlin/<pkg>/shared/QuestLogNavDisplay.kt` an `entry<AccountBackupRoute>`
@@ -483,14 +483,14 @@ manifest is unchanged (8), and an empty device asks first (20).
   that navigates with the same `if (backStack.lastOrNull() != AccountBackupRoute)` guard the other settings routes use.
   Add `viewModelOf(::AccountBackupViewModel)` to `shared/src/commonMain/kotlin/<pkg>/shared/di/ViewModelModule.kt`. These
   edits compile together with T056–T060.
-- [ ] T056 [P] [US1] Create the state files in `feature/settings/src/commonMain/kotlin/<pkg>/feature/settings/model/`,
+- [X] T056 [P] [US1] Create the state files in `feature/settings/src/commonMain/kotlin/<pkg>/feature/settings/model/`,
   all `internal`, `@Immutable` where they hold a `List` or a `UiText`: `AccountBackupUiState` (fields and defaults as in
   data-model.md), `AccountBackupUiEvent` (sealed: `SignIn(provider)`, `BackUp`, `ConfirmEmptyBackup`, `DismissDialog`,
   `Retry`), `AccountBackupUiEffect` (sealed: `ShowMessage(text: UiText)`), `AccountUiModel` (`email: String?`,
   `linkedProviders: List<AuthProvider>`, `linkableProviders: List<AuthProvider>`), `BackupStatusUiModel` (sealed:
   `Unknown`, `None`, `Available(lastBackup: UiText, summary: UiText)`), `CloudOperation` (enum with all eight values
   from data-model.md so later stories add no value) and `AccountBackupDialog` (sealed; only `ConfirmEmptyBackup` now).
-- [ ] T057 [US1] In `feature/settings/src/commonMain/composeResources/values/strings.xml` add the strings this story
+- [X] T057 [US1] In `feature/settings/src/commonMain/composeResources/values/strings.xml` add the strings this story
   renders, with positional placeholders (`%1$s`, `%2$d`): `settings_group_backup`, `settings_account_backup`,
   `settings_account_not_signed_in`, `account_backup_title`, `account_backup_explainer` (FR-031: says the user's lists,
   saved games and owned platforms are stored in the cloud under the signed-in account, and that nothing is backed up
@@ -501,12 +501,12 @@ manifest is unchanged (8), and an empty device asks first (20).
   branding rules ("Sign in with Google" / "Continue with Google", "Sign in with Apple" exactly). Add the two brand marks
   as vector drawables in `feature/settings/src/commonMain/composeResources/drawable/` from the providers' **official**
   assets; if the owner has not supplied them, stop and ask rather than drawing approximations.
-- [ ] T058 [US1] Create `feature/settings/src/commonMain/kotlin/<pkg>/feature/settings/mapper/AccountBackupUiMapper.kt`:
+- [X] T058 [US1] Create `feature/settings/src/commonMain/kotlin/<pkg>/feature/settings/mapper/AccountBackupUiMapper.kt`:
   `Account.toUiModel()` (`linkableProviders` = the providers not in `providers`), `BackupInfo.toUiModel()` building
   `Available(lastBackup = UiText.StringResource(account_backup_last_backup, formatDateTime(...)), summary =
   UiText.StringResource(account_backup_summary, listCount, gameCount))`. The date is formatted here, never in a
   composable. The email stays a plain `String` (data from the provider, never a resource).
-- [ ] T059 [US1] Create `feature/settings/src/commonMain/kotlin/<pkg>/feature/settings/AccountBackupViewModel.kt` (state
+- [X] T059 [US1] Create `feature/settings/src/commonMain/kotlin/<pkg>/feature/settings/AccountBackupViewModel.kt` (state
   pipeline: `MutableStateFlow` + `_uiState.update { }`, with `ObserveAccountUseCase` collected in `init` for the
   ViewModel's whole life; effects through `Channel(Channel.BUFFERED)` + `receiveAsFlow()`; one exhaustive
   `onEvent`). Rules from data-model.md "State transitions": signing in fetches `GetBackupInfoUseCase`; `BackUp` asks
@@ -514,7 +514,7 @@ manifest is unchanged (8), and an empty device asks first (20).
   and cleared in a `finally` (a cancellation never leaves the screen busy); a second cloud event while it is set is
   ignored; `SignInCancelled` shows nothing, every other failure emits `ShowMessage(error.toUiText())`; a `NotSignedIn`
   failure leaves the observed account to emit `null`. Constructor takes the five use cases from T045. T043 passes.
-- [ ] T060 [US1] Create `feature/settings/src/commonMain/kotlin/<pkg>/feature/settings/AccountBackupScreen.kt` (public
+- [X] T060 [US1] Create `feature/settings/src/commonMain/kotlin/<pkg>/feature/settings/AccountBackupScreen.kt` (public
   ViewModel-taking composable with `@Suppress("ParamsComparedByRef")`, collecting with `collectAsStateWithLifecycle()`
   and handling effects as `feature/wishlist/WishlistScreen.kt` does, snackbars for `ShowMessage`; and an `internal`
   stateless `AccountBackupContent(state, onEvent, modifier)`), plus components in
@@ -524,7 +524,7 @@ manifest is unchanged (8), and an empty device asks first (20).
   `AccountBackupDialogs.kt` (the empty-backup `CustomAlertDialog`). Signed-out content shows the explainer and the two
   sign-in buttons only (US1-1). Previews: signed out, signed in with no backup, signed in with a backup, busy, and the
   dialog. Touch targets are at least 48dp through `minimumInteractiveComponentSize()`, as the Discover title row does.
-- [ ] T061 [US1] Add the Backup group to the Settings hub. In
+- [X] T061 [US1] Add the Backup group to the Settings hub. In
   `feature/settings/src/commonMain/kotlin/<pkg>/feature/settings/SettingsScreen.kt` add an `onAccountBackupClick: () ->
   Unit` parameter and, in a new `SettingsGroup` titled `settings_group_backup`, one `SettingsRow` ("Account & backup")
   whose subtitle is `state.accountSummary`. In `SettingsUiState.kt` add `accountSummary: UiText? = null` with KDoc

@@ -16,6 +16,7 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.nikolasguillen.questlog.core.navigation.AccountBackupRoute
 import com.nikolasguillen.questlog.core.navigation.GameDetailRoute
 import com.nikolasguillen.questlog.core.navigation.ListsRoute
 import com.nikolasguillen.questlog.core.navigation.OnboardingRoute
@@ -35,6 +36,8 @@ import com.nikolasguillen.questlog.feature.radar.RadarScreen
 import com.nikolasguillen.questlog.feature.radar.RadarViewModel
 import com.nikolasguillen.questlog.feature.search.SearchScreen
 import com.nikolasguillen.questlog.feature.search.SearchViewModel
+import com.nikolasguillen.questlog.feature.settings.AccountBackupScreen
+import com.nikolasguillen.questlog.feature.settings.AccountBackupViewModel
 import com.nikolasguillen.questlog.feature.settings.OwnedPlatformsScreen
 import com.nikolasguillen.questlog.feature.settings.OwnedPlatformsViewModel
 import com.nikolasguillen.questlog.feature.settings.ReleaseNotificationsScreen
@@ -145,6 +148,11 @@ fun QuestLogNavDisplay(
                                 backStack.add(ReleaseNotificationsRoute)
                             }
                         },
+                        onAccountBackupClick = {
+                            if (backStack.lastOrNull() != AccountBackupRoute) {
+                                backStack.add(AccountBackupRoute)
+                            }
+                        },
                         onShowWelcomeTourClick = {
                             if (backStack.lastOrNull() != OnboardingRoute) {
                                 backStack.add(OnboardingRoute)
@@ -170,6 +178,17 @@ fun QuestLogNavDisplay(
                 is ReleaseNotificationsRoute -> NavEntry(key) {
                     val vm = koinViewModel<ReleaseNotificationsViewModel>()
                     ReleaseNotificationsScreen(
+                        viewModel = vm,
+                        onBackClick = { backStack.removeLastOrNull() },
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .consumeWindowInsets(innerPadding)
+                    )
+                }
+
+                is AccountBackupRoute -> NavEntry(key) {
+                    val vm = koinViewModel<AccountBackupViewModel>()
+                    AccountBackupScreen(
                         viewModel = vm,
                         onBackClick = { backStack.removeLastOrNull() },
                         modifier = Modifier

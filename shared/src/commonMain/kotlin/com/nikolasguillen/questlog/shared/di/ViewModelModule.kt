@@ -5,6 +5,7 @@ import com.nikolasguillen.questlog.feature.lists.ListsViewModel
 import com.nikolasguillen.questlog.feature.onboarding.OnboardingViewModel
 import com.nikolasguillen.questlog.feature.radar.RadarViewModel
 import com.nikolasguillen.questlog.feature.search.SearchViewModel
+import com.nikolasguillen.questlog.feature.settings.AccountBackupViewModel
 import com.nikolasguillen.questlog.feature.settings.OwnedPlatformsViewModel
 import com.nikolasguillen.questlog.feature.settings.ReleaseNotificationsViewModel
 import com.nikolasguillen.questlog.feature.settings.SettingsViewModel
@@ -26,6 +27,7 @@ val viewModelModule = module {
     viewModelOf(::ListsViewModel)
     viewModelOf(::SettingsViewModel)
     viewModelOf(::OwnedPlatformsViewModel)
+    viewModelOf(::AccountBackupViewModel)
     viewModelOf(::ReleaseNotificationsViewModel)
     viewModelOf(::OnboardingViewModel)
     viewModelOf(::GameDetailViewModel)

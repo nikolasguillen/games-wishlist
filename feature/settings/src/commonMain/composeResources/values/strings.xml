@@ -5,6 +5,7 @@
     <string name="settings_group_game_profile">My game profile</string>
     <string name="settings_group_app">App</string>
     <string name="settings_group_notifications">Notifications</string>
+    <string name="settings_group_backup">Backup</string>
 
     <string name="settings_owned_platforms">Owned platforms</string>
     <string name="settings_owned_platforms_all">All platforms</string>
@@ -42,4 +43,33 @@
     <string name="release_notifications_title">Release reminders</string>
     <string name="release_notifications_empty">No saved games yet. Save a game to set up a release reminder.</string>
     <string name="release_notifications_no_date_yet">No date yet</string>
+
+    <string name="settings_account_backup">Account &amp; backup</string>
+    <string name="settings_account_not_signed_in">Not signed in</string>
+    <string name="settings_account_signed_in">Signed in</string>
+
+    <string name="account_backup_title">Account &amp; backup</string>
+    <string name="account_backup_explainer">Back up your lists, saved games and owned platforms to the cloud under your account, so you can get them back on a new phone or on another platform. Nothing is backed up unless you tap Back up now.</string>
+    <string name="account_backup_continue_with_google">Continue with Google</string>
+    <string name="account_backup_sign_in_with_apple">Sign in with Apple</string>
+    <string name="account_backup_signed_in_as">Signed in as %1$s</string>
+    <string name="account_backup_linked_methods">Sign-in methods</string>
+    <string name="account_backup_provider_google">Google</string>
+    <string name="account_backup_provider_apple">Apple</string>
+    <string name="account_backup_last_backup">Last backup: %1$s</string>
+    <plurals name="account_backup_summary_lists">
+        <item quantity="one">%1$d list</item>
+        <item quantity="other">%1$d lists</item>
+    </plurals>
+    <plurals name="account_backup_summary_games">
+        <item quantity="one">%1$d game</item>
+        <item quantity="other">%1$d games</item>
+    </plurals>
+    <string name="account_backup_no_backup">No backup yet</string>
+    <string name="account_backup_unreachable">Your backup can't be reached right now.</string>
+    <string name="account_backup_back_up_now">Back up now</string>
+    <string name="account_backup_backup_complete">Backup complete</string>
+    <string name="account_backup_empty_title">Replace your backup with an empty one?</string>
+    <string name="account_backup_empty_message">This device has no lists, saved games or owned platforms. Backing up now would replace your existing backup with an empty one.</string>
+    <string name="account_backup_empty_confirm">Back up anyway</string>
 </resources>

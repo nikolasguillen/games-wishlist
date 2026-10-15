@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nikolasguillen.questlog.core.common.AppVersionProvider
 import com.nikolasguillen.questlog.core.common.NetworkStatusProvider
+import com.nikolasguillen.questlog.core.domain.usecase.account.ObserveAccountUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatformsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.settings.GetAppearanceModeUseCase
@@ -12,12 +13,16 @@ import com.nikolasguillen.questlog.core.domain.usecase.translation.DownloadTrans
 import com.nikolasguillen.questlog.core.domain.usecase.translation.GetTranslationModelStatusUseCase
 import com.nikolasguillen.questlog.core.model.TranslationModelDownload
 import com.nikolasguillen.questlog.core.model.TranslationModelStatus
+import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.settings.mapper.toSummaryUiText
 import com.nikolasguillen.questlog.feature.settings.model.NotificationPermissionRowState
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEffect
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiState
 import com.nikolasguillen.questlog.feature.settings.model.TranslationModelRowState
+import com.nikolasguillen.questlog.feature.settings.resources.Res
+import com.nikolasguillen.questlog.feature.settings.resources.settings_account_not_signed_in
+import com.nikolasguillen.questlog.feature.settings.resources.settings_account_signed_in
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,7 +38,8 @@ class SettingsViewModel(
     private val getReleaseNotificationGameIdsUseCase: GetReleaseNotificationGameIdsUseCase,
     private val getAppearanceModeUseCase: GetAppearanceModeUseCase,
     private val setAppearanceModeUseCase: SetAppearanceModeUseCase,
-    private val networkStatusProvider: NetworkStatusProvider
+    private val networkStatusProvider: NetworkStatusProvider,
+    private val observeAccountUseCase: ObserveAccountUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -49,6 +55,7 @@ class SettingsViewModel(
         loadTranslationModelStatus()
         observeReleaseNotificationCount()
         observeAppearanceMode()
+        observeAccount()
     }
 
     internal fun onEvent(event: SettingsUiEvent) {
@@ -68,6 +75,21 @@ class SettingsViewModel(
 
             is SettingsUiEvent.AppearanceModeChanged ->
                 viewModelScope.launch { setAppearanceModeUseCase(event.mode) }
+        }
+    }
+
+    // Collected for the ViewModel's whole life, the same way observeOwnedPlatforms is. A signed-in account with no
+    // address (a provider may withhold it) still reads as signed in.
+    private fun observeAccount() {
+        viewModelScope.launch {
+            observeAccountUseCase().collect { account ->
+                val summary = when {
+                    account == null -> UiText.StringResource(Res.string.settings_account_not_signed_in)
+                    account.email != null -> UiText.DynamicString(account.email!!)
+                    else -> UiText.StringResource(Res.string.settings_account_signed_in)
+                }
+                _uiState.update { it.copy(accountSummary = summary) }
+            }
         }
     }
 

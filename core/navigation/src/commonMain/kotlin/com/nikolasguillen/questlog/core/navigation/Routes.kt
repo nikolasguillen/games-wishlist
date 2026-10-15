@@ -29,6 +29,10 @@ data object OwnedPlatformsRoute : GameNavKey
 @Serializable
 data object ReleaseNotificationsRoute : GameNavKey
 
+/** Sign in, back up and (later) restore the user's data in the cloud. Reached from the Settings hub. */
+@Serializable
+data object AccountBackupRoute : GameNavKey
+
 @Serializable
 data object OnboardingRoute : GameNavKey
 
