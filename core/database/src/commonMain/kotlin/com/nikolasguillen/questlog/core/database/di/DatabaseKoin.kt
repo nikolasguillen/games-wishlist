@@ -47,4 +47,5 @@ val databaseModule = module {
     single { get<QuestLogDatabase>().translationDao() }
     single { get<QuestLogDatabase>().discoverCacheDao() }
     single { get<QuestLogDatabase>().releaseNotificationDao() }
+    single { get<QuestLogDatabase>().userDataDao() }
 }

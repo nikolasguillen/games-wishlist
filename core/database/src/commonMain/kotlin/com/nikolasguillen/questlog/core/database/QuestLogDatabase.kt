@@ -11,6 +11,7 @@ import com.nikolasguillen.questlog.core.database.dao.PlatformDao
 import com.nikolasguillen.questlog.core.database.dao.ReleaseNotificationDao
 import com.nikolasguillen.questlog.core.database.dao.SearchHistoryDao
 import com.nikolasguillen.questlog.core.database.dao.TranslationDao
+import com.nikolasguillen.questlog.core.database.dao.UserDataDao
 import com.nikolasguillen.questlog.core.database.entity.CachedGameCompanyCrossRef
 import com.nikolasguillen.questlog.core.database.entity.CachedGameEntity
 import com.nikolasguillen.questlog.core.database.entity.CachedGameGenreCrossRef
@@ -77,6 +78,7 @@ abstract class QuestLogDatabase : RoomDatabase() {
     abstract fun translationDao(): TranslationDao
     abstract fun discoverCacheDao(): DiscoverCacheDao
     abstract fun releaseNotificationDao(): ReleaseNotificationDao
+    abstract fun userDataDao(): UserDataDao
 
     companion object {
         const val DATABASE_NAME = "quest_log_database"
