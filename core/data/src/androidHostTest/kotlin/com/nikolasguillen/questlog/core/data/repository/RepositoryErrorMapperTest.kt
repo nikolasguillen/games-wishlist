@@ -1,5 +1,11 @@
 package com.nikolasguillen.questlog.core.data.repository
 
+import com.nikolasguillen.questlog.core.cloud.error.CloudConnectivityException
+import com.nikolasguillen.questlog.core.cloud.error.CloudCredentialAlreadyLinkedException
+import com.nikolasguillen.questlog.core.cloud.error.CloudCredentialCollisionException
+import com.nikolasguillen.questlog.core.cloud.error.CloudSignInCancelledException
+import com.nikolasguillen.questlog.core.cloud.error.CloudTimeoutException
+import com.nikolasguillen.questlog.core.cloud.error.CloudUnauthenticatedException
 import com.nikolasguillen.questlog.core.model.RepositoryError
 import com.nikolasguillen.questlog.core.network.IgdbConnectivityException
 import com.nikolasguillen.questlog.core.network.IgdbHttpException
@@ -74,6 +80,42 @@ class RepositoryErrorMapperTest {
     fun `the network module's transport exceptions are not reported as unknown`() {
         assertEquals(RepositoryError.RequestTimeout, IgdbTimeoutException(IOException("slow")).toRepositoryError())
         assertEquals(RepositoryError.NoNetwork, IgdbConnectivityException(IOException("down")).toRepositoryError())
+    }
+
+    @Test
+    fun `a cloud connectivity failure maps to no network`() {
+        assertEquals(RepositoryError.NoNetwork, CloudConnectivityException().toRepositoryError())
+    }
+
+    @Test
+    fun `a cloud timeout maps to request timeout`() {
+        assertEquals(RepositoryError.RequestTimeout, CloudTimeoutException().toRepositoryError())
+    }
+
+    @Test
+    fun `a cloud unauthenticated failure maps to not signed in`() {
+        assertEquals(RepositoryError.NotSignedIn, CloudUnauthenticatedException().toRepositoryError())
+    }
+
+    @Test
+    fun `a cancelled cloud sign-in maps to sign-in cancelled`() {
+        assertEquals(RepositoryError.SignInCancelled, CloudSignInCancelledException().toRepositoryError())
+    }
+
+    @Test
+    fun `a credential collision maps to account exists with other method`() {
+        assertEquals(
+            RepositoryError.AccountExistsWithOtherMethod,
+            CloudCredentialCollisionException().toRepositoryError()
+        )
+    }
+
+    @Test
+    fun `an already linked credential maps to method linked to other account`() {
+        assertEquals(
+            RepositoryError.MethodLinkedToOtherAccount,
+            CloudCredentialAlreadyLinkedException().toRepositoryError()
+        )
     }
 
     @Test

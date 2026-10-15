@@ -153,21 +153,21 @@ touches Firebase code again.
 
 ### Model and errors
 
-- [ ] T012 [P] Create `core/model/src/commonMain/kotlin/<pkg>/core/model/AuthProvider.kt`:
+- [X] T012 [P] Create `core/model/src/commonMain/kotlin/<pkg>/core/model/AuthProvider.kt`:
   `enum class AuthProvider { GOOGLE, APPLE }`, with a one-line KDoc.
-- [ ] T013 [P] Create `core/model/src/commonMain/kotlin/<pkg>/core/model/Account.kt`:
+- [X] T013 [P] Create `core/model/src/commonMain/kotlin/<pkg>/core/model/Account.kt`:
   `data class Account(val id: String, val email: String?, val providers: Set<AuthProvider>)` with KDoc quoting the
   data model: `id` is the backend's user id and is never shown; `email` is null when no linked method shares one;
   `providers` is never empty while signed in.
-- [ ] T014 [P] Create `core/model/src/commonMain/kotlin/<pkg>/core/model/BackupInfo.kt`:
+- [X] T014 [P] Create `core/model/src/commonMain/kotlin/<pkg>/core/model/BackupInfo.kt`:
   `data class BackupInfo(val createdAt: kotlin.time.Instant, val listCount: Int, val gameCount: Int)`. `:core:model`
   keeps no Android or Compose dependency.
-- [ ] T015 Add eight cases to `core/model/src/commonMain/kotlin/<pkg>/core/model/RepositoryError.kt`, each a
+- [X] T015 Add eight cases to `core/model/src/commonMain/kotlin/<pkg>/core/model/RepositoryError.kt`, each a
   `data object` with a KDoc that says *when* it occurs (data-model.md table): `NotSignedIn`, `SignInCancelled`,
   `AccountExistsWithOtherMethod`, `MethodLinkedToOtherAccount`, `BackupNotFound`, `BackupFromNewerVersion`,
   `BackupUnreadable`, `BackupTooLarge`. The file does not compile elsewhere until T016 handles them, so land T015 and
   T016 together.
-- [ ] T016 In `core/ui/src/commonMain/kotlin/<pkg>/core/ui/mapper/ErrorMapper.kt` add the eight branches to the
+- [X] T016 In `core/ui/src/commonMain/kotlin/<pkg>/core/ui/mapper/ErrorMapper.kt` add the eight branches to the
   exhaustive `when` (`SignInCancelled` maps to `error_unknown` only for exhaustiveness and is never shown, with a
   comment saying so). Add seven strings to `core/ui/src/commonMain/composeResources/values/strings.xml`:
   `error_not_signed_in` ("Sign in again to continue"), `error_account_exists_other_method` ("This email is already
@@ -180,11 +180,11 @@ touches Firebase code again.
 
 ### `:core:cloud`: types and errors
 
-- [ ] T017 [P] Create `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/model/CloudProvider.kt`
+- [X] T017 [P] Create `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/model/CloudProvider.kt`
   (`enum class CloudProvider { GOOGLE, APPLE }`, its own enum because `:core:cloud` does not depend on `:core:model`)
   and `.../model/CloudUser.kt` (`data class CloudUser(val uid: String, val email: String?, val providers:
   Set<CloudProvider>)`).
-- [ ] T018 [P] Create the three `@Serializable` documents in `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/model/`,
+- [X] T018 [P] Create the three `@Serializable` documents in `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/model/`,
   one file each, with exactly the fields in data-model.md: `BackupManifestDocument(snapshotId: String,
   formatVersion: Int, createdAtEpochMillis: Long, appVersion: String, listCount: Int, gameCount: Int, streams:
   List<BackupStreamDocument>)`, `BackupStreamDocument(name: String, byteLength: Long, partIds: List<String>)`
@@ -192,13 +192,13 @@ touches Firebase code again.
   `BackupPartDocument(snapshotId: String, stream: String, index: Int, data: String)`. KDoc on
   `BackupPartDocument.data` quotes the constraint: base64, **at most 700,000 characters**; and the part id format
   `"$snapshotId-$stream-$index"`. The 700,000 bound is enforced by `:core:data` (T050), not here.
-- [ ] T019 [P] Create `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/error/CloudException.kt`
+- [X] T019 [P] Create `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/error/CloudException.kt`
   (`open class CloudException(message: String?, cause: Throwable? = null) : Exception(message, cause)`) and one file per
   subclass in the same package: `CloudConnectivityException`, `CloudTimeoutException`,
   `CloudUnauthenticatedException`, `CloudSignInCancelledException`, `CloudCredentialCollisionException`,
   `CloudCredentialAlreadyLinkedException`, `CloudRecentLoginRequiredException`. They extend `Exception`, **not**
   `IOException`, so `RepositoryErrorMapper`'s ordering rule about `IOException` is unaffected.
-- [ ] T020 Write `core/cloud/src/androidHostTest/kotlin/<pkg>/core/cloud/error/FirebaseErrorClassifierTest.kt` first
+- [X] T020 Write `core/cloud/src/androidHostTest/kotlin/<pkg>/core/cloud/error/FirebaseErrorClassifierTest.kt` first
   (JUnit4, no Firebase objects: the classifier takes plain codes). Cases: Firestore `UNAVAILABLE` →
   `CloudConnectivityException`; `DEADLINE_EXCEEDED` → `CloudTimeoutException`; `UNAUTHENTICATED` and
   `PERMISSION_DENIED` → `CloudUnauthenticatedException`; any other code → `null` (the caller rethrows it). Auth:
@@ -207,7 +207,7 @@ touches Firebase code again.
   `ERROR_REQUIRES_RECENT_LOGIN` → recent login required; `ERROR_NETWORK_REQUEST_FAILED` → connectivity;
   `ERROR_USER_TOKEN_EXPIRED`, `ERROR_INVALID_USER_TOKEN`, `ERROR_USER_NOT_FOUND`, `ERROR_USER_DISABLED` →
   unauthenticated; an unknown or `null` code → `null`. Add the iOS-side code strings recorded in T010 as extra cases.
-- [ ] T021 Create `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/error/FirebaseErrorClassifier.kt`: pure
+- [X] T021 Create `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/error/FirebaseErrorClassifier.kt`: pure
   `internal fun classifyFirestoreCode(code: FirestoreExceptionCode): CloudException?` and
   `internal fun classifyAuthCode(code: String?): CloudException?` (and a `Throwable.toCloudException()` extension that
   applies them to `FirebaseFirestoreException` / `FirebaseAuthException`, rethrows `CancellationException` first, and
@@ -217,12 +217,12 @@ touches Firebase code again.
 
 ### `:core:cloud`: contracts and Firebase implementations
 
-- [ ] T022 Create the contracts in `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/`: `CloudAuth.kt` (exactly the
+- [X] T022 Create the contracts in `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/`: `CloudAuth.kt` (exactly the
   interface in contracts/cloud-contracts.md: `currentUser: Flow<CloudUser?>`, `signIn`, `link`, `reauthenticate`,
   `signOut`, `deleteUser`), `AppleGrant.kt` (`class AppleGrant internal constructor(internal val value: String)`) and
   `PlatformProviderAuth.kt` (`internal interface`, five members as in the contract). Public KDoc on every `CloudAuth`
   member states what it throws and the "`link` on an already linked provider returns the current user unchanged" rule.
-- [ ] T023 Create `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/FirebaseCloudAuth.kt` implementing `CloudAuth` with
+- [X] T023 Create `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/FirebaseCloudAuth.kt` implementing `CloudAuth` with
   GitLive: `currentUser` = `Firebase.auth.authStateChanged` mapped to `CloudUser` (provider ids `"google.com"` →
   `GOOGLE`, `"apple.com"` → `APPLE`, from `FirebaseUser.providerData`; ignore `"firebase"`); `signIn`/`link` call
   `PlatformProviderAuth` then return the current user; `reauthenticate` picks Apple when `providerData` contains it,
@@ -231,10 +231,10 @@ touches Firebase code again.
   `println`-free logging the module already uses, never thrown), then `FirebaseUser.delete()`, throwing
   `CloudRecentLoginRequiredException` when no re-authentication happened. Every GitLive call is wrapped with
   `Throwable.toCloudException()` (T021).
-- [ ] T024 Create `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/CloudBackupStore.kt`: the interface in
+- [X] T024 Create `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/CloudBackupStore.kt`: the interface in
   contracts/cloud-contracts.md (`readManifest`, `writePart`, `readPart`, `writeManifest`, `listPartIds`,
   `deleteParts`, `deleteManifest`, all taking `uid`).
-- [ ] T025 Create `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/FirestoreBackupStore.kt` implementing it over
+- [X] T025 Create `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/FirestoreBackupStore.kt` implementing it over
   GitLive with the exact paths in contracts/firestore.md: manifest at `users/{uid}`, parts at
   `users/{uid}/parts/{partId}`, serialized with the documents' `@Serializable` strategies. `readManifest` uses
   `Source.SERVER`. Each call is wrapped in `withTimeout(CLOUD_CALL_TIMEOUT)` (a `internal val CLOUD_CALL_TIMEOUT =
@@ -243,17 +243,17 @@ touches Firebase code again.
   persistence (memory cache only) through GitLive's Firestore settings if it exposes the option, otherwise through
   `.android` / `.ios`; if neither is practical, leave it on, rely on `Source.SERVER`, and record the deviation in
   research.md R11.
-- [ ] T026 Create `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/di/CloudKoin.kt` (`val cloudModule = module { ... }`
+- [X] T026 Create `core/cloud/src/commonMain/kotlin/<pkg>/core/cloud/di/CloudKoin.kt` (`val cloudModule = module { ... }`
   binding `CloudAuth` → `FirebaseCloudAuth` and `CloudBackupStore` → `FirestoreBackupStore` as `single`s) and
   `.../di/CloudPlatformModule.kt` (`expect val cloudPlatformModule: Module`, KDoc listing what each platform binds).
 
 ### `:core:cloud`: Android provider sign-in
 
-- [ ] T027 [P] Create `core/cloud/src/androidMain/kotlin/<pkg>/core/cloud/CurrentActivityTracker.kt`: an
+- [X] T027 [P] Create `core/cloud/src/androidMain/kotlin/<pkg>/core/cloud/CurrentActivityTracker.kt`: an
   `Application.ActivityLifecycleCallbacks` holding the resumed `Activity` in a `WeakReference`, with
   `val current: Activity?`. KDoc says why it exists (both provider flows need an Activity, and no contract signature
   may carry one).
-- [ ] T028 Create `core/cloud/src/androidMain/kotlin/<pkg>/core/cloud/AndroidProviderAuth.kt` implementing
+- [X] T028 Create `core/cloud/src/androidMain/kotlin/<pkg>/core/cloud/AndroidProviderAuth.kt` implementing
   `PlatformProviderAuth`, **Google part**: `signIn`, `link` and `reauthenticate(GOOGLE)` get an ID token with
   Credential Manager (`CredentialManager.create(context).getCredential(activity, GetCredentialRequest(listOf(
   GetSignInWithGoogleOption.Builder(webClientId).build())))`, `GoogleIdTokenCredential.createFrom(...)`), build
@@ -261,7 +261,7 @@ touches Firebase code again.
   `reauthenticate`. `GetCredentialCancellationException` and "no resumed Activity" →
   `CloudSignInCancelledException`; `NoCredentialException` → `CloudSignInCancelledException` too (no Google account on the
   device, shown as nothing, the user adds one). `clearProviderState` calls `clearCredentialState`.
-- [ ] T029 In the same file add the **Apple part**: `OAuthProvider.newBuilder("apple.com")` with scopes `email` and
+- [X] T029 In the same file add the **Apple part**: `OAuthProvider.newBuilder("apple.com")` with scopes `email` and
   `name`, through GitLive's `.android` properties: `startActivityForSignInWithProvider` /
   `startActivityForLinkWithProvider` / `startActivityForReauthenticateWithProvider` on the tracked Activity, checking
   `pendingAuthResult` first for an Activity recreated mid-flow. `reauthenticate(APPLE)` returns
@@ -270,7 +270,7 @@ touches Firebase code again.
   code, or a dismissed Custom Tab) → `CloudSignInCancelledException`. Wrap each Firebase `Task` with
   `suspendCancellableCoroutine` (or `kotlinx-coroutines-play-services` only if it is already a dependency; do not add
   one).
-- [ ] T030 Create `core/cloud/src/androidMain/kotlin/<pkg>/core/cloud/di/CloudPlatformModule.android.kt`
+- [X] T030 Create `core/cloud/src/androidMain/kotlin/<pkg>/core/cloud/di/CloudPlatformModule.android.kt`
   (`actual val cloudPlatformModule`): `single(createdAtStart = true) { CurrentActivityTracker().also {
   (androidContext() as Application).registerActivityLifecycleCallbacks(it) } }` and `single<PlatformProviderAuth> {
   AndroidProviderAuth(androidContext(), get(), getProperty("google_web_client_id")) }`. In
@@ -280,12 +280,12 @@ touches Firebase code again.
 
 ### `:core:cloud`: iOS provider sign-in
 
-- [ ] T031 [P] Create in `core/cloud/src/iosMain/kotlin/<pkg>/core/cloud/` one file each: `IdentityProviderBridge.kt`
+- [X] T031 [P] Create in `core/cloud/src/iosMain/kotlin/<pkg>/core/cloud/` one file each: `IdentityProviderBridge.kt`
   (the interface in contracts/cloud-contracts.md, **nothing `suspend`**, KDoc quoting the reason from the platform
   contracts: a `suspend` member implemented in Swift has no cancellation and crashes on a thrown Swift error),
   `GoogleSignInResult.kt`, `AppleSignInResult.kt`, `ProviderOutcome.kt` (`SUCCESS`, `CANCELLED`, `FAILED`). `onResult`
   is documented as called exactly once, on any thread.
-- [ ] T032 Create `core/cloud/src/iosMain/kotlin/<pkg>/core/cloud/IosProviderAuth.kt` implementing
+- [X] T032 Create `core/cloud/src/iosMain/kotlin/<pkg>/core/cloud/IosProviderAuth.kt` implementing
   `PlatformProviderAuth` over the bridge: each call wrapped in `suspendCancellableCoroutine`, `CANCELLED` →
   `CloudSignInCancelledException`, `FAILED` → an `Exception` the caller maps to `Unknown`. Google result →
   `GoogleAuthProvider.credential(idToken, accessToken)`; Apple result → `OAuthProvider.credential(providerId =
@@ -294,7 +294,7 @@ touches Firebase code again.
   `bridge.revokeAppleToken`. Also create `.../di/CloudPlatformModule.ios.kt` (`actual val cloudPlatformModule`) binding
   `single<PlatformProviderAuth> { IosProviderAuth(get<IdentityProviderBridge>()) }`; the bridge itself is bound by
   `startQuestLog` (T034), like `AppleLanguageModelBridge`.
-- [ ] T033 **(Mac only)** Create `iosApp/iosApp/IdentityProviderBridge.swift` implementing Kotlin's
+- [X] T033 **(Mac only)** Create `iosApp/iosApp/IdentityProviderBridge.swift` implementing Kotlin's
   `IdentityProviderBridge`: Google through `GoogleSignIn-iOS` (`GIDSignIn.sharedInstance.signIn(withPresenting:)` from the
   top view controller, `clientID` from `FirebaseApp.app()?.options.clientID`, returning ID and access tokens), Apple
   through `ASAuthorizationController` with a random raw nonce (a 32-character cryptographically random string; send
@@ -306,7 +306,7 @@ touches Firebase code again.
   `iosApp/iosApp/iosApp.entitlements`). In `iosApp/iosApp/iOSApp.swift` handle the redirect with
   `.onOpenURL { GIDSignIn.sharedInstance.handle($0) }`. Presentation, the nonce and the client id stay in Swift; no
   token is logged.
-- [ ] T034 **(Mac only to verify)** In `shared/src/iosMain/kotlin/<pkg>/shared/QuestLogIos.kt` add an
+- [X] T034 **(Mac only to verify)** In `shared/src/iosMain/kotlin/<pkg>/shared/QuestLogIos.kt` add an
   `identityProviderBridge: IdentityProviderBridge` parameter to `startQuestLog` and bind it in the `modules(module { })`
   block next to the other bridges (`single<IdentityProviderBridge> { identityProviderBridge }`); update the KDoc. In
   `iosApp/iosApp/AppDelegate.swift` pass `IdentityProviderBridge()` to the call. Run
@@ -314,18 +314,18 @@ touches Firebase code again.
 
 ### `:shared` and `:core:data` plumbing
 
-- [ ] T035 In `shared/src/commonMain/kotlin/<pkg>/shared/di/SharedKoin.kt` add `cloudModule` and `cloudPlatformModule`
+- [X] T035 In `shared/src/commonMain/kotlin/<pkg>/shared/di/SharedKoin.kt` add `cloudModule` and `cloudPlatformModule`
   (imports from `<pkg>.core.cloud.di`) to `allModules`, before `dataModule`. In
   `shared/src/androidHostTest/kotlin/<pkg>/shared/di/KoinGraphTest.kt` add `Application::class` and `Activity::class`
   to `extraTypes` if `verify()` reports them missing (Android framework objects supplied at runtime, like `Context`);
   add nothing else. `./gradlew :shared:testAndroidHostTest --console=plain -q` stays green.
-- [ ] T036 Extend `core/data/src/androidHostTest/kotlin/<pkg>/core/data/repository/RepositoryErrorMapperTest.kt` first with
+- [X] T036 Extend `core/data/src/androidHostTest/kotlin/<pkg>/core/data/repository/RepositoryErrorMapperTest.kt` first with
   the six mappings in data-model.md: `CloudConnectivityException` → `NoNetwork`, `CloudTimeoutException` →
   `RequestTimeout`, `CloudUnauthenticatedException` → `NotSignedIn`, `CloudSignInCancelledException` →
   `SignInCancelled`, `CloudCredentialCollisionException` → `AccountExistsWithOtherMethod`,
   `CloudCredentialAlreadyLinkedException` → `MethodLinkedToOtherAccount`; and that a `CancellationException` is still
   rethrown.
-- [ ] T037 In `core/data/build.gradle.kts` add `implementation(project(":core:cloud"))` and the serialization plugin
+- [X] T037 In `core/data/build.gradle.kts` add `implementation(project(":core:cloud"))` and the serialization plugin
   (`alias(libs.plugins.jetbrains.kotlin.plugin.serialization)`) plus `libs.kotlinx.serialization.core` and
   `libs.kotlinx.serialization.json` to `commonMain.dependencies`. In
   `core/data/src/commonMain/kotlin/<pkg>/core/data/repository/RepositoryErrorMapper.kt` add the six `Cloud*Exception`
@@ -333,7 +333,7 @@ touches Firebase code again.
   `CloudCredentialAlreadyLinkedException` map as in T036). `RecentLoginRequired` is deliberately **not** mapped: it never
   escapes `AccountRepositoryImpl` (T087). Update the "Mapped cases" paragraph of `core/data/CLAUDE.md` in T094, not here.
   T036 passes.
-- [ ] T038 Checkpoint: `./gradlew test --console=plain -q` and `./gradlew :androidApp:assembleDebug --console=plain -q`
+- [X] T038 Checkpoint: `./gradlew test --console=plain -q` and `./gradlew :androidApp:assembleDebug --console=plain -q`
   green; **(Mac only)** `:shared:linkDebugFrameworkIosSimulatorArm64` and `xcodebuild` green. `git grep -nE
   "dev\.gitlive|com\.google\.firebase|androidx\.credentials" -- ':!core/cloud'` prints nothing.
 

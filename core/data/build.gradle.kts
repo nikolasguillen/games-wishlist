@@ -1,5 +1,6 @@
 plugins {
     id("questlog.kmp.library")
+    alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
 }
 
 kotlin {
@@ -15,9 +16,12 @@ kotlin {
             implementation(project(":core:domain"))
             implementation(project(":core:network"))
             implementation(project(":core:database"))
+            implementation(project(":core:cloud"))
 
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.core)
+            implementation(libs.kotlinx.serialization.json)
             implementation(libs.androidx.datastore.preferences.core)
             // :core:network's exceptions extend kotlinx.io.IOException, and the compiler needs it to name them.
             implementation(libs.kotlinx.io.core)

@@ -1,5 +1,7 @@
 package com.nikolasguillen.questlog.shared.di
 
+import com.nikolasguillen.questlog.core.cloud.di.cloudModule
+import com.nikolasguillen.questlog.core.cloud.di.cloudPlatformModule
 import com.nikolasguillen.questlog.core.common.di.commonPlatformModule
 import com.nikolasguillen.questlog.core.data.di.dataModule
 import com.nikolasguillen.questlog.core.data.di.dataPlatformModule
@@ -45,6 +47,8 @@ internal fun allModules(isDebugBuild: Boolean): List<Module> = listOf(
     networkPlatformModule,
     databaseModule,
     databasePlatformModule,
+    cloudModule,
+    cloudPlatformModule,
     dataModule,
     dataPlatformModule,
     viewModelModule,
