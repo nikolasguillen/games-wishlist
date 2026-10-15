@@ -14,6 +14,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.account.SignInUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.BackUpUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.GetBackupInfoUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.HasLocalUserDataUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.backup.RestoreBackupUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetDiscoverFeedUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetKnownPlatformsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.discover.GetSelectedPlatformIdsUseCase
@@ -73,6 +74,7 @@ val domainModule = module {
     factoryOf(::GetSignInProviderUseCase)
     factoryOf(::GetBackupInfoUseCase)
     factoryOf(::BackUpUseCase)
+    factoryOf(::RestoreBackupUseCase)
     factoryOf(::HasLocalUserDataUseCase)
     factoryOf(::GetDiscoverFeedUseCase)
     factoryOf(::GetKnownPlatformsUseCase)

@@ -16,6 +16,13 @@ interface BackupRepository {
     suspend fun backUp(): AppResult<BackupInfo>
 
     /**
+     * Replaces the device's lists, saved games, list membership, default wishlist and owned platforms with the backup,
+     * all or nothing: a failure at any point leaves the device exactly as it was. Search history, recently viewed games
+     * and settings are not touched. Fails with `BackupNotFound` when there is no backup.
+     */
+    suspend fun restore(): AppResult<BackupInfo>
+
+    /**
      * Whether the device holds anything beyond a fresh install's seeded default wishlist. DB-only, hence no
      * [AppResult].
      */
