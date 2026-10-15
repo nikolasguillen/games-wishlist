@@ -25,6 +25,30 @@ sealed interface RepositoryError {
     /** Reading or writing a file on the device failed, e.g. a wishlist cover image. */
     data object FileStorage : RepositoryError
 
+    /** There is no signed-in account, or the session was revoked or expired during an operation. */
+    data object NotSignedIn : RepositoryError
+
+    /** The user closed a provider's sign-in UI. The screen shows nothing for it. */
+    data object SignInCancelled : RepositoryError
+
+    /** Signing in collided with an account that belongs to a different sign-in method. */
+    data object AccountExistsWithOtherMethod : RepositoryError
+
+    /** The sign-in method being linked already belongs to another account. */
+    data object MethodLinkedToOtherAccount : RepositoryError
+
+    /** A restore was requested but the account has no backup. */
+    data object BackupNotFound : RepositoryError
+
+    /** The backup was written by a newer version of the app than the one reading it. */
+    data object BackupFromNewerVersion : RepositoryError
+
+    /** A part of the backup is missing or short, or its content cannot be decoded. Nothing was changed. */
+    data object BackupUnreadable : RepositoryError
+
+    /** The collection would need more parts than a backup may have. */
+    data object BackupTooLarge : RepositoryError
+
     /**
      * Anything that did not match a case above.
      *
