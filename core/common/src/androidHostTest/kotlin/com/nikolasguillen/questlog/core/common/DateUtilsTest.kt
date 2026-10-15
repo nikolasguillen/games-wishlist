@@ -9,6 +9,7 @@ import org.junit.Before
 import org.junit.Test
 import java.util.Locale
 import java.util.TimeZone
+import kotlin.time.Instant
 
 /**
  * Pins what [DateUtils] returns today, so the move to `kotlinx-datetime` cannot change a date shown to the
@@ -38,6 +39,18 @@ class DateUtilsTest {
 
     // 2024-03-15T12:00:00Z, a Friday
     private val noonUtc = 1_710_504_000L
+
+    @Test
+    fun `formatDateTime renders the date and the time of day in the device zone`() {
+        zone("America/New_York")
+
+        // 12:00 UTC is 08:00 in New York in mid-March (daylight saving). The time-of-day separator before AM and PM
+        // differs between JDK versions, so the assertions avoid it.
+        val text = DateUtils.formatDateTime(Instant.fromEpochSeconds(noonUtc), DateStyle.MEDIUM, TimeStyle.SHORT)
+
+        assertTrue(text, text.contains("Mar 15, 2024"))
+        assertTrue(text, text.contains("8:00"))
+    }
 
     @Test
     fun `formatUnixTimestamp with a pattern`() {

@@ -24,6 +24,21 @@ object DateUtils {
     ): String = renderLocalDate(timestampToLocalDate(timestampSeconds), style)
 
     /**
+     * Formats a moment as a localized date and time of day, in the device locale and time zone.
+     * @param dateStyle How much of the date to spell out.
+     * @param timeStyle How much of the time of day to spell out.
+     */
+    fun formatDateTime(
+        instant: Instant,
+        dateStyle: DateStyle = DateStyle.MEDIUM,
+        timeStyle: TimeStyle = TimeStyle.SHORT
+    ): String = renderLocalDateTime(
+        instant.toLocalDateTime(TimeZone.currentSystemDefault()),
+        dateStyle,
+        timeStyle
+    )
+
+    /**
      * Formats a Unix timestamp (in seconds) using a specific pattern, in the device locale.
      */
     fun formatUnixTimestamp(
