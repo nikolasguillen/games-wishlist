@@ -2,7 +2,9 @@ package com.nikolasguillen.questlog.core.data.local
 
 import com.nikolasguillen.questlog.core.common.applicationSupportDirectory
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.useContents
+import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -10,14 +12,17 @@ import platform.CoreGraphics.CGImageAlphaInfo
 import platform.CoreGraphics.CGImageGetAlphaInfo
 import platform.CoreGraphics.CGRectMake
 import platform.CoreGraphics.CGSizeMake
+import platform.Foundation.NSData
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSUUID
+import platform.Foundation.dataWithContentsOfFile
 import platform.Foundation.writeToFile
 import platform.UIKit.UIGraphicsImageRenderer
 import platform.UIKit.UIGraphicsImageRendererFormat
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageJPEGRepresentation
 import platform.UIKit.UIImagePNGRepresentation
+import platform.posix.memcpy
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -62,6 +67,20 @@ internal class WishlistCoverImageStorageImpl : WishlistCoverImageStorage {
         if (path.substringBeforeLast('/') == coversDir) {
             NSFileManager.defaultManager.removeItemAtPath(path, error = null)
         }
+    }
+
+    override suspend fun read(path: String): ByteArray? = withContext(Dispatchers.IO) {
+        if (path.substringBeforeLast('/') != coversDir) return@withContext null
+        NSData.dataWithContentsOfFile(path)?.toByteArray()
+    }
+
+    private fun NSData.toByteArray(): ByteArray {
+        val size = length.toInt()
+        val result = ByteArray(size)
+        if (size > 0) {
+            result.usePinned { memcpy(it.addressOf(0), bytes, length) }
+        }
+        return result
     }
 
     private fun UIImage.hasAlpha(): Boolean {

@@ -61,6 +61,16 @@ internal class WishlistCoverImageStorageImpl(
         }
     }
 
+    override suspend fun read(path: String): ByteArray? = withContext(Dispatchers.IO) {
+        val file = File(path)
+        if (file.parentFile != coversDir) return@withContext null
+        try {
+            file.readBytes()
+        } catch (_: IOException) {
+            null
+        }
+    }
+
     /**
      * Decodes [source] straight into the target size, so a full-resolution bitmap is never
      * held in memory. [ImageDecoder] also applies the EXIF orientation for us.

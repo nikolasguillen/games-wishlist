@@ -18,4 +18,10 @@ internal interface WishlistCoverImageStorage {
      * ignored, so a stale or hand-edited value can never delete an unrelated file.
      */
     suspend fun delete(path: String)
+
+    /**
+     * The stored bytes of a cover previously returned by [persist], or `null` when the file is missing or unreadable. Like [delete], it only touches files inside the covers directory, so a stale or hand-edited
+     * path cannot read an unrelated file into a backup.
+     */
+    suspend fun read(path: String): ByteArray?
 }
