@@ -8,6 +8,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.account.SignInUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.BackUpUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.GetBackupInfoUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.HasLocalUserDataUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.backup.RestoreBackupUseCase
 import com.nikolasguillen.questlog.core.model.Account
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.RepositoryError
@@ -22,6 +23,7 @@ import com.nikolasguillen.questlog.feature.settings.model.BackupStatusUiModel
 import com.nikolasguillen.questlog.feature.settings.model.CloudOperation
 import com.nikolasguillen.questlog.feature.settings.resources.Res
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_backup_complete
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_restore_complete
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,6 +38,7 @@ class AccountBackupViewModel(
     getSignInProviderUseCase: GetSignInProviderUseCase,
     private val getBackupInfoUseCase: GetBackupInfoUseCase,
     private val backUpUseCase: BackUpUseCase,
+    private val restoreBackupUseCase: RestoreBackupUseCase,
     private val hasLocalUserDataUseCase: HasLocalUserDataUseCase
 ) : ViewModel() {
 
@@ -60,6 +63,12 @@ class AccountBackupViewModel(
             AccountBackupUiEvent.ConfirmEmptyBackup -> {
                 _uiState.update { it.copy(dialog = null) }
                 launchOperation(CloudOperation.BACK_UP) { performBackUp() }
+            }
+
+            AccountBackupUiEvent.Restore -> restore()
+            AccountBackupUiEvent.ConfirmRestore -> {
+                _uiState.update { it.copy(dialog = null) }
+                launchOperation(CloudOperation.RESTORE) { performRestore() }
             }
 
             AccountBackupUiEvent.DismissDialog -> _uiState.update { it.copy(dialog = null) }
@@ -117,6 +126,31 @@ class AccountBackupViewModel(
             } else {
                 _uiState.update { it.copy(dialog = AccountBackupDialog.ConfirmEmptyBackup) }
             }
+        }
+    }
+
+    // Like backing up: the busy flag is raised before the local-data check. An empty device has nothing to lose, so it
+    // restores without asking.
+    private fun restore() {
+        launchOperation(CloudOperation.RESTORE) {
+            if (hasLocalUserDataUseCase()) {
+                _uiState.update { it.copy(dialog = AccountBackupDialog.ConfirmRestore) }
+            } else {
+                performRestore()
+            }
+        }
+    }
+
+    private suspend fun performRestore() {
+        when (val result = restoreBackupUseCase()) {
+            is AppResult.Success -> {
+                _uiState.update { it.copy(backup = result.data.toUiModel()) }
+                _uiEffect.send(
+                    AccountBackupUiEffect.ShowMessage(UiText.StringResource(Res.string.account_backup_restore_complete))
+                )
+            }
+
+            is AppResult.Failure -> showFailure(result.error)
         }
     }
 

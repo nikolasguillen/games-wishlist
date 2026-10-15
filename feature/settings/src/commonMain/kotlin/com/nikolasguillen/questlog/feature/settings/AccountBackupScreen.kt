@@ -141,6 +141,7 @@ internal fun AccountBackupContent(
                     backup = state.backup,
                     runningOperation = state.runningOperation,
                     onBackUpClick = { onEvent(AccountBackupUiEvent.BackUp) },
+                    onRestoreClick = { onEvent(AccountBackupUiEvent.Restore) },
                     onRetryClick = { onEvent(AccountBackupUiEvent.Retry) }
                 )
             }
@@ -153,6 +154,7 @@ internal fun AccountBackupContent(
             onConfirm = {
                 when (dialog) {
                     AccountBackupDialog.ConfirmEmptyBackup -> onEvent(AccountBackupUiEvent.ConfirmEmptyBackup)
+                    AccountBackupDialog.ConfirmRestore -> onEvent(AccountBackupUiEvent.ConfirmRestore)
                 }
             },
             onDismiss = { onEvent(AccountBackupUiEvent.DismissDialog) }
@@ -251,6 +253,26 @@ private fun AccountBackupBusyPreview() {
                 account = AccountUiModel("ada@example.com", listOf(AuthProvider.GOOGLE)),
                 backup = BackupStatusUiModel.None,
                 runningOperation = CloudOperation.BACK_UP
+            ),
+            onEvent = {},
+            onBackClick = {},
+            snackbarHostState = remember { SnackbarHostState() }
+        )
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun AccountBackupRestoreDialogPreview() {
+    QuestLogTheme {
+        AccountBackupContent(
+            state = AccountBackupUiState(
+                account = AccountUiModel("ada@example.com", listOf(AuthProvider.GOOGLE)),
+                backup = BackupStatusUiModel.Available(
+                    lastBackup = UiText.DynamicString("Last backup: Mar 15, 2024, 8:00 AM"),
+                    summary = UiText.DynamicString("3 lists, 20 games")
+                ),
+                dialog = AccountBackupDialog.ConfirmRestore
             ),
             onEvent = {},
             onBackClick = {},

@@ -6,6 +6,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.account.SignInUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.BackUpUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.GetBackupInfoUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.HasLocalUserDataUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.backup.RestoreBackupUseCase
 import com.nikolasguillen.questlog.core.model.Account
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.AuthProvider
@@ -59,6 +60,7 @@ class AccountBackupViewModelTest {
     private val getSignInProviderUseCase = mockk<GetSignInProviderUseCase>()
     private val getBackupInfoUseCase = mockk<GetBackupInfoUseCase>()
     private val backUpUseCase = mockk<BackUpUseCase>()
+    private val restoreBackupUseCase = mockk<RestoreBackupUseCase>()
     private val hasLocalUserDataUseCase = mockk<HasLocalUserDataUseCase>()
 
     private val signedIn = Account(id = "uid-1", email = "ada@example.com", providers = setOf(AuthProvider.GOOGLE))
@@ -79,7 +81,8 @@ class AccountBackupViewModelTest {
     }
 
     private fun viewModel() = AccountBackupViewModel(
-        observeAccountUseCase, signInUseCase, getSignInProviderUseCase, getBackupInfoUseCase, backUpUseCase, hasLocalUserDataUseCase
+        observeAccountUseCase, signInUseCase, getSignInProviderUseCase, getBackupInfoUseCase, backUpUseCase, restoreBackupUseCase,
+        hasLocalUserDataUseCase
     )
 
     private fun kotlinx.coroutines.test.TestScope.collectEffects(viewModel: AccountBackupViewModel): List<AccountBackupUiEffect> {
@@ -325,5 +328,127 @@ class AccountBackupViewModelTest {
 
         assertNull(viewModel.uiState.value.account)
         assertEquals(BackupStatusUiModel.Unknown, viewModel.uiState.value.backup)
+    }
+
+    // ---- restore ----
+
+    @Test
+    fun `restore with local data asks first and runs nothing`() = runTest(testDispatcher) {
+        coEvery { restoreBackupUseCase() } returns AppResult.success(info)
+        val viewModel = viewModel()
+        account.value = signedIn
+        advanceUntilIdle()
+
+        viewModel.onEvent(AccountBackupUiEvent.Restore)
+        advanceUntilIdle()
+
+        assertEquals(AccountBackupDialog.ConfirmRestore, viewModel.uiState.value.dialog)
+        assertNull(viewModel.uiState.value.runningOperation)
+        coVerify(exactly = 0) { restoreBackupUseCase() }
+    }
+
+    @Test
+    fun `dismissing the restore dialog leaves the use case uncalled`() = runTest(testDispatcher) {
+        val viewModel = viewModel()
+        account.value = signedIn
+        advanceUntilIdle()
+        viewModel.onEvent(AccountBackupUiEvent.Restore)
+        advanceUntilIdle()
+
+        viewModel.onEvent(AccountBackupUiEvent.DismissDialog)
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.dialog)
+        coVerify(exactly = 0) { restoreBackupUseCase() }
+    }
+
+    @Test
+    fun `confirming the restore runs it, shows the result and refreshes the backup`() = runTest(testDispatcher) {
+        coEvery { restoreBackupUseCase() } returns AppResult.success(info)
+        val viewModel = viewModel()
+        val effects = collectEffects(viewModel)
+        account.value = signedIn
+        advanceUntilIdle()
+        viewModel.onEvent(AccountBackupUiEvent.Restore)
+        advanceUntilIdle()
+
+        viewModel.onEvent(AccountBackupUiEvent.ConfirmRestore)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { restoreBackupUseCase() }
+        assertNull(viewModel.uiState.value.dialog)
+        assertNull(viewModel.uiState.value.runningOperation)
+        assertTrue(viewModel.uiState.value.backup is BackupStatusUiModel.Available)
+        assertEquals(1, effects.size)
+    }
+
+    @Test
+    fun `restore on an empty device runs without asking`() = runTest(testDispatcher) {
+        coEvery { hasLocalUserDataUseCase() } returns false
+        coEvery { restoreBackupUseCase() } returns AppResult.success(info)
+        val viewModel = viewModel()
+        account.value = signedIn
+        advanceUntilIdle()
+
+        viewModel.onEvent(AccountBackupUiEvent.Restore)
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.dialog)
+        coVerify(exactly = 1) { restoreBackupUseCase() }
+    }
+
+    @Test
+    fun `each restore failure shows its own text`() = runTest(testDispatcher) {
+        coEvery { hasLocalUserDataUseCase() } returns false
+        val viewModel = viewModel()
+        val effects = collectEffects(viewModel)
+        account.value = signedIn
+        advanceUntilIdle()
+
+        listOf(
+            RepositoryError.BackupNotFound,
+            RepositoryError.BackupFromNewerVersion,
+            RepositoryError.BackupUnreadable
+        ).forEach { error ->
+            coEvery { restoreBackupUseCase() } returns AppResult.failure(error)
+            viewModel.onEvent(AccountBackupUiEvent.Restore)
+            advanceUntilIdle()
+        }
+
+        assertEquals(
+            listOf<AccountBackupUiEffect>(
+                AccountBackupUiEffect.ShowMessage(RepositoryError.BackupNotFound.toUiText()),
+                AccountBackupUiEffect.ShowMessage(RepositoryError.BackupFromNewerVersion.toUiText()),
+                AccountBackupUiEffect.ShowMessage(RepositoryError.BackupUnreadable.toUiText())
+            ),
+            effects
+        )
+        assertNull(viewModel.uiState.value.runningOperation)
+    }
+
+    @Test
+    fun `a running restore blocks a backup and the busy flag is cleared after a cancellation`() = runTest(testDispatcher) {
+        coEvery { hasLocalUserDataUseCase() } returns false
+        val gate = CompletableDeferred<Unit>()
+        coEvery { restoreBackupUseCase() } coAnswers {
+            gate.await()
+            throw CancellationException("scope closed")
+        }
+        coEvery { backUpUseCase() } returns AppResult.success(info)
+        val viewModel = viewModel()
+        account.value = signedIn
+        advanceUntilIdle()
+
+        viewModel.onEvent(AccountBackupUiEvent.Restore)
+        advanceUntilIdle()
+        assertEquals(CloudOperation.RESTORE, viewModel.uiState.value.runningOperation)
+        viewModel.onEvent(AccountBackupUiEvent.BackUp)
+        advanceUntilIdle()
+        coVerify(exactly = 0) { backUpUseCase() }
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.runningOperation)
     }
 }

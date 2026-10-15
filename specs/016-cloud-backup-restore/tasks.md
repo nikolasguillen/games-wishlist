@@ -557,18 +557,18 @@ damaged backup refused (23).
 
 ### Tests for User Story 2 (write first)
 
-- [ ] T063 [P] [US2] Extend `core/data/src/androidHostTest/kotlin/<pkg>/core/data/mapper/BackupMapperTest.kt`:
+- [X] T063 [P] [US2] Extend `core/data/src/androidHostTest/kotlin/<pkg>/core/data/mapper/BackupMapperTest.kt`:
   `BackupSnapshot.toUserDataRows(coverPaths)` is the inverse of `toBackupSnapshot` (a full round trip is identical except
   `lastViewedAt` and cover paths); a `hasCover = true` list gets the path supplied for it, a list without one gets `null`;
   a snapshot whose `defaultListId` is not among its lists fails with the `BackupUnreadable`-mapped exception.
-- [ ] T064 [P] [US2] Extend `.../repository/BackupRepositoryImplTest.kt` with the restore cases: no manifest →
+- [X] T064 [P] [US2] Extend `.../repository/BackupRepositoryImplTest.kt` with the restore cases: no manifest →
   `BackupNotFound`, no part read; `formatVersion` above `BACKUP_FORMAT_VERSION` → `BackupFromNewerVersion`, no part read;
   a missing part or a stream whose decoded length differs from its manifest `byteLength` → `BackupUnreadable`,
   `replaceUserData` **not** called and every imported cover file deleted; `replaceUserData` throwing → imported covers
   deleted and the error returned; success → the sweep `deleteAllExcept(...)` runs **first**, the replaced lists' old
   cover files are deleted **after** the transaction, and the returned `BackupInfo` matches the manifest; signed out →
   `NotSignedIn` with no store call; restore and backup are mutually exclusive.
-- [ ] T065 [P] [US2] Extend `AccountBackupViewModelTest.kt`: `Restore` with local data opens `ConfirmRestore` and runs
+- [X] T065 [P] [US2] Extend `AccountBackupViewModelTest.kt`: `Restore` with local data opens `ConfirmRestore` and runs
   nothing; `DismissDialog` leaves the use case uncalled; `ConfirmRestore` runs `RestoreBackupUseCase`; `Restore` on an
   empty device runs it directly (no dialog); success emits the "restored" message and refreshes the backup info; a
   `BackupNotFound`, `BackupFromNewerVersion` or `BackupUnreadable` failure emits that error's text; `runningOperation`
@@ -576,17 +576,17 @@ damaged backup refused (23).
 
 ### Implementation for User Story 2
 
-- [ ] T066 [US2] Add `suspend fun restore(): AppResult<BackupInfo>` to `BackupRepository` ("replaces the local lists, saved
+- [X] T066 [US2] Add `suspend fun restore(): AppResult<BackupInfo>` to `BackupRepository` ("replaces the local lists, saved
   games, list membership, default wishlist and owned platforms; all-or-nothing") and create
   `core/domain/src/commonMain/kotlin/<pkg>/core/domain/usecase/backup/RestoreBackupUseCase.kt`; register it with
   `factoryOf` in `DomainKoin.kt`.
-- [ ] T067 [P] [US2] Add `suspend fun import(bytes: ByteArray): String?` ("write already-downscaled bytes as a new file in the
+- [X] T067 [P] [US2] Add `suspend fun import(bytes: ByteArray): String?` ("write already-downscaled bytes as a new file in the
   covers directory, the extension sniffed from the magic bytes: PNG `89 50 4E 47`, otherwise `.jpg`; returns the path or
   `null`") and `suspend fun deleteAllExcept(paths: Set<String>)` ("delete every file in the covers directory that is not
   in `paths`") to `WishlistCoverImageStorage` and implement both in the Android and iOS
   `WishlistCoverImageStorageImpl.kt`. The bytes were written by `persist` on some device, so `import` does not re-encode.
   **(Mac only to compile the iOS side.)**
-- [ ] T068 [US2] In `core/database/src/commonMain/kotlin/<pkg>/core/database/dao/UserDataDao.kt` add
+- [X] T068 [US2] In `core/database/src/commonMain/kotlin/<pkg>/core/database/dao/UserDataDao.kt` add
   `@Transaction open suspend fun replaceUserData(rows: UserDataRows)` clearing and writing **in this order inside one
   transaction** (data-model.md): delete `default_wishlist` → delete `game_list_cross_ref` → delete `wishlists` → delete
   `owned_platforms` → `UPDATE games SET status = NULL, priority = NULL, notes = ''` → insert the lists **with their
@@ -597,23 +597,23 @@ damaged backup refused (23).
   states what a restore does **not** touch (search history, `lastViewedAt`, translations, the Discover caches, release
   reminders: FR-022). Run `./gradlew :core:database:compileAndroidMain --console=plain -q`; `core/database/schemas/` is
   unchanged.
-- [ ] T069 [US2] Add the inverse to `core/data/src/commonMain/kotlin/<pkg>/core/data/mapper/BackupMapper.kt`:
+- [X] T069 [US2] Add the inverse to `core/data/src/commonMain/kotlin/<pkg>/core/data/mapper/BackupMapper.kt`:
   `internal fun BackupSnapshot.toUserDataRows(coverPaths: Map<Long, String>): UserDataRows`, decoding `status` and `icon`
   names with the `null` fallback, and rejecting a snapshot whose `defaultListId` is not among its lists (T063 passes).
-- [ ] T070 [US2] Add `restore()` to `core/data/src/commonMain/kotlin/<pkg>/core/data/repository/BackupRepositoryImpl.kt`
+- [X] T070 [US2] Add `restore()` to `core/data/src/commonMain/kotlin/<pkg>/core/data/repository/BackupRepositoryImpl.kt`
   following research R9, under the shared `Mutex`: `deleteAllExcept(referencedCoverPaths)` first; read the manifest from the
   server (`null` → `BackupNotFound`; `formatVersion > BACKUP_FORMAT_VERSION` → `BackupFromNewerVersion`, before any part
   is read); read exactly the parts the manifest lists, join each stream with `joinParts(byteLength)`, decode the JSON
   (any mismatch or `SerializationException` → `BackupUnreadable`); `import` each cover into a **new** file; call
   `replaceUserData` once; after it commits, delete the replaced lists' old cover files, best effort. Before the
   transaction any failure deletes the files just imported and leaves the database untouched. T064 passes.
-- [ ] T071 [US2] Add `Restore` and `ConfirmRestore` to `AccountBackupUiEvent`, `ConfirmRestore` to `AccountBackupDialog`, and
+- [X] T071 [US2] Add `Restore` and `ConfirmRestore` to `AccountBackupUiEvent`, `ConfirmRestore` to `AccountBackupDialog`, and
   the handling to `AccountBackupViewModel` per data-model.md (confirm only when `HasLocalUserDataUseCase` is true; refresh
   the backup info after success; emit the success message). Add strings to
   `feature/settings/src/commonMain/composeResources/values/strings.xml`: `account_backup_restore`, the dialog's title
   ("Replace the data on this device?"), body (states that the lists, saved games and owned platforms on this device will be
   replaced by the backup and **cannot be recovered**) and confirm label, and `account_backup_restore_complete`. T065 passes.
-- [ ] T072 [US2] Add the "Restore" button (disabled with no backup, busy while `runningOperation == RESTORE`) to
+- [X] T072 [US2] Add the "Restore" button (disabled with no backup, busy while `runningOperation == RESTORE`) to
   `components/BackupCard.kt` and the `ConfirmRestore` `CustomAlertDialog` to `components/AccountBackupDialogs.kt`; add a
   preview for the dialog.
 - [ ] T073 [US2] Verify the cross-DAO transaction on **Android** (research R10, the first thing to confirm about this DAO).

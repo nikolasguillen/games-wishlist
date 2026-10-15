@@ -69,6 +69,11 @@
     <string name="account_backup_unreachable">Your backup can't be reached right now.</string>
     <string name="account_backup_back_up_now">Back up now</string>
     <string name="account_backup_backup_complete">Backup complete</string>
+    <string name="account_backup_restore">Restore</string>
+    <string name="account_backup_restore_complete">Restored from your backup</string>
+    <string name="account_backup_restore_title">Replace the data on this device?</string>
+    <string name="account_backup_restore_message">The lists, saved games and owned platforms on this device will be replaced by your backup. This can't be undone.</string>
+    <string name="account_backup_restore_confirm">Replace and restore</string>
     <string name="account_backup_empty_title">Replace your backup with an empty one?</string>
     <string name="account_backup_empty_message">This device has no lists, saved games or owned platforms. Backing up now would replace your existing backup with an empty one.</string>
     <string name="account_backup_empty_confirm">Back up anyway</string>

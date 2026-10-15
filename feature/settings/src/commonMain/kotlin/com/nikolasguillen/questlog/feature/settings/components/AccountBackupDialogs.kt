@@ -10,6 +10,9 @@ import com.nikolasguillen.questlog.feature.settings.resources.Res
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_empty_confirm
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_empty_message
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_empty_title
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_restore_confirm
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_restore_message
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_restore_title
 import org.jetbrains.compose.resources.stringResource
 import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes
 
@@ -21,6 +24,15 @@ internal fun AccountBackupDialogs(
     onDismiss: () -> Unit
 ) {
     when (dialog) {
+        AccountBackupDialog.ConfirmRestore -> CustomAlertDialog(
+            title = stringResource(Res.string.account_backup_restore_title),
+            message = stringResource(Res.string.account_backup_restore_message),
+            confirmButtonText = stringResource(Res.string.account_backup_restore_confirm),
+            onConfirm = onConfirm,
+            dismissButtonText = stringResource(CoreUiRes.string.cancel),
+            onDismiss = onDismiss
+        )
+
         AccountBackupDialog.ConfirmEmptyBackup -> CustomAlertDialog(
             title = stringResource(Res.string.account_backup_empty_title),
             message = stringResource(Res.string.account_backup_empty_message),
@@ -28,6 +40,18 @@ internal fun AccountBackupDialogs(
             onConfirm = onConfirm,
             dismissButtonText = stringResource(CoreUiRes.string.cancel),
             onDismiss = onDismiss
+        )
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun ConfirmRestoreDialogPreview() {
+    QuestLogTheme {
+        AccountBackupDialogs(
+            dialog = AccountBackupDialog.ConfirmRestore,
+            onConfirm = {},
+            onDismiss = {}
         )
     }
 }

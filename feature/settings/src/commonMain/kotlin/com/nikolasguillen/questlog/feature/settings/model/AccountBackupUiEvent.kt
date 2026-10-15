@@ -3,6 +3,8 @@ package com.nikolasguillen.questlog.feature.settings.model
 internal sealed interface AccountBackupUiEvent {
     data object SignIn : AccountBackupUiEvent
     data object BackUp : AccountBackupUiEvent
+    data object Restore : AccountBackupUiEvent
+    data object ConfirmRestore : AccountBackupUiEvent
     data object ConfirmEmptyBackup : AccountBackupUiEvent
     data object DismissDialog : AccountBackupUiEvent
 

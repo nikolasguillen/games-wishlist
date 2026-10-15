@@ -3,8 +3,12 @@ package com.nikolasguillen.questlog.feature.settings.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
@@ -19,6 +23,7 @@ import com.nikolasguillen.questlog.feature.settings.model.CloudOperation
 import com.nikolasguillen.questlog.feature.settings.resources.Res
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_back_up_now
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_no_backup
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_restore
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_unreachable
 import org.jetbrains.compose.resources.stringResource
 import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes
@@ -33,6 +38,7 @@ internal fun BackupCard(
     backup: BackupStatusUiModel,
     runningOperation: CloudOperation?,
     onBackUpClick: () -> Unit,
+    onRestoreClick: () -> Unit,
     onRetryClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -75,6 +81,24 @@ internal fun BackupCard(
                 enabled = runningOperation == null,
                 onClick = onBackUpClick
             )
+            // There is nothing to restore until a backup exists, and it is read from the server, so an unreachable one
+            // cannot be restored either.
+            OutlinedButton(
+                onClick = onRestoreClick,
+                enabled = runningOperation == null && backup is BackupStatusUiModel.Available,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .minimumInteractiveComponentSize()
+            ) {
+                if (runningOperation == CloudOperation.RESTORE) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(MaterialTheme.spacing.extraLarge),
+                        strokeWidth = MaterialTheme.spacing.extraSmall
+                    )
+                } else {
+                    Text(text = stringResource(Res.string.account_backup_restore))
+                }
+            }
         }
     }
 }
@@ -90,6 +114,7 @@ private fun BackupCardAvailablePreview() {
             ),
             runningOperation = null,
             onBackUpClick = {},
+            onRestoreClick = {},
             onRetryClick = {}
         )
     }
@@ -99,7 +124,13 @@ private fun BackupCardAvailablePreview() {
 @Composable
 private fun BackupCardNonePreview() {
     QuestLogTheme {
-        BackupCard(BackupStatusUiModel.None, runningOperation = null, onBackUpClick = {}, onRetryClick = {})
+        BackupCard(
+            BackupStatusUiModel.None,
+            runningOperation = null,
+            onBackUpClick = {},
+            onRestoreClick = {},
+            onRetryClick = {}
+        )
     }
 }
 
@@ -111,6 +142,7 @@ private fun BackupCardBusyPreview() {
             BackupStatusUiModel.None,
             runningOperation = CloudOperation.BACK_UP,
             onBackUpClick = {},
+            onRestoreClick = {},
             onRetryClick = {}
         )
     }
