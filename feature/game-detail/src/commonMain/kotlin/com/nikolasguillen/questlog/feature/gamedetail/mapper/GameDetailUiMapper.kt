@@ -265,6 +265,7 @@ internal fun WishlistAssignment.toUiModel(): ListSelectorItemUiModel {
         id = list.id,
         name = UiText.DynamicString(list.name),
         iconRes = list.icon.toDrawableRes(),
-        isSelected = isAssigned
+        isSelected = isAssigned,
+        isDefault = isDefault
     )
 }

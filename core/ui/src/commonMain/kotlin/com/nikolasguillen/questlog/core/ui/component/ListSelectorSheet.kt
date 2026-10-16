@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
@@ -36,6 +37,7 @@ import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.core.ui.resources.Res
 import com.nikolasguillen.questlog.core.ui.resources.add_to_list
 import com.nikolasguillen.questlog.core.ui.resources.cancel
+import com.nikolasguillen.questlog.core.ui.resources.default_list_label
 import com.nikolasguillen.questlog.core.ui.resources.ic_wishlist_backlog
 import com.nikolasguillen.questlog.core.ui.resources.ic_wishlist_completed
 import com.nikolasguillen.questlog.core.ui.resources.ic_wishlist_playing
@@ -153,11 +155,15 @@ private fun WishlistItem(
             Spacer(modifier = Modifier.width(MaterialTheme.spacing.medium))
             Text(
                 text = model.name.asString(),
+                fontWeight = if (model.isSelected) FontWeight.Bold else FontWeight.Normal,
                 modifier = Modifier
                     .padding(MaterialTheme.spacing.medium)
                     .weight(1f)
             )
-            Spacer(modifier = Modifier.width(MaterialTheme.spacing.medium))
+            if (model.isDefault) {
+                CustomSummaryBadge(text = stringResource(Res.string.default_list_label))
+                Spacer(modifier = Modifier.width(MaterialTheme.spacing.medium))
+            }
             Checkbox(
                 checked = model.isSelected, onCheckedChange = { onCheckedChange() })
         }
@@ -174,7 +180,8 @@ private fun ListSelectorSheetPreview() {
                     1,
                     UiText.DynamicString("Playing"),
                     Res.drawable.ic_wishlist_playing,
-                    isSelected = true
+                    isSelected = true,
+                    isDefault = true
                 ),
                 ListSelectorItemUiModel(
                     2,

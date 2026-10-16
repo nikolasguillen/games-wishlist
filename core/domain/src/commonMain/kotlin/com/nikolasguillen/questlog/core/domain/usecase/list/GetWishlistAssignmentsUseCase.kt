@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.combine
 
 /**
  * Use case to retrieve all available wishlist lists with an indication of whether
- * a specific game is already assigned to each list.
+ * a specific game is already assigned to each list and which one is the default.
  */
 class GetWishlistAssignmentsUseCase(
     private val repository: GameRepository
@@ -18,12 +18,14 @@ class GetWishlistAssignmentsUseCase(
     operator fun invoke(gameId: Int): Flow<List<WishlistAssignment>> {
         return combine(
             repository.getAllLists(),
-            repository.getListIdsForGame(gameId)
-        ) { lists, assignedListIds ->
+            repository.getListIdsForGame(gameId),
+            repository.observeDefaultListId()
+        ) { lists, assignedListIds, defaultListId ->
             lists.map { list ->
                 WishlistAssignment(
                     list = list,
-                    isAssigned = list.id in assignedListIds
+                    isAssigned = list.id in assignedListIds,
+                    isDefault = list.id == defaultListId
                 )
             }
         }

@@ -859,9 +859,9 @@ class SearchViewModelTest {
             val listC = WishlistList(id = 30, name = "Completed")
             every { getWishlistAssignmentsUseCase(1) } returns flowOf(
                 listOf(
-                    WishlistAssignment(listA, isAssigned = true),
-                    WishlistAssignment(listB, isAssigned = false),
-                    WishlistAssignment(listC, isAssigned = false)
+                    WishlistAssignment(listA, isAssigned = true, isDefault = false),
+                    WishlistAssignment(listB, isAssigned = false, isDefault = false),
+                    WishlistAssignment(listC, isAssigned = false, isDefault = false)
                 )
             )
             val viewModel = createViewModel()
@@ -1456,7 +1456,7 @@ class SearchViewModelTest {
         val popular = gamesFrom(firstId = 1, count = 8)
         givenFeed(DiscoverFeed(popular = popular, upcoming = emptyList()))
         every { getWishlistAssignmentsUseCase(8) } returns flowOf(
-            listOf(WishlistAssignment(WishlistList(id = 10, name = "Wishlist"), isAssigned = false))
+            listOf(WishlistAssignment(WishlistList(id = 10, name = "Wishlist"), isAssigned = false, isDefault = false))
         )
         val viewModel = createViewModel()
         viewModel.openShelf(popularKey)
@@ -1477,7 +1477,7 @@ class SearchViewModelTest {
             givenFeed(DiscoverFeed(popular = popular, upcoming = emptyList()))
             val list = WishlistList(id = 10, name = "Backlog")
             every { getWishlistAssignmentsUseCase(8) } returns flowOf(
-                listOf(WishlistAssignment(list, isAssigned = false))
+                listOf(WishlistAssignment(list, isAssigned = false, isDefault = false))
             )
             val viewModel = createViewModel()
             viewModel.openShelf(popularKey)

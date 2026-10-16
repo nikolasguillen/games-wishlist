@@ -10,11 +10,13 @@ import org.jetbrains.compose.resources.DrawableResource
  * @property name The name of the wishlist list.
  * @property iconRes The drawable resource for the wishlist icon.
  * @property isSelected Whether the current game is already in this list.
+ * @property isDefault Whether this is the wishlist currently set as the default.
  */
 @Immutable
 data class ListSelectorItemUiModel(
     val id: Long,
     val name: UiText,
     val iconRes: DrawableResource,
-    val isSelected: Boolean = false
+    val isSelected: Boolean = false,
+    val isDefault: Boolean = false
 )

@@ -257,8 +257,8 @@ class GameDetailViewModelTest {
         val listB = WishlistList(id = 20L, name = "Playing")
         every { getWishlistAssignmentsUseCase(GAME_ID) } returns flowOf(
             listOf(
-                WishlistAssignment(list = listA, isAssigned = true),
-                WishlistAssignment(list = listB, isAssigned = false)
+                WishlistAssignment(list = listA, isAssigned = true, isDefault = false),
+                WishlistAssignment(list = listB, isAssigned = false, isDefault = false)
             )
         )
         val viewModel = createViewModel()
