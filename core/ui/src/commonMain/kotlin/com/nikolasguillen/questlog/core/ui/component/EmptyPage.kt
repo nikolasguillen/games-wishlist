@@ -34,8 +34,7 @@ import com.nikolasguillen.questlog.core.ui.util.UiConstants
  * empty state) rendered de-emphasized below [message]; omitted entirely when null.
  *
  * The content takes at most [UiConstants.EMPTY_PAGE_CONTENT_WIDTH_FRACTION] of the width, so the text wraps
- * into a block rather than touching the screen's edges. The action is coloured with `textOnSurface`,
- * because `primary` is unreadable on the light background.
+ * into a block rather than touching the screen's edges.
  */
 @Composable
 fun EmptyPage(

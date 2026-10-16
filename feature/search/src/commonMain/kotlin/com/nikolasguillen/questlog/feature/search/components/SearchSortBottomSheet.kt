@@ -21,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.CustomModalBottomSheet
 import com.nikolasguillen.questlog.core.ui.model.UiText
@@ -71,7 +70,7 @@ internal fun SearchSortBottomSheet(
                         Text(
                             text = sortingUiModel.label.asString(),
                             style = MaterialTheme.typography.bodyLarge,
-                            color = if (isSelected) MaterialTheme.appColors.textOnSurface
+                            color = if (isSelected) MaterialTheme.colorScheme.primary
                             else MaterialTheme.colorScheme.onSurface,
                             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                             modifier = Modifier.weight(1f)
@@ -82,7 +81,7 @@ internal fun SearchSortBottomSheet(
                                 imageVector = if (sortingUiModel.descending) Icons.Default.ArrowDownward
                                 else Icons.Default.ArrowUpward,
                                 contentDescription = null,
-                                tint = MaterialTheme.appColors.textOnSurface
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                     }

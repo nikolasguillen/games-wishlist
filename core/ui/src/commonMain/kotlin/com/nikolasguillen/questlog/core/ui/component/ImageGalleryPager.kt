@@ -25,6 +25,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import coil3.compose.AsyncImage
+import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.util.modifiers.fadingEdge
 import kotlin.math.abs
@@ -76,8 +77,8 @@ fun ImageGalleryPager(
 
             if (shouldShowPageIndicator) {
                 CustomPagerIndicator(
-                    pagerState,
-                    currentIndicatorColor = MaterialTheme.colorScheme.primary,
+                    pagerState = pagerState,
+                    currentIndicatorColor = MaterialTheme.appColors.accentOnScrim,
                     indicatorColor = Color.White.copy(alpha = 0.5f),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)

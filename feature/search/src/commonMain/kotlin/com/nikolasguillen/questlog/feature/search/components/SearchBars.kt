@@ -592,7 +592,7 @@ private fun RecentSearchesSection(
                     contentPadding = PaddingValues(all = MaterialTheme.spacing.small),
                     interactionSource = inputChipInteractionSource,
                     colors = SuggestionChipDefaults.suggestionChipColors(
-                        iconContentColor = MaterialTheme.appColors.textOnSurface
+                        iconContentColor = MaterialTheme.colorScheme.primary
                     )
                 )
                 Box(

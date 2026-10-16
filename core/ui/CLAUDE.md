@@ -11,8 +11,7 @@ Shared wrappers are prefixed `Custom*`:
 generic over the item, the caller draws each chip and gets a `bringIntoView` callback that scrolls a chip
 clear of the fade — call it when the chip stays after a click, skip it when the click removes the chip;
 use it for any new chip strip rather than a bare `LazyRow`), `CustomInfoChip`, `CustomModalBottomSheet`, `CustomSegmentedButton`,
-`CustomTextButton` (a `TextButton` whose label is `textOnSurface` instead of Material's `primary`, which
-vanishes on the light background — always use it instead of Material's `TextButton`),
+`CustomTextButton` (the app's `TextButton`, labelled in `primary` — always use it instead of Material's `TextButton`),
 `CustomOutlinedIcon` (an `Icon` with an optional border traced from the icon's own path data via
 `PathParser`, so it hugs the exact silhouette rather than a bounding shape — pass `outlineColor` to
 enable it), `CustomSummaryBadge` (pill-shaped label badge; filled-selected-chip colors, dark/light handled

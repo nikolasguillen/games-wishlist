@@ -24,7 +24,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.CustomContentCard
 import com.nikolasguillen.questlog.core.ui.resources.description_title
@@ -126,8 +125,8 @@ private fun DescriptionTitleAction(
             val translatingDescription = stringResource(Res.string.description_translating)
             CircularProgressIndicator(
                 strokeWidth = TranslationProgressIndicatorStrokeWidth,
-                color = MaterialTheme.appColors.textOnSurface,
-                trackColor = MaterialTheme.appColors.textOnSurface.copy(alpha = 0.2f),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                 modifier = Modifier
                     .size(TranslationProgressIndicatorTouchTarget)
                     .padding(MaterialTheme.spacing.medium)
@@ -139,7 +138,7 @@ private fun DescriptionTitleAction(
             DescriptionTitleIconButton(
                 icon = Icons.Filled.Translate,
                 contentDescription = stringResource(Res.string.description_show_original),
-                tint = MaterialTheme.appColors.textOnSurface,
+                tint = MaterialTheme.colorScheme.primary,
                 onClick = onShowOriginalClick
             )
         }

@@ -21,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 
 /**
@@ -53,7 +52,7 @@ internal fun SettingsRow(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = MaterialTheme.appColors.textOnSurface
+            tint = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.width(MaterialTheme.spacing.large))
         Column(modifier = Modifier.weight(1f)) {

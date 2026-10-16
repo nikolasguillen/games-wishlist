@@ -30,7 +30,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.model.ListSelectorItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
@@ -110,7 +109,7 @@ private fun WishlistItem(
     modifier: Modifier = Modifier
 ) {
     val outlineColor =
-        if (model.isSelected) MaterialTheme.appColors.textOnSurface else MaterialTheme.colorScheme.outline
+        if (model.isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
 
     OutlinedCard(
         border = BorderStroke(
@@ -148,7 +147,7 @@ private fun WishlistItem(
                     painter = painterResource(model.iconRes),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
-                    tint = if (model.isSelected) MaterialTheme.appColors.textOnSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = if (model.isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Spacer(modifier = Modifier.width(MaterialTheme.spacing.medium))

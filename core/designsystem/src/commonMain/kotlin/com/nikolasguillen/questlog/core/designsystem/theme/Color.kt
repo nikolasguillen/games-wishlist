@@ -2,14 +2,16 @@ package com.nikolasguillen.questlog.core.designsystem.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Gold accent ramp. One hue (~44°) at four intensities: every accent in the app is one of these,
-// so a highlight and the surface behind it always read as the same colour at different strengths.
-val GoldDeep = Color(0xFFA68024) // Darkest: container fills behind gold content
-val GoldMuted = Color(0xFF7C6E46) // Dimmed: borders and low-emphasis accents
-val Gold = Color(0xFFE0BE62) // The accent itself: FAB, indicators, accent text and icons
-val GoldBright = Color(0xFFF5E6BC) // Brightest: content sitting on a GoldDeep container
+// Blue accent ramp. The primary is one blue per scheme, picked so it clears 4.5:1 as text and icons on that
+// scheme's own surfaces: that is why accent text and icons use `primary` directly and there is no separate
+// "readable on this surface" token. Everything else in the ramp is a tint of the same hue.
+val BluePrimaryLight = Color(0xFF2C57D0) // The accent in the light scheme (6.2:1 on white, 4.9:1 on SoftGrey)
+val BluePrimaryDark = Color(0xFFA8C7FA) // The accent in the dark scheme (10.3:1 on SurfaceDark)
+val BlueOnPrimaryDark = Color(0xFF062E6F) // Content sitting on BluePrimaryDark
+val BlueMuted = Color(0xFF6E7C99) // Dimmed: borders and low-emphasis accents
+val BlueDeepOutline = Color(0xFF2F3748) // Dark-scheme dividers and subtle borders
 
-// Neutral ramp. Stays achromatic so the gold is the only colour carrying meaning.
+// Neutral ramp. Stays achromatic so the blue is the only colour carrying meaning.
 val NeutralBlack = Color(0xFF121212)
 val NeutralDarkGrey = Color(0xFF181818)
 val NeutralMediumGrey = Color(0xFF282828)
@@ -18,10 +20,10 @@ val NeutralWhite = Color(0xFFFFFFFF)
 
 val ErrorRed = Color(0xFFCB1914)
 
-val PrimaryDark = Gold
-val OnPrimaryDark = NeutralBlack
-val PrimaryContainerDark = Gold
-val OnPrimaryContainerDark = NeutralBlack
+val PrimaryDark = BluePrimaryDark
+val OnPrimaryDark = BlueOnPrimaryDark
+val PrimaryContainerDark = BluePrimaryDark
+val OnPrimaryContainerDark = BlueOnPrimaryDark
 
 val SecondaryDark = NeutralLightGrey
 val OnSecondaryDark = NeutralBlack
@@ -43,9 +45,9 @@ val OnBackgroundDark = NeutralWhite
 val SurfaceDark = NeutralDarkGrey
 val OnSurfaceDark = NeutralWhite
 
-// M3's baseline dark outlines are purple-tinted, which reads as a second hue next to the gold.
-val OutlineDark = GoldMuted
-val OutlineVariantDark = Color(0xFF433D2D)
+// M3's baseline dark outlines are purple-tinted, which reads as a second hue next to the blue.
+val OutlineDark = BlueMuted
+val OutlineVariantDark = BlueDeepOutline
 
 // Light neutral ramp. A 3-step elevation scale (background -> surface -> bar/container), mirroring the
 // dark ramp's multiple steps. "On-light" text/icon colors reuse NeutralBlack/NeutralDarkGrey above rather
@@ -65,18 +67,16 @@ val RatingHighDark = Color(0xFF4CAF50)
 val RatingMidDark = Color(0xFFFFC107)
 val RatingLowDark = Color(0xFFF44336)
 val RatingHighLight = Color(0xFF1B7A2E)
-val RatingMidLight = GoldDeep
+val RatingMidLight = Color(0xFFA68024)
 val RatingLowLight = Color(0xFFC62828)
 
-// Light scheme. Gold keeps the same hue as the dark scheme throughout (FR-004): where it doesn't clear
-// 4.5:1 as small text on a light surface (it doesn't — ~1.7:1 as body text on white), it is used as a
-// container/accent fill with a dark "on" color instead, the same shape OnPrimaryDark = Color.Black already
-// uses. PrimaryContainerLight/OnPrimaryContainerLight simply swap GoldDeep/GoldBright's roles from the dark
-// scheme (8.9:1) rather than inventing a third gold shade.
-val PrimaryLight = Gold
-val OnPrimaryLight = NeutralBlack
-val PrimaryContainerLight = Gold
-val OnPrimaryContainerLight = NeutralBlack
+// Light scheme. The light primary is a deeper blue than the dark one (the dark scheme's pale blue would
+// vanish on a light surface), and it clears 4.5:1 on every light surface, so it doubles as accent text and icon
+// colour. Containers reuse the primary fill with white content.
+val PrimaryLight = BluePrimaryLight
+val OnPrimaryLight = NeutralWhite
+val PrimaryContainerLight = BluePrimaryLight
+val OnPrimaryContainerLight = NeutralWhite
 
 val SecondaryLight = NeutralMediumGrey
 val OnSecondaryLight = NeutralWhite
@@ -100,5 +100,5 @@ val OnBackgroundLight = NeutralBlack
 val SurfaceLight = NeutralPaleGrey
 val OnSurfaceLight = NeutralBlack
 
-val OutlineLight = GoldMuted
+val OutlineLight = BlueMuted
 val OutlineVariantLight = NeutralLightGrey

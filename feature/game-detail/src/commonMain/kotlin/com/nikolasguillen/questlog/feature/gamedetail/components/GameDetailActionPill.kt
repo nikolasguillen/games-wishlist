@@ -86,7 +86,7 @@ internal fun GameDetailActionPill(
                 .align(Alignment.Center)
                 .padding(horizontal = MaterialTheme.spacing.extraLarge)
         ) {
-            // The gold favorite fill needs a defining edge only in light theme, where it can blend
+            // The favorite fill needs a defining edge only in light theme, where it can blend
             // into a bright blurred backdrop — dark theme's near-black surfaces already give it
             // enough separation.
             val isLightTheme = !MaterialTheme.isDarkTheme
@@ -149,11 +149,10 @@ private fun PillIconAction(
         onClick = onClick,
         colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent)
     ) {
-        CustomOutlinedIcon(
+        Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = tint,
-            outlineColor = outlineColor
+            tint = tint
         )
     }
 }
@@ -169,7 +168,11 @@ private fun PillMainAction(onClick: () -> Unit) {
             .background(MaterialTheme.colorScheme.primary, CircleShape)
             .size(MAIN_ACTION_SIZE)
     ) {
-        Icon(imageVector = Icons.Default.BookmarkAdd, contentDescription = null, tint = Color.Black)
+        Icon(
+            imageVector = Icons.Default.BookmarkAdd,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onPrimary
+        )
     }
 }
 

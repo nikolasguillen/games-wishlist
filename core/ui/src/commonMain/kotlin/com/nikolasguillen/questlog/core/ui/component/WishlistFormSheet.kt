@@ -28,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,7 +46,6 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.WishlistIcon
 import com.nikolasguillen.questlog.core.ui.mapper.toDrawableRes
@@ -116,22 +114,12 @@ fun WishlistFormSheet(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { descriptionFocusRequester.requestFocus() }),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.appColors.textOnSurface,
-                    focusedLabelColor = MaterialTheme.appColors.textOnSurface,
-                    cursorColor = MaterialTheme.appColors.textOnSurface
-                ),
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
                 label = { Text(stringResource(Res.string.description_optional_label)) },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.appColors.textOnSurface,
-                    focusedLabelColor = MaterialTheme.appColors.textOnSurface,
-                    cursorColor = MaterialTheme.appColors.textOnSurface
-                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(descriptionFocusRequester)

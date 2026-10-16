@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
+import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.resources.Res
 import com.nikolasguillen.questlog.core.ui.resources.add_to_wishlist_content_description
@@ -102,7 +103,7 @@ fun SaveToWishlistButton(
                             Res.string.add_to_wishlist_content_description
                         }
                     ),
-                    tint = if (isSaved) MaterialTheme.colorScheme.primary else Color.White,
+                    tint = if (isSaved) MaterialTheme.appColors.accentOnScrim else Color.White,
                     modifier = Modifier.size(MaterialTheme.spacing.large)
                 )
             }

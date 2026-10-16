@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
-import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 
 /**
@@ -32,7 +31,7 @@ internal fun SettingsGroup(
         Text(
             text = title,
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.appColors.textOnSurface,
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(
                 start = MaterialTheme.spacing.large,
                 bottom = MaterialTheme.spacing.medium
