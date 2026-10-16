@@ -78,6 +78,9 @@ one by hand:
   `Modifier.rainbowMetallicBorder(...)`, plus `Modifier.rainbowMetallicTint()` (the rainbow gradient over a
   monochrome icon's shape), all wrapping the brushes from `MetallicEffects.kt`.
 
+`WindowShape.kt` — `isLandscapeWindow()`, the single place the "window wider than tall" rule is written. Read it,
+do not re-derive it from the window size.
+
 Also: `ColorUtils.kt`, `HtmlUtils.kt`, `MetallicEffects.kt` (brush factories:
 `primaryMetallicGradient()`, `rememberAnimatedMetallicGradient()`, `rainbowMetallicGradient()`),
 `PlatformVisuals.kt`, and `Constants.kt` (`object UiConstants` — IGDB platform category/family ids,

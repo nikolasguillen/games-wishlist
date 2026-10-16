@@ -72,8 +72,8 @@ Gradle skips them, and the `ios*` tasks and `xcodebuild` are Mac-only.
 
 These boundaries are load-bearing — check them before adding a dependency:
 
-- **`:shared` is the only module that knows about navigation.** It owns the back stack, the bottom bar, the single
-  `entryProvider` and the Koin assembly; `:androidApp` is only the Android entry point around it (the activity, the
+- **`:shared` is the only module that knows about navigation.** It owns the back stack, the bottom bar and the landscape side rail,
+  the single `entryProvider` and the Koin assembly; `:androidApp` is only the Android entry point around it (the activity, the
   `Application`, the manifest). Feature modules own no nav graph. `:shared` depends on every other module except
   `:core:ai`.
 - **`feature/*` depends only on** `:core:common`, `:core:model`, `:core:domain`, `:core:ui`,
@@ -154,7 +154,7 @@ the cloud account and the cloud backup; they share no data with the game reposit
 | Shared composables, reusable modifiers | `core/ui/component/`, `core/ui/util/modifiers/` |
 | Nav routes (`NavKey`) | `core/navigation/Routes.kt` |
 | Navigation entry point (`NavDisplay` + the single `entryProvider`) | `shared/src/commonMain/kotlin/com/nikolasguillen/questlog/shared/QuestLogNavDisplay.kt` |
-| Theme resolution, scaffold, bottom bar and back stack | `shared/.../QuestLogRoot.kt`, `shared/.../QuestLogBottomBar.kt` |
+| Theme resolution, scaffold, bottom bar, landscape side rail and back stack | `shared/.../QuestLogRoot.kt`, `shared/.../QuestLogBottomBar.kt`, `shared/.../QuestLogNavigationRail.kt`, `shared/.../TopLevelDestination.kt` |
 | Koin assembly (`initKoin`) and every ViewModel binding | `shared/.../di/SharedKoin.kt`, `shared/.../di/ViewModelModule.kt` |
 | Splash screen, edge-to-edge, deep link parsing | `androidApp/.../MainActivity.kt` |
 | iOS entry points (`startQuestLog`, `runAppRefreshTask`, `MainViewController`) and the Xcode project that hosts them | `shared/src/iosMain/.../QuestLogIos.kt`, `.../MainViewController.kt`, `iosApp/` |
