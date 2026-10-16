@@ -113,7 +113,7 @@ class AccountBackupViewModelTest {
         advanceUntilIdle()
 
         assertNull(viewModel.uiState.value.account)
-        assertEquals(BackupStatusUiModel.Unknown, viewModel.uiState.value.backup)
+        assertEquals(BackupStatusUiModel.Loading, viewModel.uiState.value.backup)
         coVerify(exactly = 0) { getBackupInfoUseCase() }
     }
 
@@ -238,6 +238,36 @@ class AccountBackupViewModelTest {
 
         val backup = viewModel.uiState.value.backup
         assertTrue(backup is BackupStatusUiModel.Available)
+    }
+
+    @Test
+    fun `the backup shows as loading until it has been read, and again on retry`() = runTest(testDispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        coEvery { getBackupInfoUseCase() } coAnswers {
+            gate.await()
+            AppResult.failure(RepositoryError.NoNetwork)
+        }
+        val viewModel = viewModel()
+        account.value = signedIn
+        advanceUntilIdle()
+        assertEquals(BackupStatusUiModel.Loading, viewModel.uiState.value.backup)
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+        assertEquals(BackupStatusUiModel.Unknown, viewModel.uiState.value.backup)
+
+        val retryGate = CompletableDeferred<Unit>()
+        coEvery { getBackupInfoUseCase() } coAnswers {
+            retryGate.await()
+            AppResult.success(null)
+        }
+        viewModel.onEvent(AccountBackupUiEvent.Retry)
+        advanceUntilIdle()
+        assertEquals(BackupStatusUiModel.Loading, viewModel.uiState.value.backup)
+
+        retryGate.complete(Unit)
+        advanceUntilIdle()
+        assertEquals(BackupStatusUiModel.None, viewModel.uiState.value.backup)
     }
 
     @Test
@@ -389,7 +419,7 @@ class AccountBackupViewModelTest {
         advanceUntilIdle()
 
         assertNull(viewModel.uiState.value.account)
-        assertEquals(BackupStatusUiModel.Unknown, viewModel.uiState.value.backup)
+        assertEquals(BackupStatusUiModel.Loading, viewModel.uiState.value.backup)
     }
 
     // ---- restore ----

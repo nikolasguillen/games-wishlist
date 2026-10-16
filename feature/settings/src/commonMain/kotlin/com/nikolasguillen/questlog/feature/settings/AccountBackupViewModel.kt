@@ -30,12 +30,15 @@ import com.nikolasguillen.questlog.feature.settings.resources.account_backup_res
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_signed_in_message
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_signed_out_message
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+private const val MIN_BACKUP_LOADING_MILLIS = 400L
 
 class AccountBackupViewModel(
     private val observeAccountUseCase: ObserveAccountUseCase,
@@ -103,7 +106,10 @@ class AccountBackupViewModel(
             AccountBackupUiEvent.DismissDialog -> _uiState.update {
                 if ((it.dialog as? AccountBackupDialog.AccountChange)?.running == true) it else it.copy(dialog = null)
             }
-            AccountBackupUiEvent.Retry -> loadBackupInfo()
+            AccountBackupUiEvent.Retry -> {
+                _uiState.update { it.copy(backup = BackupStatusUiModel.Loading) }
+                loadBackupInfo()
+            }
         }
     }
 
@@ -119,7 +125,7 @@ class AccountBackupViewModel(
         _uiState.update {
             it.copy(
                 account = account?.toUiModel(),
-                backup = if (account == null) BackupStatusUiModel.Unknown else it.backup,
+                backup = if (account == null) BackupStatusUiModel.Loading else it.backup,
                 // The account going null is what a sign-out looks like, and the dialog reporting it must outlive it.
                 dialog = if (account == null && it.dialog !is AccountBackupDialog.AccountChange) null else it.dialog
             )
@@ -132,9 +138,14 @@ class AccountBackupViewModel(
         }
     }
 
+    // The skeleton stays up for at least MIN_BACKUP_LOADING_MILLIS: a backup that arrives sooner would otherwise show
+    // it for a few frames and swap it out, which reads as a flicker.
     private fun loadBackupInfo() {
         viewModelScope.launch {
-            when (val result = getBackupInfoUseCase()) {
+            val minimumLoading = launch { delay(MIN_BACKUP_LOADING_MILLIS) }
+            val result = getBackupInfoUseCase()
+            minimumLoading.join()
+            when (result) {
                 is AppResult.Success ->
                     _uiState.update { it.copy(backup = result.data?.toUiModel() ?: BackupStatusUiModel.None) }
 

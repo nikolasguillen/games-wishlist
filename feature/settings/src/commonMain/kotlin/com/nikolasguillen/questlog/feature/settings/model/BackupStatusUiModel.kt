@@ -6,7 +6,10 @@ import com.nikolasguillen.questlog.core.ui.model.UiText
 /** What the account's cloud backup holds, as the backup card shows it. */
 @Immutable
 internal sealed interface BackupStatusUiModel {
-    /** Still loading, or the backup could not be reached. */
+    /** The backup is being read. Shown from the moment the screen opens, so it never flashes a state it has not earned. */
+    data object Loading : BackupStatusUiModel
+
+    /** The backup could not be reached. The card offers a retry. */
     data object Unknown : BackupStatusUiModel
 
     /** Signed in with no backup yet. */

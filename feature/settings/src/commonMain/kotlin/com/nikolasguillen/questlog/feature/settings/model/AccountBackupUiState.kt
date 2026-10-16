@@ -18,7 +18,7 @@ import com.nikolasguillen.questlog.core.model.AuthProvider
 internal data class AccountBackupUiState(
     val signInProvider: AuthProvider = AuthProvider.GOOGLE,
     val account: AccountUiModel? = null,
-    val backup: BackupStatusUiModel = BackupStatusUiModel.Unknown,
+    val backup: BackupStatusUiModel = BackupStatusUiModel.Loading,
     val runningOperation: CloudOperation? = null,
     val dialog: AccountBackupDialog? = null
 )

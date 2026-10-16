@@ -1,8 +1,10 @@
 package com.nikolasguillen.questlog.feature.settings.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -11,15 +13,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.CustomContentCard
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.core.ui.resources.retry
+import com.nikolasguillen.questlog.core.ui.util.modifiers.shimmerEffect
 import com.nikolasguillen.questlog.feature.settings.model.BackupStatusUiModel
 import com.nikolasguillen.questlog.feature.settings.model.CloudOperation
 import com.nikolasguillen.questlog.feature.settings.resources.Res
@@ -29,6 +34,11 @@ import com.nikolasguillen.questlog.feature.settings.resources.account_backup_res
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_unreachable
 import org.jetbrains.compose.resources.stringResource
 import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes
+
+private const val SKELETON_DATE_WIDTH = 0.65f
+private const val SKELETON_SUMMARY_WIDTH = 0.4f
+private val SKELETON_DATE_HEIGHT = 20.dp
+private val SKELETON_SUMMARY_HEIGHT = 15.dp
 
 /**
  * What the cloud backup holds and the action that replaces it. Every action is disabled while any cloud operation
@@ -66,6 +76,9 @@ internal fun BackupCard(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+
+                // Neither a verdict nor a retry before the backup has been read.
+                BackupStatusUiModel.Loading -> BackupStatusSkeleton()
 
                 BackupStatusUiModel.Unknown -> {
                     Text(
@@ -118,6 +131,26 @@ internal fun BackupCard(
     }
 }
 
+/** Two lines the size of the date and the summary they stand in for, so the card barely moves when the backup arrives. */
+@Composable
+private fun BackupStatusSkeleton() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(SKELETON_DATE_WIDTH)
+            .height(SKELETON_DATE_HEIGHT)
+            .clip(MaterialTheme.shapes.extraSmall)
+            .shimmerEffect()
+    )
+    Spacer(modifier = Modifier.size(MaterialTheme.spacing.smallMedium))
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(SKELETON_SUMMARY_WIDTH)
+            .height(SKELETON_SUMMARY_HEIGHT)
+            .clip(MaterialTheme.shapes.extraSmall)
+            .shimmerEffect()
+    )
+}
+
 @QuestLogPreviews
 @Composable
 private fun BackupCardAvailablePreview() {
@@ -156,6 +189,20 @@ private fun BackupCardBusyPreview() {
         BackupCard(
             BackupStatusUiModel.None,
             runningOperation = CloudOperation.BACK_UP,
+            onBackUpClick = {},
+            onRestoreClick = {},
+            onRetryClick = {}
+        )
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun BackupCardLoadingPreview() {
+    QuestLogTheme {
+        BackupCard(
+            BackupStatusUiModel.Loading,
+            runningOperation = null,
             onBackUpClick = {},
             onRestoreClick = {},
             onRetryClick = {}
