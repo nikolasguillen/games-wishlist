@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,6 +48,12 @@ import com.nikolasguillen.questlog.feature.search.resources.discover_release_dat
 import org.jetbrains.compose.resources.stringResource
 import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes
 
+/** The hero's height on any screen tall enough for it. */
+private val HERO_MAX_HEIGHT = 240.dp
+
+/** The share of the window's height the hero may take, so a landscape phone still shows the shelf below it. */
+private const val HERO_MAX_HEIGHT_FRACTION = 0.4f
+
 /**
  * The editorial hero for the top anticipated pick: a full-bleed cover with a kicker badge and a
  * title/meta scrim, per the "Direction A" mock. It is the single highest-value element on the
@@ -60,7 +67,10 @@ internal fun DiscoverHero(
     onSaveClick: () -> Unit = {},
     onLongClick: () -> Unit = {}
 ) {
-    val heroHeight = 240.dp
+    val heroHeight = minOf(
+        HERO_MAX_HEIGHT,
+        LocalWindowInfo.current.containerDpSize.height * HERO_MAX_HEIGHT_FRACTION
+    )
     val chooseListLabel = stringResource(CoreUiRes.string.choose_list_content_description)
 
     Column(modifier = modifier) {
