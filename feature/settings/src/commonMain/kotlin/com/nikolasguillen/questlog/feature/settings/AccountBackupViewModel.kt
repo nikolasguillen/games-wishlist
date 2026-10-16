@@ -102,7 +102,7 @@ class AccountBackupViewModel(
                 launchOperation(CloudOperation.DELETE_ACCOUNT) { performDeleteAccount() }
             }
 
-            // A sign-in or sign-out in flight cannot be dismissed: the dialog is its only feedback.
+            // A sign-in, sign-out or account deletion in flight cannot be dismissed: the dialog is its only feedback.
             AccountBackupUiEvent.DismissDialog -> _uiState.update {
                 if ((it.dialog as? AccountBackupDialog.AccountChange)?.running == true) it else it.copy(dialog = null)
             }
@@ -216,16 +216,25 @@ class AccountBackupViewModel(
         _uiState.update { it.copy(dialog = AccountBackupDialog.AccountChange(operation, outcome)) }
     }
 
-    // The use case signs in again, deletes the backup and then the account. A failure on the way leaves the user signed
-    // in with the screen usable, and the backup card shows what is left.
+    // The use case signs in again, deletes the backup and then the account. Like a sign-in, the dialog opens once the
+    // user has picked in the provider's sheet, and a closed sheet says nothing. A failure on the way leaves the user
+    // signed in with the screen usable, and the backup card shows what is left.
     private suspend fun performDeleteAccount() {
-        when (val result = deleteAccountUseCase()) {
-            is AppResult.Success -> _uiEffect.send(
-                AccountBackupUiEffect.ShowMessage(UiText.StringResource(Res.string.account_backup_account_deleted))
+        val result = deleteAccountUseCase(onAccountPicked = {
+            _uiState.update { it.copy(dialog = AccountBackupDialog.AccountChange(CloudOperation.DELETE_ACCOUNT)) }
+        })
+        when (result) {
+            is AppResult.Success -> finishAccountChange(
+                CloudOperation.DELETE_ACCOUNT,
+                UiText.StringResource(Res.string.account_backup_account_deleted)
             )
 
             is AppResult.Failure -> {
-                showFailure(result.error)
+                if (result.error == RepositoryError.SignInCancelled) {
+                    _uiState.update { it.copy(dialog = null) }
+                } else {
+                    finishAccountChange(CloudOperation.DELETE_ACCOUNT, result.error.toUiText())
+                }
                 // The backup may be gone even though the account is not: read what is there now.
                 loadBackupInfo()
             }

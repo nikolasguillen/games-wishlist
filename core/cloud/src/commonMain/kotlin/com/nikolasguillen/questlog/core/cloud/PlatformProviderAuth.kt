@@ -13,8 +13,11 @@ internal interface PlatformProviderAuth {
      */
     suspend fun signIn(onAccountPicked: () -> Unit)
 
-    /** Signs in again with [provider]. Returns a grant only where one has to be revoked later (Apple). */
-    suspend fun reauthenticate(): AppleGrant?
+    /**
+     * Signs in again with [provider]. [onAccountPicked] runs once the user has chosen in the provider's own UI. Returns
+     * a grant only where one has to be revoked later (Apple).
+     */
+    suspend fun reauthenticate(onAccountPicked: () -> Unit): AppleGrant?
 
     /** Tells Apple to revoke the app's access, as the App Store requires on account deletion. */
     suspend fun revokeApple(grant: AppleGrant)

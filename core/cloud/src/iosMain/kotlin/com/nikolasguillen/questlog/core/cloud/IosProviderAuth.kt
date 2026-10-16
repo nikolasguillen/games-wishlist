@@ -26,9 +26,10 @@ internal class IosProviderAuth(private val bridge: IdentityProviderBridge) : Pla
         auth.signInWithCredential(apple.credential)
     }
 
-    override suspend fun reauthenticate(): AppleGrant? {
+    override suspend fun reauthenticate(onAccountPicked: () -> Unit): AppleGrant? {
         val user = auth.currentUser ?: throw CloudUnauthenticatedException("Nobody is signed in")
         val apple = appleSignIn()
+        onAccountPicked()
         user.reauthenticate(apple.credential)
         return AppleGrant(apple.authorizationCode)
     }

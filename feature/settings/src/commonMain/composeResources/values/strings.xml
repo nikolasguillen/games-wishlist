@@ -85,6 +85,7 @@
     <string name="account_backup_signing_out_message">Signing you out…</string>
     <string name="account_backup_signed_out_message">You are signed out.</string>
     <string name="account_backup_delete_account">Delete account</string>
+    <string name="account_backup_deleting_account_title">Deleting account</string>
     <string name="account_backup_account_deleted">Account deleted</string>
     <string name="account_backup_sign_out_title">Sign out?</string>
     <string name="account_backup_sign_out_message">The lists and games on this device and your cloud backup stay as they are. You can sign in again at any time.</string>

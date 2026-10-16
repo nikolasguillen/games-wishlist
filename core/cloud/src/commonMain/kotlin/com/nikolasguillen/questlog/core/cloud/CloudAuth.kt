@@ -32,12 +32,13 @@ interface CloudAuth {
 
     /**
      * A fresh sign-in with [provider]. Required before [deleteUser]. On iOS it also keeps the grant Apple needs to
-     * revoke the token on deletion.
+     * revoke the token on deletion. [onAccountPicked] is called once the user has chosen in the provider's own sheet; it
+     * is not called when the user closes the sheet.
      *
      * @throws com.nikolasguillen.questlog.core.cloud.error.CloudUnauthenticatedException nobody is signed in.
      * @throws com.nikolasguillen.questlog.core.cloud.error.CloudSignInCancelledException the user closed the sign-in.
      */
-    suspend fun reauthenticate()
+    suspend fun reauthenticate(onAccountPicked: () -> Unit = {})
 
     /** Signs out and clears the provider's cached credential and any held grant. */
     suspend fun signOut()

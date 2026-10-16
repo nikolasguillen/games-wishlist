@@ -33,8 +33,8 @@ internal class AccountRepositoryImpl(
         AppResult.failure(e.toRepositoryError())
     }
 
-    override suspend fun reauthenticate(): AppResult<Unit> = try {
-        cloudAuth.reauthenticate()
+    override suspend fun reauthenticate(onAccountPicked: () -> Unit): AppResult<Unit> = try {
+        cloudAuth.reauthenticate(onAccountPicked)
         AppResult.success(Unit)
     } catch (e: Exception) {
         AppResult.failure(e.toRepositoryError())

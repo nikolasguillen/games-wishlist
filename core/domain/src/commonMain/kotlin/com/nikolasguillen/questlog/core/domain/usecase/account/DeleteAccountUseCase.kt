@@ -12,13 +12,16 @@ import com.nikolasguillen.questlog.core.model.AppResult
  * before deleting an account. The backup goes before the account because a failure after it leaves a signed-in account
  * with no backup, which Settings shows and lets the user delete again. The other way round, a failed backup delete would
  * leave data in the cloud that no signed-in account can reach.
+ *
+ * `onAccountPicked` is called once the user has chosen in the provider's sheet, so the caller can show progress for the
+ * part that follows.
  */
 class DeleteAccountUseCase(
     private val accountRepository: AccountRepository,
     private val backupRepository: BackupRepository
 ) {
-    suspend operator fun invoke(): AppResult<Unit> {
-        val reauthenticated = accountRepository.reauthenticate()
+    suspend operator fun invoke(onAccountPicked: () -> Unit = {}): AppResult<Unit> {
+        val reauthenticated = accountRepository.reauthenticate(onAccountPicked)
         if (reauthenticated is AppResult.Failure) return reauthenticated
 
         val backupDeleted = backupRepository.deleteBackup()

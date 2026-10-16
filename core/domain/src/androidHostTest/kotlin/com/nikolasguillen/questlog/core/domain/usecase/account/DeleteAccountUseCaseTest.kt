@@ -25,7 +25,7 @@ class DeleteAccountUseCaseTest {
 
     @Test
     fun `the calls happen in order reauthenticate then backup then account`() = runTest {
-        coEvery { accountRepository.reauthenticate() } returns AppResult.success(Unit)
+        coEvery { accountRepository.reauthenticate(any()) } returns AppResult.success(Unit)
         coEvery { backupRepository.deleteBackup() } returns AppResult.success(Unit)
         coEvery { accountRepository.deleteAccount() } returns AppResult.success(Unit)
 
@@ -33,7 +33,7 @@ class DeleteAccountUseCaseTest {
 
         assertEquals(AppResult.success(Unit), result)
         coVerifyOrder {
-            accountRepository.reauthenticate()
+            accountRepository.reauthenticate(any())
             backupRepository.deleteBackup()
             accountRepository.deleteAccount()
         }
@@ -41,7 +41,7 @@ class DeleteAccountUseCaseTest {
 
     @Test
     fun `a failed reauthentication stops everything after it`() = runTest {
-        coEvery { accountRepository.reauthenticate() } returns AppResult.failure(RepositoryError.SignInCancelled)
+        coEvery { accountRepository.reauthenticate(any()) } returns AppResult.failure(RepositoryError.SignInCancelled)
 
         val result = useCase()
 
@@ -52,7 +52,7 @@ class DeleteAccountUseCaseTest {
 
     @Test
     fun `a failed backup delete leaves the account alone`() = runTest {
-        coEvery { accountRepository.reauthenticate() } returns AppResult.success(Unit)
+        coEvery { accountRepository.reauthenticate(any()) } returns AppResult.success(Unit)
         coEvery { backupRepository.deleteBackup() } returns AppResult.failure(RepositoryError.NoNetwork)
 
         val result = useCase()
@@ -63,7 +63,7 @@ class DeleteAccountUseCaseTest {
 
     @Test
     fun `a failed account delete returns that failure`() = runTest {
-        coEvery { accountRepository.reauthenticate() } returns AppResult.success(Unit)
+        coEvery { accountRepository.reauthenticate(any()) } returns AppResult.success(Unit)
         coEvery { backupRepository.deleteBackup() } returns AppResult.success(Unit)
         coEvery { accountRepository.deleteAccount() } returns AppResult.failure(RepositoryError.RequestTimeout)
 

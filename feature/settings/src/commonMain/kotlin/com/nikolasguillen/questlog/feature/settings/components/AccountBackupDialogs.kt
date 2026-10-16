@@ -22,6 +22,7 @@ import com.nikolasguillen.questlog.feature.settings.resources.Res
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_delete_confirm
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_delete_message
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_delete_title
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_deleting_account_title
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_empty_confirm
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_empty_message
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_empty_title
@@ -38,7 +39,7 @@ import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes
 
 /**
  * The dialog for [dialog]. For a confirmation `onConfirm` runs the action it guards and `onDismiss` closes it and does
- * nothing. A sign-in or sign-out has no action to confirm: while it runs nothing can close it, and once it ends its one
+ * nothing. A sign-in, sign-out or account deletion has no action to confirm: while it runs nothing can close it, and once it ends its one
  * button, "Got it", is `onDismiss`.
  */
 @Composable
@@ -90,11 +91,14 @@ internal fun AccountBackupDialogs(
 
 @Composable
 private fun AccountChangeDialog(dialog: AccountBackupDialog.AccountChange, onDismiss: () -> Unit) {
-    val signingIn = dialog.operation == CloudOperation.SIGN_IN
     val outcome = dialog.outcome
     CustomAlertDialog(
         title = stringResource(
-            if (signingIn) Res.string.account_backup_signing_in_title else Res.string.account_backup_signing_out_title
+            when (dialog.operation) {
+                CloudOperation.SIGN_IN -> Res.string.account_backup_signing_in_title
+                CloudOperation.DELETE_ACCOUNT -> Res.string.account_backup_deleting_account_title
+                else -> Res.string.account_backup_signing_out_title
+            }
         ),
         confirmButtonText = if (outcome == null) "" else stringResource(CoreUiRes.string.got_it),
         onConfirm = onDismiss,
@@ -170,6 +174,17 @@ private fun SigningInDialogPreview() {
     QuestLogTheme {
         AccountBackupDialogs(
             dialog = AccountBackupDialog.AccountChange(CloudOperation.SIGN_IN),
+            onConfirm = {},
+            onDismiss = {})
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun DeletingAccountDialogPreview() {
+    QuestLogTheme {
+        AccountBackupDialogs(
+            dialog = AccountBackupDialog.AccountChange(CloudOperation.DELETE_ACCOUNT),
             onConfirm = {},
             onDismiss = {})
     }

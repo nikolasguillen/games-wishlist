@@ -33,9 +33,9 @@ internal class FirebaseCloudAuth(
         requireUser().toCloudUser()
     }
 
-    override suspend fun reauthenticate() = guard {
+    override suspend fun reauthenticate(onAccountPicked: () -> Unit) = guard {
         requireUser()
-        platform.reauthenticate()?.let { appleGrant = it }
+        platform.reauthenticate(onAccountPicked)?.let { appleGrant = it }
         reauthenticated = true
     }
 

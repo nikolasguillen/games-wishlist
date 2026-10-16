@@ -32,10 +32,11 @@ interface AccountRepository {
 
     /**
      * A fresh sign-in with [signInProvider], which the provider requires before it deletes an account.
+     * [onAccountPicked] is called once the user has chosen in the provider's sheet, before the sign-in completes.
      *
      * Fails with `SignInCancelled` when the user closes the sign-in.
      */
-    suspend fun reauthenticate(): AppResult<Unit>
+    suspend fun reauthenticate(onAccountPicked: () -> Unit = {}): AppResult<Unit>
 
     /**
      * Deletes the account, revoking Apple's access first where the platform signs in with Apple. Call [reauthenticate]

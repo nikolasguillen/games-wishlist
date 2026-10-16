@@ -38,9 +38,11 @@ internal class AndroidProviderAuth(
         auth.signInWithCredential(credential)
     }
 
-    override suspend fun reauthenticate(): AppleGrant? {
+    override suspend fun reauthenticate(onAccountPicked: () -> Unit): AppleGrant? {
         val user = auth.currentUser ?: throw CloudUnauthenticatedException("Nobody is signed in")
-        user.reauthenticate(googleCredential())
+        val credential = googleCredential()
+        onAccountPicked()
+        user.reauthenticate(credential)
         return null
     }
 

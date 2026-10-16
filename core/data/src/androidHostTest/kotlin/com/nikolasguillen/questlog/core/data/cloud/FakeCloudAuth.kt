@@ -34,9 +34,11 @@ class FakeCloudAuth(
         return CloudUser(uid = "uid-1", email = "ada@example.com", providers = setOf(provider)).also { user.value = it }
     }
 
-    override suspend fun reauthenticate() {
+    override suspend fun reauthenticate(onAccountPicked: () -> Unit) {
         calls += "reauthenticate"
         reauthenticateFailure?.let { throw it }
+        accountPickedCalls++
+        onAccountPicked()
     }
 
     override suspend fun signOut() {
