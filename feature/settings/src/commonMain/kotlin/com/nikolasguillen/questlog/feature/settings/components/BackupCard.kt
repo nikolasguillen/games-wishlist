@@ -74,6 +74,7 @@ internal fun BackupCard(
                 BackupStatusUiModel.None -> Text(
                     text = stringResource(Res.string.account_backup_no_backup),
                     style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
