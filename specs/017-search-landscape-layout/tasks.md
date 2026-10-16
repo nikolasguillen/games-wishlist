@@ -41,7 +41,7 @@ Windows use `.\gradlew.bat` in place of `./gradlew`.
 
 **Purpose**: Know the starting point, so any later failure is attributable to this feature.
 
-- [ ] T001 On branch `017-search-landscape-layout`, run `./gradlew :androidApp:assembleDebug --console=plain -q`
+- [X] T001 On branch `017-search-landscape-layout`, run `./gradlew :androidApp:assembleDebug --console=plain -q`
   and `./gradlew test --console=plain -q`, and confirm both pass before any edit. If either fails, stop and
   report it, because Android must build and pass at every commit.
 
@@ -54,17 +54,17 @@ Windows use `.\gradlew.bat` in place of `./gradlew`.
 
 **⚠️ CRITICAL**: US1 and US2 cannot start before T002 exists.
 
-- [ ] T002 [P] Create `core/ui/util/WindowShape.kt` (package `com.nikolasguillen.questlog.core.ui.util`) with
+- [X] T002 [P] Create `core/ui/util/WindowShape.kt` (package `com.nikolasguillen.questlog.core.ui.util`) with
   `@Composable fun isLandscapeWindow(): Boolean`. It reads
   `LocalWindowInfo.current.containerDpSize` and returns `width > height`, **strictly greater, so a square
   window is portrait**. It is public (used from `:shared` and `:feature:search`). Add a KDoc saying the
   window's shape decides, not the device, so a split-screen half that is narrow and tall stays portrait and
   a wide tablet window is landscape. No new dependency (`LocalWindowInfo` is already used in
   `core/ui/component/CustomAlertDialog.kt`).
-- [ ] T003 [P] In `core/ui/CLAUDE.md`, under "Utilities (`util/`)", add one entry for `WindowShape.kt`
+- [X] T003 [P] In `core/ui/CLAUDE.md`, under "Utilities (`util/`)", add one entry for `WindowShape.kt`
   (`isLandscapeWindow()`: the single place the "wider than tall" rule is written; read it, do not re-derive
   it).
-- [ ] T004 Run `./gradlew :core:ui:compileAndroidMain --console=plain -q` and confirm it compiles.
+- [X] T004 Run `./gradlew :core:ui:compileAndroidMain --console=plain -q` and confirm it compiles.
 
 **Checkpoint**: `isLandscapeWindow()` is available to both stories.
 
@@ -80,7 +80,7 @@ Search / Radar / Lists, no bottom bar and no empty strip. Tap through the three.
 
 ### Implementation for User Story 1
 
-- [ ] T005 [P] [US1] Create `shared/TopLevelDestination.kt`: `internal enum class TopLevelDestination` with
+- [X] T005 [P] [US1] Create `shared/TopLevelDestination.kt`: `internal enum class TopLevelDestination` with
   entries in this order, which is the on-screen order in both the bar and the rail: `SEARCH`, `RADAR`,
   `LISTS`. Each carries `route: NavKey`, `icon: ImageVector` and `label: StringResource`:
   - `SEARCH`: `SearchRoute`, `Icons.Default.Search`, `Res.string.search_nav_bar_item`
@@ -92,14 +92,14 @@ Search / Radar / Lists, no bottom bar and no empty strip. Tap through the three.
   (`com.nikolasguillen.questlog.shared.resources.Res`) and each string with its own import, as
   `QuestLogBottomBar.kt` does today. One enum in one file, no `UiModel` suffix (it is an identifier set, like
   `SearchSort`).
-- [ ] T006 [P] [US1] In `core/designsystem/theme/AppComponentsColors.kt`, add
+- [X] T006 [P] [US1] In `core/designsystem/theme/AppComponentsColors.kt`, add
   `val navRailItemColors: NavigationRailItemColors`, with the same `@Composable get()` shape as
   `navBarItemColors`, calling `NavigationRailItemDefaults.colors(indicatorColor =
   MaterialTheme.appColors.navBarItemIndicatorColor, selectedIconColor =
   MaterialTheme.appColors.navBarItemSelectedIconColor)`. No new `AppColors` field: the rail reuses the bar's
   colors (`NavigationRailItemColors` is a different type from `NavigationBarItemColors`, which is why a
   second token is needed, research R2).
-- [ ] T007 [US1] Create `shared/QuestLogNavigationRail.kt` (depends on T005, T006), containing:
+- [X] T007 [US1] Create `shared/QuestLogNavigationRail.kt` (depends on T005, T006), containing:
   1. `internal val QuestLogNavigationRailInsets: WindowInsets` (`@Composable get()`), defined as
      `(WindowInsets.systemBars union WindowInsets.displayCutout).only(WindowInsetsSides.Vertical +
      WindowInsetsSides.Start)`. M3's default omits the cutout, and in landscape the camera sits on the start
@@ -116,12 +116,12 @@ Search / Radar / Lists, no bottom bar and no empty strip. Tap through the three.
      `onNavigateToRoute(destination.route)` only `if (currentRoute != destination.route)`. The routes are
      `data object`s, so this is the bar's exact guard, and tapping Lists from a wishlist still navigates.
   3. A private `@QuestLogPreviews` preview wrapped in `QuestLogTheme { }`, with Search selected.
-- [ ] T008 [US1] Rewrite the body of `QuestLogBottomBar` in `shared/QuestLogBottomBar.kt` to iterate
+- [X] T008 [US1] Rewrite the body of `QuestLogBottomBar` in `shared/QuestLogBottomBar.kt` to iterate
   `TopLevelDestination.entries` (depends on T005). Keep its public signature, the colors
   (`containerColor = MaterialTheme.appColors.navBarContainerColor`, `AppComponentsColors.navBarItemColors`), the
   icon `contentDescription`, the label, and the same `if (currentRoute != destination.route)` click guard as
   in T007. **Output, order and behavior must be identical to today**: this is the portrait path (SC-007).
-- [ ] T009 [US1] Edit `QuestLogContent` in `shared/QuestLogRoot.kt` (depends on T002, T007, T008):
+- [X] T009 [US1] Edit `QuestLogContent` in `shared/QuestLogRoot.kt` (depends on T002, T007, T008):
   1. Compute `val isTopLevelRoute = backStack.last() is SearchRoute || backStack.last() is RadarRoute ||
      backStack.last() is ListsRoute` and `val isLandscape = isLandscapeWindow()` (import it from `:core:ui`).
   2. Hoist the existing navigate logic into one local `val onNavigateToRoute: (NavKey) -> Unit` (pop to the
@@ -141,12 +141,12 @@ Search / Radar / Lists, no bottom bar and no empty strip. Tap through the three.
      !isLandscape`, with the same vertical slide as today (FR-002).
 
   Portrait must remain exactly as before (no extra padding, same bar).
-- [ ] T010 [US1] In the root `CLAUDE.md`, update two places: the "`:shared` is the only module that knows about
+- [X] T010 [US1] In the root `CLAUDE.md`, update two places: the "`:shared` is the only module that knows about
   navigation" bullet (it owns "the bottom bar" → "the bottom bar and the landscape side rail"), and the
   "Where things live" row for theme/scaffold/bottom bar so it also lists
   `shared/.../QuestLogNavigationRail.kt` and `shared/.../TopLevelDestination.kt`. Rewrite the existing
   wording in place and do not add a changelog note.
-- [ ] T011 [US1] Run `./gradlew :core:designsystem:compileAndroidMain :shared:compileAndroidMain
+- [X] T011 [US1] Run `./gradlew :core:designsystem:compileAndroidMain :shared:compileAndroidMain
   --console=plain -q`, then `./gradlew :shared:testAndroidHostTest --console=plain -q` (`KoinGraphTest` and
   `RoutesSerializationTest` must stay green; there is no DI or route change), and fix anything that fails.
 - [ ] T012 [US1] Hands-on check on an Android emulator: run quickstart §3 rows 1, 2, 3, 4, 5, 14, 18, 19 and
@@ -168,7 +168,7 @@ per row with even gaps. Rotate back: 2 per row.
 
 > Write the test first. It will not compile until T014 adds the declarations, which counts as failing.
 
-- [ ] T013 [US2] Create
+- [X] T013 [US2] Create
   `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/components/SearchResultGridCellsTest.kt`
   (JUnit4; KDoc header saying it covers the results grid's column count and cell sizes; call everything with
   `Density(1f)` so dp equals px). It tests `resultGridColumnCount(availableWidth: Dp, spacing: Dp, edge: Dp,
@@ -189,7 +189,7 @@ per row with even gaps. Rotate back: 2 per row.
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Create `feature/search/components/SearchResultGridCells.kt` (depends on T013's signatures):
+- [X] T014 [US2] Create `feature/search/components/SearchResultGridCells.kt` (depends on T013's signatures):
   - `internal val MIN_CARD_WIDTH = 150.dp`, feature-local, with a KDoc saying it is the narrowest a two-column
     portrait card is on the phones the app targets.
   - `internal fun resultGridColumnCount(availableWidth: Dp, spacing: Dp, edge: Dp, isLandscape: Boolean): Int`:
@@ -202,7 +202,7 @@ per row with even gaps. Rotate back: 2 per row.
     sizes must sum to `W − (n − 1)·spacing`. The KDoc explains why the edge cells are wider (every visible
     card ends up the same width at any column count, and the full-span filters row keeps bleeding to the
     screen edge, research R5).
-- [ ] T015 [US2] Edit `feature/search/components/SearchResultGrid.kt` (depends on T002, T014). In the
+- [X] T015 [US2] Edit `feature/search/components/SearchResultGrid.kt` (depends on T002, T014). In the
   **non-empty branch only**, wrap the `LazyVerticalGrid` in a `BoxWithConstraints` that carries the incoming
   `modifier`, and read the grid's own `maxWidth` from it (the screen minus the rail and insets, not the window).
   Compute `val columnCount = resultGridColumnCount(maxWidth, MaterialTheme.spacing.large,
@@ -215,13 +215,13 @@ per row with even gaps. Rotate back: 2 per row.
   branch (`NoFilteredResultsPlaceholder`) untouched. Add a private `@QuestLogPreviews`-style preview at
   landscape size (check how `QuestLogPreviews` is declared in `:core:designsystem` and add a variant with
   `widthDp = 800, heightDp = 360`) showing at least 9 dummy games.
-- [ ] T016 [US2] Confirm FR-011 by reading, and change nothing unless it fails: in
+- [X] T016 [US2] Confirm FR-011 by reading, and change nothing unless it fails: in
   `feature/search/components/SearchMainContent.kt` and `feature/search/SearchScreen.kt`, verify that text
   results, genre browse and a Discover shelf's "see all" all reach `SearchResultGrid` through
   `SearchContentState.Success`, and that `grep -rn "GridCells" feature/search` shows only
   `SearchResultGrid.kt` and `SearchResultGridCells.kt`. If another grid exists in the search feature, apply
   T015's rule to it.
-- [ ] T017 [US2] Run `./gradlew :feature:search:testAndroidHostTest --console=plain -q`. The 8 new cases and the
+- [X] T017 [US2] Run `./gradlew :feature:search:testAndroidHostTest --console=plain -q`. The 8 new cases and the
   entire existing suite (`SearchViewModelTest` and the mapper tests) must pass with no existing test changed.
   Then run `./gradlew :feature:search:compileAndroidMain --console=plain -q`.
 - [ ] T018 [US2] Hands-on check on an emulator: run quickstart §3 rows 6, 7, 8 and 9, plus row 1 (portrait is
@@ -241,28 +241,28 @@ bar, results, empty, loading, error, filter sheet, sort sheet) and confirm nothi
 
 ### Implementation for User Story 3
 
-- [ ] T019 [P] [US3] In `feature/search/components/DiscoverHero.kt`, replace `val heroHeight = 240.dp` with
+- [X] T019 [P] [US3] In `feature/search/components/DiscoverHero.kt`, replace `val heroHeight = 240.dp` with
   `minOf(HERO_MAX_HEIGHT, LocalWindowInfo.current.containerDpSize.height * HERO_MAX_HEIGHT_FRACTION)`.
   Add two file-private constants at the top of the file: `private val HERO_MAX_HEIGHT = 240.dp` and
-  `private const val HERO_MAX_HEIGHT_FRACTION = 0.5f`, each with a one-line KDoc (research R7). There is no
+  `private const val HERO_MAX_HEIGHT_FRACTION = 0.4f`, each with a one-line KDoc (research R7). There is no
   landscape branch, and the hero is 240dp on every portrait phone. Import `LocalWindowInfo` from
   `androidx.compose.ui.platform`.
-- [ ] T020 [P] [US3] In `feature/search/SearchScreen.kt`, give the `Scaffold` in `SearchScreenContent` an explicit
+- [X] T020 [P] [US3] In `feature/search/SearchScreen.kt`, give the `Scaffold` in `SearchScreenContent` an explicit
   `contentWindowInsets = ScaffoldDefaults.contentWindowInsets.union(WindowInsets.displayCutout.only(
   WindowInsetsSides.Horizontal))`, so the last grid column does not sit under the camera when the phone is
   rotated so that the cutout is on the end edge (research R8). No other change to the screen.
-- [ ] T021 [P] [US3] In `core/ui/component/MainScreenHeader.kt`, change the row's
+- [X] T021 [P] [US3] In `core/ui/component/MainScreenHeader.kt`, change the row's
   `.windowInsetsPadding(TopAppBarDefaults.windowInsets)` to `.windowInsetsPadding(
   TopAppBarDefaults.windowInsets.union(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal)))`, so
   the profile button clears the cutout. The horizontal cutout is zero in portrait, so nothing moves there. This
   header is shared, so Radar's and Lists' headers get the same protection (plan, change 1). Update the KDoc only
   if it mentions insets.
-- [ ] T022 [P] [US3] In `feature/search/components/SearchSortBottomSheet.kt`, make the options column scroll:
+- [X] T022 [P] [US3] In `feature/search/components/SearchSortBottomSheet.kt`, make the options column scroll:
   its modifier chain becomes `Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
   .navigationBarsPadding().padding(bottom = MaterialTheme.spacing.extraLarge)`, so the padding scrolls with
   the content and the last option is always reachable on a short screen or at a large font (research R10).
   Leave the filter sheet alone: its options area already scrolls.
-- [ ] T023 [US3] Run `./gradlew :core:ui:compileAndroidMain :feature:search:compileAndroidMain
+- [X] T023 [US3] Run `./gradlew :core:ui:compileAndroidMain :feature:search:compileAndroidMain
   --console=plain -q` and `./gradlew :feature:search:testAndroidHostTest :core:ui:testAndroidHostTest
   --console=plain -q`, and confirm they pass.
 - [ ] T024 [US3] Hands-on check on an emulator with **Developer options → Display cutout → Punch hole**: run
@@ -277,9 +277,9 @@ bar, results, empty, loading, error, filter sheet, sort sheet) and confirm nothi
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T025 Run `./gradlew test --console=plain -q` and `./gradlew :androidApp:assembleDebug --console=plain -q`:
+- [X] T025 Run `./gradlew test --console=plain -q` and `./gradlew :androidApp:assembleDebug --console=plain -q`:
   both must pass, with no test deleted or weakened (constitution V).
-- [ ] T026 Review the full diff against the rules, and fix what you find: no new `dp` literal at a call site
+- [X] T026 Review the full diff against the rules, and fix what you find: no new `dp` literal at a call site
   (only the named constants `MIN_CARD_WIDTH`, `HERO_MAX_HEIGHT` and `HERO_MAX_HEIGHT_FRACTION`); one type per
   file; `internal` by default (only `isLandscapeWindow()` and `QuestLogBottomBar` stay public); no
   `android.*`/`java.*` in `commonMain`; no new string and no hardcoded text; all comments in English; no edit

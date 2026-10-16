@@ -27,7 +27,7 @@ Technically:
   `GridCells` widens the edge cells by the edge inset, so every card is the same width at any count and
   portrait geometry is exactly today's (R4, R5).
 - **Small fixes so nothing is clipped.**
-  - The hero is capped at half the window height (R7).
+  - The hero is capped at 40% of the window height (R7).
   - Search's content and the shared header add the horizontal cutout to their insets (R8).
   - The sort sheet can scroll (R10).
   - The expanded search overlay already covers the rail, and the spec now says so (R6).
@@ -59,7 +59,7 @@ already in composition. `BoxWithConstraints` adds one subcomposition around the 
 - No new module, route, dependency or dependency edge.
 - No ViewModel, `UiState` or `UiEvent` change.
 - No `android.*`/`java.*` in `commonMain`.
-- No new `dp` literal at a call site: the 150dp minimum card width and the 0.5 hero fraction are named
+- No new `dp` literal at a call site: the 150dp minimum card width and the 0.4 hero fraction are named
   constants next to the code that uses them, as `heroHeight` and `MIN_TOUCH_TARGET_HEIGHT` already are.
 - No new user-facing text: the rail reuses the bar's three strings (FR-015).
 
@@ -96,7 +96,7 @@ new path):
    are unchanged.
 3. The results grid's per-item padding changes from `index % 2` to the column-aware rule of R5. With two
    columns the geometry is identical.
-4. `DiscoverHero`'s height becomes `min(240.dp, windowHeight × 0.5)`. It is unchanged on any portrait phone.
+4. `DiscoverHero`'s height becomes `min(240.dp, windowHeight × 0.4)`. It is unchanged on any portrait phone.
 5. Spec US3 acceptance scenario 2 was amended. The expanded search overlay is a full-screen dialog and
    covers the rail, as it covers the bar in portrait (R6).
 

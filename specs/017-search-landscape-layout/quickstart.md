@@ -55,6 +55,14 @@ directions.
 | 21 | Landscape, Search | Look at the content's top-start corner next to the rail | The corner rounding is not noticeable | R11 |
 | 22 | Landscape | Visit Radar and Lists | Rail and full height; their headers keep the profile button clear of the cutout | Assumptions, R8 |
 
+**Run record (2026-10-16)**: the `Pixel_10_Pro_Fold` AVD resized to 1080x2400 at 420dpi (no cutout), and the
+`Pixel_10_Pro` AVD for its native punch-hole cutout. Passed: 1, 2, 3, 4 (bar back, Search selected), 6, 10, 12
+(loading state only), 13 (sort sheet, default font size), 14, 15, 16 (query and results survive both rotations; the
+open sheet and exact scroll position were not checked), 22 (Lists header only). Not run: 5, 7, 8, 9, 11, 12 (empty
+and error), 13 at the largest font, 17, 18, 19 (forcing right-to-left did not take effect on the AVD), 20, 21. Row 10
+failed at `HERO_MAX_HEIGHT_FRACTION = 0.5`, because the disclaimer line under the hero pushed the next title below
+the fold, and passes at 0.4.
+
 ## 4. iOS (Mac only)
 
 ```bash

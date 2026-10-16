@@ -59,4 +59,4 @@ Invariants (tested in `SearchResultGridCellsTest`):
 
 | Value | Rule |
 |---|---|
-| hero height | `min(240.dp, windowHeight × HERO_MAX_HEIGHT_FRACTION)`, with `HERO_MAX_HEIGHT_FRACTION = 0.5f`. This is 240dp on every portrait phone. |
+| hero height | `min(240.dp, windowHeight × HERO_MAX_HEIGHT_FRACTION)`, with `HERO_MAX_HEIGHT_FRACTION = 0.4f`. This is 240dp on every portrait phone at least 600dp tall. |

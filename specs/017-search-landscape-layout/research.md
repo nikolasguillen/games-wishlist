@@ -206,14 +206,14 @@ a different interaction from portrait, and the spec asks for the same Search. Re
 
 ## R7 — The Discover hero on a short screen
 
-**Decision**: The hero's height becomes `min(240.dp, windowHeight × 0.5)`, with the fraction as a
-feature-local constant in `DiscoverHero.kt`. There is no landscape branch. On any portrait phone half the
-window height is well above 240dp, so the hero there is unchanged.
+**Decision**: The hero's height becomes `min(240.dp, windowHeight × 0.4)`, with the fraction as a
+feature-local constant in `DiscoverHero.kt`. There is no landscape branch. On any portrait phone at least 600dp
+tall 40% of the window height reaches 240dp, so the hero there is unchanged.
 
 **Rationale**: In landscape the visible feed is the window height minus the status bar and the header
 (about 264dp on a 360dp-tall phone, about 316dp on a 412dp-tall one). A fixed 240dp hero plus its 16dp gap
-leaves the next shelf's title at or below the fold on small phones. Capping at half the window height (180dp
-and 206dp in those two cases) puts the next section's title on screen without scrolling. That is what US3
+leaves the next shelf's title at or below the fold on small phones. Capping at 40% of the window height (144dp
+and 164dp in those two cases) puts the next section's title on screen without scrolling. That is what US3
 acceptance scenario 1 requires.
 
 The hero crops the game's cover (a portrait image) into a wide banner, and a shorter, wider banner crops
