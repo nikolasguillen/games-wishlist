@@ -1,12 +1,15 @@
 package com.nikolasguillen.questlog.feature.settings.components
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
@@ -23,24 +26,34 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun AccountCard(account: AccountUiModel, modifier: Modifier = Modifier) {
     CustomContentCard(modifier = modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)) {
+        Column {
             account.email?.let { email ->
                 Text(
-                    text = stringResource(Res.string.account_backup_signed_in_as, email),
+                    text = stringResource(Res.string.account_backup_signed_in_as),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = email,
                     style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
+            Row {
+                Text(
+                    text = stringResource(Res.string.account_backup_linked_methods),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = account.linkedProviders.map { it.toLabelUiText().asString() }
+                        .joinToString(separator = ", "),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
-            Text(
-                text = stringResource(Res.string.account_backup_linked_methods),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = account.linkedProviders.map { it.toLabelUiText().asString() }.joinToString(separator = ", "),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
         }
     }
 }
