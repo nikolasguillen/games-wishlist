@@ -8,9 +8,11 @@ import com.nikolasguillen.questlog.core.domain.usecase.RefreshGameDetailUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.SetGameStatusUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.ToggleWishlistUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.UpdateGameUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.account.DeleteAccountUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.account.GetSignInProviderUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.account.ObserveAccountUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.account.SignInUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.account.SignOutUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.BackUpUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.GetBackupInfoUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.HasLocalUserDataUseCase
@@ -71,6 +73,8 @@ val domainModule = module {
     factoryOf(::UpdateGameUseCase)
     factoryOf(::ObserveAccountUseCase)
     factoryOf(::SignInUseCase)
+    factoryOf(::SignOutUseCase)
+    factoryOf(::DeleteAccountUseCase)
     factoryOf(::GetSignInProviderUseCase)
     factoryOf(::GetBackupInfoUseCase)
     factoryOf(::BackUpUseCase)

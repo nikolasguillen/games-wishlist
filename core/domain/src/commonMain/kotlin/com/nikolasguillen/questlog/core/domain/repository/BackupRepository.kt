@@ -27,4 +27,10 @@ interface BackupRepository {
      * [AppResult].
      */
     suspend fun hasLocalUserData(): Boolean
+
+    /**
+     * Deletes the cloud backup: every part first, then the manifest, so the account never keeps a manifest that points
+     * at parts that are gone. Succeeds when there is nothing to delete. The device's data is untouched.
+     */
+    suspend fun deleteBackup(): AppResult<Unit>
 }

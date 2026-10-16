@@ -25,4 +25,20 @@ interface AccountRepository {
      * Fails with `SignInCancelled` when the user closes the sign-in, which is not an error to show.
      */
     suspend fun signIn(): AppResult<Account>
+
+    /** Signs out. The device's data and the cloud backup are untouched. */
+    suspend fun signOut(): AppResult<Unit>
+
+    /**
+     * A fresh sign-in with [signInProvider], which the provider requires before it deletes an account.
+     *
+     * Fails with `SignInCancelled` when the user closes the sign-in.
+     */
+    suspend fun reauthenticate(): AppResult<Unit>
+
+    /**
+     * Deletes the account, revoking Apple's access first where the platform signs in with Apple. Call [reauthenticate]
+     * first; if the provider still asks for a recent sign-in, this asks once more and retries once.
+     */
+    suspend fun deleteAccount(): AppResult<Unit>
 }

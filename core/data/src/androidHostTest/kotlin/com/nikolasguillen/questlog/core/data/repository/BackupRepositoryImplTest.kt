@@ -409,4 +409,48 @@ class BackupRepositoryImplTest {
         assertEquals(1, store.maxInFlightReads)
         assertEquals(2, store.calls.count { it == "readManifest" })
     }
+
+    @Test
+    fun `deleteBackup deletes every part and then the manifest`() = runTest {
+        backUpFirst()
+        store.parts["stale-part"] = BackupPartDocument(snapshotId = "old", stream = "data", index = 0, data = "x")
+        store.calls.clear()
+
+        val result = repository().deleteBackup()
+
+        assertEquals(AppResult.success(Unit), result)
+        assertEquals(listOf("listPartIds", "deleteParts", "deleteManifest"), store.calls)
+        assertTrue(store.parts.isEmpty())
+        assertTrue(store.manifests.isEmpty())
+    }
+
+    @Test
+    fun `a failing part delete stops before the manifest is deleted`() = runTest {
+        backUpFirst()
+        store.failDeleteParts = true
+
+        val result = repository().deleteBackup()
+
+        assertEquals(RepositoryError.NoNetwork, (result as AppResult.Failure).error)
+        assertFalse("deleteManifest" in store.calls)
+        assertEquals(setOf("uid-1"), store.manifests.keys)
+    }
+
+    @Test
+    fun `deleteBackup with no backup still succeeds`() = runTest {
+        val result = repository().deleteBackup()
+
+        assertEquals(AppResult.success(Unit), result)
+        assertEquals(listOf("listPartIds", "deleteManifest"), store.calls)
+    }
+
+    @Test
+    fun `deleteBackup signed out returns not signed in without touching the store`() = runTest {
+        auth.user.value = null
+
+        val result = repository().deleteBackup()
+
+        assertEquals(RepositoryError.NotSignedIn, (result as AppResult.Failure).error)
+        assertTrue(store.calls.isEmpty())
+    }
 }

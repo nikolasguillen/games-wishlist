@@ -176,6 +176,20 @@ internal class BackupRepositoryImpl(
 
     override suspend fun hasLocalUserData(): Boolean = userDataDao.hasUserData()
 
+    // Parts first and the manifest last, the reverse of a backup: a failure part-way leaves a manifest whose parts may be
+    // missing, which a restore reports as unreadable, rather than parts nobody can find. The user can simply delete again.
+    override suspend fun deleteBackup(): AppResult<Unit> = operationLock.withLock {
+        try {
+            val uid = currentUid() ?: return@withLock AppResult.failure(RepositoryError.NotSignedIn)
+            val partIds = cloudBackupStore.listPartIds(uid)
+            if (partIds.isNotEmpty()) cloudBackupStore.deleteParts(uid, partIds)
+            cloudBackupStore.deleteManifest(uid)
+            AppResult.success(Unit)
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
     /** Reads exactly the parts the manifest lists for [stream] and puts them back together, checking the length. */
     private suspend fun downloadStream(uid: String, manifest: BackupManifestDocument, stream: BackupStreamDocument): ByteArray {
         val texts = stream.partIds.map { partId ->
