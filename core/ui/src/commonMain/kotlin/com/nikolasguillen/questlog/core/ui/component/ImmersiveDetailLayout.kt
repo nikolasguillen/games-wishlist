@@ -55,7 +55,6 @@ import org.jetbrains.compose.resources.stringResource
  * @param actions Composable for the TopAppBar actions. It receives the current TopAppBar alpha (0.0 to 1.0).
  * @param content Composable for the main scrollable content (the "sheet").
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImmersiveDetailLayout(
     title: String,
