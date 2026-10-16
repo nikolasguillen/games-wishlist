@@ -1,8 +1,10 @@
 package com.nikolasguillen.questlog.feature.settings
 
+import com.nikolasguillen.questlog.core.domain.usecase.account.DeleteAccountUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.account.GetSignInProviderUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.account.ObserveAccountUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.account.SignInUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.account.SignOutUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.BackUpUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.GetBackupInfoUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.HasLocalUserDataUseCase
@@ -18,6 +20,10 @@ import com.nikolasguillen.questlog.feature.settings.model.AccountBackupUiEffect
 import com.nikolasguillen.questlog.feature.settings.model.AccountBackupUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.BackupStatusUiModel
 import com.nikolasguillen.questlog.feature.settings.model.CloudOperation
+import com.nikolasguillen.questlog.feature.settings.resources.Res
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_account_deleted
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_signed_out
+import com.nikolasguillen.questlog.core.ui.model.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -62,6 +68,8 @@ class AccountBackupViewModelTest {
     private val backUpUseCase = mockk<BackUpUseCase>()
     private val restoreBackupUseCase = mockk<RestoreBackupUseCase>()
     private val hasLocalUserDataUseCase = mockk<HasLocalUserDataUseCase>()
+    private val signOutUseCase = mockk<SignOutUseCase>()
+    private val deleteAccountUseCase = mockk<DeleteAccountUseCase>()
 
     private val signedIn = Account(id = "uid-1", email = "ada@example.com", providers = setOf(AuthProvider.GOOGLE))
     private val info = BackupInfo(createdAt = Instant.fromEpochMilliseconds(1_750_000_000_000L), listCount = 2, gameCount = 5)
@@ -82,7 +90,7 @@ class AccountBackupViewModelTest {
 
     private fun viewModel() = AccountBackupViewModel(
         observeAccountUseCase, signInUseCase, getSignInProviderUseCase, getBackupInfoUseCase, backUpUseCase, restoreBackupUseCase,
-        hasLocalUserDataUseCase
+        hasLocalUserDataUseCase, signOutUseCase, deleteAccountUseCase
     )
 
     private fun kotlinx.coroutines.test.TestScope.collectEffects(viewModel: AccountBackupViewModel): List<AccountBackupUiEffect> {
@@ -445,6 +453,156 @@ class AccountBackupViewModelTest {
         viewModel.onEvent(AccountBackupUiEvent.BackUp)
         advanceUntilIdle()
         coVerify(exactly = 0) { backUpUseCase() }
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.runningOperation)
+    }
+
+    @Test
+    fun `signing out runs the use case and says so`() = runTest(testDispatcher) {
+        coEvery { signOutUseCase() } coAnswers {
+            account.value = null
+            AppResult.success(Unit)
+        }
+        val viewModel = viewModel()
+        val effects = collectEffects(viewModel)
+        account.value = signedIn
+        advanceUntilIdle()
+
+        viewModel.onEvent(AccountBackupUiEvent.SignOut)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { signOutUseCase() }
+        coVerify(exactly = 0) { deleteAccountUseCase() }
+        assertNull(viewModel.uiState.value.account)
+        assertNull(viewModel.uiState.value.runningOperation)
+        assertEquals(
+            listOf<AccountBackupUiEffect>(
+                AccountBackupUiEffect.ShowMessage(UiText.StringResource(Res.string.account_backup_signed_out))
+            ),
+            effects
+        )
+    }
+
+    @Test
+    fun `a failed sign out shows its cause and keeps the account`() = runTest(testDispatcher) {
+        coEvery { signOutUseCase() } returns AppResult.failure(RepositoryError.NoNetwork)
+        val viewModel = viewModel()
+        val effects = collectEffects(viewModel)
+        account.value = signedIn
+        advanceUntilIdle()
+
+        viewModel.onEvent(AccountBackupUiEvent.SignOut)
+        advanceUntilIdle()
+
+        assertNotNull(viewModel.uiState.value.account)
+        assertNull(viewModel.uiState.value.runningOperation)
+        assertEquals(
+            listOf<AccountBackupUiEffect>(AccountBackupUiEffect.ShowMessage(RepositoryError.NoNetwork.toUiText())),
+            effects
+        )
+    }
+
+    @Test
+    fun `delete account asks first and runs nothing`() = runTest(testDispatcher) {
+        val viewModel = viewModel()
+        account.value = signedIn
+        advanceUntilIdle()
+
+        viewModel.onEvent(AccountBackupUiEvent.DeleteAccount)
+        advanceUntilIdle()
+
+        assertEquals(AccountBackupDialog.ConfirmDeleteAccount, viewModel.uiState.value.dialog)
+        assertNull(viewModel.uiState.value.runningOperation)
+        coVerify(exactly = 0) { deleteAccountUseCase() }
+    }
+
+    @Test
+    fun `dismissing the delete dialog leaves the use case uncalled`() = runTest(testDispatcher) {
+        val viewModel = viewModel()
+        account.value = signedIn
+        advanceUntilIdle()
+        viewModel.onEvent(AccountBackupUiEvent.DeleteAccount)
+
+        viewModel.onEvent(AccountBackupUiEvent.DismissDialog)
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.dialog)
+        coVerify(exactly = 0) { deleteAccountUseCase() }
+    }
+
+    @Test
+    fun `confirming the delete runs it, ends signed out and says so`() = runTest(testDispatcher) {
+        coEvery { deleteAccountUseCase() } coAnswers {
+            account.value = null
+            AppResult.success(Unit)
+        }
+        val viewModel = viewModel()
+        val effects = collectEffects(viewModel)
+        account.value = signedIn
+        advanceUntilIdle()
+        viewModel.onEvent(AccountBackupUiEvent.DeleteAccount)
+
+        viewModel.onEvent(AccountBackupUiEvent.ConfirmDeleteAccount)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { deleteAccountUseCase() }
+        assertNull(viewModel.uiState.value.account)
+        assertNull(viewModel.uiState.value.dialog)
+        assertNull(viewModel.uiState.value.runningOperation)
+        assertEquals(
+            listOf<AccountBackupUiEffect>(
+                AccountBackupUiEffect.ShowMessage(UiText.StringResource(Res.string.account_backup_account_deleted))
+            ),
+            effects
+        )
+    }
+
+    @Test
+    fun `a failed delete shows its cause, stays signed in and reads the backup again`() = runTest(testDispatcher) {
+        coEvery { deleteAccountUseCase() } returns AppResult.failure(RepositoryError.NoNetwork)
+        val viewModel = viewModel()
+        val effects = collectEffects(viewModel)
+        account.value = signedIn
+        advanceUntilIdle()
+        viewModel.onEvent(AccountBackupUiEvent.DeleteAccount)
+
+        viewModel.onEvent(AccountBackupUiEvent.ConfirmDeleteAccount)
+        advanceUntilIdle()
+
+        assertNotNull(viewModel.uiState.value.account)
+        assertNull(viewModel.uiState.value.runningOperation)
+        assertEquals(
+            listOf<AccountBackupUiEffect>(AccountBackupUiEffect.ShowMessage(RepositoryError.NoNetwork.toUiText())),
+            effects
+        )
+        // Once when the account appeared, once after the failure: the backup may be gone though the account is not.
+        coVerify(exactly = 2) { getBackupInfoUseCase() }
+    }
+
+    @Test
+    fun `a running delete blocks sign out and the busy flag is cleared after a cancellation`() = runTest(testDispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        coEvery { deleteAccountUseCase() } coAnswers {
+            gate.await()
+            throw CancellationException("scope closed")
+        }
+        coEvery { signOutUseCase() } returns AppResult.success(Unit)
+        val viewModel = viewModel()
+        account.value = signedIn
+        advanceUntilIdle()
+        viewModel.onEvent(AccountBackupUiEvent.DeleteAccount)
+        viewModel.onEvent(AccountBackupUiEvent.ConfirmDeleteAccount)
+        advanceUntilIdle()
+        assertEquals(CloudOperation.DELETE_ACCOUNT, viewModel.uiState.value.runningOperation)
+
+        viewModel.onEvent(AccountBackupUiEvent.SignOut)
+        viewModel.onEvent(AccountBackupUiEvent.DeleteAccount)
+        advanceUntilIdle()
+        coVerify(exactly = 0) { signOutUseCase() }
+        assertNull(viewModel.uiState.value.dialog)
 
         gate.complete(Unit)
         advanceUntilIdle()

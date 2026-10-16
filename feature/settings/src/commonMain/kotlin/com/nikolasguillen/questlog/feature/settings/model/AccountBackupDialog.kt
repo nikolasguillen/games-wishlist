@@ -10,4 +10,7 @@ internal sealed interface AccountBackupDialog {
 
     /** Backing up a device with nothing on it would replace a real backup with an empty one. */
     data object ConfirmEmptyBackup : AccountBackupDialog
+
+    /** Deleting removes the account and its cloud backup for good. The data on the device stays. */
+    data object ConfirmDeleteAccount : AccountBackupDialog
 }

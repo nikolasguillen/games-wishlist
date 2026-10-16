@@ -678,22 +678,22 @@ account cannot read the first's backup (21).
 
 ### Implementation for User Story 4
 
-- [ ] T086 [US4] Add to `AccountRepository`: `suspend fun signOut(): AppResult<Unit>`, `suspend fun reauthenticate():
+- [X] T086 [US4] Add to `AccountRepository`: `suspend fun signOut(): AppResult<Unit>`, `suspend fun reauthenticate():
   AppResult<Unit>` ("a fresh sign-in with Apple when linked, else Google; required before `deleteAccount`") and
   `suspend fun deleteAccount(): AppResult<Unit>` ("revokes Apple's grant, best effort, then deletes the account; call
   `reauthenticate` first"); add `suspend fun deleteBackup(): AppResult<Unit>` to `BackupRepository`. Create
   `usecase/account/SignOutUseCase.kt` and `usecase/account/DeleteAccountUseCase.kt` (the order in research R8, stopping at the
   first failure, KDoc quoting why that order never strands the user) in
   `core/domain/src/commonMain/kotlin/<pkg>/core/domain/`, and register both in `DomainKoin.kt`. T082 passes.
-- [ ] T087 [US4] Implement `signOut`, `reauthenticate` and `deleteAccount` in `AccountRepositoryImpl.kt` (the single retry on
+- [X] T087 [US4] Implement `signOut`, `reauthenticate` and `deleteAccount` in `AccountRepositoryImpl.kt` (the single retry on
   `CloudRecentLoginRequiredException` lives in `deleteAccount`, never above it) and `deleteBackup` in `BackupRepositoryImpl.kt`
   under the shared `Mutex` (`listPartIds` → `deleteParts` → `deleteManifest`). T083 and T084 pass.
-- [ ] T088 [US4] Add `SignOut`, `DeleteAccount`, `ConfirmDeleteAccount` to `AccountBackupUiEvent` and `ConfirmDeleteAccount` to
+- [X] T088 [US4] Add `SignOut`, `DeleteAccount`, `ConfirmDeleteAccount` to `AccountBackupUiEvent` and `ConfirmDeleteAccount` to
   `AccountBackupDialog`; handle them in `AccountBackupViewModel` (T085 passes). Add strings: `account_backup_sign_out`,
   `account_backup_delete_account`, the dialog's title, body (states that the account **and the cloud backup** will be
   permanently deleted, that data on this device is kept, and, because an Apple sign-in will be asked for again, that a fresh
   sign-in is needed first) and confirm label, `account_backup_signed_out` and `account_backup_account_deleted`.
-- [ ] T089 [US4] Add "Sign out" and "Delete account" (the destructive style the design system already has for destructive
+- [X] T089 [US4] Add "Sign out" and "Delete account" (the destructive style the design system already has for destructive
   actions; check `core/ui/component/` first) to the signed-in content, and the `ConfirmDeleteAccount` `CustomAlertDialog` to
   `components/AccountBackupDialogs.kt`; previews for both.
 - [ ] T090 [US4] Checkpoint: the suites from T062 plus quickstart §4 rows 17–19 and 21 (row 21 in the console's Rules Playground).

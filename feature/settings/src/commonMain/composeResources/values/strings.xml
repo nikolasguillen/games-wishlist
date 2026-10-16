@@ -77,4 +77,11 @@
     <string name="account_backup_empty_title">Replace your backup with an empty one?</string>
     <string name="account_backup_empty_message">This device has no lists, saved games or owned platforms. Backing up now would replace your existing backup with an empty one.</string>
     <string name="account_backup_empty_confirm">Back up anyway</string>
+    <string name="account_backup_sign_out">Sign out</string>
+    <string name="account_backup_signed_out">Signed out</string>
+    <string name="account_backup_delete_account">Delete account</string>
+    <string name="account_backup_account_deleted">Account deleted</string>
+    <string name="account_backup_delete_title">Delete your account?</string>
+    <string name="account_backup_delete_message">Your account and its cloud backup will be deleted for good. The lists and games on this device stay. You will be asked to sign in again first, to confirm it is you.</string>
+    <string name="account_backup_delete_confirm">Delete account</string>
 </resources>

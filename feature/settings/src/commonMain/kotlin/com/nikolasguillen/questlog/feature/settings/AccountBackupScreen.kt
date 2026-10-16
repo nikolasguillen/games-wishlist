@@ -35,6 +35,7 @@ import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.model.AuthProvider
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.core.ui.resources.back_content_description
+import com.nikolasguillen.questlog.feature.settings.components.AccountActions
 import com.nikolasguillen.questlog.feature.settings.components.AccountBackupDialogs
 import com.nikolasguillen.questlog.feature.settings.components.AccountCard
 import com.nikolasguillen.questlog.feature.settings.components.BackupCard
@@ -144,6 +145,11 @@ internal fun AccountBackupContent(
                     onRestoreClick = { onEvent(AccountBackupUiEvent.Restore) },
                     onRetryClick = { onEvent(AccountBackupUiEvent.Retry) }
                 )
+                AccountActions(
+                    runningOperation = state.runningOperation,
+                    onSignOutClick = { onEvent(AccountBackupUiEvent.SignOut) },
+                    onDeleteAccountClick = { onEvent(AccountBackupUiEvent.DeleteAccount) }
+                )
             }
         }
     }
@@ -155,6 +161,7 @@ internal fun AccountBackupContent(
                 when (dialog) {
                     AccountBackupDialog.ConfirmEmptyBackup -> onEvent(AccountBackupUiEvent.ConfirmEmptyBackup)
                     AccountBackupDialog.ConfirmRestore -> onEvent(AccountBackupUiEvent.ConfirmRestore)
+                    AccountBackupDialog.ConfirmDeleteAccount -> onEvent(AccountBackupUiEvent.ConfirmDeleteAccount)
                 }
             },
             onDismiss = { onEvent(AccountBackupUiEvent.DismissDialog) }
@@ -290,6 +297,23 @@ private fun AccountBackupEmptyDialogPreview() {
                 account = AccountUiModel("ada@example.com", listOf(AuthProvider.GOOGLE)),
                 backup = BackupStatusUiModel.None,
                 dialog = AccountBackupDialog.ConfirmEmptyBackup
+            ),
+            onEvent = {},
+            onBackClick = {},
+            snackbarHostState = remember { SnackbarHostState() }
+        )
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun AccountBackupDeleteDialogPreview() {
+    QuestLogTheme {
+        AccountBackupContent(
+            state = AccountBackupUiState(
+                account = AccountUiModel("ada@example.com", listOf(AuthProvider.GOOGLE)),
+                backup = BackupStatusUiModel.None,
+                dialog = AccountBackupDialog.ConfirmDeleteAccount
             ),
             onEvent = {},
             onBackClick = {},

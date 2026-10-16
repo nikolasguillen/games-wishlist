@@ -2,9 +2,11 @@ package com.nikolasguillen.questlog.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nikolasguillen.questlog.core.domain.usecase.account.DeleteAccountUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.account.GetSignInProviderUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.account.ObserveAccountUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.account.SignInUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.account.SignOutUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.BackUpUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.GetBackupInfoUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.backup.HasLocalUserDataUseCase
@@ -22,8 +24,10 @@ import com.nikolasguillen.questlog.feature.settings.model.AccountBackupUiState
 import com.nikolasguillen.questlog.feature.settings.model.BackupStatusUiModel
 import com.nikolasguillen.questlog.feature.settings.model.CloudOperation
 import com.nikolasguillen.questlog.feature.settings.resources.Res
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_account_deleted
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_backup_complete
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_restore_complete
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_signed_out
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,7 +43,9 @@ class AccountBackupViewModel(
     private val getBackupInfoUseCase: GetBackupInfoUseCase,
     private val backUpUseCase: BackUpUseCase,
     private val restoreBackupUseCase: RestoreBackupUseCase,
-    private val hasLocalUserDataUseCase: HasLocalUserDataUseCase
+    private val hasLocalUserDataUseCase: HasLocalUserDataUseCase,
+    private val signOutUseCase: SignOutUseCase,
+    private val deleteAccountUseCase: DeleteAccountUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AccountBackupUiState(signInProvider = getSignInProviderUseCase()))
@@ -69,6 +75,18 @@ class AccountBackupViewModel(
             AccountBackupUiEvent.ConfirmRestore -> {
                 _uiState.update { it.copy(dialog = null) }
                 launchOperation(CloudOperation.RESTORE) { performRestore() }
+            }
+
+            AccountBackupUiEvent.SignOut -> signOut()
+            AccountBackupUiEvent.DeleteAccount -> {
+                if (_uiState.value.runningOperation == null) {
+                    _uiState.update { it.copy(dialog = AccountBackupDialog.ConfirmDeleteAccount) }
+                }
+            }
+
+            AccountBackupUiEvent.ConfirmDeleteAccount -> {
+                _uiState.update { it.copy(dialog = null) }
+                launchOperation(CloudOperation.DELETE_ACCOUNT) { performDeleteAccount() }
             }
 
             AccountBackupUiEvent.DismissDialog -> _uiState.update { it.copy(dialog = null) }
@@ -137,6 +155,34 @@ class AccountBackupViewModel(
                 _uiState.update { it.copy(dialog = AccountBackupDialog.ConfirmRestore) }
             } else {
                 performRestore()
+            }
+        }
+    }
+
+    private fun signOut() {
+        launchOperation(CloudOperation.SIGN_OUT) {
+            when (val result = signOutUseCase()) {
+                is AppResult.Success -> _uiEffect.send(
+                    AccountBackupUiEffect.ShowMessage(UiText.StringResource(Res.string.account_backup_signed_out))
+                )
+
+                is AppResult.Failure -> showFailure(result.error)
+            }
+        }
+    }
+
+    // The use case signs in again, deletes the backup and then the account. A failure on the way leaves the user signed
+    // in with the screen usable, and the backup card shows what is left.
+    private suspend fun performDeleteAccount() {
+        when (val result = deleteAccountUseCase()) {
+            is AppResult.Success -> _uiEffect.send(
+                AccountBackupUiEffect.ShowMessage(UiText.StringResource(Res.string.account_backup_account_deleted))
+            )
+
+            is AppResult.Failure -> {
+                showFailure(result.error)
+                // The backup may be gone even though the account is not: read what is there now.
+                loadBackupInfo()
             }
         }
     }

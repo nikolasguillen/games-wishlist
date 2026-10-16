@@ -7,6 +7,9 @@ import com.nikolasguillen.questlog.core.ui.component.CustomAlertDialog
 import com.nikolasguillen.questlog.core.ui.resources.cancel
 import com.nikolasguillen.questlog.feature.settings.model.AccountBackupDialog
 import com.nikolasguillen.questlog.feature.settings.resources.Res
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_delete_confirm
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_delete_message
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_delete_title
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_empty_confirm
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_empty_message
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_empty_title
@@ -41,6 +44,15 @@ internal fun AccountBackupDialogs(
             dismissButtonText = stringResource(CoreUiRes.string.cancel),
             onDismiss = onDismiss
         )
+
+        AccountBackupDialog.ConfirmDeleteAccount -> CustomAlertDialog(
+            title = stringResource(Res.string.account_backup_delete_title),
+            message = stringResource(Res.string.account_backup_delete_message),
+            confirmButtonText = stringResource(Res.string.account_backup_delete_confirm),
+            onConfirm = onConfirm,
+            dismissButtonText = stringResource(CoreUiRes.string.cancel),
+            onDismiss = onDismiss
+        )
     }
 }
 
@@ -62,6 +74,18 @@ private fun ConfirmEmptyBackupDialogPreview() {
     QuestLogTheme {
         AccountBackupDialogs(
             dialog = AccountBackupDialog.ConfirmEmptyBackup,
+            onConfirm = {},
+            onDismiss = {}
+        )
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun ConfirmDeleteAccountDialogPreview() {
+    QuestLogTheme {
+        AccountBackupDialogs(
+            dialog = AccountBackupDialog.ConfirmDeleteAccount,
             onConfirm = {},
             onDismiss = {}
         )
