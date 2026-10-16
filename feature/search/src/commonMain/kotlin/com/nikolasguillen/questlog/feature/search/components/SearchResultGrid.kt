@@ -1,13 +1,13 @@
 package com.nikolasguillen.questlog.feature.search.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
@@ -31,6 +32,7 @@ import com.nikolasguillen.questlog.core.ui.component.gamecard.VerticalGameCard
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.core.ui.resources.choose_list_content_description
+import com.nikolasguillen.questlog.core.ui.util.isLandscapeWindow
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.resources.Res
 import com.nikolasguillen.questlog.feature.search.resources.remove_filter_content_description
@@ -71,38 +73,49 @@ internal fun SearchResultGrid(
             )
         }
     } else {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            state = state,
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large),
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large),
-            contentPadding = PaddingValues(bottom = ScrollToTopFabDefaults.ContentBottomPadding),
-            modifier = modifier.fillMaxSize()
-        ) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                filtersHeader()
-            }
+        // The grid's own width, which is the screen minus the rail and the insets, decides the columns: the window's
+        // width would count the rail's space too.
+        BoxWithConstraints(modifier = modifier) {
+            val edge = MaterialTheme.spacing.large
+            val columnCount = resultGridColumnCount(
+                availableWidth = maxWidth,
+                spacing = MaterialTheme.spacing.large,
+                edge = edge,
+                isLandscape = isLandscapeWindow()
+            )
 
-            itemsIndexed(
-                items = games,
-                key = { _, game -> game.id }
-            ) { index, game ->
-                val isLeftColumn = index % 2 == 0
-                val isRightColumn = index % 2 == 1
+            LazyVerticalGrid(
+                columns = SearchResultGridCells(columnCount, edge),
+                state = state,
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large),
+                contentPadding = PaddingValues(bottom = ScrollToTopFabDefaults.ContentBottomPadding),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    filtersHeader()
+                }
 
-                VerticalGameCard(
-                    game = game,
-                    onClick = { onGameClick(game.id) },
-                    onLongClickLabel = chooseListLabel,
-                    onSaveClick = { onSaveClick(game.id) },
-                    onLongClick = { onLongClick(game.id) },
-                    modifier = Modifier
-                        .animateItem(fadeOutSpec = null)
-                        .padding(
-                            start = if (isLeftColumn) MaterialTheme.spacing.large else 0.dp,
-                            end = if (isRightColumn) MaterialTheme.spacing.large else 0.dp
-                        )
-                )
+                itemsIndexed(
+                    items = games,
+                    key = { _, game -> game.id }
+                ) { index, game ->
+                    val column = index % columnCount
+
+                    VerticalGameCard(
+                        game = game,
+                        onClick = { onGameClick(game.id) },
+                        onLongClickLabel = chooseListLabel,
+                        onSaveClick = { onSaveClick(game.id) },
+                        onLongClick = { onLongClick(game.id) },
+                        modifier = Modifier
+                            .animateItem(fadeOutSpec = null)
+                            .padding(
+                                start = if (column == 0) edge else 0.dp,
+                                end = if (column == columnCount - 1) edge else 0.dp
+                            )
+                    )
+                }
             }
         }
     }
@@ -154,6 +167,25 @@ private fun SearchResultGridPreview() {
                 GameItemUiModel.getDummy().copy(id = 3, name = "Elden Ring"),
                 GameItemUiModel.getDummy().copy(id = 4, name = "Baldur's Gate 3")
             ),
+            activeFilters = previewFilters,
+            onFilterClick = {},
+            onGameClick = {},
+            onSaveClick = {},
+            onLongClick = {},
+            onClearFiltersClick = {},
+            state = rememberLazyGridState()
+        )
+    }
+}
+
+@Preview(widthDp = 800, heightDp = 360)
+@Composable
+private fun SearchResultGridLandscapePreview() {
+    QuestLogTheme {
+        SearchResultGrid(
+            games = List(9) { index ->
+                GameItemUiModel.getDummy().copy(id = index + 1, name = "Game ${index + 1}")
+            },
             activeFilters = previewFilters,
             onFilterClick = {},
             onGameClick = {},
