@@ -3,13 +3,12 @@ package com.nikolasguillen.questlog.core.ui.component.gamecard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -33,19 +32,27 @@ import com.nikolasguillen.questlog.core.ui.resources.remove
 import com.nikolasguillen.questlog.core.ui.util.modifiers.fadingEdge
 import org.jetbrains.compose.resources.stringResource
 
+/** The size [RecentGameCard] has unless the caller gives it another one. */
+object RecentGameCardDefaults {
+    val Width = 120.dp
+    val Height = 150.dp
+}
+
+/**
+ * A recently viewed game: its cover under a dark scrim with the name and year, and a button to remove it.
+ *
+ * The card takes its size from [modifier], so a row can keep the default and a grid can let each cell decide. The
+ * cover is as tall as the card.
+ */
 @Composable
 fun RecentGameCard(
     game: GameItemUiModel,
     onClick: () -> Unit,
     onRemoveClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier.size(RecentGameCardDefaults.Width, RecentGameCardDefaults.Height)
 ) {
-    val cardHeight = 150.dp
-    Box(
-        modifier = modifier
-            .width(120.dp)
-            .height(cardHeight)
-    ) {
+    BoxWithConstraints(modifier = modifier) {
+        val cardHeight = maxHeight
         GenericGameCardLayout(
             shape = MaterialTheme.shapes.small,
             onClick = onClick,

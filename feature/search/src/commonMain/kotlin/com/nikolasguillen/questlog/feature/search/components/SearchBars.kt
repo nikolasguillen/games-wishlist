@@ -1,23 +1,15 @@
 package com.nikolasguillen.questlog.feature.search.components
 
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldState
@@ -26,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.History
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -39,8 +30,6 @@ import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarScrollBehavior
 import androidx.compose.material3.SearchBarState
 import androidx.compose.material3.SearchBarValue
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.contentColorFor
@@ -49,7 +38,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -60,7 +48,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
@@ -68,10 +55,7 @@ import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.CustomAlertDialog
-import com.nikolasguillen.questlog.core.ui.component.CustomChipRow
-import com.nikolasguillen.questlog.core.ui.component.CustomTextButton
 import com.nikolasguillen.questlog.core.ui.component.MainScreenHeader
-import com.nikolasguillen.questlog.core.ui.component.gamecard.RecentGameCard
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.core.ui.resources.cancel
@@ -89,13 +73,9 @@ import com.nikolasguillen.questlog.feature.search.model.SearchUiEvent
 import com.nikolasguillen.questlog.feature.search.model.SearchUiState
 import com.nikolasguillen.questlog.feature.search.resources.Res
 import com.nikolasguillen.questlog.feature.search.resources.back_to_discover_content_description
-import com.nikolasguillen.questlog.feature.search.resources.clear_all
 import com.nikolasguillen.questlog.feature.search.resources.clear_history_message
 import com.nikolasguillen.questlog.feature.search.resources.clear_history_title
 import com.nikolasguillen.questlog.feature.search.resources.clear_search_content_description
-import com.nikolasguillen.questlog.feature.search.resources.expanded_search_initial_message
-import com.nikolasguillen.questlog.feature.search.resources.recent_searches
-import com.nikolasguillen.questlog.feature.search.resources.recently_viewed
 import com.nikolasguillen.questlog.feature.search.resources.remove_history_item
 import com.nikolasguillen.questlog.feature.search.resources.remove_history_item_message
 import com.nikolasguillen.questlog.feature.search.resources.search_content_description
@@ -400,39 +380,16 @@ internal fun ExpandedSearchBar(
 
             browseGenres.isEmpty() && history.isEmpty -> InitialMessage()
 
-            else -> Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(vertical = MaterialTheme.spacing.medium),
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.large)
-            ) {
-                // Above the history, and also when there is none: a first-time user has nothing to
-                // revisit, which is exactly when a way into the catalogue is most useful.
-                if (browseGenres.isNotEmpty()) {
-                    GenreBrowseSection(
-                        genres = browseGenres,
-                        onGenreClick = onBrowseGenre
-                    )
-                }
-                if (history.isEmpty) {
-                    InitialMessage()
-                }
-                if (history.queries.isNotEmpty()) {
-                    RecentSearchesSection(
-                        recentSearches = history.queries,
-                        onClearRecentSearches = { showClearHistoryDialog = true },
-                        onHistoryItemClicked = onCommitSearch,
-                        onShowRemovalDialog = { queryToRemove = it }
-                    )
-                }
-                if (history.games.isNotEmpty()) {
-                    RecentGamesSection(
-                        recentGames = history.games,
-                        onGameClick = onGameClick,
-                        onRemoveClick = onRemoveRecentGame
-                    )
-                }
-            }
+            else -> ExpandedSearchHome(
+                history = history,
+                browseGenres = browseGenres,
+                onBrowseGenre = onBrowseGenre,
+                onCommitSearch = onCommitSearch,
+                onGameClick = onGameClick,
+                onRemoveRecentGame = onRemoveRecentGame,
+                onClearRecentSearches = { showClearHistoryDialog = true },
+                onShowRemovalDialog = { queryToRemove = it }
+            )
         }
 
         queryToRemove?.let { query ->
@@ -466,19 +423,6 @@ internal fun ExpandedSearchBar(
             )
         }
     }
-}
-
-@Composable
-private fun InitialMessage() {
-    Text(
-        text = stringResource(Res.string.expanded_search_initial_message),
-        style = MaterialTheme.typography.labelLarge,
-        textAlign = TextAlign.Center,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier
-            .padding(MaterialTheme.spacing.large)
-            .fillMaxWidth()
-    )
 }
 
 @Composable
@@ -538,102 +482,6 @@ private fun SuggestionsSection(
                 onClick = onCommitSearch,
                 modifier = Modifier.fillMaxWidth()
             )
-        }
-    }
-}
-
-@Composable
-private fun RecentSearchesSection(
-    recentSearches: List<String>,
-    onClearRecentSearches: () -> Unit,
-    onHistoryItemClicked: (String) -> Unit,
-    onShowRemovalDialog: (String) -> Unit
-) {
-    Column {
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = MaterialTheme.spacing.large)
-        ) {
-            Text(
-                text = stringResource(Res.string.recent_searches),
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            CustomTextButton(
-                onClick = onClearRecentSearches,
-            ) {
-                Text(stringResource(Res.string.clear_all))
-            }
-        }
-        // A tap runs the search and a long press asks to remove it: neither leaves a chip to bring into view.
-        CustomChipRow(
-            items = recentSearches,
-            key = { it.hashCode() }
-        ) { recentSearch, _ ->
-            val inputChipInteractionSource = remember { MutableInteractionSource() }
-            Box {
-                SuggestionChip(
-                    onClick = { onHistoryItemClicked(recentSearch) },
-                    label = {
-                        Text(
-                            text = recentSearch,
-                            maxLines = 1
-                        )
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Outlined.History,
-                            contentDescription = null
-                        )
-                    },
-                    contentPadding = PaddingValues(all = MaterialTheme.spacing.small),
-                    interactionSource = inputChipInteractionSource,
-                    colors = SuggestionChipDefaults.suggestionChipColors(
-                        iconContentColor = MaterialTheme.colorScheme.primary
-                    )
-                )
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .combinedClickable(
-                            onLongClick = { onShowRemovalDialog(recentSearch) },
-                            onClick = { onHistoryItemClicked(recentSearch) },
-                            interactionSource = inputChipInteractionSource,
-                            indication = null
-                        )
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun RecentGamesSection(
-    recentGames: List<GameItemUiModel>,
-    onGameClick: (Int) -> Unit,
-    onRemoveClick: (Int) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)) {
-        Text(
-            text = stringResource(Res.string.recently_viewed),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
-        )
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
-            contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large)
-        ) {
-            items(items = recentGames, key = { it.id }) { game ->
-                RecentGameCard(
-                    game = game,
-                    onClick = { onGameClick(game.id) },
-                    onRemoveClick = { onRemoveClick(game.id) }
-                )
-            }
         }
     }
 }
