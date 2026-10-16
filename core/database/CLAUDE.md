@@ -67,6 +67,13 @@ is how the comma-joined `artworks`/`engines` columns happened in the first place
 - **When persisting a game, always go through `GameDao.saveGame`** so platforms, genres, companies and
   cross-refs are written in one transaction.
 - Naming: `getX()` for one-shot, `observeX()` for the Flow variant when a suspend twin exists.
+- **`UserDataDao` is an `abstract class` on purpose, the one DAO that is.** A restore has to write every game through
+  `GameDao.saveGame` inside the same transaction as clearing the user's data, and an interface cannot call another
+  DAO. It takes the database as its only constructor parameter, and a nested `@Transaction` joins the outer one (a
+  failure part-way rolls the clears back). Do not copy the pattern for a DAO that does not need it.
+  `replaceUserData` clears and rewrites the lists, memberships, default pointer, owned platforms and the
+  status/priority/notes on games; it does **not** touch search history, `lastViewedAt`, translations, the Discover
+  caches or release reminders, which are not the user's data.
 
 ## Other module facts
 

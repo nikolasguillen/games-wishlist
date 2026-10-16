@@ -9,6 +9,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
@@ -17,8 +19,8 @@ import com.nikolasguillen.questlog.core.designsystem.theme.spacing
  * A full-width button that starts one provider's sign-in. The label is the provider's own wording ("Continue with
  * Google", "Sign in with Apple"), passed in so the button holds no text of its own.
  *
- * While [loading] the label gives way to a spinner. [enabled] is false while any cloud action runs, so a second tap
- * cannot start a second one.
+ * While [loading] the label gives way to a spinner, and the label stays as the button's description so a screen reader
+ * still names it. [enabled] is false while any cloud action runs, so a second tap cannot start a second one.
  */
 @Composable
 internal fun ProviderSignInButton(
@@ -34,6 +36,7 @@ internal fun ProviderSignInButton(
         modifier = modifier
             .fillMaxWidth()
             .minimumInteractiveComponentSize()
+            .semantics { contentDescription = label }
     ) {
         if (loading) {
             CircularProgressIndicator(

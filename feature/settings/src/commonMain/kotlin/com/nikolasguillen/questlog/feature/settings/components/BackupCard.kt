@@ -11,6 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
@@ -83,12 +85,14 @@ internal fun BackupCard(
             )
             // There is nothing to restore until a backup exists, and it is read from the server, so an unreachable one
             // cannot be restored either.
+            val restoreLabel = stringResource(Res.string.account_backup_restore)
             OutlinedButton(
                 onClick = onRestoreClick,
                 enabled = runningOperation == null && backup is BackupStatusUiModel.Available,
                 modifier = Modifier
                     .fillMaxWidth()
                     .minimumInteractiveComponentSize()
+                    .semantics { contentDescription = restoreLabel }
             ) {
                 if (runningOperation == CloudOperation.RESTORE) {
                     CircularProgressIndicator(
@@ -96,7 +100,7 @@ internal fun BackupCard(
                         strokeWidth = MaterialTheme.spacing.extraSmall
                     )
                 } else {
-                    Text(text = stringResource(Res.string.account_backup_restore))
+                    Text(text = restoreLabel)
                 }
             }
         }

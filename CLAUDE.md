@@ -61,13 +61,13 @@ Gradle skips them, and the `ios*` tasks and `xcodebuild` are Mac-only.
 
 ## Module graph and dependency rules
 
-19 modules (plus `build-logic/` and the `iosApp/` Xcode project), all under the `com.nikolasguillen.questlog.*` namespace. Sources live in `src/commonMain/kotlin/` and `src/androidMain/kotlin/` (`:core:ai` and `:androidApp` keep `src/main/java/`).
+20 modules (plus `build-logic/` and the `iosApp/` Xcode project), all under the `com.nikolasguillen.questlog.*` namespace. Sources live in `src/commonMain/kotlin/` and `src/androidMain/kotlin/` (`:core:ai` and `:androidApp` keep `src/main/java/`).
 
 ```
 :androidApp  →  :shared  →  everything except :core:ai
 :androidApp  →  :core:domain   (QuestLogApp schedules the periodic release refresh)
 :feature:{search, radar, game-detail, lists, wishlist, settings, onboarding}
-:core:{common, model, network, database, data, domain, ui, designsystem, navigation, ai}
+:core:{common, model, network, database, cloud, data, domain, ui, designsystem, navigation, ai}
 ```
 
 These boundaries are load-bearing — check them before adding a dependency:
@@ -79,6 +79,10 @@ These boundaries are load-bearing — check them before adding a dependency:
 - **`feature/*` depends only on** `:core:common`, `:core:model`, `:core:domain`, `:core:ui`,
   `:core:navigation`, `:core:designsystem`. **Never** on `:core:data`, `:core:network`, `:core:database`,
   or `:core:ai`.
+- **`:core:cloud` is reachable only from `:core:data` and `:shared`.** It owns Firebase Auth and Firestore (through
+  GitLive's multiplatform SDK) and the sign-in providers. No `dev.gitlive`, `com.google.firebase` or
+  `androidx.credentials` import outside it, and its errors are its own `Cloud*Exception` types, which `:core:data`
+  maps.
 - **`:core:ai` is reachable only from `:core:data`.** It wraps ML Kit's on-device GenAI client
   (`GeminiNanoClient`) and depends on nothing but that SDK and coroutines — not even `:core:model`.
   The KMP migration leaves it Android-only, since ML Kit GenAI has no multiplatform counterpart; see
@@ -102,7 +106,8 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
 `core/network/IgdbApiService.kt`.
 
 `GameRepository` (the interface) lives in `core/domain/repository/`; the single implementation lives in
-`core/data/`. Use cases are plain classes with `operator fun invoke(...)` — there is no base `UseCase` type.
+`core/data/`. `AccountRepository` and `BackupRepository` are the owner-approved second and third repositories, for
+the cloud account and the cloud backup; they share no data with the game repository. Use cases are plain classes with `operator fun invoke(...)` — there is no base `UseCase` type.
 
 ## Non-negotiable rules
 
@@ -154,6 +159,7 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
 | Splash screen, edge-to-edge, deep link parsing | `androidApp/.../MainActivity.kt` |
 | iOS entry points (`startQuestLog`, `runAppRefreshTask`, `MainViewController`) and the Xcode project that hosts them | `shared/src/iosMain/.../QuestLogIos.kt`, `.../MainViewController.kt`, `iosApp/` |
 | Swift services that Kotlin calls (FoundationModels and BackgroundTasks are Swift-only), passed in through `startQuestLog` from the app delegate | `iosApp/iosApp/` (`FoundationModelsBridge`, `ReleaseRefreshTask`, `AppDelegate`) |
+| Firebase config (`google-services.json`, `GoogleService-Info.plist`, both git-ignored) and the Firestore rules | `androidApp/`, `iosApp/iosApp/`, `firebase/firestore.rules` |
 | Shared UI constants | `core/ui/util/Constants.kt` (`object UiConstants`) |
 | Network↔domain↔entity mappers | `core/data/mapper/GameMapper.kt` |
 | `GameDescriptionTranslator` | `core/domain/translation/` (impl in `core/data/translation/`) |
@@ -161,7 +167,7 @@ Concrete chain for search: `feature/search/SearchViewModel.kt` →
 ## Directory-specific instructions
 
 Additional `CLAUDE.md` files are loaded automatically when you work inside these directories:
-`feature/`, `core/data/`, `core/network/`, `core/database/`, `core/ui/`, `core/designsystem/`.
+`feature/`, `core/data/`, `core/network/`, `core/database/`, `core/cloud/`, `core/ui/`, `core/designsystem/`.
 Read them before changing code in those modules.
 
 **These files are instructions, not a changelog.** When a change deletes the thing a rule was about,

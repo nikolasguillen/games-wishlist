@@ -28,7 +28,9 @@ FoundationModels and BackgroundTasks cannot be imported from Kotlin/Native.
 `GameRepositoryImpl` implements `GameRepository` (the interface lives in `core/domain/repository/`) and is
 registered as a `singleOf` bound to the interface in `di/DataKoin.kt` (`commonMain`). There is one repository for search, history, detail,
 wishlist, lists, the Discover shelves, the platform catalogue and Radar's release dates — do not add a
-second one without discussing it.
+second one for that without discussing it. `AccountRepositoryImpl` and `BackupRepositoryImpl` are the two
+owner-approved additions: the cloud account and the cloud backup, over `:core:cloud`. They share no data with
+`GameRepositoryImpl` and are bound the same way in `di/DataKoin.kt`.
 
 ## AppResult
 
@@ -70,6 +72,28 @@ look like mistakes but are deliberate:
 Mapped cases on Android: `UnknownHostException` / `ConnectException` / `SocketException` → `NoNetwork`,
 `SocketTimeoutException` → `RequestTimeout`, `IgdbHttpException` → `Http(code, message)`, everything else
 → `Unknown(cause)`.
+
+The `Cloud*Exception` types from `:core:cloud` map to `NoNetwork`, `RequestTimeout`, `NotSignedIn`,
+`SignInCancelled`, `AccountExistsWithOtherMethod` and `MethodLinkedToOtherAccount`, and `BackupUnreadableException`
+(a stream that cannot be put back together) maps to `BackupUnreadable`. `CloudRecentLoginRequiredException` is
+never mapped: `AccountRepositoryImpl.deleteAccount` answers it with one more sign-in and one retry, and a second
+refusal becomes `NotSignedIn`. A new `Cloud*` branch goes **above** the catch-all.
+
+## Backup
+
+`BackupRepositoryImpl` turns `UserDataDao`'s rows into a `BackupSnapshot` (JSON, in `backup/model/`, mapped by
+`mapper/BackupMapper.kt`) plus one stream per list cover, and cuts each stream into base64 parts of at most
+`PART_MAX_CHARS`, at most `MAX_BACKUP_PARTS` in all. The order is what makes it safe:
+
+- **A backup writes every part first and the manifest last.** The manifest is the commit point: until it is written the
+  previous manifest still points at the previous, untouched parts. Stale parts are swept afterwards, best effort.
+- **A restore downloads and checks everything before it changes anything**, then replaces the device's data in one
+  Room transaction (`UserDataDao.replaceUserData`). Cover files it imported are deleted on any exit before that
+  commits, a cancellation included.
+- **Deleting reverses the backup**: parts first, then the manifest.
+- One `Mutex` keeps backing up, restoring and deleting from overlapping. Keep a single instance of the repository.
+- **Changing `BACKUP_FORMAT_VERSION` is a compatibility decision.** An older app refuses a newer backup with
+  `BackupFromNewerVersion`; a field added with a default needs no bump, since the JSON ignores unknown keys.
 
 ## Mappers
 

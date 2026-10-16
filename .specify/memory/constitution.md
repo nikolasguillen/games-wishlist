@@ -4,12 +4,14 @@
 
 ### I. Module Boundaries Are Load-Bearing (NON-NEGOTIABLE)
 
-The project is 19 modules under `com.nikolasguillen.questlog.*`, and the dependency graph between
+The project is 20 modules under `com.nikolasguillen.questlog.*`, and the dependency graph between
 them is a design decision, not an accident of history.
 
 - `feature/*` MUST depend only on `:core:common`, `:core:model`, `:core:domain`, `:core:ui`,
   `:core:navigation` and `:core:designsystem`. A feature module MUST NEVER depend on `:core:data`,
-  `:core:network`, `:core:database` or `:core:ai`.
+  `:core:network`, `:core:database`, `:core:cloud` or `:core:ai`.
+- `:core:cloud` MUST be reachable only from `:core:data` and `:shared`. It owns Firebase Auth and Firestore and the
+  sign-in providers, and no Firebase, GitLive or Credential Manager import appears outside it.
 - `:core:ai` MUST be reachable only from `:core:data`. It wraps ML Kit's on-device GenAI client and
   depends on nothing beyond that SDK and coroutines.
 - `:core:model` MUST stay free of Android and Compose dependencies. It is the most KMP-ready module
@@ -82,8 +84,9 @@ The shared layer already covers most of what a new screen needs. Check it before
   `MaterialTheme.isDarkTheme` rather than re-deriving light/dark (no `isSystemInDarkTheme()` calls in
   components).
 - Shared UI constants belong in `UiConstants`, not inline in a composable.
-- There is exactly one `GameRepository` implementation. Adding a second repository requires the
-  owner's agreement.
+- There is exactly one `GameRepository` implementation. `AccountRepository` and `BackupRepository` are the
+  owner-approved second and third repositories, for the cloud account and backup. Adding another repository requires
+  the owner's agreement.
 
 **Rationale**: Duplicated components drift apart visually and each copy has to be fixed separately.
 The inventory exists precisely so it does not have to be rediscovered.
@@ -119,7 +122,8 @@ the real commands makes the verification step actionable.
 
 **Platform**: Kotlin 2.4.20, AGP 9.4.1, Gradle 9.7.1 (JVM toolchain 21), compileSdk/targetSdk 37,
 minSdk 29, Java 11, Compose Multiplatform 1.12.1 (Material 3 1.5.0-beta01 on Android), Koin 4.2.2, Room 2.8.5 (KSP, bundled SQLite driver), Ktor 3 + kotlinx.serialization,
-Navigation 3, Coil 3, WorkManager (Android), and an iOS 16+ target built with Xcode. Build configuration is shared through the convention plugins in
+Navigation 3, Coil 3, WorkManager (Android), GitLive's Firebase SDK 2.7.0 (Auth and Firestore; Credential Manager on
+Android, Sign in with Apple on iOS, with the iOS Firebase SDK pinned to 11.x), and an iOS 16+ target built with Xcode. Build configuration is shared through the convention plugins in
 `build-logic/`: a module applies the one that matches its kind and takes its namespace, `compileSdk`,
 `minSdk` and Java version from it. `:core:ai` keeps a hand-written build file because it is Android-only.
 Register a new module in `settings.gradle.kts`.
@@ -198,4 +202,4 @@ Amendments require the owner's approval and are made in the same commit as the c
 them. Versioning follows semantic versioning: MAJOR for a removed or redefined principle, MINOR for
 a new or materially expanded principle or section, PATCH for clarifications and wording.
 
-**Version**: 1.3.4 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-12
+**Version**: 1.3.5 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-16

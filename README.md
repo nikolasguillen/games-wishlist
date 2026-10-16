@@ -86,13 +86,20 @@ contracts shared code defines.
    IGDB_CLIENT_ID=your_client_id
    IGDB_CLIENT_SECRET=your_client_secret
    ```
-3. Sync the project with Gradle and run the app on an emulator or physical device.
+3. Add the Firebase configuration for the cloud backup: in the Firebase console open Project settings → Your apps and
+   download `google-services.json` into `androidApp/`. Both config files are git-ignored, so a fresh clone does not
+   build the Android app until this file is in place. The one-off console setup (sign-in providers, the Firestore
+   rules in `firebase/firestore.rules`, the debug SHA-1 and SHA-256) is in
+   `specs/016-cloud-backup-restore/quickstart.md`, under "Prerequisites".
+4. Sync the project with Gradle and run the app on an emulator or physical device.
 
 ### Run on iOS
 
 Needs macOS with Xcode. iOS runs without release reminders and on-device translation for now (see `docs/roadmap.md`).
 
 1. Put the IGDB credentials in `local.properties` as above; the Gradle build bakes them into the framework.
+   Download `GoogleService-Info.plist` from the same Firebase console page into `iosApp/iosApp/` (git-ignored);
+   without it the app cannot reach Firebase, so the cloud backup does not work.
 2. Open `iosApp/iosApp.xcodeproj` in Xcode, pick an iPhone simulator and run. The "Compile Kotlin Framework" build
    phase builds the shared module with Gradle, so the first build takes a few minutes.
 3. From a terminal: `xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' build`.

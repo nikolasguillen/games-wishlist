@@ -165,6 +165,9 @@ interface NetworkStatusProvider { val isUnmeteredNetworkAvailable: Boolean }
 interface WishlistCoverImageStorage {
     suspend fun persist(source: String): String?   // absolute path of the stored, downscaled image
     suspend fun delete(path: String)
+    suspend fun read(path: String): ByteArray?     // the stored bytes, or null if the file is gone or outside the covers directory
+    suspend fun import(bytes: ByteArray): String?  // writes already-downscaled bytes (a restored cover) to a new file; no re-encode
+    suspend fun deleteAllExcept(paths: Set<String>) // sweeps covers directory files that no list references
 }
 ```
 
@@ -251,6 +254,17 @@ internal expect fun renderLocalDate(date: LocalDate, style: DateStyle): String
 `DateUtils`'s public functions keep their names and parameters. Only the style parameter's type changes,
 from `FormatStyle` to `DateStyle`.
 
+The backup status line ("Last backup: …") adds one more seam, for a date with a time of day:
+
+```kotlin
+enum class TimeStyle { SHORT, MEDIUM }
+internal expect fun renderLocalDateTime(dateTime: LocalDateTime, dateStyle: DateStyle, timeStyle: TimeStyle): String
+```
+
+| Android | iOS |
+|---|---|
+| `DateTimeFormatter.ofLocalizedDateTime(dateStyle, timeStyle)` with the default locale | `NSDateFormatter` with `dateStyle` / `timeStyle` mapped, `NSLocale.currentLocale` |
+
 ### Connectivity classification — `:core:data` and `:core:network`
 
 ```kotlin
@@ -287,14 +301,68 @@ single `actual` per platform and no behaviour of its own to specify.
 | `databasePlatformModule` | `:core:database` | Binds the Room builder: the database file lives in the app's database directory on Android and in `Application Support` on iOS |
 | `networkPlatformModule` | `:core:network` | Binds the HTTP engine (OkHttp, Darwin) and `ElapsedRealtimeSource`, the monotonic clock the token cache expires against |
 
+### Cloud account and backup — `:core:cloud` (`specs/016-cloud-backup-restore`)
+
+`:core:cloud` is the only module that names Firebase (GitLive's multiplatform SDK), Credential Manager or the Swift
+Firebase types. Its throw-only errors (`Cloud*Exception`) are mapped to `RepositoryError` in `:core:data`.
+
+```kotlin
+interface CloudAuth {                       // commonMain, FirebaseCloudAuth
+    val provider: CloudProvider             // the one method this platform offers: GOOGLE on Android, APPLE on iOS
+    val currentUser: Flow<CloudUser?>
+    suspend fun signIn(): CloudUser
+    suspend fun reauthenticate()            // a fresh sign-in with `provider`; keeps Apple's revocation grant
+    suspend fun signOut()
+    suspend fun deleteUser()                // revokes the held Apple grant (best effort), then deletes
+}
+
+interface CloudBackupStore {                // commonMain, FirestoreBackupStore
+    suspend fun readManifest(uid: String): BackupManifestDocument?   // server read, never the cache
+    suspend fun writePart(uid: String, partId: String, part: BackupPartDocument)
+    suspend fun readPart(uid: String, partId: String): BackupPartDocument?
+    suspend fun writeManifest(uid: String, manifest: BackupManifestDocument)   // the commit point
+    suspend fun listPartIds(uid: String): List<String>
+    suspend fun deleteParts(uid: String, partIds: Collection<String>)
+    suspend fun deleteManifest(uid: String)
+}
+
+internal interface PlatformProviderAuth {   // :core:cloud, the only per-platform part of CloudAuth
+    val provider: CloudProvider
+    suspend fun signIn()
+    suspend fun reauthenticate(): AppleGrant?       // non-null only where a grant must be revoked (Apple)
+    suspend fun revokeApple(grant: AppleGrant)
+    suspend fun clearProviderState()
+}
+```
+
+| | Android (`androidMain`) | iOS (`iosMain`) |
+|---|---|---|
+| `PlatformProviderAuth` | `AndroidProviderAuth`: Credential Manager `GetSignInWithGoogleOption` on the resumed Activity, then `GoogleAuthProvider.credential`; `revokeApple` is a no-op; `clearProviderState` clears Credential Manager | `IosProviderAuth`: `IdentityProviderBridge.signInWithApple`, then `OAuthProvider.credential("apple.com", …)`; `revokeApple` calls the bridge; `clearProviderState` is a no-op |
+| Resumed Activity | `CurrentActivityTracker`, an `ActivityLifecycleCallbacks` holder created at start; no Activity counts as a cancelled sign-in | not needed |
+| Firebase start-up | the google-services plugin, before `Application.onCreate`; the web client id is the Koin property `google_web_client_id`, set by `QuestLogApp` | `FirebaseApp.configure()`, the first line of `AppDelegate.didFinishLaunching` |
+
+`IdentityProviderBridge` is implemented in Swift under `iosApp/` and passed in by `startQuestLog`, like the other two
+bridges. Nothing in it is `suspend`, for the same reason as `AppleLanguageModelBridge`; Kotlin wraps each call in
+`suspendCancellableCoroutine`, and `onResult` is called exactly once:
+
+```kotlin
+interface IdentityProviderBridge {
+    fun signInWithApple(onResult: (AppleSignInResult) -> Unit)
+    fun revokeAppleToken(authorizationCode: String, onResult: (Boolean) -> Unit)
+}
+class AppleSignInResult(val outcome: ProviderOutcome, val idToken: String?, val rawNonce: String?, val authorizationCode: String?)
+enum class ProviderOutcome { SUCCESS, CANCELLED, FAILED }
+```
+
 ## Platform shell (not contracts)
 
 | Concern | Android (`:androidApp`) | iOS (`iosApp/`) |
 |---|---|---|
 | Entry point | `MainActivity` → `setContent { QuestLogRoot(pendingDeepLinkGameId, onDeepLinkConsumed, displayCornerRadius) }`; the splash is held by `MainActivity` itself until `RootViewModel` has the onboarding flag | `AppDelegate` → `startQuestLog(...)`; `ContentView` → `MainViewController()` |
 | DI start | `QuestLogApp.onCreate` → `initKoin(isDebugBuild = BuildConfig.DEBUG) { androidContext(this) }`; the WorkManager factory is the `Application`'s `Configuration.Provider` | `startQuestLog(...)` from the app delegate's `didFinishLaunching` → idempotent `initKoin(isDebugBuild = …)`, so a background launch with no UI has the graph too; the iOS bindings are the `expect` platform modules' `iosMain` actuals, which `initKoin` already lists |
+| Firebase | the google-services plugin starts it; `google-services.json` is git-ignored | `FirebaseApp.configure()` first in `AppDelegate`, before anything that needs a sign-in provider; `GoogleService-Info.plist` is git-ignored and the app has the Sign in with Apple capability |
 | Splash | `core-splashscreen`, held until the start route is known (unchanged) | `LaunchScreen` storyboard with the app logo |
-| Swift services handed to Kotlin | None | `FoundationModelsBridge` (FoundationModels) and `ReleaseRefreshTask` (BackgroundTasks), bound in Koin by `startQuestLog` |
+| Swift services handed to Kotlin | None | `FoundationModelsBridge` (FoundationModels), `ReleaseRefreshTask` (BackgroundTasks) and `IdentityProviderBridge` (Sign in with Apple), bound in Koin by `startQuestLog` |
 | Periodic refresh kick-off | `QuestLogApp` calls `schedulePeriodicRefresh()` (unchanged) | `startQuestLog(...)` calls `schedulePeriodicRefresh()` once per launch; the system also launches the refresh task in the background |
 | Display corner radius | `RoundedCorner` probe (unchanged) | Fixed default passed by `MainViewController()` |
 | Deep link to a game (`questlog://game/{id}`, used by the reminder notification) | `MainActivity` parses the intent (`onCreate` and `onNewIntent`) into a `GameDetailRoute` and hands it to `QuestLogRoot` as a pending route | No URL scheme. `ReleaseReminderNotificationDelegate` (`:shared` `iosMain`, set by `startQuestLog`) reads `gameId` from the tapped notification's `userInfo` → `ReminderDeepLinks` → `MainViewController` → `QuestLogRoot` as the pending game id |

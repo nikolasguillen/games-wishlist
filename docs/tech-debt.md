@@ -71,6 +71,22 @@ Last audited: 2026-10-09.
   `CustomAlertDialog`) that offers a backup when the last successful one is older than a threshold or has never
   happened, with a "not now" that snoozes it. It needs the last-backup timestamp stored on the device, which the
   manual backup should write anyway. Left out of the first version to keep it to the two buttons.
+- **The iOS Firebase SDK is pinned to 11.x behind GitLive 2.7.0**: the Xcode package requirement is
+  `11.15.0 ..< 12.0.0` because GitLive's Kotlin/Native bindings are generated from 11.x headers, and 12 or 13 is the
+  likeliest way to a link error or a crash on the first call. Revisit when GitLive 3.0 is stable (only
+  `3.0.0-alpha02` exists).
+- **The cloud backup's Apple half has never run on a device**: Sign in with Apple fails in the iOS Simulator with
+  "Invalid client" (the Apple server rejects it), and a real device needs the paid developer membership. So the iOS
+  sign-in, its token revocation on account deletion and every iOS row of `specs/016-cloud-backup-restore/quickstart.md`
+  are unrun. The Kotlin side is covered by the JVM tests against fakes.
+- **App Check is not enabled** on the Firebase project, so Firestore rules are the only gate on the backup documents.
+- **A device with only the seeded default list and no owned platform counts as "no data"** for the empty-backup
+  confirmation (`UserDataDao.hasUserData`), even if the user renamed that list or gave it a cover. Backing up from
+  that device replaces a real backup without asking. Counting a renamed or customised default list would close it.
+- **The sign-in buttons are text-only**: the Google and Apple brand marks were not supplied, so
+  `ProviderSignInButton` carries no logo.
+- **The cloud backup's size and speed targets were not measured**: SC-001 and SC-002 (a 500-game collection on mobile
+  data) have not been timed on a device.
 
 ## Infrastructure
 
@@ -79,7 +95,10 @@ Last audited: 2026-10-09.
 - **Test coverage gaps**: iOS has one test class (`PlatformTransportFailureTest`, run with
   `:core:network:iosSimulatorArm64Test`) and the root `test` task does not run it; the iOS `actual`s are otherwise
   covered only by the walkthrough in `specs/010-kmp-migration/baseline.md`. The Swift `FoundationModelsBridge` has
-  no tests: `AppleLanguageModelTranslator` is tested against a fake bridge only. No tests at all for `:core:database` DAOs, and in `:core:ui` only
+  no tests: `AppleLanguageModelTranslator` is tested against a fake bridge only. No tests at all for `:core:database` DAOs (`UserDataDao`'s restore transaction was checked on a device only, by making a
+restore fail part-way and seeing the data unchanged), `:core:cloud` has only the Firebase error classifier test (the
+sign-in providers, `FirebaseCloudAuth` and `FirestoreBackupStore` need Firebase and are exercised on a device), the Swift
+`IdentityProviderBridge` has none, and in `:core:ui` only
   `GameUiMapper`, `PlatformPickerMapper`, `GenreMapper` and `HtmlUtils` are covered — the other mappers are not. In `:core:domain` the `radar/`,
   `release/`, `usecase/discover/` and `usecase/notification/` packages are covered, plus three of the twelve list use cases and
   `SetGameStatusUseCase`; in `usecase/search/` only `BrowseGenreUseCase`, `GetBrowseGenresUseCase` and the shared facet

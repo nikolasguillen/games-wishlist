@@ -13,6 +13,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
@@ -33,6 +35,9 @@ internal fun AccountActions(
     onDeleteAccountClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // The label stays as each button's description while its spinner shows, so a screen reader still names it.
+    val signOutLabel = stringResource(Res.string.account_backup_sign_out)
+    val deleteLabel = stringResource(Res.string.account_backup_delete_account)
     Column(
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
         modifier = modifier.fillMaxWidth()
@@ -43,6 +48,7 @@ internal fun AccountActions(
             modifier = Modifier
                 .fillMaxWidth()
                 .minimumInteractiveComponentSize()
+                .semantics { contentDescription = signOutLabel }
         ) {
             if (runningOperation == CloudOperation.SIGN_OUT) {
                 CircularProgressIndicator(
@@ -50,7 +56,7 @@ internal fun AccountActions(
                     strokeWidth = MaterialTheme.spacing.extraSmall
                 )
             } else {
-                Text(text = stringResource(Res.string.account_backup_sign_out))
+                Text(text = signOutLabel)
             }
         }
         // The error colour is how the theme marks a destructive action: there is no dedicated component for it.
@@ -61,6 +67,7 @@ internal fun AccountActions(
             modifier = Modifier
                 .fillMaxWidth()
                 .minimumInteractiveComponentSize()
+                .semantics { contentDescription = deleteLabel }
         ) {
             if (runningOperation == CloudOperation.DELETE_ACCOUNT) {
                 CircularProgressIndicator(
@@ -69,7 +76,7 @@ internal fun AccountActions(
                     color = MaterialTheme.colorScheme.error
                 )
             } else {
-                Text(text = stringResource(Res.string.account_backup_delete_account))
+                Text(text = deleteLabel)
             }
         }
     }

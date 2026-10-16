@@ -712,43 +712,43 @@ verification record.
 - [X] T091 [P] Create `firebase/firestore.rules` with exactly the rules in contracts/firestore.md (a signed-in user reads and writes
   `users/{uid}/{document=**}` only when `request.auth.uid == uid`; everything else denied). Ask the owner to paste it into the
   console's Rules tab (the project has no Firebase CLI) and confirm the published copy matches.
-- [ ] T092 [P] In `README.md` add a "Firebase configuration" step to Installation (and to Run on iOS): download
+- [X] T092 [P] In `README.md` add a "Firebase configuration" step to Installation (and to Run on iOS): download
   `androidApp/google-services.json` and `iosApp/iosApp/GoogleService-Info.plist` from Firebase Console → Project settings → Your
   apps; both are git-ignored; a clone without them does not build the Android app or the iOS Firebase parts; point to
   quickstart "Prerequisites" for the provider and rules setup.
-- [ ] T093 [P] Update the root `CLAUDE.md`: "19 modules" → 20; add `:core:cloud` to the module list and the graph
+- [X] T093 [P] Update the root `CLAUDE.md`: "19 modules" → 20; add `:core:cloud` to the module list and the graph
   (`:core:data → :core:cloud`, `:shared → :core:cloud`); add the rule "`:core:cloud` is reachable only from `:core:data` and
   `:shared`; no `dev.gitlive`/Firebase/Credential Manager import outside it"; add `AccountRepository` and `BackupRepository` to
   the data-flow note (the second and third repositories are owner-approved); add a "Where things live" row for the Firebase
   config files and `firebase/firestore.rules`; add `core/cloud/` to the directory-specific instructions list **only if** a
   `core/cloud/CLAUDE.md` is created in this task (create it, short: what the module is, the throw-only error rule, the two
   platform provider files, the bridge, the spike's finding about versions). Rewrite nothing else.
-- [ ] T094 [P] Update `core/data/CLAUDE.md` (the "one repository" paragraph now names `AccountRepositoryImpl` and
+- [X] T094 [P] Update `core/data/CLAUDE.md` (the "one repository" paragraph now names `AccountRepositoryImpl` and
   `BackupRepositoryImpl` as owner-approved additions; the "Mapped cases" paragraph gains the six `Cloud*` mappings and the
   `RecentLoginRequired`-never-escapes rule; a short "Backup" section: the format version, the chunk limits, the commit-point
   order) and `core/database/CLAUDE.md` (a short note that `UserDataDao` is an `abstract class` on purpose and why, that it is
   the only DAO that calls another, and what a restore does not touch). These are instructions, not a changelog.
-- [ ] T095 [P] Update `specs/010-kmp-migration/contracts/platform-contracts.md` with the new contracts from
+- [X] T095 [P] Update `specs/010-kmp-migration/contracts/platform-contracts.md` with the new contracts from
   contracts/cloud-contracts.md (`CloudAuth`, `CloudBackupStore`, `PlatformProviderAuth`, `CurrentActivityTracker`,
   `IdentityProviderBridge`), the three `WishlistCoverImageStorage` members, the `renderLocalDateTime` seam, and the Platform shell
   table rows (Firebase start-up and `startQuestLog`'s third bridge). No capability-exception row is added (both platforms offer
   the same capability).
-- [ ] T096 Amend `.specify/memory/constitution.md` (PATCH, in the same commit as the code per its Governance section): Principle I
+- [X] T096 Amend `.specify/memory/constitution.md` (PATCH, in the same commit as the code per its Governance section): Principle I
   "19 modules" → 20 and `:core:cloud` added to the list `feature/*` must never depend on; "Additional Constraints → Platform"
   gains the new libraries; bump **Version** to 1.3.5 and **Last Amended** to the date of the change. Do not rewrite other text.
-- [ ] T097 [P] Update `docs/tech-debt.md` (remove nothing, add only what is true after this work): the iOS Firebase SDK is pinned to
+- [X] T097 [P] Update `docs/tech-debt.md` (remove nothing, add only what is true after this work): the iOS Firebase SDK is pinned to
   11.x behind GitLive 2.7.0 (revisit when GitLive 3.0 is stable); `:core:cloud`, `UserDataDao`, the Swift bridge and the provider
   flows have no automated tests beyond the error classifier (the DAO is covered by the quickstart walkthrough); App Check is not
   enabled; any quickstart row recorded as not run. Keep the existing "cloud backup has no reminder" entry.
-- [ ] T098 [P] Accessibility pass on `AccountBackupScreen`: every button has a text label or `contentDescription` from a resource, the
+- [X] T098 [P] Accessibility pass on `AccountBackupScreen`: every button has a text label or `contentDescription` from a resource, the
   two sign-in buttons keep their branded contrast in light and dark (`MaterialTheme.isDarkTheme`), 48dp targets, and the busy state
   is announced (the button's label does not change, its enabled state and a progress indicator do).
-- [ ] T099 Static checks (quickstart §3): no feature build file mentions `:core:cloud`; no `dev.gitlive`, `com.google.firebase` or
+- [X] T099 Static checks (quickstart §3): no feature build file mentions `:core:cloud`; no `dev.gitlive`, `com.google.firebase` or
   `androidx.credentials` import outside `:core:cloud` (`git grep -nE "dev\.gitlive|com\.google\.firebase|androidx\.credentials"
   -- ':!core/cloud' ':!*.md'`); no Firebase type in `RepositoryErrorMapper.kt`; `git ls-files | grep -iE
   'google-services|GoogleService-Info'` prints nothing; no new `dp` literal; every string in a `strings.xml`; `core/database/schemas/`
   unchanged.
-- [ ] T100 Full verification: `./gradlew test --console=plain -q` and `./gradlew :androidApp:assembleDebug --console=plain -q`. **(Mac only)**
+- [X] T100 Full verification: `./gradlew test --console=plain -q` and `./gradlew :androidApp:assembleDebug --console=plain -q`. **(Mac only)**
   `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 -q` and the `xcodebuild` command from CLAUDE.md. Append a "Verification
   notes" section to this file in the style of spec 015's, listing exactly which quickstart rows were run on which device and OS
   and which were **not**; never tick a row that was not run.
@@ -842,3 +842,57 @@ then: T055, T056 → T057 → T058 → T059 → T060, T061 → T062
 - Out of scope, do not add: automatic or background backup, merge, backup history or rollback, search-history or settings backup,
   email/password sign-in, the backup reminder dialog (`docs/tech-debt.md`), App Check, a new nav graph or module besides
   `:core:cloud`, or any change to `GameRepository`.
+
+---
+
+## Verification notes (Android only, 2026-10-16)
+
+Run on two physical devices, with adb driving the taps and screenshots. **iOS was not run at all** (the owner paused it,
+and Sign in with Apple fails in the simulator; a real iPhone and the paid membership are needed). No quickstart row is
+ticked here that was not run, and T062, T074, T075, T090 and T101 stay open.
+
+Static checks and suites: `./gradlew test`, `:androidApp:assembleDebug` and `:shared:linkDebugFrameworkIosSimulatorArm64`
+pass, and so does the `xcodebuild` build of `iosApp` for the simulator. The static checks of quickstart §3 are clean:
+no `dev.gitlive`, `com.google.firebase` or `androidx.credentials` import outside `:core:cloud`, no feature build file
+mentions it, no Firebase type in `RepositoryErrorMapper.kt`, the two config files are untracked, `core/database/schemas`
+is unchanged since 2026-10-02, and there is no new `dp` literal.
+
+**Pixel 10 Pro, Android 17 (API 37), the owner's Gmail account, already signed in** (an emulator of the same model was
+tried first and abandoned: it has no Google account and Google's add-account flow hung):
+
+- Row 2 (one sign-in method): the screen offers "Continue with Google" only.
+- Row 5 (part): Back up now with the owner's real data (2 lists, one with a cover and the default marker, 14 games, one
+  owned platform): a spinner, then "Last backup" with date and time and "2 lists, 14 games". Not run with 20+ games or
+  statuses and notes edited for the purpose.
+- Row 6 (part): backing up again moved the time from 09:07 to 09:22. The console's manifest and the sweep were not looked at.
+- Row 8: in airplane mode "No internet connection. Check your network and try again." appears and the time stays. The
+  manifest in the console was not looked at.
+- Row 10 (same device, not an empty one) and row 11: with a throwaway list added, Restore asked for confirmation
+  ("Replace the data on this device?"), and after confirming the throwaway list was gone, with both real lists, the
+  cover, the default marker and the counts (13 and 7) as backed up. Cancel on that dialog was not tapped. Offline,
+  confirming shows the same "No internet connection" message and changes nothing.
+- T073: with a temporary `error()` after the clears in `replaceUserData`, the restore failed with the generic error and
+  the lists, cover, default marker and counts were exactly as before. The line was removed. Recorded in research R10.
+
+**Samsung SM-A346B, Android 16 (API 36), a Capgemini work Google account** (the only Google account on that phone; the
+owner chose it, and both Firebase users it created were deleted):
+
+- Row 3: closing Google's consent screen returns to the signed-out screen with no message and a usable button.
+- Row 4: signing in shows the address, "Google" and "No backup yet", with Restore disabled.
+- Row 5 (part): Back up now on a nearly fresh install: "Backup complete", "1 list, 0 games". The empty-backup dialog did not
+  appear, because the device had an owned platform set, which counts as user data.
+- Row 17: Sign out, then sign in again: the 10:21 backup was still there.
+- Row 18: Delete account, Cancel: still signed in, backup unchanged.
+- Row 19 (part): Delete account, confirm: Google's account chooser appeared first (the fresh sign-in), the buttons were
+  disabled with a spinner, then "Account deleted" and the signed-out screen; signing in again showed "No backup yet".
+  That the console shows no `users/{uid}` and no parts was **not** checked, and "No backup yet" alone cannot prove it
+  (a new sign-in gets a new user id). The delete of a user that has no backup also worked. The Apple part does not apply
+  on Android.
+- Observed: for about two seconds after signing out the sign-in button is disabled. It is the sign-out operation still
+  running (it ends by clearing Credential Manager's cached credential), not a fixed delay.
+
+**Not run:** rows 7 (double tap), 9 and 14 (Apple, cross-platform), 12 (kill during a restore), 13 (search history and
+Recently viewed untouched), 15 and 16 (dropped with the one-method-per-platform decision), 20 (the empty-device
+dialog is covered by `AccountBackupViewModelTest` only), 21 (the Rules Playground), 22 and 23 (a manifest edited in the
+console), row 10 on a genuinely empty device, the Apple Settings check in row 19, SC-001 and SC-002 (T101, 500 games
+on mobile data), and every iOS row.
