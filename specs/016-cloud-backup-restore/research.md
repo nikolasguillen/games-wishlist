@@ -233,6 +233,13 @@ parameter, can: "a function that would make multiple DAO calls … succeed or fa
 not hold, the fallback is `useWriterConnection { it.immediateTransaction { … } }` inside the same
 `:core:database` method. The orchestration then still lives in the database module.
 
+**Outcome (Android, 2026-10-16, Pixel 10 Pro, T073)**: the nested `@Transaction` does roll back as a whole. With
+`error("rollback check")` placed right after `clearUserFieldsOnGames()` (so the default-list pointer, the memberships,
+the lists, the owned platforms and the status/priority/notes had already been cleared), a restore failed with the
+generic error, and afterwards both lists, the default marker, the cover and the membership counts (13 and 7) were
+exactly as before. The `useWriterConnection { immediateTransaction { … } }` fallback is not needed on Android. The
+iOS check (T074) has not been run.
+
 Untouched by a restore (FR-022): search history, `lastViewedAt`, translations, the Discover caches, release
 reminders. The existing reminder sync already reacts when a game leaves the saved set (iOS
 `ReleaseReminderCoordinator`; the Android sync on its usual triggers). That is the app's normal behaviour, not the

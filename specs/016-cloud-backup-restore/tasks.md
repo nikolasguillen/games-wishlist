@@ -616,7 +616,7 @@ damaged backup refused (23).
 - [X] T072 [US2] Add the "Restore" button (disabled with no backup, busy while `runningOperation == RESTORE`) to
   `components/BackupCard.kt` and the `ConfirmRestore` `CustomAlertDialog` to `components/AccountBackupDialogs.kt`; add a
   preview for the dialog.
-- [ ] T073 [US2] Verify the cross-DAO transaction on **Android** (research R10, the first thing to confirm about this DAO).
+- [X] T073 [US2] Verify the cross-DAO transaction on **Android** (research R10, the first thing to confirm about this DAO).
   Temporarily add `error("rollback check")` after the `UPDATE games SET status = NULL...` statement in
   `replaceUserData`, run a restore on a device with data, and confirm the lists, statuses and owned platforms are
   **exactly as before** (the clears rolled back). Remove the line. If the clears survive, the nested `@Transaction` did
