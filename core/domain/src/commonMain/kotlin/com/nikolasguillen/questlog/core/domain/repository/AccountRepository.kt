@@ -22,9 +22,10 @@ interface AccountRepository {
     /**
      * Opens [signInProvider]'s sign-in and signs in with it. A signed-out caller is the normal case here.
      *
+     * [onAccountPicked] is called once the user has chosen in the provider's sheet, before the sign-in completes.
      * Fails with `SignInCancelled` when the user closes the sign-in, which is not an error to show.
      */
-    suspend fun signIn(): AppResult<Account>
+    suspend fun signIn(onAccountPicked: () -> Unit = {}): AppResult<Account>
 
     /** Signs out. The device's data and the cloud backup are untouched. */
     suspend fun signOut(): AppResult<Unit>

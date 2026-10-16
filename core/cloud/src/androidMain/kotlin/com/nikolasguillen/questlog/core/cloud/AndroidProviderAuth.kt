@@ -32,8 +32,10 @@ internal class AndroidProviderAuth(
 
     private val auth get() = Firebase.auth
 
-    override suspend fun signIn() {
-        auth.signInWithCredential(googleCredential())
+    override suspend fun signIn(onAccountPicked: () -> Unit) {
+        val credential = googleCredential()
+        onAccountPicked()
+        auth.signInWithCredential(credential)
     }
 
     override suspend fun reauthenticate(): AppleGrant? {

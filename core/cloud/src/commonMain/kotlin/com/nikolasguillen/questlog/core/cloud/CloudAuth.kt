@@ -19,14 +19,16 @@ interface CloudAuth {
     val currentUser: Flow<CloudUser?>
 
     /**
-     * Opens [provider]'s sign-in and signs in with the result.
+     * Opens [provider]'s sign-in and signs in with the result. [onAccountPicked] is called once the user has chosen in
+     * the provider's own sheet, so the caller can show progress for the part that follows; it is not called when the
+     * user closes the sheet.
      *
      * @throws com.nikolasguillen.questlog.core.cloud.error.CloudSignInCancelledException the user closed the sign-in.
      * @throws com.nikolasguillen.questlog.core.cloud.error.CloudCredentialCollisionException the email belongs to an
      * account that uses a method Firebase did not link by itself.
      * @throws com.nikolasguillen.questlog.core.cloud.error.CloudConnectivityException there is no connection.
      */
-    suspend fun signIn(): CloudUser
+    suspend fun signIn(onAccountPicked: () -> Unit = {}): CloudUser
 
     /**
      * A fresh sign-in with [provider]. Required before [deleteUser]. On iOS it also keeps the grant Apple needs to

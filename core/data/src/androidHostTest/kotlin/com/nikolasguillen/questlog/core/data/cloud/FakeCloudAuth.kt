@@ -17,6 +17,7 @@ class FakeCloudAuth(
     val user = MutableStateFlow(initial)
     var signInFailure: Throwable? = null
     var signInCalls = 0
+    var accountPickedCalls = 0
 
     val calls = mutableListOf<String>()
     var reauthenticateFailure: Throwable? = null
@@ -25,9 +26,11 @@ class FakeCloudAuth(
 
     override val currentUser = user
 
-    override suspend fun signIn(): CloudUser {
+    override suspend fun signIn(onAccountPicked: () -> Unit): CloudUser {
         signInCalls++
         signInFailure?.let { throw it }
+        accountPickedCalls++
+        onAccountPicked()
         return CloudUser(uid = "uid-1", email = "ada@example.com", providers = setOf(provider)).also { user.value = it }
     }
 

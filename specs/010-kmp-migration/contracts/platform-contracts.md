@@ -310,7 +310,7 @@ Firebase types. Its throw-only errors (`Cloud*Exception`) are mapped to `Reposit
 interface CloudAuth {                       // commonMain, FirebaseCloudAuth
     val provider: CloudProvider             // the one method this platform offers: GOOGLE on Android, APPLE on iOS
     val currentUser: Flow<CloudUser?>
-    suspend fun signIn(): CloudUser
+    suspend fun signIn(onAccountPicked: () -> Unit = {}): CloudUser
     suspend fun reauthenticate()            // a fresh sign-in with `provider`; keeps Apple's revocation grant
     suspend fun signOut()
     suspend fun deleteUser()                // revokes the held Apple grant (best effort), then deletes
@@ -328,7 +328,7 @@ interface CloudBackupStore {                // commonMain, FirestoreBackupStore
 
 internal interface PlatformProviderAuth {   // :core:cloud, the only per-platform part of CloudAuth
     val provider: CloudProvider
-    suspend fun signIn()
+    suspend fun signIn(onAccountPicked: () -> Unit)
     suspend fun reauthenticate(): AppleGrant?       // non-null only where a grant must be revoked (Apple)
     suspend fun revokeApple(grant: AppleGrant)
     suspend fun clearProviderState()

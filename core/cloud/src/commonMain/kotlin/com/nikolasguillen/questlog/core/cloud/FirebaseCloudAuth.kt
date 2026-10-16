@@ -28,8 +28,8 @@ internal class FirebaseCloudAuth(
 
     override val currentUser: Flow<CloudUser?> = auth.authStateChanged.map { it?.toCloudUser() }
 
-    override suspend fun signIn(): CloudUser = guard {
-        platform.signIn()
+    override suspend fun signIn(onAccountPicked: () -> Unit): CloudUser = guard {
+        platform.signIn(onAccountPicked)
         requireUser().toCloudUser()
     }
 

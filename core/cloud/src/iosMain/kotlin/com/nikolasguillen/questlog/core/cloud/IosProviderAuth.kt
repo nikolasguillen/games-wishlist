@@ -20,8 +20,10 @@ internal class IosProviderAuth(private val bridge: IdentityProviderBridge) : Pla
 
     private val auth get() = Firebase.auth
 
-    override suspend fun signIn() {
-        auth.signInWithCredential(appleSignIn().credential)
+    override suspend fun signIn(onAccountPicked: () -> Unit) {
+        val apple = appleSignIn()
+        onAccountPicked()
+        auth.signInWithCredential(apple.credential)
     }
 
     override suspend fun reauthenticate(): AppleGrant? {

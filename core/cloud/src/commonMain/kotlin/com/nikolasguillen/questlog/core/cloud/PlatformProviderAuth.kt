@@ -7,8 +7,11 @@ internal interface PlatformProviderAuth {
     /** The only sign-in method this platform offers: Google on Android, Apple on iOS. */
     val provider: CloudProvider
 
-    /** Opens [provider]'s sign-in; ends with Firebase signed in. */
-    suspend fun signIn()
+    /**
+     * Opens [provider]'s sign-in; ends with Firebase signed in. [onAccountPicked] runs once the user has chosen in the
+     * provider's own UI, before the credential goes to Firebase.
+     */
+    suspend fun signIn(onAccountPicked: () -> Unit)
 
     /** Signs in again with [provider]. Returns a grant only where one has to be revoked later (Apple). */
     suspend fun reauthenticate(): AppleGrant?

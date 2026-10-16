@@ -20,8 +20,8 @@ internal class AccountRepositoryImpl(
 
     override fun observeAccount(): Flow<Account?> = cloudAuth.currentUser.map { it?.toAccount() }
 
-    override suspend fun signIn(): AppResult<Account> = try {
-        AppResult.success(cloudAuth.signIn().toAccount())
+    override suspend fun signIn(onAccountPicked: () -> Unit): AppResult<Account> = try {
+        AppResult.success(cloudAuth.signIn(onAccountPicked).toAccount())
     } catch (e: Exception) {
         AppResult.failure(e.toRepositoryError())
     }

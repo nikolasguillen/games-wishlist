@@ -61,6 +61,17 @@ class AccountRepositoryImplTest {
     }
 
     @Test
+    fun `signIn reports the picked account to the caller, and not a closed sheet`() = runTest {
+        var picked = 0
+        repository.signIn(onAccountPicked = { picked++ })
+        assertEquals(1, picked)
+
+        auth.signInFailure = CloudSignInCancelledException()
+        repository.signIn(onAccountPicked = { picked++ })
+        assertEquals(1, picked)
+    }
+
+    @Test
     fun `signIn on an Apple platform returns an Apple account`() = runTest {
         val apple = FakeCloudAuth(provider = CloudProvider.APPLE)
 
