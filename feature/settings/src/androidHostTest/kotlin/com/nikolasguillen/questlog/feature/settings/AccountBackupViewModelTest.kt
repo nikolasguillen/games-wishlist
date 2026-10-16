@@ -22,7 +22,8 @@ import com.nikolasguillen.questlog.feature.settings.model.BackupStatusUiModel
 import com.nikolasguillen.questlog.feature.settings.model.CloudOperation
 import com.nikolasguillen.questlog.feature.settings.resources.Res
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_account_deleted
-import com.nikolasguillen.questlog.feature.settings.resources.account_backup_signed_out
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_signed_in_message
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_signed_out_message
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -118,7 +119,7 @@ class AccountBackupViewModelTest {
 
     @Test
     fun `signing in succeeds and shows the account`() = runTest(testDispatcher) {
-        coEvery { signInUseCase() } coAnswers {
+        coEvery { signInUseCase(any()) } coAnswers {
             account.value = signedIn
             AppResult.success(signedIn)
         }
@@ -133,29 +134,64 @@ class AccountBackupViewModelTest {
         assertEquals(listOf(AuthProvider.GOOGLE), state.account?.linkedProviders)
         assertNull(state.runningOperation)
         assertTrue(effects.isEmpty())
+        assertEquals(
+            AccountBackupDialog.AccountChange(
+                CloudOperation.SIGN_IN,
+                UiText.StringResource(Res.string.account_backup_signed_in_message)
+            ),
+            state.dialog
+        )
     }
 
     @Test
-    fun `a failed sign-in shows its cause`() = runTest(testDispatcher) {
-        coEvery { signInUseCase() } returns AppResult.failure(RepositoryError.AccountExistsWithOtherMethod)
+    fun `once the account is picked a dialog shows that cannot be dismissed until sign-in ends`() = runTest(testDispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        coEvery { signInUseCase(any()) } coAnswers {
+            firstArg<() -> Unit>().invoke()
+            gate.await()
+            account.value = signedIn
+            AppResult.success(signedIn)
+        }
         val viewModel = viewModel()
-        val effects = collectEffects(viewModel)
+
+        viewModel.onEvent(AccountBackupUiEvent.SignIn)
+        advanceUntilIdle()
+        assertEquals(AccountBackupDialog.AccountChange(CloudOperation.SIGN_IN), viewModel.uiState.value.dialog)
+
+        viewModel.onEvent(AccountBackupUiEvent.DismissDialog)
+        assertEquals(AccountBackupDialog.AccountChange(CloudOperation.SIGN_IN), viewModel.uiState.value.dialog)
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+        assertTrue((viewModel.uiState.value.dialog as AccountBackupDialog.AccountChange).outcome != null)
+
+        viewModel.onEvent(AccountBackupUiEvent.DismissDialog)
+        assertNull(viewModel.uiState.value.dialog)
+    }
+
+    @Test
+    fun `no dialog shows while the user is still choosing an account`() = runTest(testDispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        coEvery { signInUseCase(any()) } coAnswers {
+            gate.await()
+            AppResult.failure(RepositoryError.SignInCancelled)
+        }
+        val viewModel = viewModel()
 
         viewModel.onEvent(AccountBackupUiEvent.SignIn)
         advanceUntilIdle()
 
-        assertEquals(
-            listOf<AccountBackupUiEffect>(
-                AccountBackupUiEffect.ShowMessage(RepositoryError.AccountExistsWithOtherMethod.toUiText())
-            ),
-            effects
-        )
-        assertNull(viewModel.uiState.value.runningOperation)
+        assertEquals(CloudOperation.SIGN_IN, viewModel.uiState.value.runningOperation)
+        assertNull(viewModel.uiState.value.dialog)
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+        assertNull(viewModel.uiState.value.dialog)
     }
 
     @Test
-    fun `a closed sign-in sheet shows nothing`() = runTest(testDispatcher) {
-        coEvery { signInUseCase() } returns AppResult.failure(RepositoryError.SignInCancelled)
+    fun `a failed sign-in shows its cause`() = runTest(testDispatcher) {
+        coEvery { signInUseCase(any()) } returns AppResult.failure(RepositoryError.AccountExistsWithOtherMethod)
         val viewModel = viewModel()
         val effects = collectEffects(viewModel)
 
@@ -163,6 +199,24 @@ class AccountBackupViewModelTest {
         advanceUntilIdle()
 
         assertTrue(effects.isEmpty())
+        assertEquals(
+            AccountBackupDialog.AccountChange(CloudOperation.SIGN_IN, RepositoryError.AccountExistsWithOtherMethod.toUiText()),
+            viewModel.uiState.value.dialog
+        )
+        assertNull(viewModel.uiState.value.runningOperation)
+    }
+
+    @Test
+    fun `a closed sign-in sheet closes the dialog and says nothing`() = runTest(testDispatcher) {
+        coEvery { signInUseCase(any()) } returns AppResult.failure(RepositoryError.SignInCancelled)
+        val viewModel = viewModel()
+        val effects = collectEffects(viewModel)
+
+        viewModel.onEvent(AccountBackupUiEvent.SignIn)
+        advanceUntilIdle()
+
+        assertTrue(effects.isEmpty())
+        assertNull(viewModel.uiState.value.dialog)
         assertNull(viewModel.uiState.value.runningOperation)
     }
 
@@ -461,7 +515,7 @@ class AccountBackupViewModelTest {
     }
 
     @Test
-    fun `signing out runs the use case and says so`() = runTest(testDispatcher) {
+    fun `signing out runs the use case and reports it in a dialog that outlives the account`() = runTest(testDispatcher) {
         coEvery { signOutUseCase() } coAnswers {
             account.value = null
             AppResult.success(Unit)
@@ -472,18 +526,38 @@ class AccountBackupViewModelTest {
         advanceUntilIdle()
 
         viewModel.onEvent(AccountBackupUiEvent.SignOut)
+        viewModel.onEvent(AccountBackupUiEvent.ConfirmSignOut)
         advanceUntilIdle()
 
         coVerify(exactly = 1) { signOutUseCase() }
         coVerify(exactly = 0) { deleteAccountUseCase() }
         assertNull(viewModel.uiState.value.account)
         assertNull(viewModel.uiState.value.runningOperation)
+        assertTrue(effects.isEmpty())
         assertEquals(
-            listOf<AccountBackupUiEffect>(
-                AccountBackupUiEffect.ShowMessage(UiText.StringResource(Res.string.account_backup_signed_out))
+            AccountBackupDialog.AccountChange(
+                CloudOperation.SIGN_OUT,
+                UiText.StringResource(Res.string.account_backup_signed_out_message)
             ),
-            effects
+            viewModel.uiState.value.dialog
         )
+    }
+
+    @Test
+    fun `sign out asks first and signs nobody out until confirmed`() = runTest(testDispatcher) {
+        val viewModel = viewModel()
+        account.value = signedIn
+        advanceUntilIdle()
+
+        viewModel.onEvent(AccountBackupUiEvent.SignOut)
+        advanceUntilIdle()
+
+        assertEquals(AccountBackupDialog.ConfirmSignOut, viewModel.uiState.value.dialog)
+        coVerify(exactly = 0) { signOutUseCase() }
+
+        viewModel.onEvent(AccountBackupUiEvent.DismissDialog)
+        assertNull(viewModel.uiState.value.dialog)
+        coVerify(exactly = 0) { signOutUseCase() }
     }
 
     @Test
@@ -495,13 +569,15 @@ class AccountBackupViewModelTest {
         advanceUntilIdle()
 
         viewModel.onEvent(AccountBackupUiEvent.SignOut)
+        viewModel.onEvent(AccountBackupUiEvent.ConfirmSignOut)
         advanceUntilIdle()
 
         assertNotNull(viewModel.uiState.value.account)
         assertNull(viewModel.uiState.value.runningOperation)
+        assertTrue(effects.isEmpty())
         assertEquals(
-            listOf<AccountBackupUiEffect>(AccountBackupUiEffect.ShowMessage(RepositoryError.NoNetwork.toUiText())),
-            effects
+            AccountBackupDialog.AccountChange(CloudOperation.SIGN_OUT, RepositoryError.NoNetwork.toUiText()),
+            viewModel.uiState.value.dialog
         )
     }
 

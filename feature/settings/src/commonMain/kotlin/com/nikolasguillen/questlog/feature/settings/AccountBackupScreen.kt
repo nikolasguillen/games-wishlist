@@ -161,7 +161,9 @@ internal fun AccountBackupContent(
                 when (dialog) {
                     AccountBackupDialog.ConfirmEmptyBackup -> onEvent(AccountBackupUiEvent.ConfirmEmptyBackup)
                     AccountBackupDialog.ConfirmRestore -> onEvent(AccountBackupUiEvent.ConfirmRestore)
+                    AccountBackupDialog.ConfirmSignOut -> onEvent(AccountBackupUiEvent.ConfirmSignOut)
                     AccountBackupDialog.ConfirmDeleteAccount -> onEvent(AccountBackupUiEvent.ConfirmDeleteAccount)
+                    is AccountBackupDialog.AccountChange -> onEvent(AccountBackupUiEvent.DismissDialog)
                 }
             },
             onDismiss = { onEvent(AccountBackupUiEvent.DismissDialog) }

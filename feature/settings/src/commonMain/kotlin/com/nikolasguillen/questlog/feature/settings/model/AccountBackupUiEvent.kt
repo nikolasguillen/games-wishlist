@@ -6,7 +6,10 @@ internal sealed interface AccountBackupUiEvent {
     data object Restore : AccountBackupUiEvent
     data object ConfirmRestore : AccountBackupUiEvent
     data object ConfirmEmptyBackup : AccountBackupUiEvent
+
+    /** Asks for the confirmation; nobody is signed out until [ConfirmSignOut]. */
     data object SignOut : AccountBackupUiEvent
+    data object ConfirmSignOut : AccountBackupUiEvent
 
     /** Asks for the confirmation; nothing is deleted until [ConfirmDeleteAccount]. */
     data object DeleteAccount : AccountBackupUiEvent

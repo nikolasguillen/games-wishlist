@@ -27,7 +27,8 @@ import com.nikolasguillen.questlog.feature.settings.resources.Res
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_account_deleted
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_backup_complete
 import com.nikolasguillen.questlog.feature.settings.resources.account_backup_restore_complete
-import com.nikolasguillen.questlog.feature.settings.resources.account_backup_signed_out
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_signed_in_message
+import com.nikolasguillen.questlog.feature.settings.resources.account_backup_signed_out_message
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -77,7 +78,16 @@ class AccountBackupViewModel(
                 launchOperation(CloudOperation.RESTORE) { performRestore() }
             }
 
-            AccountBackupUiEvent.SignOut -> signOut()
+            AccountBackupUiEvent.SignOut -> {
+                if (_uiState.value.runningOperation == null) {
+                    _uiState.update { it.copy(dialog = AccountBackupDialog.ConfirmSignOut) }
+                }
+            }
+
+            AccountBackupUiEvent.ConfirmSignOut -> {
+                _uiState.update { it.copy(dialog = null) }
+                signOut()
+            }
             AccountBackupUiEvent.DeleteAccount -> {
                 if (_uiState.value.runningOperation == null) {
                     _uiState.update { it.copy(dialog = AccountBackupDialog.ConfirmDeleteAccount) }
@@ -89,7 +99,10 @@ class AccountBackupViewModel(
                 launchOperation(CloudOperation.DELETE_ACCOUNT) { performDeleteAccount() }
             }
 
-            AccountBackupUiEvent.DismissDialog -> _uiState.update { it.copy(dialog = null) }
+            // A sign-in or sign-out in flight cannot be dismissed: the dialog is its only feedback.
+            AccountBackupUiEvent.DismissDialog -> _uiState.update {
+                if ((it.dialog as? AccountBackupDialog.AccountChange)?.running == true) it else it.copy(dialog = null)
+            }
             AccountBackupUiEvent.Retry -> loadBackupInfo()
         }
     }
@@ -107,7 +120,8 @@ class AccountBackupViewModel(
             it.copy(
                 account = account?.toUiModel(),
                 backup = if (account == null) BackupStatusUiModel.Unknown else it.backup,
-                dialog = if (account == null) null else it.dialog
+                // The account going null is what a sign-out looks like, and the dialog reporting it must outlive it.
+                dialog = if (account == null && it.dialog !is AccountBackupDialog.AccountChange) null else it.dialog
             )
         }
         if (account == null) {
@@ -130,9 +144,27 @@ class AccountBackupViewModel(
         }
     }
 
+    // The dialog opens once the user has picked in the provider's sheet, so it never sits behind it. Until then the
+    // sign-in button's own spinner shows. A closed sheet is the user's own choice and says nothing; any other end is
+    // reported in the dialog.
     private fun signIn() {
         launchOperation(CloudOperation.SIGN_IN) {
-            signInUseCase().onFailure { showFailure(it) }
+            val result = signInUseCase(onAccountPicked = {
+                _uiState.update { it.copy(dialog = AccountBackupDialog.AccountChange(CloudOperation.SIGN_IN)) }
+            })
+            when (result) {
+                is AppResult.Success -> finishAccountChange(
+                    CloudOperation.SIGN_IN,
+                    UiText.StringResource(Res.string.account_backup_signed_in_message)
+                )
+
+                is AppResult.Failure ->
+                    if (result.error == RepositoryError.SignInCancelled) {
+                        _uiState.update { it.copy(dialog = null) }
+                    } else {
+                        finishAccountChange(CloudOperation.SIGN_IN, result.error.toUiText())
+                    }
+            }
         }
     }
 
@@ -160,15 +192,17 @@ class AccountBackupViewModel(
     }
 
     private fun signOut() {
-        launchOperation(CloudOperation.SIGN_OUT) {
-            when (val result = signOutUseCase()) {
-                is AppResult.Success -> _uiEffect.send(
-                    AccountBackupUiEffect.ShowMessage(UiText.StringResource(Res.string.account_backup_signed_out))
-                )
-
-                is AppResult.Failure -> showFailure(result.error)
+        launchOperation(CloudOperation.SIGN_OUT, AccountBackupDialog.AccountChange(CloudOperation.SIGN_OUT)) {
+            val outcome = when (val result = signOutUseCase()) {
+                is AppResult.Success -> UiText.StringResource(Res.string.account_backup_signed_out_message)
+                is AppResult.Failure -> result.error.toUiText()
             }
+            finishAccountChange(CloudOperation.SIGN_OUT, outcome)
         }
+    }
+
+    private fun finishAccountChange(operation: CloudOperation, outcome: UiText) {
+        _uiState.update { it.copy(dialog = AccountBackupDialog.AccountChange(operation, outcome)) }
     }
 
     // The use case signs in again, deletes the backup and then the account. A failure on the way leaves the user signed
@@ -222,9 +256,13 @@ class AccountBackupViewModel(
 
     // One cloud action at a time. The flag is set before the coroutine starts and cleared in a finally, so a second
     // event is ignored while one runs and a cancellation never leaves the screen stuck busy.
-    private fun launchOperation(operation: CloudOperation, block: suspend () -> Unit) {
+    private fun launchOperation(
+        operation: CloudOperation,
+        dialog: AccountBackupDialog? = null,
+        block: suspend () -> Unit
+    ) {
         if (_uiState.value.runningOperation != null) return
-        _uiState.update { it.copy(runningOperation = operation) }
+        _uiState.update { it.copy(runningOperation = operation, dialog = dialog ?: it.dialog) }
         viewModelScope.launch {
             try {
                 block()
