@@ -3,7 +3,6 @@ package com.nikolasguillen.questlog.feature.search.components
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -75,7 +74,6 @@ internal fun SearchFilterBottomSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(bottom = MaterialTheme.spacing.extraLarge)
             ) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
@@ -119,7 +117,6 @@ internal fun SearchFilterBottomSheet(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FilterSection(
     title: String,
