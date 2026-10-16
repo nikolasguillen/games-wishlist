@@ -98,7 +98,8 @@ visible, legible and operable with no clipped content.
    section is reachable and its content is fully visible, and the featured game at the top does not take
    the whole visible height, so the start of the next section can be seen without scrolling.
 2. **Given** the search bar is expanded in landscape, **When** suggestions and history are shown, **Then**
-   they sit beside the side bar rather than under it, and can all be reached.
+   the overlay covers the whole screen, side bar included, the same way it covers the bottom bar in
+   portrait, and all of its content can be reached with none of it under the camera cutout.
 3. **Given** the empty, loading or error state is shown in landscape, **When** the user looks at it,
    **Then** its message and actions are fully visible and centered in the space to the right of the side bar.
 4. **Given** the filter or sort sheet is opened in landscape, **When** it is shown, **Then** all of its
