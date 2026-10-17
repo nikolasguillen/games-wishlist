@@ -14,14 +14,15 @@ When the window is wider than it is tall:
 Portrait is unchanged, down to the pixel.
 
 Technically:
-- **One rule for "landscape".** `isLandscapeWindow()` in `:core:ui` compares `LocalWindowInfo`'s container
-  size (`width > height`). `:shared` and `:feature:search` both read it. No adaptive library is added (R1).
-- **The rail sits beside the Scaffold, not inside it.** `QuestLogRoot` becomes a `Row`: an animated M3
-  `NavigationRail` (landscape and a top-level route), then the existing `Scaffold`, whose bottom bar is now
-  also gated on portrait. The rail's insets add the display cutout to M3's default, and the Scaffold consumes
-  them, so no screen pads that side twice (R2, R3).
-- **One destination list.** A `TopLevelDestination` enum in `:shared` holds the three destinations. The bar
-  and the rail both iterate it, and the rail gets its own `navRailItemColors` token (R2).
+- **Two inputs, two questions.** Search's grid asks "wider than tall?" through `isLandscapeWindow()` in
+  `:core:ui` (`LocalWindowInfo`'s container size, `width > height`). The navigation component asks "how big?"
+  through `currentWindowAdaptiveInfo().windowSizeClass` (R1, R2).
+- **A navigation suite wraps the nav display.** `QuestLogRoot` becomes `QuestLogNavigationSuite { QuestLogNavDisplay }`:
+  Material's `NavigationSuiteScaffold` with a bar on a portrait phone and a rail on every other window, hidden on
+  non-top-level routes. It replaces the old app-level `Scaffold`, so `QuestLogNavDisplay` takes no `innerPadding`
+  (R2, R3). Adds two dependencies to `:shared`: `material3-adaptive-navigation-suite` and `adaptive`.
+- **One destination list.** A `TopLevelDestination` enum in `:shared` holds the three destinations, iterated once
+  by the suite; items take `navBarItemColors` and a new `navRailItemColors` token (R2).
 - **A grid that counts its columns.** `SearchResultGrid` reads its own width. A pure
   `resultGridColumnCount` gives 2 in portrait, and in landscape `max(3, as many 150dp cards as fit)`. A custom
   `GridCells` widens the edge cells by the edge inset, so every card is the same width at any count and
@@ -84,16 +85,16 @@ No unknowns remain. Every design question is answered in [research.md](research.
 | **Persistence** | None. The database version is not touched. | ✅ |
 | **Injection** | No Koin change. `KoinGraphTest` is unaffected. No `SavedStateHandle`. | ✅ |
 | **KMP** | Everything is in `commonMain`. No platform capability is involved, so there is no `contracts/` and no change to `platform-contracts.md`. | ✅ |
-| **One type per file / naming** | `TopLevelDestination.kt` (enum), `QuestLogNavigationRail.kt` (composable), `SearchResultGridCells.kt` (one class plus the top-level pure functions it uses), `WindowShape.kt` (one function). `TopLevelDestination` is an identifier set, like `SearchSort`, so it takes no `UiModel` suffix. | ✅ |
-| **Previews** | `QuestLogNavigationRail` gets a `@QuestLogPreviews` preview in `QuestLogTheme`. To make that possible, it takes the current route rather than the back stack. | ✅ |
+| **One type per file / naming** | `TopLevelDestination.kt` (enum), `QuestLogNavigationSuite.kt` (composable), `SearchResultGridCells.kt` (one class plus the top-level pure functions it uses), `WindowShape.kt` (one function). `TopLevelDestination` is an identifier set, like `SearchSort`, so it takes no `UiModel` suffix. | ✅ |
+| **Previews** | None for `QuestLogNavigationSuite`: it wraps the whole nav display and needs a back stack and Koin. |  ✅ |
 
 **Changes to existing behavior or code, called out** (none violates a principle, but each reaches beyond the
 new path):
 1. `MainScreenHeader` (`:core:ui`, shared by Search, Radar and Lists) adds the horizontal display cutout to
    its insets (R8). In portrait the horizontal cutout is zero, so nothing moves. In landscape Radar's and
    Lists' headers also keep the profile button clear of the camera.
-2. `QuestLogBottomBar` is rewritten to iterate `TopLevelDestination`. Its output, order and click behavior
-   are unchanged.
+2. `QuestLogBottomBar` and the app-level `Scaffold` are removed in favor of `QuestLogNavigationSuite`. The bar's
+   look, order and click behavior are unchanged; the rail is the same component family at 80dp.
 3. The results grid's per-item padding changes from `index % 2` to the column-aware rule of R5. With two
    columns the geometry is identical.
 4. `DiscoverHero`'s height becomes `min(240.dp, windowHeight × 0.4)`. It is unchanged on any portrait phone.
@@ -130,12 +131,11 @@ core/designsystem/src/commonMain/kotlin/com/nikolasguillen/questlog/core/designs
 
 shared/src/commonMain/kotlin/com/nikolasguillen/questlog/shared/
 ├── TopLevelDestination.kt                       NEW   enum SEARCH / RADAR / LISTS: route, icon, label, isSelected(route)
-├── QuestLogNavigationRail.kt                    NEW   NavigationRail, items centered, insets systemBars ∪ displayCutout
-│                                                      (Vertical + Start); takes currentRoute; preview
-├── QuestLogBottomBar.kt                         EDIT  iterates TopLevelDestination
-└── QuestLogRoot.kt                              EDIT  Row { AnimatedVisibility(rail) ; Scaffold(weight 1) }; bar gated on
-                                                       portrait; Scaffold consumes the rail's insets while it is shown;
-                                                       the shared "is top-level route" check and navigate lambda
+├── QuestLogNavigationSuite.kt                   NEW   NavigationSuiteScaffold: bar on a portrait phone, rail otherwise;
+│                                                      hidden on non-top-level routes
+└── QuestLogRoot.kt                              EDIT  QuestLogNavigationSuite { QuestLogNavDisplay }; the shared "is top-level
+                                                       route" check and navigate lambda
+(QuestLogBottomBar.kt                         DELETED)
 
 feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/
 ├── SearchScreen.kt                              EDIT  Scaffold contentWindowInsets ∪ displayCutout.only(Horizontal)

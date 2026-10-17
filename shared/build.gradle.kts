@@ -34,6 +34,8 @@ kotlin {
             implementation(project(":feature:settings"))
             implementation(project(":feature:onboarding"))
 
+            implementation(libs.jetbrains.compose.material3.adaptive.navigation.suite)
+            implementation(libs.jetbrains.compose.adaptive)
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)

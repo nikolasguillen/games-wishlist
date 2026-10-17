@@ -5,9 +5,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -53,7 +50,6 @@ import org.koin.core.parameter.parametersOf
 @Composable
 fun QuestLogNavDisplay(
     backStack: NavBackStack<NavKey>,
-    innerPadding: PaddingValues,
     cornerClipModifier: Modifier,
     modifier: Modifier = Modifier
 ) {
@@ -86,8 +82,6 @@ fun QuestLogNavDisplay(
                             }
                         },
                         modifier = cornerClipModifier
-                            .padding(innerPadding)
-                            .consumeWindowInsets(innerPadding)
                     )
                 }
 
@@ -107,8 +101,6 @@ fun QuestLogNavDisplay(
                             }
                         },
                         modifier = cornerClipModifier
-                            .padding(innerPadding)
-                            .consumeWindowInsets(innerPadding)
                     )
                 }
 
@@ -126,10 +118,7 @@ fun QuestLogNavDisplay(
                             if (backStack.lastOrNull() != SettingsRoute) {
                                 backStack.add(SettingsRoute)
                             }
-                        },
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .consumeWindowInsets(innerPadding)
+                        }
                     )
                 }
 
@@ -157,10 +146,7 @@ fun QuestLogNavDisplay(
                             if (backStack.lastOrNull() != OnboardingRoute) {
                                 backStack.add(OnboardingRoute)
                             }
-                        },
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .consumeWindowInsets(innerPadding)
+                        }
                     )
                 }
 
@@ -168,10 +154,7 @@ fun QuestLogNavDisplay(
                     val vm = koinViewModel<OwnedPlatformsViewModel>()
                     OwnedPlatformsScreen(
                         viewModel = vm,
-                        onBackClick = { backStack.removeLastOrNull() },
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .consumeWindowInsets(innerPadding)
+                        onBackClick = { backStack.removeLastOrNull() }
                     )
                 }
 
@@ -179,10 +162,7 @@ fun QuestLogNavDisplay(
                     val vm = koinViewModel<ReleaseNotificationsViewModel>()
                     ReleaseNotificationsScreen(
                         viewModel = vm,
-                        onBackClick = { backStack.removeLastOrNull() },
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .consumeWindowInsets(innerPadding)
+                        onBackClick = { backStack.removeLastOrNull() }
                     )
                 }
 
@@ -190,10 +170,7 @@ fun QuestLogNavDisplay(
                     val vm = koinViewModel<AccountBackupViewModel>()
                     AccountBackupScreen(
                         viewModel = vm,
-                        onBackClick = { backStack.removeLastOrNull() },
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .consumeWindowInsets(innerPadding)
+                        onBackClick = { backStack.removeLastOrNull() }
                     )
                 }
 
@@ -241,10 +218,7 @@ fun QuestLogNavDisplay(
                             } else {
                                 backStack.removeLastOrNull()
                             }
-                        },
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .consumeWindowInsets(innerPadding)
+                        }
                     )
                 }
 

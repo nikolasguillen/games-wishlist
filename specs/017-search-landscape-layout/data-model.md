@@ -15,7 +15,7 @@ derived during composition from the window and the back stack, and recomputed on
 ## Navigation placement (`:shared`)
 
 `TopLevelDestination`, a new enum with one entry per top-level destination. It replaces the three
-hand-written items in `QuestLogBottomBar`.
+hand-written items the bottom bar had.
 
 | Entry | Route opened | Icon | Label resource | Selected when the top of the stack is |
 |---|---|---|---|---|

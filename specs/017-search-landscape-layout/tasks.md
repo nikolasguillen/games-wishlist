@@ -372,3 +372,10 @@ landscape`, `fix(search): keep the hero and sheets inside a landscape screen`). 
 - T013 is written before T014 and fails until T014 exists.
 - iOS can only be verified on a Mac (T028).
 - Avoid vague edits: every task names its file, its values and the research item that explains the choice.
+
+## Revision: navigation suite
+
+- [X] T030 [US1] Replace the hand-built rail (`QuestLogNavigationRail.kt`, `QuestLogBottomBar.kt`, the `Row` and
+  `Scaffold` in `QuestLogRoot`) with `NavigationSuiteScaffold` in `shared/QuestLogNavigationSuite.kt`, choosing bar or
+  rail from the window size class (research R1–R3). Add `material3-adaptive-navigation-suite` and `adaptive` to
+  `:shared`; drop `innerPadding` from `QuestLogNavDisplay`.

@@ -9,106 +9,91 @@ Material 3 sources the build resolves (JetBrains `material3` 1.12.0-alpha03, unp
 
 ## R1 — What "landscape" is, and who decides it
 
-**Decision**: A window is landscape when its width is **strictly greater** than its height, read from
-`LocalWindowInfo.current.containerDpSize`. One `@Composable` helper in `:core:ui`,
-`isLandscapeWindow()` (`core/ui/util/WindowShape.kt`), is the only place the rule is written. `:shared`
-reads it to pick bar or rail; `:feature:search` reads it to pick the grid's column rule. A square window
-counts as portrait.
+**Decision**: Two separate questions, two separate answers.
+
+- **Search's grid** (columns, hero height) asks "is the window wider than tall?". One `@Composable` helper in
+  `:core:ui`, `isLandscapeWindow()` (`core/ui/util/WindowShape.kt`), is the only place that rule is written:
+  `LocalWindowInfo.current.containerDpSize`, width **strictly greater** than height. A square window counts as
+  portrait.
+- **The navigation component** (bar or rail) asks "how big is the window?", through
+  `currentWindowAdaptiveInfo().windowSizeClass` (see R2). It does not use `isLandscapeWindow()`.
 
 **Rationale**:
-- FR-014 says the shape of the window decides, not the device. `containerDpSize` is the window's size,
-  so a split-screen half that is narrow and tall stays portrait, and a tablet or an unfolded foldable that
-  is wider than tall gets the landscape layout. This matches the spec's edge cases.
-- `LocalWindowInfo.current.containerDpSize` is already read in `commonMain` (`CustomAlertDialog`,
-  `SearchFilterBottomSheet`, `GameDetailSuccessContent`), so it compiles for both platforms and costs no new
-  dependency.
-- Both `:shared` and `:feature:search` already depend on `:core:ui`, so the helper needs no new edge.
-- On Android the activity is recreated on rotation (the manifest declares no `configChanges`), so the value
-  is fresh on the first frame. On iOS the window info is snapshot state that `ComposeUIViewController`
-  updates when the size changes, so the layout recomposes without recreation (verified on a Mac only,
-  quickstart §4).
+- `containerDpSize` is the window's size, so a split-screen half that is narrow and tall stays portrait.
+  It is already read in `commonMain` (`CustomAlertDialog`, `SearchFilterBottomSheet`,
+  `GameDetailSuccessContent`), so it costs no dependency, and `:feature:search` already depends on `:core:ui`.
+- The grid has to keep two columns on a portrait tablet (FR-007), which a size class cannot express: a
+  portrait tablet and a landscape phone share the width class. Shape is the right input there.
+- On Android the activity is recreated on rotation, so the value is fresh on the first frame. On iOS the
+  window info is snapshot state that `ComposeUIViewController` updates on resize.
 
 **Alternatives considered**:
-- `currentWindowAdaptiveInfo()` / `WindowSizeClass` from `material3-adaptive`: a new dependency, and size
-  classes answer "how wide" rather than "wider than tall". A landscape phone at 640×360dp and a portrait
-  tablet at 800×1280dp would both be "medium" width, but the spec needs them to differ. Rejected.
+- Size classes for the grid as well: would give a portrait tablet 3+ columns. Rejected for the grid only.
 - `LocalConfiguration.orientation`: Android-only, cannot be in `commonMain`. Rejected.
-- `BoxWithConstraints` at the root: gives the same numbers with an extra subcomposition and no gain.
-  Rejected.
 
 ---
 
-## R2 — The side navigation component
+## R2 — The navigation component
 
-**Decision**: Material 3's baseline `NavigationRail` + `NavigationRailItem` (80dp wide, icon and label),
-in a new `shared/.../QuestLogNavigationRail.kt`. Destinations are **vertically centered** in the rail.
-The rail's container is `MaterialTheme.appColors.navBarContainerColor`, and its items take a new
-`AppComponentsColors.navRailItemColors` with the same indicator and selected-icon colors as
-`navBarItemColors`.
+**Decision**: Material 3's `NavigationSuiteScaffold` (`material3-adaptive-navigation-suite`, with `adaptive` for
+`currentWindowAdaptiveInfo()`), wrapped in `shared/.../QuestLogNavigationSuite.kt`. It wraps `QuestLogNavDisplay`
+and takes the place of the old `Scaffold` plus `QuestLogBottomBar`.
 
-The three destinations (route, icon, label, which routes count as "selected") are moved into one
-`TopLevelDestination` enum in `:shared`. `QuestLogBottomBar` and `QuestLogNavigationRail` both iterate it,
-so the two cannot drift apart (FR-003). The click guard (`if (currentRoute !is X) onNavigate(X)`) and the
-pop-to-root logic in `QuestLogRoot` are shared as they are today.
+- **Which component**: `layoutType` is `NavigationBar` when the window is width-compact (< 600dp) **and not**
+  height-compact (>= 480dp), and `NavigationRail` otherwise. So a portrait phone (and a split-screen half of
+  one) keeps the bar; a phone on its side, a tablet and an unfolded foldable get the rail. The baseline
+  `NavigationBar`/`NavigationRail` are used, not the Expressive short/wide variants, so the look is unchanged.
+- **Not the default rule**: `NavigationSuiteScaffoldDefaults.navigationSuiteType` keeps a bar on a
+  height-compact window, which is the phone-on-its-side case that needs the rail.
+- **Hide and show**: a hoisted `NavigationSuiteScaffoldState`, driven from "the top of the back stack is
+  `SearchRoute`, `RadarRoute` or `ListsRoute`". The scaffold animates the slide and resizes its content.
+- **Destinations**: one `TopLevelDestination` enum in `:shared` (route, icon, label, which routes count as
+  selected), iterated once by `QuestLogNavigationSuite`. The click guard
+  (`currentRoute != destination.route`) and the pop-to-root lambda stay in `QuestLogRoot`.
+- **Colors**: the container is `MaterialTheme.appColors.navBarContainerColor` for both components; items take
+  `AppComponentsColors.navBarItemColors` and `navRailItemColors`.
 
 **Rationale**:
-- `QuestLogBottomBar` uses the baseline `NavigationBar`/`NavigationBarItem`, and `NavigationRail` is its
-  vertical counterpart: same item anatomy, same indicator, same label behavior. The spec assumes the rail
-  keeps the current look.
-- Centered destinations keep the three targets within reach of a thumb on a sideways phone. Three items of
-  about 72dp each fit easily in the 320dp+ height of the smallest landscape phone, so the rail never
-  needs to scroll (spec edge case "very short landscape screen").
-- `NavigationRailItemColors` is a different type from `NavigationBarItemColors`, so the existing token
-  cannot be reused. The new token belongs next to it in `:core:designsystem`.
-- `TopLevelDestination` is an identifier set, like `SearchSort`, not a model of screen state, so it takes
-  no `UiModel` suffix. It is one enum in one file.
+- It is the standard Material answer to "bar or rail", and it owns the layout, the hide animation and the
+  insets that the first version of this feature wrote by hand (a `Row`, an `AnimatedVisibility`, and a
+  `consumeWindowInsets` on the Scaffold).
+- It consumes only the `Bottom` (bar) or `Start` (rail) side of the insets, which is what the hand-written
+  version had to arrive at (T009).
+- On Android the dependency resolves to Jetpack's `material3-adaptive-navigation-suite` at the same
+  `1.5.0-beta01` the rest of Material 3 uses. On iOS it is the JetBrains build at `1.12.0-alpha03`.
+
+**Costs, accepted**:
+- The stock rail lays its items out from the top; the first version centered them. The suite gives no slot
+  for that.
+- A portrait tablet now gets a rail, where the first version kept the bar (shape rule). It follows Material's
+  guidance for medium and wider windows.
+- Two new dependencies in `:shared`: `material3-adaptive-navigation-suite` and `adaptive`.
 
 **Alternatives considered**:
-- `WideNavigationRail` (M3 Expressive, collapsed or expanded): its look does not match the baseline bar
-  the app uses. Rejected for this feature; switching both to Expressive is a separate design decision.
-- `NavigationSuiteScaffold` (`material3-adaptive-navigation-suite`): a new dependency. Its default switching
-  rule follows window size classes, not the spec's shape rule. It also takes over the show/hide behavior that
-  `QuestLogRoot` animates today. Rejected.
-- Top-aligned destinations: valid M3, but they put the targets in the corner furthest from a thumb on a
-  phone held sideways. Rejected.
+- Hand-written `Row` + `NavigationRail` beside the `Scaffold`, switched by `isLandscapeWindow()`: the first
+  implementation. Replaced by the above.
+- `WideNavigationRail`: its look does not match the baseline bar. Rejected for this feature.
 
 ---
 
 ## R3 — Root layout and window insets
 
-**Decision**: `QuestLogContent` becomes a `Row`:
-
-1. An `AnimatedVisibility` holding the rail, visible when `isLandscapeWindow()` **and** the top of the back
-   stack is `SearchRoute`, `RadarRoute` or `ListsRoute`. These are the same routes the bottom bar shows on
-   today (FR-004). It enters and exits with a horizontal slide, the mirror of the bar's vertical slide.
-2. The existing `Scaffold`, weighted to fill the rest. Its `bottomBar` keeps its `AnimatedVisibility`, now
-   also gated on **not** landscape (FR-002).
-
-The rail's `windowInsets` are `WindowInsets.systemBars.union(WindowInsets.displayCutout)` limited to
-`Vertical + Start`. While the rail is visible, the Scaffold is given
-`Modifier.consumeWindowInsets(<the same insets>)`, so screens to its right do not pad the start side again.
+**Decision**: `QuestLogContent` is `QuestLogNavigationSuite { QuestLogNavDisplay(...) }`. There is no app-level
+`Scaffold` any more: it existed only to host the bottom bar and hand its height down as `innerPadding`, and the
+suite now sizes its content directly, so `QuestLogNavDisplay` takes no `innerPadding`.
 
 **Rationale**:
-- The M3 default, `NavigationRailDefaults.windowInsets`, is
-  `systemBarsForVisualComponents.only(Vertical + Start)`. **It does not include the display cutout.** In
-  landscape a punch-hole or notch sits on the start edge, exactly where the rail is, so without the union
-  its icons would sit under the camera (FR-006). On iOS the landscape safe area left and right is reported
-  as `displayCutout`, so the same union covers the notch and the Dynamic Island.
-- `Scaffold` has no start-side slot, and the rail must stay outside the Scaffold's `innerPadding`. That
-  padding is what `QuestLogNavDisplay` applies to each screen, and it must remain "bottom bar height" in
-  portrait and zero in landscape (FR-005). A `Row` keeps the portrait path exactly as it is.
-- Consuming the rail's insets is what stops double padding. Search's Scaffold (default
-  `systemBarsForVisualComponents`), Radar's and Lists' (`WindowInsets.systemBars`) and `MainScreenHeader`
-  (`TopAppBarDefaults.windowInsets`) would otherwise all add the start inset that the rail already
-  occupies.
-- In right-to-left layouts the `Row` puts the rail on the right. That is the start edge the spec's edge
-  case asks for.
+- The rail's default insets are `systemBarsForVisualComponents.only(Vertical + Start)`. On Android that
+  already includes the camera cutout (checked on a punch-hole emulator in both landscape rotations: the rail
+  grows to cover it and its items stay clear). On iOS the default is `systemBars` only.
+- The suite consumes the side it uses, so Search's Scaffold, Radar's and Lists' (`WindowInsets.systemBars`)
+  and `MainScreenHeader` do not pad it twice.
+- While the component is hidden (every non-top-level route) it consumes nothing, so a detail screen gets the
+  whole window, as before.
+- In right-to-left layouts the rail is placed at the start edge by the scaffold.
 
 **Alternatives considered**:
-- Passing a rail width down through `innerPadding`: every screen would then pad itself away from a rail it
-  does not know about, and the rail would have to draw on top of the content. Rejected.
-- A separate landscape `Scaffold` tree: the back stack and `NavDisplay` would sit in two branches and be
-  re-created on rotation. Rejected; one `NavDisplay` stays where it is.
+- Keeping the Scaffold under the suite to supply `innerPadding`: it would always be zero. Rejected.
 
 ---
 
