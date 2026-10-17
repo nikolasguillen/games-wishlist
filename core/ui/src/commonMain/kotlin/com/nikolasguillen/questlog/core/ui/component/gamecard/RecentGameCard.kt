@@ -41,8 +41,8 @@ object RecentGameCardDefaults {
 /**
  * A recently viewed game: its cover under a dark scrim with the name and year, and a button to remove it.
  *
- * The card takes its size from [modifier], so a row can keep the default and a grid can let each cell decide. The
- * cover is as tall as the card.
+ * The card takes its size from [modifier] when one is given, so a grid can let each cell decide; without one it is
+ * [RecentGameCardDefaults] sized, which is what a row wants. The cover is as tall as the card.
  */
 @Composable
 fun RecentGameCard(
@@ -51,12 +51,14 @@ fun RecentGameCard(
     onRemoveClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    BoxWithConstraints(
-        modifier = modifier.size(
-            RecentGameCardDefaults.Width,
-            RecentGameCardDefaults.Height
-        )
-    ) {
+    // No modifier given: the default size. Any modifier given owns the size, so the grid can fill its cell instead.
+    val cardModifier = if (modifier === Modifier) {
+        Modifier.size(RecentGameCardDefaults.Width, RecentGameCardDefaults.Height)
+    } else {
+        modifier
+    }
+
+    BoxWithConstraints(modifier = cardModifier) {
         val cardHeight = maxHeight
         GenericGameCardLayout(
             shape = MaterialTheme.shapes.small,
