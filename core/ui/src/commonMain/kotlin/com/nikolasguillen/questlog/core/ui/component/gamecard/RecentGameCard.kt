@@ -49,9 +49,14 @@ fun RecentGameCard(
     game: GameItemUiModel,
     onClick: () -> Unit,
     onRemoveClick: () -> Unit,
-    modifier: Modifier = Modifier.size(RecentGameCardDefaults.Width, RecentGameCardDefaults.Height)
+    modifier: Modifier = Modifier
 ) {
-    BoxWithConstraints(modifier = modifier) {
+    BoxWithConstraints(
+        modifier = modifier.size(
+            RecentGameCardDefaults.Width,
+            RecentGameCardDefaults.Height
+        )
+    ) {
         val cardHeight = maxHeight
         GenericGameCardLayout(
             shape = MaterialTheme.shapes.small,
