@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.shared
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -114,9 +116,17 @@ private fun QuestLogContent(
         isVisible = isTopLevelRoute,
         onNavigateToRoute = onNavigateToRoute,
         modifier = modifier
-    ) {
+    ) { isRailShown ->
+        // The rail covers the start edge, so the content meets it with square corners there instead of showing the
+        // window behind a rounded one. The radius animates alongside the rail's slide.
+        val startCornerRadius by animateDpAsState(if (isRailShown) 0.dp else displayCornerRadius)
         val cornerClipModifier = Modifier.graphicsLayer {
-            shape = RoundedCornerShape(displayCornerRadius)
+            shape = RoundedCornerShape(
+                topStart = startCornerRadius,
+                topEnd = displayCornerRadius,
+                bottomEnd = displayCornerRadius,
+                bottomStart = startCornerRadius
+            )
             clip = true
         }
 

@@ -25,6 +25,8 @@ import org.jetbrains.compose.resources.stringResource
  * The component slides away while [isVisible] is false, which is every route that is not a top-level destination.
  * The scaffold also hands [content] the insets the visible component has not used, so a screen does not pad for them
  * twice.
+ *
+ * [content] is told whether the side rail is on screen, because the content then borders it on its start edge.
  */
 @Composable
 internal fun QuestLogNavigationSuite(
@@ -32,7 +34,7 @@ internal fun QuestLogNavigationSuite(
     isVisible: Boolean,
     onNavigateToRoute: (NavKey) -> Unit,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
+    content: @Composable (isRailShown: Boolean) -> Unit
 ) {
     val scaffoldState = rememberNavigationSuiteScaffoldState(
         initialValue = if (isVisible) NavigationSuiteScaffoldValue.Visible else NavigationSuiteScaffoldValue.Hidden
@@ -46,6 +48,9 @@ internal fun QuestLogNavigationSuite(
         navigationBarItemColors = AppComponentsColors.navBarItemColors,
         navigationRailItemColors = AppComponentsColors.navRailItemColors
     )
+
+    val navigationSuiteType = topLevelNavigationSuiteType()
+    val isRailShown = isVisible && navigationSuiteType == NavigationSuiteType.NavigationRail
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
@@ -69,13 +74,13 @@ internal fun QuestLogNavigationSuite(
             }
         },
         modifier = modifier,
-        layoutType = topLevelNavigationSuiteType(),
+        layoutType = navigationSuiteType,
         navigationSuiteColors = NavigationSuiteDefaults.colors(
             navigationBarContainerColor = barColor,
             navigationRailContainerColor = barColor
         ),
         state = scaffoldState,
-        content = content
+        content = { content(isRailShown) }
     )
 }
 
