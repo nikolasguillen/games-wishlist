@@ -50,7 +50,6 @@ import org.koin.core.parameter.parametersOf
 @Composable
 fun QuestLogNavDisplay(
     backStack: NavBackStack<NavKey>,
-    cornerClipModifier: Modifier,
     modifier: Modifier = Modifier
 ) {
     NavDisplay(
@@ -80,8 +79,7 @@ fun QuestLogNavDisplay(
                             if (backStack.lastOrNull() != SettingsRoute) {
                                 backStack.add(SettingsRoute)
                             }
-                        },
-                        modifier = cornerClipModifier
+                        }
                     )
                 }
 
@@ -99,8 +97,7 @@ fun QuestLogNavDisplay(
                             if (backStack.lastOrNull() != SettingsRoute) {
                                 backStack.add(SettingsRoute)
                             }
-                        },
-                        modifier = cornerClipModifier
+                        }
                     )
                 }
 
@@ -199,8 +196,7 @@ fun QuestLogNavDisplay(
                             if (backStack.lastOrNull() != nextRoute) {
                                 backStack.add(nextRoute)
                             }
-                        },
-                        modifier = cornerClipModifier
+                        }
                     )
                 }
 

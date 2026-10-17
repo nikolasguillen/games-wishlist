@@ -1,16 +1,11 @@
 package com.nikolasguillen.questlog.shared
 
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -34,14 +29,11 @@ import org.koin.compose.viewmodel.koinViewModel
  *
  * @param pendingDeepLinkGameId A game a release reminder asked to open, handed in as state because the platform
  * delivers it outside composition. It is dropped, not queued, while the welcome flow is still the first entry.
- * @param displayCornerRadius The device screen's corner radius, so content can be clipped to follow it. Zero where
- * the platform has no such notion.
  */
 @Composable
 fun QuestLogRoot(
     pendingDeepLinkGameId: Int?,
     onDeepLinkConsumed: () -> Unit,
-    displayCornerRadius: Dp,
     modifier: Modifier = Modifier,
     rootViewModel: RootViewModel = koinViewModel()
 ) {
@@ -58,7 +50,6 @@ fun QuestLogRoot(
                 pendingDeepLinkGameId = pendingDeepLinkGameId,
                 onDeepLinkConsumed = onDeepLinkConsumed,
                 startWithOnboarding = !completed,
-                displayCornerRadius = displayCornerRadius,
                 modifier = modifier
             )
         }
@@ -70,7 +61,6 @@ private fun QuestLogContent(
     pendingDeepLinkGameId: Int?,
     onDeepLinkConsumed: () -> Unit,
     startWithOnboarding: Boolean,
-    displayCornerRadius: Dp,
     modifier: Modifier = Modifier
 ) {
     val backStack = rememberNavBackStack(
@@ -116,23 +106,9 @@ private fun QuestLogContent(
         isVisible = isTopLevelRoute,
         onNavigateToRoute = onNavigateToRoute,
         modifier = modifier
-    ) { isRailShown ->
-        // The rail covers the start edge, so the content meets it with square corners there instead of showing the
-        // window behind a rounded one. The radius animates alongside the rail's slide.
-        val startCornerRadius by animateDpAsState(if (isRailShown) 0.dp else displayCornerRadius)
-        val cornerClipModifier = Modifier.graphicsLayer {
-            shape = RoundedCornerShape(
-                topStart = startCornerRadius,
-                topEnd = displayCornerRadius,
-                bottomEnd = displayCornerRadius,
-                bottomStart = startCornerRadius
-            )
-            clip = true
-        }
-
+    ) {
         QuestLogNavDisplay(
             backStack = backStack,
-            cornerClipModifier = cornerClipModifier,
             modifier = Modifier.fillMaxSize()
         )
     }

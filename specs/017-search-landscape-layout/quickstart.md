@@ -52,7 +52,7 @@ directions.
 | 18 | Navigate to a game and rotate during the rail's slide | Return | The rail or bar ends in the right place, with no leftover gap | Edge cases |
 | 19 | Developer options → Force RTL layout direction, landscape | Look | The rail is on the right (start) edge, the grid mirrors, and nothing is clipped | Edge cases |
 | 20 | Split screen, the app in a tall narrow half | Look | Portrait layout: bottom bar, 2 columns | FR-014, edge cases |
-| 21 | Landscape, Search | Look at the content's top-start corner next to the rail | The corner rounding is not noticeable | R11 |
+| 21 | — | Dropped: the display-corner clip was removed | — | R11 |
 | 22 | Landscape | Visit Radar and Lists | Rail and full height; their headers keep the profile button clear of the cutout | Assumptions, R8 |
 
 **Run record (2026-10-16)**: the `Pixel_10_Pro_Fold` AVD resized to 1080x2400 at 420dpi (no cutout), and the

@@ -1,20 +1,14 @@
 package com.nikolasguillen.questlog
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
-import android.view.RoundedCorner
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.nikolasguillen.questlog.shared.QuestLogRoot
@@ -62,22 +56,9 @@ class MainActivity : ComponentActivity() {
             splashDone = true
         }
         setContent {
-            val view = LocalView.current
-            val density = LocalDensity.current
-            val cornerRadius = remember(view, density) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    val insets = view.rootWindowInsets
-                    val radiusPx =
-                        insets?.getRoundedCorner(RoundedCorner.POSITION_TOP_LEFT)?.radius ?: 0
-                    with(density) { radiusPx.toDp() }
-                } else {
-                    0.dp
-                }
-            }
             QuestLogRoot(
                 pendingDeepLinkGameId = pendingDeepLinkGameId,
-                onDeepLinkConsumed = { pendingDeepLinkGameId = null },
-                displayCornerRadius = cornerRadius
+                onDeepLinkConsumed = { pendingDeepLinkGameId = null }
             )
         }
     }

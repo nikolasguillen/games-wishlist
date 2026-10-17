@@ -358,13 +358,12 @@ enum class ProviderOutcome { SUCCESS, CANCELLED, FAILED }
 
 | Concern | Android (`:androidApp`) | iOS (`iosApp/`) |
 |---|---|---|
-| Entry point | `MainActivity` → `setContent { QuestLogRoot(pendingDeepLinkGameId, onDeepLinkConsumed, displayCornerRadius) }`; the splash is held by `MainActivity` itself until `RootViewModel` has the onboarding flag | `AppDelegate` → `startQuestLog(...)`; `ContentView` → `MainViewController()` |
+| Entry point | `MainActivity` → `setContent { QuestLogRoot(pendingDeepLinkGameId, onDeepLinkConsumed) }`; the splash is held by `MainActivity` itself until `RootViewModel` has the onboarding flag | `AppDelegate` → `startQuestLog(...)`; `ContentView` → `MainViewController()` |
 | DI start | `QuestLogApp.onCreate` → `initKoin(isDebugBuild = BuildConfig.DEBUG) { androidContext(this) }`; the WorkManager factory is the `Application`'s `Configuration.Provider` | `startQuestLog(...)` from the app delegate's `didFinishLaunching` → idempotent `initKoin(isDebugBuild = …)`, so a background launch with no UI has the graph too; the iOS bindings are the `expect` platform modules' `iosMain` actuals, which `initKoin` already lists |
 | Firebase | the google-services plugin starts it; `google-services.json` is git-ignored | `FirebaseApp.configure()` first in `AppDelegate`, before anything that needs a sign-in provider; `GoogleService-Info.plist` is git-ignored and the app has the Sign in with Apple capability |
 | Splash | `core-splashscreen`, held until the start route is known (unchanged) | `LaunchScreen` storyboard with the app logo |
 | Swift services handed to Kotlin | None | `FoundationModelsBridge` (FoundationModels), `ReleaseRefreshTask` (BackgroundTasks) and `IdentityProviderBridge` (Sign in with Apple), bound in Koin by `startQuestLog` |
 | Periodic refresh kick-off | `QuestLogApp` calls `schedulePeriodicRefresh()` (unchanged) | `startQuestLog(...)` calls `schedulePeriodicRefresh()` once per launch; the system also launches the refresh task in the background |
-| Display corner radius | `RoundedCorner` probe (unchanged) | Fixed default passed by `MainViewController()` |
 | Deep link to a game (`questlog://game/{id}`, used by the reminder notification) | `MainActivity` parses the intent (`onCreate` and `onNewIntent`) into a `GameDetailRoute` and hands it to `QuestLogRoot` as a pending route | No URL scheme. `ReleaseReminderNotificationDelegate` (`:shared` `iosMain`, set by `startQuestLog`) reads `gameId` from the tapped notification's `userInfo` → `ReminderDeepLinks` → `MainViewController` → `QuestLogRoot` as the pending game id |
 
 ## Capability exception register

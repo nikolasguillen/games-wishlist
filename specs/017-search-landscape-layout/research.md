@@ -265,14 +265,14 @@ way to reach it (FR-012). A scroll that never activates when the content fits is
 
 ## R11 — The display-corner clip next to the rail
 
-**Decision**: Keep `cornerClipModifier` as it is.
+**Decision**: The clip is removed. Nothing in the app rounds its content to the device's corner radius any
+more: `QuestLogRoot` has no `displayCornerRadius` parameter, `MainActivity` no longer reads `RoundedCorner`, and
+the nav entries take no clip modifier.
 
-**Rationale**: The clip rounds the screen's content to the device's corner radius so that predictive back
-looks right. With the rail visible, the content's start corners now sit against the rail instead of the
-display corner. What reaches those corners is the header, which is transparent at rest, and the root
-background shows through the cut, which is the same color as Search's background. Quickstart §3 has a row to
-confirm this is not noticeable. If it is, the fix is a shape that rounds only the end corners while the rail
-is visible, a local change to `QuestLogRoot`.
+**Rationale**: The clip existed so the predictive-back card follows the screen's corners. With the rail on
+screen, the content's start corners sit against the rail instead of a display corner, so rounding them only
+showed the window behind the cut. Rounding only the end corners while the rail shows worked, but it was a
+second rule to keep in step with the rail for a cosmetic effect, so the effect was dropped altogether.
 
 ---
 

@@ -267,9 +267,7 @@ bar, results, empty, loading, error, filter sheet, sort sheet) and confirm nothi
   --console=plain -q`, and confirm they pass.
 - [ ] T024 [US3] Hands-on check on an emulator with **Developer options → Display cutout → Punch hole**: run
   quickstart §3 rows 10, 11, 12, 13, 15, 16, 17, 21 and 22. Row 13 is repeated at the largest font size. Row
-  21 is the corner-rounding check (research R11): if the rounding next to the rail is noticeable, round only
-  the end corners of `cornerClipModifier` in `shared/QuestLogRoot.kt` while the rail is visible, and say so in
-  the report.
+  21 (the corner-rounding check) no longer applies: the corner clip was removed (research R11).
 
 **Checkpoint**: All three stories work, and the whole Search section is consistent in landscape.
 
