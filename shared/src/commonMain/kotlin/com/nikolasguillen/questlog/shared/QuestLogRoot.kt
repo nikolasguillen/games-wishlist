@@ -2,6 +2,7 @@ package com.nikolasguillen.questlog.shared
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -9,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.window.core.layout.WindowSizeClass
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.model.AppearanceMode
 import com.nikolasguillen.questlog.core.navigation.GameDetailRoute
@@ -83,6 +85,13 @@ private fun QuestLogContent(
         onDeepLinkConsumed()
     }
 
+    // Read once, here, so the scene, the back handling and the rail all agree on what a wide window is. Exactly
+    // 840dp counts as wide.
+    val twoPaneEnabled = currentWindowAdaptiveInfo().windowSizeClass
+        .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)
+    // A game opened from Search is showing beside the results: the rail stays, with Search selected.
+    val showsSearchDetail = twoPaneEnabled && searchDetailRun(backStack) != null
+
     val currentRoute = backStack.last()
     val isTopLevelRoute = currentRoute is SearchRoute ||
             currentRoute is RadarRoute ||
@@ -102,13 +111,14 @@ private fun QuestLogContent(
     }
 
     QuestLogNavigationSuite(
-        currentRoute = currentRoute,
-        isVisible = isTopLevelRoute,
+        currentRoute = if (showsSearchDetail) SearchRoute else currentRoute,
+        isVisible = isTopLevelRoute || showsSearchDetail,
         onNavigateToRoute = onNavigateToRoute,
         modifier = modifier
     ) {
         QuestLogNavDisplay(
             backStack = backStack,
+            twoPaneEnabled = twoPaneEnabled,
             modifier = Modifier.fillMaxSize()
         )
     }

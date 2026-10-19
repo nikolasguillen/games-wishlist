@@ -129,7 +129,12 @@ Adding a route means three edits, all outside the feature module:
    `ViewModelModule.kt`; `KoinGraphTest` (in `:shared`) fails if a dependency is not declared.
 
 Navigation is plain backstack mutation (`backStack.add(route)` / `backStack.removeLastOrNull()`), always
-guarded by `if (backStack.lastOrNull() != nextRoute)`.
+guarded by `if (backStack.lastOrNull() != nextRoute)`. The one exception is a game opened from the Search flow: on a
+wide window it is shown beside the results and replaces the previous one instead of stacking, so it goes through
+`openSearchDetail` and back through `navigateBack` (both in `shared/.../SearchDetailPanes.kt`) and its route is
+`GameDetailRoute(id, fromSearch = true)`. A screen knows none of this. Its `onBackClick` is simply `null` when it is
+not the only thing on screen (`GameDetailScreen`), and a component that has to choose a layout by shape reads the
+space it was given, not the window.
 
 ## Resources and visibility
 

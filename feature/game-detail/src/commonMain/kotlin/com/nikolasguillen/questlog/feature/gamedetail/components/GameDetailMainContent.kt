@@ -20,7 +20,7 @@ import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiState
 internal fun GameDetailMainContent(
     uiState: GameDetailUiState,
     onEvent: (GameDetailUiEvent) -> Unit,
-    onBackClick: () -> Unit,
+    onBackClick: (() -> Unit)?,
     modifier: Modifier = Modifier
 ) {
     when (val content = uiState.contentState) {

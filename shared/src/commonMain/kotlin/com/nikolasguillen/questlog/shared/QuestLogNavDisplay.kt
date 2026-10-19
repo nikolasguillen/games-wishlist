@@ -6,6 +6,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
@@ -46,16 +47,26 @@ import com.nikolasguillen.questlog.feature.wishlist.WishlistViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+/**
+ * The single place that turns a back stack into screens.
+ *
+ * @param twoPaneEnabled Whether the window is wide enough to show a game opened from Search beside the results.
+ * Below that width every game opens full-screen and back pops one entry, as it always did.
+ */
 @Suppress("ParamsComparedByRef")
 @Composable
 fun QuestLogNavDisplay(
     backStack: NavBackStack<NavKey>,
+    twoPaneEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val sceneStrategy = remember(twoPaneEnabled) { SearchDetailSceneStrategy(twoPaneEnabled) }
+
     NavDisplay(
         modifier = modifier,
         backStack = backStack,
-        onBack = { backStack.removeLastOrNull() },
+        onBack = { navigateBack(backStack, twoPaneEnabled) },
+        sceneStrategies = listOf(sceneStrategy),
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator()
@@ -65,15 +76,12 @@ fun QuestLogNavDisplay(
         predictivePopTransitionSpec = { (slideInHorizontally { -it } + fadeIn()) togetherWith (slideOutHorizontally { it } + fadeOut()) },
         entryProvider = { key ->
             when (key) {
-                is SearchRoute -> NavEntry(key) {
+                is SearchRoute -> NavEntry(key, metadata = searchPaneMetadata()) {
                     val vm = koinViewModel<SearchViewModel>()
                     SearchScreen(
                         viewModel = vm,
                         onGameClick = { gameId: Int ->
-                            val nextRoute = GameDetailRoute(gameId)
-                            if (backStack.lastOrNull() != nextRoute) {
-                                backStack.add(nextRoute)
-                            }
+                            openSearchDetail(backStack, gameId, twoPaneEnabled)
                         },
                         onProfileClick = {
                             if (backStack.lastOrNull() != SettingsRoute) {
@@ -186,15 +194,29 @@ fun QuestLogNavDisplay(
                     )
                 }
 
-                is GameDetailRoute -> NavEntry(key) {
+                is GameDetailRoute -> NavEntry(
+                    key,
+                    metadata = if (key.fromSearch) searchDetailMetadata() else emptyMap()
+                ) {
                     val vm = koinViewModel<GameDetailViewModel> { parametersOf(key.gameId) }
                     GameDetailScreen(
                         viewModel = vm,
-                        onBackClick = { backStack.removeLastOrNull() },
+                        // A game opened from Search on a wide window is drawn beside the results, which are
+                        // already on screen, so there is nothing to go back to and no button.
+                        onBackClick = if (twoPaneEnabled && key.fromSearch) {
+                            null
+                        } else {
+                            { navigateBack(backStack, twoPaneEnabled) }
+                        },
                         onGameClick = { gameId: Int ->
-                            val nextRoute = GameDetailRoute(gameId)
-                            if (backStack.lastOrNull() != nextRoute) {
-                                backStack.add(nextRoute)
+                            if (key.fromSearch) {
+                                // Replaces the right pane on a wide window and stacks below it.
+                                openSearchDetail(backStack, gameId, twoPaneEnabled)
+                            } else {
+                                val nextRoute = GameDetailRoute(gameId)
+                                if (backStack.lastOrNull() != nextRoute) {
+                                    backStack.add(nextRoute)
+                                }
                             }
                         }
                     )

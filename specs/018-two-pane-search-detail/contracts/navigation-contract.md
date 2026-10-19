@@ -27,8 +27,9 @@ two-pane mode, so it is a plain pop.
   - `entries = [searchEntry, lastDetailEntry]`
   - `previousEntries = entries up to and including searchEntry` (in agreement with `navigateBack`)
   - `key` = the Search entry's `contentKey`, stable while the detail is replaced
-  - content: a `Row` of two equal-weight panes and a `VerticalDivider`. The left pane is under a disabled child
-    navigation-event dispatcher and consumes `End` window insets; the right pane consumes `Start` window insets.
+  - content: a `Row` of two equal-weight panes and a `VerticalDivider`. The left pane consumes the `End` display
+    cutout inset and the right pane the `Start` one. A `SearchDetailBackHandler` (overlay priority) sends system back
+    to the display's `onBack`, so it outranks Search's own handler.
 - Otherwise `null`, so `SinglePaneSceneStrategy` renders exactly as today.
 
 ## 3. Navigation suite (`:shared`)

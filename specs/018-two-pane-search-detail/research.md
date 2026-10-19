@@ -129,16 +129,25 @@ browse is committed (`SearchScreen.kt:224`). Today it is never composed together
 it is, and because it is registered after `NavDisplay`'s own handler it would take priority: back would clear the
 search instead of closing the detail. That breaks FR-003 and FR-008.
 
-**Decision**: The two-pane scene composes the Search pane under a child navigation-event dispatcher
-(`rememberNavigationEventDispatcherOwner(enabled = false)` provided through `LocalNavigationEventDispatcherOwner`).
-While the detail is showing, the Search pane's back handlers are switched off, and back reaches `NavDisplay` (or a
-handler inside the detail, such as the full-screen image viewer). Once the detail closes, the Search entry returns to
-the one-pane scene, where its handler works as today.
+**Decision**: The two-pane scene registers its own back handler at the library's **overlay** priority
+(`SearchDetailBackHandler`, a `NavigationEventHandler` added with `PRIORITY_OVERLAY`), which hands the event to the
+display's `onBack`. Overlay handlers are asked before every default-priority one, so while the detail is showing, back
+closes it. Once it closes, the scene is gone and Search's own handler works as before.
 
-**Rationale**: It isolates the pane without telling `:feature:search` anything (Principle I). It is the mechanism the
-navigationevent library documents for "isolating navigation handling within specific UI sections". The other ways
+**What was tried first, and why it was dropped** (found on a tablet emulator): a child dispatcher with
+`enabled = false`, and a default-priority `NavigationBackHandler` added after the panes. Neither is reliable. A
+handler registers once, when its composition is created, and the Search entry keeps that registration as it moves
+between scenes, so a child dispatcher never sees it. Among default-priority handlers the one added last wins, and the
+order depends on how the Search entry came to be composed (it lost after a rotate-then-open). The overlay priority
+does not depend on order.
+
+**Rationale**: It outranks Search's handler without telling `:feature:search` anything (Principle I). The other ways
 around the problem were to pass a flag into `SearchScreen` (the feature would learn about panes) or to reorder
-handlers (fragile, and it depends on registration order).
+handlers (fragile, as above).
+
+**Known limit**: the handler sees a gesture only when it completes, so there is no predictive back preview while two
+panes are showing. Back itself is unaffected. A window-level surface (the expanded search bar, a sheet, a dialog,
+the full-screen image viewer) handles its own back and is not intercepted; verified for the expanded search bar.
 
 **Dependency note**: this needs `navigationevent-compose` as a **direct** dependency of `:shared`
 (`libs.jetbrains.navigationevent.compose`, already in the catalog and already used by `:feature:search` and
@@ -177,17 +186,20 @@ The audit of every place the two screens read the window rather than their own s
 
 | Place | Reads | In a pane | Action |
 |---|---|---|---|
-| `SearchResultGrid` columns | `isLandscapeWindow()` (window shape) + the grid's own `maxWidth` | **Wrong.** A landscape tablet's left pane (about 600×740dp) or an unfolded foldable's (about 410×700dp) is portrait-shaped, yet the window is landscape, so the grid would force at least three columns into it, about 110dp each on the foldable. | Decide landscape from the grid's own box (`maxWidth > maxHeight`, through a new `isLandscapeShape(width, height)` in `:core:ui/WindowShape.kt`, so the rule is still written once). |
+| `SearchResultGrid` columns | `isLandscapeWindow()` (window shape) + the grid's own `maxWidth` | **Wrong.** An unfolded foldable's pane (about 410×700dp) is portrait-shaped, yet the window is landscape, so the grid would force at least three columns into it, about 110dp each. | Decide landscape from the grid's own box (`maxWidth > maxHeight`, through a new `isLandscapeShape(width, height)` in `:core:ui/WindowShape.kt`, so the rule is still written once). |
 | `ExpandedSearchHome` (the expanded search bar's suggestions) | `isLandscapeWindow()` | Correct. It lives in `ExpandedFullScreenSearchBar`, a full-window overlay, so the window *is* its space. | None. Opening the search bar in two-pane mode covers both panes, as a full-screen search should. |
 | `DiscoverHero` height, `GameDetailSheetContent` min height, `SearchFilterBottomSheet` height | window height | Correct. The panes are full height. | None. |
 | `CustomAlertDialog` width, modal bottom sheets | window | Correct. They are window-level surfaces. | None. |
 | Horizontal insets (`SearchScreen`'s Scaffold unions `displayCutout` horizontally) | window insets | **Wrong at the inner edge.** A cutout on the window's end side would also pad the left pane's inner edge, and one on the start side the right pane's. | Each pane consumes the insets of the side it does not touch (left pane: `End`, right pane: `Start`) with `consumeWindowInsets`. Verified on device (quickstart S7). |
 
-With the grid change, a portrait-shaped pane gets the two-column portrait grid. Its cards are about as wide as on a
-portrait tablet today, and the landscape column logic from spec 017 is unchanged for the full-width layout
-(US5-1, US5-3, FR-015). This changes spec 017's rule for the grid only, from "the window's shape" to "the shape of the
-space the grid is given". The two are the same thing whenever Search is full width, which covers everything spec 017
-tested.
+With the grid change, the grid decides from the space it was given. Measured on a 1280x800dp tablet: the left pane's
+grid box is about 600x600dp (it sits under the search header), so it counts as landscape and shows 3 columns of
+roughly 180dp, about the size of a portrait phone's cards; at about 850dp wide the pane is clearly portrait-shaped
+and shows 2 columns. The landscape column logic from spec 017 is unchanged for the full-width layout (US5-1, US5-3,
+FR-015). This changes spec 017's rule for the grid only, from "the window's shape" to "the shape of the space the grid
+is given". Search at full width reads the same either way, except in a nearly square portrait window (within about
+36dp), where the grid's box can read as landscape. The cut-off sits where the pane is close to square, so the column
+count there is a judgement call, not a guarantee of 2.
 
 The detail has no width-dependent logic. Its hero, sheet and action pill are all `fillMaxWidth`/centered (FR-016).
 
@@ -200,9 +212,11 @@ needed. The spec leaves the ratio to the plan, and equal halves is what it assum
 
 **Decision**: Entering, leaving and swapping within the two-pane layout are immediate, with no crossfade. The
 two-pane scene's `key` is the Search entry's `contentKey`, so replacing the detail does not change the scene and
-starts no `NavDisplay` transition. Entering and leaving the scene override the transition through Navigation 3's
-transition metadata (`NavDisplay.transitionSpec` / `popTransitionSpec` / `predictivePopTransitionSpec`, which the
-scene or the transitioning entry may supply; the transitioning entry's metadata takes precedence over the scene's).
+starts no `NavDisplay` transition. Entering and leaving the scene override the transition through the scene's own
+metadata (`NavDisplay.transitionSpec` and `popTransitionSpec`, both `None togetherWith None`). `NavDisplay` reads the
+metadata of the scene on top: the target scene when opening and the departing one when popping, and both are the
+two-pane scene. The predictive pop spec is left at the app's default; it is not reached while two panes show
+(see R5, known limit).
 
 **Rationale**: `NavDisplay` animates between scenes, and an entry shared by both scenes is drawn only by the target.
 The app's default `fadeIn togetherWith fadeOut` would therefore fade the Search pane in from nothing every time a

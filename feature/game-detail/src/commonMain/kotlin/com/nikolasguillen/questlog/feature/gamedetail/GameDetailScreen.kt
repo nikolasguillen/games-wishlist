@@ -35,11 +35,17 @@ import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiState
 import kotlinx.coroutines.launch
 
 // viewModel is the same instance for the route's whole lifetime, so ref-comparison skips correctly.
+/**
+ * A game's detail.
+ *
+ * @param onBackClick The back button's action; `null` hides the button, for a screen that is not the only thing on
+ * the display.
+ */
 @Suppress("ParamsComparedByRef")
 @Composable
 fun GameDetailScreen(
     viewModel: GameDetailViewModel,
-    onBackClick: () -> Unit,
+    onBackClick: (() -> Unit)?,
     onGameClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -114,7 +120,7 @@ fun GameDetailScreen(
 internal fun GameDetailContent(
     uiState: GameDetailUiState,
     onEvent: (GameDetailUiEvent) -> Unit,
-    onBackClick: () -> Unit,
+    onBackClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {

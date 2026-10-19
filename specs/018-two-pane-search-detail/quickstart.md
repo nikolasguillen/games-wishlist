@@ -46,8 +46,8 @@ In the detail, add the game to a list. **Expect** it to work as on a phone.
 From S2, tap five other results, then a similar game inside the detail. **Expect** the right pane to always show the
 last game opened, with no blink of the left pane on any swap or on open and close
 ([R8](./research.md#r8-transitions)). Press system back **once**. **Expect** Search to return to full width with
-the same results and scroll position. Repeat with predictive back (Android 14+) and check that the preview shows
-Search at full width.
+the same query and results. There is no predictive back preview while two panes are showing (a known limit,
+[R5](./research.md#r5-the-system-back-gesture-while-both-panes-are-composed)); the back itself must still work.
 
 ### S4. Back does not clear the search (R5)
 In two-pane mode with a committed query, press system back. **Expect** the detail to close and the query and

@@ -32,7 +32,7 @@ import com.nikolasguillen.questlog.core.ui.component.gamecard.VerticalGameCard
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.core.ui.resources.choose_list_content_description
-import com.nikolasguillen.questlog.core.ui.util.isLandscapeWindow
+import com.nikolasguillen.questlog.core.ui.util.isLandscapeShape
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.resources.Res
 import com.nikolasguillen.questlog.feature.search.resources.remove_filter_content_description
@@ -73,15 +73,15 @@ internal fun SearchResultGrid(
             )
         }
     } else {
-        // The grid's own width, which is the screen minus the rail and the insets, decides the columns: the window's
-        // width would count the rail's space too.
+        // The grid's own space decides the columns, both the width and whether it counts as landscape: the window
+        // would count the rail's space too, and a pane beside another one is portrait-shaped on a landscape window.
         BoxWithConstraints(modifier = modifier) {
             val edge = MaterialTheme.spacing.large
             val columnCount = resultGridColumnCount(
                 availableWidth = maxWidth,
                 spacing = MaterialTheme.spacing.large,
                 edge = edge,
-                isLandscape = isLandscapeWindow()
+                isLandscape = isLandscapeShape(maxWidth, maxHeight)
             )
 
             LazyVerticalGrid(

@@ -17,7 +17,7 @@ functions in `:shared` replace the run instead of stacking it while the window i
 on back. Navigation 3 keeps entry content movable between scenes, so the Search entry's whole composition (query,
 filters, scroll) survives. Three fixes make the panes behave:
 
-- the Search pane's own back handler is switched off while the detail shows (it would otherwise clear the search);
+- the scene registers a back handler that outranks the Search pane's own (it would otherwise clear the search);
 - the results grid decides "landscape" from its own space rather than the window's;
 - the detail's back button becomes optional.
 
@@ -112,7 +112,8 @@ shared/
 ├── src/commonMain/.../shared/
 │   ├── SearchDetailPanes.kt            # new: searchDetailRun, openSearchDetail, navigateBack (pure)
 │   ├── SearchDetailSceneStrategy.kt    # new: the SceneStrategy + entry metadata markers
-│   ├── SearchDetailScene.kt            # new: the two-pane Scene (panes, divider, insets, disabled back dispatcher)
+│   ├── SearchDetailScene.kt            # new: the two-pane Scene (panes, divider, insets, transitions)
+│   ├── SearchDetailBackHandler.kt      # new: overlay-priority back handler for the scene
 │   ├── QuestLogRoot.kt                 # twoPaneEnabled; rail visibility and highlighted route
 │   └── QuestLogNavDisplay.kt           # sceneStrategies, onBack, Search/detail click rules, metadata, nullable back
 └── src/androidHostTest/.../shared/SearchDetailPanesTest.kt      # new
@@ -157,5 +158,5 @@ Each step builds and passes `./gradlew test` on its own (constitution: every ste
 
 | Item | Why Needed | Simpler Alternative Rejected Because |
 |---|---|---|
-| `:shared` declares `libs.jetbrains.navigationevent.compose` directly (existing catalog library, already in the dependency graph; **no new module edge**) | The two-pane scene must turn off the Search pane's own back handler while the detail is showing ([research.md R5](./research.md#r5-the-system-back-gesture-while-both-panes-are-composed)). Otherwise back clears the search instead of closing the detail. | Passing a "pane" flag into `SearchScreen` would make `:feature:search` aware of navigation layout (Principle I). Relying on the transitive dependency without declaring it would hide the use. |
+| `:shared` declares `libs.jetbrains.navigationevent.compose` directly (existing catalog library, already in the dependency graph; **no new module edge**) | The two-pane scene must outrank the Search pane's own back handler while the detail is showing ([research.md R5](./research.md#r5-the-system-back-gesture-while-both-panes-are-composed)). Otherwise back clears the search instead of closing the detail. | Passing a "pane" flag into `SearchScreen` would make `:feature:search` aware of navigation layout (Principle I). Relying on the transitive dependency without declaring it would hide the use. |
 | New argument on an existing route (`GameDetailRoute.fromSearch`) | A reminder link opened over Search produces the same back stack shape as a Search-opened game but must stay full-screen. The origin has to be in the key ([research.md R2](./research.md#r2-telling-a-search-opened-detail-apart-from-the-others)). | A separate route type would need a second saved-state registration and a duplicated `entryProvider` branch. Inferring the origin from stack structure is wrong for the deep link. |

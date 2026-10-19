@@ -78,8 +78,10 @@ one by hand:
   `Modifier.rainbowMetallicBorder(...)`, plus `Modifier.rainbowMetallicTint()` (the rainbow gradient over a
   monochrome icon's shape), all wrapping the brushes from `MetallicEffects.kt`.
 
-`WindowShape.kt` — `isLandscapeWindow()`, the single place the "window wider than tall" rule is written. Read it,
-do not re-derive it from the window size.
+`WindowShape.kt` — `isLandscapeShape(width, height)`, the single place the "wider than tall" rule is written, and
+`isLandscapeWindow()`, which applies it to the window. Read them, do not re-derive the rule from a size. A component
+that sits in a space smaller than the window, such as the search results grid (it can be one of two panes), passes
+the size it was given to `isLandscapeShape` rather than asking the window.
 
 Also: `ColorUtils.kt`, `HtmlUtils.kt`, `MetallicEffects.kt` (brush factories:
 `primaryMetallicGradient()`, `rememberAnimatedMetallicGradient()`, `rainbowMetallicGradient()`),

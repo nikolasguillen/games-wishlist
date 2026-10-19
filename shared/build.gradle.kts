@@ -44,6 +44,8 @@ kotlin {
             implementation(libs.jetbrains.lifecycle.viewmodel.compose)
             implementation(libs.jetbrains.lifecycle.runtime.compose)
             implementation(libs.jetbrains.lifecycle.viewmodel.navigation3)
+            // The two-pane scene switches the Search pane's back handlers off while a game is open beside it.
+            implementation(libs.jetbrains.navigationevent.compose)
             implementation(libs.kotlinx.coroutines.core)
             // Coil finds its network fetcher on the classpath; the engine that fetches covers is chosen per platform.
             implementation(libs.coil3.network.ktor3)

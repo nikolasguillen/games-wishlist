@@ -155,6 +155,7 @@ the cloud account and the cloud backup; they share no data with the game reposit
 | Nav routes (`NavKey`) | `core/navigation/Routes.kt` |
 | Navigation entry point (`NavDisplay` + the single `entryProvider`) | `shared/src/commonMain/kotlin/com/nikolasguillen/questlog/shared/QuestLogNavDisplay.kt` |
 | Theme resolution, navigation suite (bottom bar or side rail) and back stack | `shared/.../QuestLogRoot.kt`, `shared/.../QuestLogNavigationSuite.kt`, `shared/.../TopLevelDestination.kt` |
+| Two-pane Search and game detail on a window of at least 840dp: the scene, its strategy, its back handler and the open/back rules | `shared/.../SearchDetailScene.kt`, `.../SearchDetailSceneStrategy.kt`, `.../SearchDetailBackHandler.kt`, `.../SearchDetailPanes.kt` |
 | Koin assembly (`initKoin`) and every ViewModel binding | `shared/.../di/SharedKoin.kt`, `shared/.../di/ViewModelModule.kt` |
 | Splash screen, edge-to-edge, deep link parsing | `androidApp/.../MainActivity.kt` |
 | iOS entry points (`startQuestLog`, `runAppRefreshTask`, `MainViewController`) and the Xcode project that hosts them | `shared/src/iosMain/.../QuestLogIos.kt`, `.../MainViewController.kt`, `iosApp/` |

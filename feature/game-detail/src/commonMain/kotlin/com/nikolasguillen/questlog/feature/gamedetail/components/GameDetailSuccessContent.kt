@@ -44,7 +44,7 @@ import kotlinx.coroutines.launch
 internal fun GameDetailSuccessContent(
     game: GameDetailUiModel,
     descriptionTranslation: DescriptionTranslationState,
-    onBackClick: () -> Unit,
+    onBackClick: (() -> Unit)?,
     onEvent: (GameDetailUiEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {

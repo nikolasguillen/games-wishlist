@@ -27,7 +27,8 @@ class RoutesSerializationTest {
         AccountBackupRoute,
         OnboardingRoute,
         WishlistRoute(listId = 42L),
-        GameDetailRoute(gameId = 1942)
+        GameDetailRoute(gameId = 1942),
+        GameDetailRoute(gameId = 1942, fromSearch = true)
     )
 
     @Test
@@ -44,6 +45,25 @@ class RoutesSerializationTest {
         val restored = json.decodeFromString(navKey, json.encodeToString(navKey, WishlistRoute(listId = 7L)))
 
         assertEquals(7L, (restored as WishlistRoute).listId)
+    }
+
+    @Test
+    fun `fromSearch is kept through a save and restore`() {
+        val restored = json.decodeFromString(
+            navKey,
+            json.encodeToString(navKey, GameDetailRoute(gameId = 5, fromSearch = true))
+        )
+
+        assertEquals(true, (restored as GameDetailRoute).fromSearch)
+    }
+
+    @Test
+    fun `a route saved without fromSearch restores as false`() {
+        val serialName = serializer(GameDetailRoute::class.java).descriptor.serialName
+
+        val restored = json.decodeFromString(navKey, """{"type":"$serialName","gameId":1942}""")
+
+        assertEquals(GameDetailRoute(gameId = 1942, fromSearch = false), restored)
     }
 
     @Test

@@ -39,5 +39,13 @@ data object OnboardingRoute : GameNavKey
 @Serializable
 data class WishlistRoute(val listId: Long) : GameNavKey
 
+/**
+ * A game's detail.
+ *
+ * @param fromSearch Whether it was opened from the Search flow (the results, the Discover feed, a "see all" shelf,
+ * a genre browse, or a similar game inside another detail that was). Only these details take part in the two-pane
+ * layout on a wide window; one opened from Radar, a wishlist or a release reminder is always full-screen. A route
+ * saved before this field existed restores as `false`.
+ */
 @Serializable
-data class GameDetailRoute(val gameId: Int) : GameNavKey
+data class GameDetailRoute(val gameId: Int, val fromSearch: Boolean = false) : GameNavKey

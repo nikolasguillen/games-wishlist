@@ -47,7 +47,8 @@ import org.jetbrains.compose.resources.stringResource
  * A reusable layout for detail screens featuring an immersive hero header and a sliding sheet content.
  *
  * @param title The title to display in the TopAppBar when it becomes opaque.
- * @param onBackClick Callback for the back navigation button.
+ * @param onBackClick Callback for the back navigation button. `null` draws no button, for a detail that is not the
+ * only thing on screen.
  * @param modifier The modifier to be applied to the layout.
  * @param headerHeight The height of the hero header area.
  * @param hazeState When provided, registers the scrollable content as a source so callers can blur it from behind floating elements (e.g. via `hazeBlur`).
@@ -58,7 +59,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun ImmersiveDetailLayout(
     title: String,
-    onBackClick: () -> Unit,
+    onBackClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     headerHeight: Dp = 350.dp,
     hazeState: HazeState? = null,
@@ -95,12 +96,14 @@ fun ImmersiveDetailLayout(
                     )
                 },
                 navigationIcon = {
-                    ImmersiveDetailLayoutDefaults.ActionIconButton(
-                        onClick = onBackClick,
-                        icon = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(Res.string.back_content_description),
-                        alpha = topBarAlpha
-                    )
+                    if (onBackClick != null) {
+                        ImmersiveDetailLayoutDefaults.ActionIconButton(
+                            onClick = onBackClick,
+                            icon = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(Res.string.back_content_description),
+                            alpha = topBarAlpha
+                        )
+                    }
                 },
                 actions = { actions(topBarAlpha) },
                 colors = TopAppBarDefaults.topAppBarColors(

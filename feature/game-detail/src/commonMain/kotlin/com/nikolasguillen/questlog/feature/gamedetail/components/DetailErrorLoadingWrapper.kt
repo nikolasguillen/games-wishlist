@@ -23,11 +23,13 @@ import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes
 /**
  * A simple wrapper for Error and Loading states in the Game Detail feature to provide a back button.
  * Marked as internal to be used only within the feature module.
+ *
+ * @param onBackClick The back button's action; `null` draws no button.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun DetailErrorLoadingWrapper(
-    onBackClick: () -> Unit,
+    onBackClick: (() -> Unit)?,
     content: @Composable () -> Unit
 ) {
     Scaffold(
@@ -35,11 +37,13 @@ internal fun DetailErrorLoadingWrapper(
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(CoreUiRes.string.back_content_description)
-                        )
+                    if (onBackClick != null) {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(CoreUiRes.string.back_content_description)
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

@@ -50,10 +50,14 @@ one signature (`QuestLogNavDisplay`'s new parameter) and must land in the same c
 **Purpose**: Know the starting point, so any later failure is attributable to this feature, and declare the one
 dependency the scene needs.
 
-- [ ] T001 On branch `018-two-pane-search-detail`, run `.\gradlew.bat :androidApp:assembleDebug --console=plain -q`
+- [X] T001 On branch `018-two-pane-search-detail`, run `.\gradlew.bat :androidApp:assembleDebug --console=plain -q`
   and `.\gradlew.bat test --console=plain -q`, and confirm both pass before any edit. If either fails, stop and
   tell the owner which test or module, rather than working on top of a red baseline.
-- [ ] T002 [P] In `shared/build.gradle.kts`, add `implementation(libs.jetbrains.navigationevent.compose)` to
+  *Result: `test` is red before any edit, 9 of 277 failing, all in `:core:data` (DataStore
+  `Unable to rename …preferences_pb.tmp` in the Windows temp dir; environmental, not touched by this feature). The
+  owner was told and said to resume, so the failures are treated as a known baseline. Phases are verified with the
+  changed modules' tests plus `:androidApp:assembleDebug`.*
+- [X] T002 [P] In `shared/build.gradle.kts`, add `implementation(libs.jetbrains.navigationevent.compose)` to
   `commonMain.dependencies`, next to the other `libs.jetbrains.*` lines. The catalog entry already exists
   (`gradle/libs.versions.toml:109`) and `:feature:search` / `:feature:onboarding` already use it. This is the only
   build change in the feature, called out in the plan's Complexity Tracking. Do not add any other dependency or
@@ -69,20 +73,20 @@ lambdas.
 
 **⚠️ CRITICAL**: No user story can start until this phase is complete.
 
-- [ ] T003 In `core/navigation/Routes.kt`, change `GameDetailRoute` to
+- [X] T003 In `core/navigation/Routes.kt`, change `GameDetailRoute` to
   `data class GameDetailRoute(val gameId: Int, val fromSearch: Boolean = false) : GameNavKey`. Give it a KDoc
   saying `fromSearch` marks a detail opened from the Search flow (results, the Discover feed, a "see all" shelf, a
   genre browse, or a similar game inside another `fromSearch` detail) and that only these take part in two-pane
   mode. Do not touch `GameNavSavedStateConfiguration.kt`: the class is already registered and a saved stack
   without the field decodes to `false`.
-- [ ] T004 In `core/navigation/src/androidHostTest/.../core/navigation/RoutesSerializationTest.kt`, add
+- [X] T004 In `core/navigation/src/androidHostTest/.../core/navigation/RoutesSerializationTest.kt`, add
   `GameDetailRoute(gameId = 1942, fromSearch = true)` to `everyRoute` (the class-coverage tests still pass, since
   they compare classes). Add two tests: `fromSearch is kept through a save and restore` (round trip of
   `GameDetailRoute(5, fromSearch = true)` asserts `fromSearch == true`) and `a route saved without fromSearch
   restores as false` (decode `{"type":"<serialName of GameDetailRoute>","gameId":1942}` through the polymorphic
   `NavKey` serializer; derive the serial name from `serializer(GameDetailRoute::class.java).descriptor.serialName`
   as the existing test does, and assert `fromSearch == false`). Run `.\gradlew.bat :core:navigation:testAndroidHostTest --console=plain -q`.
-- [ ] T005 Create `shared/SearchDetailPanes.kt` with the pure rules from
+- [X] T005 Create `shared/SearchDetailPanes.kt` with the pure rules from
   [contracts/navigation-contract.md](contracts/navigation-contract.md) §1, all `internal`, top-level functions, English
   KDoc, no Compose and no Android import:
   `fun <T> searchDetailRun(items: List<T>, isSearch: (T) -> Boolean, isSearchDetail: (T) -> Boolean): IntRange?`
@@ -99,28 +103,28 @@ lambdas.
   because `NavDisplay` only calls it when there is something to pop; keep that behavior, add a `size > 1` guard).
   The invariant (a `fromSearch` detail only exists inside a run on `SearchRoute`) is in
   [data-model.md](data-model.md); put it in the KDoc.
-- [ ] T006 Create `shared/src/androidHostTest/.../shared/SearchDetailPanesTest.kt` (JUnit4, KDoc header saying what
+- [X] T006 Create `shared/src/androidHostTest/.../shared/SearchDetailPanesTest.kt` (JUnit4, KDoc header saying what
   it covers). Cover, with plain `mutableListOf<NavKey>`: run detection for the four stacks in
   [data-model.md](data-model.md); `openSearchDetail` below the threshold pushes one entry and ignores a repeat of the
   top; at or above it from `[Search]` gives `[Search, D(1,s)]`; again with another game gives
   `[Search, D(2,s)]` (replace); with the same game is a no-op; with a three-detail run built narrow
   (`[Search, D1, D2, D3]`) collapses to a single detail; `navigateBack` wide removes the whole run, narrow removes
   only the last entry, and a one-entry stack is left alone. Run `.\gradlew.bat :shared:testAndroidHostTest --console=plain -q`.
-- [ ] T007 [P] In `core/ui/…/component/ImmersiveDetailLayout.kt`, change `onBackClick: () -> Unit` to
+- [X] T007 [P] In `core/ui/…/component/ImmersiveDetailLayout.kt`, change `onBackClick: () -> Unit` to
   `onBackClick: (() -> Unit)?` and update its KDoc (`null` draws no back button). In the `navigationIcon` slot
   (around line 97) draw the existing `ActionIconButton` only when `onBackClick != null`; leave the slot empty
   otherwise. Game detail is the only caller. Keep the file's preview compiling.
-- [ ] T008 [P] In `feature/game-detail/…/components/DetailErrorLoadingWrapper.kt`, change `onBackClick` to
+- [X] T008 [P] In `feature/game-detail/…/components/DetailErrorLoadingWrapper.kt`, change `onBackClick` to
   `(() -> Unit)?`; the `IconButton(onClick = onBackClick)` back button (around line 38) is drawn only when it is
   non-null. This keeps the back button out of the loading and error states of a detail shown in a pane.
-- [ ] T009 In `feature/game-detail/…/GameDetailScreen.kt`, `…/components/GameDetailMainContent.kt` and
+- [X] T009 In `feature/game-detail/…/GameDetailScreen.kt`, `…/components/GameDetailMainContent.kt` and
   `…/components/GameDetailSuccessContent.kt`, thread the nullable type: every `onBackClick: () -> Unit` becomes
   `(() -> Unit)?` (`GameDetailScreen` line 42 and the internal content at 117, `GameDetailMainContent` line 23,
   `GameDetailSuccessContent` line 47) down to the `ImmersiveDetailLayout` and `DetailErrorLoadingWrapper` calls.
   The previews keep passing `{}`. Add the one-line KDoc on the public `GameDetailScreen` parameter: `null` hides the
   back button, for a screen that is not the only thing on the display. Do not mention panes or navigation in the
   feature module. Depends on T007 and T008.
-- [ ] T010 Checkpoint: run `.\gradlew.bat :core:ui:compileAndroidMain :feature:game-detail:compileAndroidMain --console=plain -q`,
+- [X] T010 Checkpoint: run `.\gradlew.bat :core:ui:compileAndroidMain :feature:game-detail:compileAndroidMain --console=plain -q`,
   then `.\gradlew.bat test --console=plain -q` and `.\gradlew.bat :androidApp:assembleDebug --console=plain -q`.
   All green, and the app behaves exactly as before on a phone (a quick manual open-and-back of a game).
 
@@ -138,7 +142,7 @@ full width, no divider or placeholder. After the tap: detail on the right with n
 filter and scroll position unchanged on the left, both panes scroll independently, rail visible with Search
 selected.
 
-- [ ] T011 [US1] Create `shared/SearchDetailScene.kt`: `internal class SearchDetailScene<T : Any>(...) : Scene<T>`
+- [X] T011 [US1] Create `shared/SearchDetailScene.kt`: `internal class SearchDetailScene<T : Any>(...) : Scene<T>`
   holding the Search entry and the detail entry. `key` is the Search entry's `contentKey` (stable while the detail
   is replaced, so a swap starts no `NavDisplay` transition); `entries = listOf(searchEntry, detailEntry)`;
   `previousEntries` is the entries up to and including the Search entry; `content` is a `Row` with two
@@ -149,7 +153,7 @@ selected.
   so the Search pane's own back handler cannot swallow the system back. The right box calls
   `detailEntry.Content()`. Implement `equals`/`hashCode` through a `data class` or by hand, as `SinglePaneScene` does.
   One class per file.
-- [ ] T012 [US1] Create `shared/SearchDetailSceneStrategy.kt`: the metadata markers and the strategy. Define two
+- [X] T012 [US1] Create `shared/SearchDetailSceneStrategy.kt`: the metadata markers and the strategy. Define two
   `internal` metadata keys/helpers (one marking the Search entry, one marking a `fromSearch` detail entry) and
   `internal class SearchDetailSceneStrategy(private val twoPaneEnabled: Boolean) : SceneStrategy<NavKey>`. In
   `calculateScene(entries)`: return `null` when `!twoPaneEnabled`; otherwise call the generic `searchDetailRun`
@@ -158,7 +162,7 @@ selected.
   (the Search entry is at index 0, so `take(run.first)` ends with it); otherwise `null`, so the default
   single-pane strategy renders exactly as today. Depends on T005 and T011. The strategy must not reference any
   route class, only the markers.
-- [ ] T013 [US1] In `shared/QuestLogRoot.kt` (lands with T014): read once
+- [X] T013 [US1] In `shared/QuestLogRoot.kt` (lands with T014): read once
   `val twoPaneEnabled = currentWindowAdaptiveInfo().windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)`
   (same imports as `QuestLogNavigationSuite.kt`; this is the 840dp breakpoint and 840dp exactly counts). Compute
   `val searchDetailRun = searchDetailRun(backStack)`. Set the suite's `isVisible` to
@@ -166,7 +170,7 @@ selected.
   that second case holds, so the Search destination stays selected (FR-006); pass `twoPaneEnabled` to
   `QuestLogNavDisplay`. Leave `onNavigateToRoute` and the deep-link `LaunchedEffect` unchanged (the deep link keeps
   `GameDetailRoute(gameId)`).
-- [ ] T014 [US1] In `shared/QuestLogNavDisplay.kt` (lands with T013): add a `twoPaneEnabled: Boolean` parameter;
+- [X] T014 [US1] In `shared/QuestLogNavDisplay.kt` (lands with T013): add a `twoPaneEnabled: Boolean` parameter;
   switch `NavDisplay` to its `sceneStrategies = listOf(SearchDetailSceneStrategy(twoPaneEnabled))` overload (it falls
   back to the single-pane strategy when the list returns `null`); give the `SearchRoute` entry the Search marker and
   a `GameDetailRoute` entry with `key.fromSearch` the detail marker, through `NavEntry(key, metadata = …)`; make
@@ -176,14 +180,14 @@ selected.
   `{ backStack.removeLastOrNull() }` otherwise. Keep the existing `transitionSpec` / `popTransitionSpec` /
   `predictivePopTransitionSpec` and every other route branch as they are. Do not touch the Radar and Wishlist
   branches (they keep `GameDetailRoute(gameId)`).
-- [ ] T015 [US1] Make entering, leaving and swapping the two-pane layout immediate (no crossfade that makes the Search
+- [X] T015 [US1] Make entering, leaving and swapping the two-pane layout immediate (no crossfade that makes the Search
   pane blink; [research.md R8](research.md#r8-transitions)): give `SearchDetailScene.metadata` (override the default
   in `shared/SearchDetailScene.kt`) the transition metadata that disables the default fade for the scene change
   (`NavDisplay.transitionSpec` / `popTransitionSpec` / `predictivePopTransitionSpec` with `EnterTransition.None togetherWith ExitTransition.None`),
   and, if the scene metadata alone does not win over the transitioning entries' (the transitioning entry's metadata
   has precedence per the `NavDisplay` KDoc), apply the same metadata to the Search and detail entries in T014's
   `NavEntry` calls. Which place takes effect is verified on a device in T016, not assumed.
-- [ ] T016 [US1] Verify. `.\gradlew.bat :shared:compileAndroidMain --console=plain -q`, then
+- [X] T016 [US1] Verify. `.\gradlew.bat :shared:compileAndroidMain --console=plain -q`, then
   `.\gradlew.bat test --console=plain -q` and `.\gradlew.bat :androidApp:assembleDebug --console=plain -q`. Then
   [quickstart.md](quickstart.md) S1 and S2 on a tablet emulator (Pixel Tablet, landscape), plus the blink check from
   S3 (open, swap and close a detail and watch the left pane). If the left pane blinks or the transition is
@@ -205,12 +209,12 @@ it; one system back closes it and returns Search to full width.
 game each time; one back gives full-width Search with the same results; with a committed query, the first back
 closes the detail without clearing the query.
 
-- [ ] T017 [US2] In `shared/QuestLogNavDisplay.kt`, change the `GameDetailRoute` branch's `onGameClick`: when
+- [X] T017 [US2] In `shared/QuestLogNavDisplay.kt`, change the `GameDetailRoute` branch's `onGameClick`: when
   `key.fromSearch`, call `openSearchDetail(backStack, gameId, twoPaneEnabled)` (replace in two-pane mode, push
   below the threshold, and the new detail stays `fromSearch`); when it is not `fromSearch` (a detail opened from
   Radar, a wishlist or a reminder link) keep today's guarded `backStack.add(GameDetailRoute(gameId))`. Depends on
   T014.
-- [ ] T018 [US2] Verify on a tablet emulator: [quickstart.md](quickstart.md) S3 (five swaps, a similar game, one
+- [X] T018 [US2] Verify on a tablet emulator: [quickstart.md](quickstart.md) S3 (five swaps, a similar game, one
   back; repeat with predictive back on Android 14+ and check the preview shows full-width Search) and S4 (with a
   committed query, the first back closes the detail and keeps the query; the second back clears the query). If the
   first back still clears the search, the disabled dispatcher in T011 is not reaching the Search pane's
@@ -232,12 +236,12 @@ full-screen with a working back button, wide shows both panes.
 No new production code is expected: the back stack is not touched by a resize, only the chosen scene changes
 (R4). These tasks pin that behavior and prove it on devices.
 
-- [ ] T019 [US3] In `shared/src/androidHostTest/.../shared/SearchDetailPanesTest.kt`, add the resize cases: a run built
+- [X] T019 [US3] In `shared/src/androidHostTest/.../shared/SearchDetailPanesTest.kt`, add the resize cases: a run built
   while narrow (`[Search, D1, D2, D3]`) then `navigateBack` wide leaves `[Search]`; the same stack with
   `navigateBack` narrow leaves `[Search, D1, D2]` and a further narrow back leaves `[Search, D1]` (the history is
   walked one entry at a time, as today); `openSearchDetail` after widening replaces the whole run. Run
   `.\gradlew.bat :shared:testAndroidHostTest --console=plain -q`.
-- [ ] T020 [US3] Verify [quickstart.md](quickstart.md) S5 steps 1–5 on a tablet (rotate) and in a freeform or
+- [X] T020 [US3] Verify [quickstart.md](quickstart.md) S5 steps 1–5 on a tablet (rotate) and in a freeform or
   split-screen window (resize across 840dp), with a typed query, an active filter and a scrolled grid. Check that the
   query, filter chip and scroll position survive every crossing, that the detail is full-screen with a working
   back button when narrow, that back returns to the same results, and that no empty pane or duplicated detail ever
@@ -255,7 +259,7 @@ wishlist or a release-reminder link is full-screen.
 
 **Independent Test**: [quickstart.md](quickstart.md) S6 on a phone and on a tablet.
 
-- [ ] T021 [US4] In `shared/src/androidHostTest/.../shared/SearchDetailPanesTest.kt`, add the isolation cases:
+- [X] T021 [US4] In `shared/src/androidHostTest/.../shared/SearchDetailPanesTest.kt`, add the isolation cases:
   `[Search, D(9)]` (a deep-linked, non-`fromSearch` detail on Search) has no run and `navigateBack` wide pops just
   that entry; `[Search, D(1,s), D(9)]` has no run (the deep-linked detail covers it) and wide back pops only
   `D(9)`, after which the run is back; `[Search, Radar, D(4)]` has no run; below the threshold `openSearchDetail`
@@ -281,19 +285,19 @@ clipped, overlapping or hidden by the rail.
 
 **Independent Test**: [quickstart.md](quickstart.md) S7 on a window just above 840dp and on a very wide one.
 
-- [ ] T023 [P] [US5] In `core/ui/…/util/WindowShape.kt`, add
+- [X] T023 [P] [US5] In `core/ui/…/util/WindowShape.kt`, add
   `fun isLandscapeShape(width: Dp, height: Dp): Boolean = width > height` (a square is portrait; plain function,
   public, KDoc) and make `isLandscapeWindow()` call it with `LocalWindowInfo.current.containerDpSize`, so the
   landscape rule is still written once.
-- [ ] T024 [US5] Create `core/ui/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/ui/util/WindowShapeTest.kt`
+- [X] T024 [US5] Create `core/ui/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/ui/util/WindowShapeTest.kt`
   (JUnit4, KDoc header): wider than tall is landscape, taller than wide is portrait, a square is portrait. Run
   `.\gradlew.bat :core:ui:testAndroidHostTest --console=plain -q`. Depends on T023.
-- [ ] T025 [US5] In `feature/search/…/components/SearchResultGrid.kt`, replace `isLandscape = isLandscapeWindow()`
+- [X] T025 [US5] In `feature/search/…/components/SearchResultGrid.kt`, replace `isLandscape = isLandscapeWindow()`
   (line 84) with `isLandscape = isLandscapeShape(maxWidth, maxHeight)` taken from the grid's own
   `BoxWithConstraints`, and swap the import (line 35). Update the comment above the `BoxWithConstraints` to say the
   grid's own space decides both the column count and the landscape rule. When Search is full width this is the same
   value as before, so spec 017's behavior is unchanged. Depends on T023.
-- [ ] T026 [P] [US5] In `shared/SearchDetailScene.kt`, make each pane consume the cutout inset of the side it does
+- [X] T026 [P] [US5] In `shared/SearchDetailScene.kt`, make each pane consume the cutout inset of the side it does
   not touch ([research.md R7](research.md#r7-making-both-screens-fit-a-half-width-pane)): the left box gets
   `Modifier.consumeWindowInsets(WindowInsets.displayCutout.only(WindowInsetsSides.End))` and the right box the
   same with `Start`, so `SearchScreen`'s Scaffold (which unions the horizontal cutout) does not pad the inner edge
@@ -306,7 +310,7 @@ clipped, overlapping or hidden by the rail.
   landscape layout), and the cutout padding on a landscape phone of at least 840dp. Fix any clipping or
   overlap found, in the pane-agnostic way (use the available space, never the window or a pane flag). Record in a
   short note in this task's commit message what was fixed.
-- [ ] T028 [P] [US5] In `core/ui/CLAUDE.md`, update the `WindowShape.kt` line: it now holds `isLandscapeWindow()` and
+- [X] T028 [P] [US5] In `core/ui/CLAUDE.md`, update the `WindowShape.kt` line: it now holds `isLandscapeWindow()` and
   `isLandscapeShape(width, height)`, and a component that sits in a space smaller than the window (the results
   grid) passes its own size to the second. Edit the existing rule; do not add a changelog note.
 
@@ -316,7 +320,7 @@ clipped, overlapping or hidden by the rail.
 
 ## Phase 8: Polish & cross-cutting concerns
 
-- [ ] T029 [P] Update the instruction files in the same commit as the behavior they describe: in
+- [X] T029 [P] Update the instruction files in the same commit as the behavior they describe: in
   `feature/CLAUDE.md` (Navigation section) say that a Search-opened game goes through `openSearchDetail` in
   `:shared` and carries `GameDetailRoute.fromSearch`, and that a screen's `onBackClick` may be `null` when it is not
   the only thing on screen; in the root `CLAUDE.md` "Where things live" table, add `SearchDetailPanes.kt`,
@@ -401,3 +405,38 @@ Join:    T010
   the width-only rule in T013 is the single place to change if the owner decides otherwise.
 - Commit after each task or logical group, with `type(scope): subject` messages (scopes such as `shared`,
   `navigation`, `ui`, `game-detail`, `search`), ending with the trailer the repository requires.
+
+---
+
+## Implementation notes
+
+Hands-on checks ran on the `Medium_Tablet` emulator (1280x800dp), driven with `adb`.
+
+**Deviations from the plan, found by running it**
+
+- **Back handling (T011, T018).** The plan's disabled child dispatcher did not work: Search registers its back handler
+  once and keeps that registration when its composition moves into the scene, so the dispatcher never saw it. A
+  default-priority handler added after the panes also lost, depending on how Search was composed (it failed after a
+  rotate-then-open). The scene now registers an overlay-priority handler (`SearchDetailBackHandler.kt`). Verified:
+  one back closes the detail and keeps the query, on both the direct path and the rotate-then-open path; the next
+  back clears the query; back on the expanded search bar collapses it and leaves the panes alone. A consequence: no
+  predictive back preview while two panes are showing (documented in research R5).
+- **Grid columns (T025).** The left pane's grid box is about 600x600dp on a 1280dp tablet, so it shows 3 columns of
+  about 180dp (portrait-phone card size), not the 2 the plan predicted; at about 850dp wide it shows 2 (research R7).
+
+**Verified on the emulator**: S1 (no empty pane), S2 (detail beside results, query and scroll kept, no back button,
+rail with Search selected), S3 (replace, a related game replaces in place, one back returns to full width), S4,
+S5 steps 1 to 3 (rotate across 840dp both ways), S8 (tab switch), and a Radar-opened game staying full-screen with a
+back button. The detail also fits a ~850dp window.
+
+**Not verified, so the tasks stay open**
+
+- T022: a game opened from a wishlist, from a release-reminder link, and a similar game inside a Radar-opened detail.
+- T027: the empty, error and loading states, the filter and sort sheets, the list chooser, and cutout padding on a
+  device with a cutout.
+- T020 is checked for the rotation path; not run: 20 repeated rotations, freeform or split-screen resizing. The
+  stacked-while-narrow case is covered by unit tests (`SearchDetailPanesTest`).
+- T015/T016: whether opening and closing blinks the Search pane cannot be judged from still screenshots.
+- T030: `gradlew test` is red only on the 9 `:core:data` DataStore failures that were red before any edit; every other
+  module is green, and `:androidApp:assembleDebug` passes.
+- T031: Mac only.
