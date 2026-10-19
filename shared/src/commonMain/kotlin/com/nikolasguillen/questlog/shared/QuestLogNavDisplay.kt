@@ -199,14 +199,19 @@ fun QuestLogNavDisplay(
                     metadata = if (key.fromSearch) searchDetailMetadata() else emptyMap()
                 ) {
                     val vm = koinViewModel<GameDetailViewModel> { parametersOf(key.gameId) }
+                    // A game opened from Search on a wide window is drawn beside the results, which are already on
+                    // screen, so there is nothing to go back to: it gets a close button for the pane, which does what
+                    // system back does, and no back button.
+                    val inPane = twoPaneEnabled && key.fromSearch
                     GameDetailScreen(
                         viewModel = vm,
-                        // A game opened from Search on a wide window is drawn beside the results, which are
-                        // already on screen, so there is nothing to go back to and no button.
-                        onBackClick = if (twoPaneEnabled && key.fromSearch) {
-                            null
-                        } else {
+                        onBackClick = if (inPane) null else {
                             { navigateBack(backStack, twoPaneEnabled) }
+                        },
+                        onCloseClick = if (inPane) {
+                            { navigateBack(backStack, twoPaneEnabled) }
+                        } else {
+                            null
                         },
                         onGameClick = { gameId: Int ->
                             if (key.fromSearch) {
