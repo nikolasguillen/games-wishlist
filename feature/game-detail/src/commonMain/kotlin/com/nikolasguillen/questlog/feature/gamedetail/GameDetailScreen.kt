@@ -38,8 +38,9 @@ import kotlinx.coroutines.launch
 /**
  * A game's detail.
  *
- * @param onBackClick The back button's action; `null` hides the button, for a screen that is not the only thing on
- * the display.
+ * @param onBackClick The back button's action; `null` draws no back button.
+ * @param onCloseClick The close (X) button's action, drawn in the back button's place when there is none. For a
+ * screen that is not the only thing on the display, so it has no history to go back through, only to be dismissed.
  */
 @Suppress("ParamsComparedByRef")
 @Composable
@@ -47,7 +48,8 @@ fun GameDetailScreen(
     viewModel: GameDetailViewModel,
     onBackClick: (() -> Unit)?,
     onGameClick: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCloseClick: (() -> Unit)? = null
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val textSharer = rememberTextSharer()
@@ -107,6 +109,7 @@ fun GameDetailScreen(
         uiState = uiState,
         onEvent = viewModel::onEvent,
         onBackClick = onBackClick,
+        onCloseClick = onCloseClick,
         snackbarHostState = snackbarHostState,
         modifier = modifier
     )
@@ -122,13 +125,15 @@ internal fun GameDetailContent(
     onEvent: (GameDetailUiEvent) -> Unit,
     onBackClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    onCloseClick: (() -> Unit)? = null
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         GameDetailMainContent(
             uiState = uiState,
             onEvent = onEvent,
-            onBackClick = onBackClick
+            onBackClick = onBackClick,
+            onCloseClick = onCloseClick
         )
 
         uiState.wishlistSelectorState?.let { selectorState ->

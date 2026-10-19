@@ -21,17 +21,18 @@ internal fun GameDetailMainContent(
     uiState: GameDetailUiState,
     onEvent: (GameDetailUiEvent) -> Unit,
     onBackClick: (() -> Unit)?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCloseClick: (() -> Unit)? = null
 ) {
     when (val content = uiState.contentState) {
         is GameDetailContentState.Loading -> {
-            DetailErrorLoadingWrapper(onBackClick = onBackClick) {
+            DetailErrorLoadingWrapper(onBackClick = onBackClick, onCloseClick = onCloseClick) {
                 LoadingPage()
             }
         }
 
         is GameDetailContentState.Error -> {
-            DetailErrorLoadingWrapper(onBackClick = onBackClick) {
+            DetailErrorLoadingWrapper(onBackClick = onBackClick, onCloseClick = onCloseClick) {
                 ErrorPage(
                     message = content.message,
                     onRetryClick = { onEvent(GameDetailUiEvent.Retry) }
@@ -44,6 +45,7 @@ internal fun GameDetailMainContent(
                 game = content.game,
                 descriptionTranslation = uiState.descriptionTranslation,
                 onBackClick = onBackClick,
+                onCloseClick = onCloseClick,
                 onEvent = onEvent,
                 modifier = modifier
             )

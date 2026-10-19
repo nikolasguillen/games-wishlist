@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -17,6 +18,7 @@ import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.ui.component.LoadingPage
 import com.nikolasguillen.questlog.core.ui.resources.back_content_description
+import com.nikolasguillen.questlog.core.ui.resources.close_content_description
 import org.jetbrains.compose.resources.stringResource
 import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes
 
@@ -24,12 +26,14 @@ import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes
  * A simple wrapper for Error and Loading states in the Game Detail feature to provide a back button.
  * Marked as internal to be used only within the feature module.
  *
- * @param onBackClick The back button's action; `null` draws no button.
+ * @param onBackClick The back button's action; `null` draws no back button.
+ * @param onCloseClick The close button's action, drawn in the back button's place when there is no back button.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun DetailErrorLoadingWrapper(
     onBackClick: (() -> Unit)?,
+    onCloseClick: (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
     Scaffold(
@@ -42,6 +46,13 @@ internal fun DetailErrorLoadingWrapper(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = stringResource(CoreUiRes.string.back_content_description)
+                            )
+                        }
+                    } else if (onCloseClick != null) {
+                        IconButton(onClick = onCloseClick) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = stringResource(CoreUiRes.string.close_content_description)
                             )
                         }
                     }

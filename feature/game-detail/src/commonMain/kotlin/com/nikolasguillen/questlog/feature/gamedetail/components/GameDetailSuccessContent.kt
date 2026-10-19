@@ -46,7 +46,8 @@ internal fun GameDetailSuccessContent(
     descriptionTranslation: DescriptionTranslationState,
     onBackClick: (() -> Unit)?,
     onEvent: (GameDetailUiEvent) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCloseClick: (() -> Unit)? = null
 ) {
     val headerHeight = 450.dp
     var fullScreenImageIndex by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -58,6 +59,7 @@ internal fun GameDetailSuccessContent(
         ImmersiveDetailLayout(
             title = game.name.asString(),
             onBackClick = onBackClick,
+            onCloseClick = onCloseClick,
             headerHeight = headerHeight,
             hazeState = hazeState,
             modifier = Modifier.fillMaxSize(),
