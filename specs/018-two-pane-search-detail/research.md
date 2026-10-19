@@ -156,17 +156,23 @@ called out in the plan's Complexity Tracking table.
 
 ---
 
-## R6. The detail without a back button
+## R6. The detail's back button and close button
 
-**Decision**: `GameDetailScreen`'s `onBackClick` becomes `(() -> Unit)?`. `null` means no back button. The parameter
-is threaded through `GameDetailMainContent`, `DetailErrorLoadingWrapper` and `GameDetailSuccessContent` to
-`ImmersiveDetailLayout` in `:core:ui`, whose `onBackClick` becomes nullable in the same way. Game detail is that
-component's only caller. The `entryProvider` passes `null` when `twoPaneEnabled && key.fromSearch`, and the usual
-`removeLastOrNull()` otherwise.
+**Decision**: `GameDetailScreen`'s `onBackClick` becomes `(() -> Unit)?`, and a sibling `onCloseClick: (() -> Unit)?`
+(default `null`) is added. `null` back means no back button; a non-null close draws a close (X) button in the same
+place when there is no back button. Both are threaded through `GameDetailMainContent`, `DetailErrorLoadingWrapper` and
+`GameDetailSuccessContent` to `ImmersiveDetailLayout` in `:core:ui`, which takes the same two parameters. Game detail
+is that component's only caller. For a detail with `twoPaneEnabled && key.fromSearch` the `entryProvider` passes no
+back and a close that calls `navigateBack`, the same function system back uses; otherwise the usual back and no close.
 
-**Rationale**: The feature module learns only that its back button is optional, not why (FR-007, Principle I). The
-same nullable shape also covers the loading and error states, so the back button never comes back while a detail
-loads or fails in the right pane.
+**Rationale**: The feature module learns only that its navigation button can be a back arrow or a close X, not why
+(FR-007, Principle I). A back arrow suggests a history to walk back through; in two-pane mode there is none, because
+opening another game replaces the pane, so the button says "close this pane", and it is visible where system back is
+not (mouse, keyboard, stylus). Both buttons also cover the loading and error states, so the X is there while a detail
+loads or fails in the right pane. The X needs one new string, `close_content_description`, in `:core:ui`.
+
+**Alternative considered**: a single sealed "navigation action" parameter. Cleaner on paper, but it would rewrite
+every call site for no behavior gain. The two nullable callbacks keep the existing back path untouched.
 
 **Why `twoPaneEnabled && key.fromSearch` is exactly "rendered in the right pane"**: a `fromSearch` detail can only be
 created by Search (the stack root) or by another `fromSearch` detail, and switching tabs pops back to the root.

@@ -35,11 +35,11 @@ or another `fromSearch` detail, and every tab switch pops to the root.
 
 `twoPaneEnabled` = window width ≥ 840dp (`WIDTH_DP_EXPANDED_LOWER_BOUND`).
 
-| `twoPaneEnabled` | run exists | What is shown | Rail | Detail back button |
+| `twoPaneEnabled` | run exists | What is shown | Rail | Detail navigation button |
 |---|---|---|---|---|
 | false | — | Today's single pane: the last entry | Visible only on top-level routes, as today | Shown |
 | true | no | Today's single pane. Search at full width if it is the top. | As today | Shown (non-Search details) |
-| true | yes | **Two panes**: Search on the left, the run's last detail on the right | Visible, Search selected | Hidden |
+| true | yes | **Two panes**: Search on the left, the run's last detail on the right | Visible, Search selected | Close (X) |
 
 ## Transitions
 

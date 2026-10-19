@@ -408,6 +408,23 @@ Join:    T010
 
 ---
 
+## Phase 9: Close button in the pane (added after the first implementation)
+
+**Purpose**: In two-pane mode the detail shows a close (X) button in place of the back button (spec FR-007, US2-4 and
+US2-5, [research.md R6](research.md)). It does what system back does.
+
+- [X] T032 Add `close_content_description` ("Close") to `core/ui/src/commonMain/composeResources/values/strings.xml`.
+  Add `onCloseClick: (() -> Unit)? = null` to `ImmersiveDetailLayout` (core/ui), `DetailErrorLoadingWrapper`,
+  `GameDetailMainContent`, `GameDetailSuccessContent`, `GameDetailContent` and `GameDetailScreen`
+  (feature/game-detail), drawing a close X where the back arrow would be when there is no back button. In
+  `shared/QuestLogNavDisplay.kt`, a detail with `twoPaneEnabled && key.fromSearch` gets no back and a close that calls
+  `navigateBack`; every other detail keeps its back and no close. Update the spec, research R6, plan, contract, data
+  model, quickstart and `feature/CLAUDE.md`.
+  *Verified on the tablet emulator: the X is at the top-left of the pane on a loaded game and on the offline error page,
+  tapping it returns Search to full width with the same results, and in portrait (below 840dp) the back arrow returns.
+  The loading state uses the same wrapper as the error state and was not captured separately.*
+---
+
 ## Implementation notes
 
 Hands-on checks ran on the `Medium_Tablet` emulator (1280x800dp), driven with `adb`.

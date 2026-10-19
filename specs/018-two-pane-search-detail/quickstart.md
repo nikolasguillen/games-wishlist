@@ -36,11 +36,11 @@ placeholder. Rotate to portrait (800dp, below the threshold). **Expect** today's
 
 ### S2. Open a game beside the results (US1-2…5, FR-001, FR-003, FR-006, FR-007, FR-014)
 Tablet, landscape. Search "zelda", apply a platform filter, scroll a few rows, tap a game. **Expect**:
-- detail on the right, with no back button;
+- detail on the right, with a close (X) button at its top-left and no back button;
 - left pane: same query, same filter chip, same scroll position, and still scrollable on its own;
 - rail visible, with Search highlighted.
 
-In the detail, add the game to a list. **Expect** it to work as on a phone.
+Tap the X. **Expect** the detail to close and Search to return to full width with the same results. Reopen a game and\nadd it to a list. **Expect** it to work as on a phone. Go offline and open another game. **Expect** the X on the error\npage too.
 
 ### S3. Replace, never stack (US2, FR-004, FR-005, FR-008, SC-001, SC-004)
 From S2, tap five other results, then a similar game inside the detail. **Expect** the right pane to always show the

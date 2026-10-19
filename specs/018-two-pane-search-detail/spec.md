@@ -57,7 +57,7 @@ replace behavior, every tap would add to a history the user would then have to u
 
 **Independent Test**: With two panes shown, tap five different results in a row, then open a similar game
 from inside the detail. Confirm the right pane shows the last game opened each time and a single use of the
-system back action closes the detail and returns Search to full width.
+system back action, or a single tap on the close button, closes the detail and returns Search to full width.
 
 **Acceptance Scenarios**:
 
@@ -68,8 +68,10 @@ system back action closes the detail and returns Search to full width.
 3. **Given** the user has opened several games one after another in two-pane mode, **When** they use the
    system back action once, **Then** the detail closes and Search returns to full width, not to a
    previously opened game.
-4. **Given** two panes are shown, **When** the user looks at the detail, **Then** it has no back button,
-   because the search is already visible.
+4. **Given** two panes are shown, **When** the user looks at the detail, **Then** it has a close (X) button
+   and no back button, because the search is already visible and there is nothing to go back to.
+5. **Given** two panes are shown, **When** the user taps the close button, **Then** the detail closes and Search
+   returns to full width, exactly as with the system back action.
 
 ---
 
@@ -192,7 +194,9 @@ and in landscape.
   are shown MUST replace the right pane's content.
 - **FR-006**: The navigation rail MUST remain visible while two panes are shown, and the Search destination
   MUST remain selected.
-- **FR-007**: While two panes are shown, the game detail MUST NOT show a back button.
+- **FR-007**: While two panes are shown, the game detail MUST NOT show a back button and MUST show a close (X)
+  button in its place, including while it loads and when it fails to load. The close button MUST do what the
+  system back action does (FR-008). Its label MUST be a localizable string resource (FR-017).
 - **FR-008**: While two panes are shown, the system back action MUST close the detail and return the Search
   screen to full width, regardless of how many games were opened one after another.
 - **FR-009**: Resizing or rotating the window across the 840dp threshold MUST keep the current search (query,

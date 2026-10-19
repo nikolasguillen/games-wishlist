@@ -15,7 +15,7 @@ feature modules. Everything that knows about panes lives in `:shared`.
 | `navigateBack(backStack, twoPaneEnabled)` | With `twoPaneEnabled` and a run: remove the whole run. Otherwise `removeLastOrNull()`. Never empties a stack of one, as today. |
 
 Callers: Search's `onGameClick`; a `fromSearch` detail's `onGameClick` (a non-`fromSearch` detail keeps today's push
-of `GameDetailRoute(id)`); `NavDisplay(onBack = …)`; and the detail's back button, which is only shown when not in
+of `GameDetailRoute(id)`); `NavDisplay(onBack = …)`; and the detail's back button (a close button takes its place in two-pane mode and calls `navigateBack` too), which is only shown when not in
 two-pane mode, so it is a plain pop.
 
 ## 2. Scene (`:shared`, `SearchDetailSceneStrategy.kt`, `internal`)
@@ -42,9 +42,10 @@ case, `SearchRoute` as the route to highlight.
 | Module | Declaration | Before | After |
 |---|---|---|---|
 | `:core:navigation` | `GameDetailRoute` | `(gameId: Int)` | `(gameId: Int, fromSearch: Boolean = false)` |
-| `:core:ui` | `ImmersiveDetailLayout(onBackClick)` | `() -> Unit` | `(() -> Unit)?`: `null` draws no navigation icon |
+| `:core:ui` | `ImmersiveDetailLayout(onBackClick, onCloseClick)` | `onBackClick: () -> Unit` | `onBackClick: (() -> Unit)?` (`null` draws no back button) and `onCloseClick: (() -> Unit)? = null` (a close X in the same place when there is no back button) |
 | `:core:ui` | `WindowShape.kt` | `isLandscapeWindow()` | unchanged, now implemented through the new `isLandscapeShape(width: Dp, height: Dp): Boolean` (width > height; a square is portrait) |
-| `:feature:game-detail` | `GameDetailScreen(onBackClick)` and the internal content composables down to `ImmersiveDetailLayout` / `DetailErrorLoadingWrapper` | `() -> Unit` | `(() -> Unit)?` |
+| `:feature:game-detail` | `GameDetailScreen(onBackClick, onCloseClick)` and the internal content composables down to `ImmersiveDetailLayout` / `DetailErrorLoadingWrapper` | `onBackClick: () -> Unit` | `onBackClick: (() -> Unit)?` and `onCloseClick: (() -> Unit)? = null` |
+| `:core:ui` | string resources | `back_content_description` | adds `close_content_description` (Close) |
 | `:feature:search` | `SearchResultGrid` (internal) | `isLandscape = isLandscapeWindow()` | `isLandscape = isLandscapeShape(maxWidth, maxHeight)` of its own `BoxWithConstraints` |
 
 No feature module gains a dependency, a route reference or a notion of panes.

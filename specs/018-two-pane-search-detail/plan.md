@@ -19,7 +19,7 @@ filters, scroll) survives. Three fixes make the panes behave:
 
 - the scene registers a back handler that outranks the Search pane's own (it would otherwise clear the search);
 - the results grid decides "landscape" from its own space rather than the window's;
-- the detail's back button becomes optional.
+- the detail gets a close (X) button instead of its back button while it is in the pane.
 
 No new library and no new module edge. One existing catalog library becomes a direct dependency of `:shared`.
 
@@ -61,7 +61,7 @@ ViewModel, use case or data layer.
 |---|---|---|
 | **I. Module boundaries** | The scene, the back stack rules, the window-size read and the rail logic are all in `:shared`, which "is the only module that knows about navigation". The route change is in `Routes.kt`. Feature modules get a nullable `onBackClick` (game-detail) and a different landscape input (search). Neither references a route, a pane or another feature. **No new module edge.** `:shared` declares `navigationevent-compose` directly; it is already in the catalog and in the graph through `navigation3-ui`, `:feature:search` and `:feature:onboarding`. This is called out in Complexity Tracking. | ✅ PASS (one declaration called out) |
 | **II. Typed errors** | No data-layer or error-path change. The detail's error state renders in the pane through the existing `ErrorPage`. | ✅ N/A |
-| **III. UI renders, does not decide** | The back stack decisions are pure functions in `:shared`, not composables, and are unit-tested. Feature composables only drop a back button when handed `null`, and pick columns from a size they measure. No new UiState, no new text. | ✅ PASS |
+| **III. UI renders, does not decide** | The back stack decisions are pure functions in `:shared`, not composables, and are unit-tested. Feature composables only draw a back or a close button when handed a callback, and pick columns from a size they measure. No new UiState. One new string (`close_content_description`, Close) in `:core:ui`'s `strings.xml`. | ✅ PASS |
 | **IV. Reuse shared layer** | `isLandscapeShape` sits beside `isLandscapeWindow` in `:core:ui/WindowShape.kt`, so the landscape rule is still written once. Material's `VerticalDivider`, no new `dp` literal, no new component. `ImmersiveDetailLayout` is extended, not copied. | ✅ PASS |
 | **V. Local verification** | Real commands only: `:core:navigation`, `:shared` and `:core:ui` `testAndroidHostTest`, `test`, `:androidApp:assembleDebug`, plus the iOS framework link on a Mac. New pure logic gets JVM tests. `KoinGraphTest` is unaffected (no new ViewModel). | ✅ PASS |
 | **KMP constraints** | All `commonMain`; no `android.*`/`java.*`; no `expect`/`actual`; no new platform capability; no library swap. iOS verification is Mac-only and stated as such. | ✅ PASS |
@@ -96,12 +96,12 @@ core/navigation/src/
 
 core/ui/src/
 ├── commonMain/.../core/ui/util/WindowShape.kt                   # + isLandscapeShape(width, height)
-├── commonMain/.../core/ui/component/ImmersiveDetailLayout.kt    # onBackClick: (() -> Unit)?
+├── commonMain/.../core/ui/component/ImmersiveDetailLayout.kt    # onBackClick: (() -> Unit)?, onCloseClick
 ├── androidHostTest/.../util/WindowShapeTest.kt                  # new: shape rule (square = portrait)
 └── CLAUDE.md                                                    # WindowShape.kt line mentions both helpers
 
 feature/game-detail/src/commonMain/.../feature/gamedetail/
-├── GameDetailScreen.kt                                          # onBackClick: (() -> Unit)?
+├── GameDetailScreen.kt                                          # onBackClick: (() -> Unit)?, onCloseClick
 └── components/{GameDetailMainContent, DetailErrorLoadingWrapper, GameDetailSuccessContent}.kt
 
 feature/search/src/commonMain/.../feature/search/components/
