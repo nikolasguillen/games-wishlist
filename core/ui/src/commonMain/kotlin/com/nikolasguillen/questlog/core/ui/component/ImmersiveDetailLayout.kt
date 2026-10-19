@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.ui.resources.Res
 import com.nikolasguillen.questlog.core.ui.resources.back_content_description
+import com.nikolasguillen.questlog.core.ui.resources.close_content_description
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import org.jetbrains.compose.resources.stringResource
@@ -47,11 +49,12 @@ import org.jetbrains.compose.resources.stringResource
  * A reusable layout for detail screens featuring an immersive hero header and a sliding sheet content.
  *
  * @param title The title to display in the TopAppBar when it becomes opaque.
- * @param onBackClick Callback for the back navigation button. `null` draws no button, for a detail that is not the
- * only thing on screen.
+ * @param onBackClick Callback for the back navigation button. `null` draws no back button.
  * @param modifier The modifier to be applied to the layout.
  * @param headerHeight The height of the hero header area.
  * @param hazeState When provided, registers the scrollable content as a source so callers can blur it from behind floating elements (e.g. via `hazeBlur`).
+ * @param onCloseClick Callback for a close (X) button in the same place, for a detail that is not the only thing on
+ * screen and so has nothing to go back to, only a pane to dismiss. Ignored while [onBackClick] is set.
  * @param heroContent Composable for the background/hero area. It receives a provider for the current scroll offset.
  * @param actions Composable for the TopAppBar actions. It receives the current TopAppBar alpha (0.0 to 1.0).
  * @param content Composable for the main scrollable content (the "sheet").
@@ -63,6 +66,7 @@ fun ImmersiveDetailLayout(
     modifier: Modifier = Modifier,
     headerHeight: Dp = 350.dp,
     hazeState: HazeState? = null,
+    onCloseClick: (() -> Unit)? = null,
     heroContent: @Composable (scrollOffsetProvider: () -> Int) -> Unit,
     actions: @Composable RowScope.(alpha: Float) -> Unit = {},
     content: @Composable (innerPadding: PaddingValues) -> Unit
@@ -101,6 +105,13 @@ fun ImmersiveDetailLayout(
                             onClick = onBackClick,
                             icon = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(Res.string.back_content_description),
+                            alpha = topBarAlpha
+                        )
+                    } else if (onCloseClick != null) {
+                        ImmersiveDetailLayoutDefaults.ActionIconButton(
+                            onClick = onCloseClick,
+                            icon = Icons.Default.Close,
+                            contentDescription = stringResource(Res.string.close_content_description),
                             alpha = topBarAlpha
                         )
                     }

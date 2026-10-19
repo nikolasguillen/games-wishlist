@@ -86,6 +86,7 @@
     <!-- Game Detail -->
     <string name="game_detail_title">Game Details</string>
     <string name="back_content_description">Back</string>
+    <string name="close_content_description">Close</string>
     <string name="settings_content_description">Settings</string>
     <string name="add_to_list_content_description">Add to List</string>
     <string name="personal_progress_title">Personal Progress</string>
