@@ -38,6 +38,7 @@ import com.nikolasguillen.questlog.core.model.ShelfReason
 import com.nikolasguillen.questlog.core.model.WishlistList
 import com.nikolasguillen.questlog.core.ui.resources.genre_adventure
 import com.nikolasguillen.questlog.core.ui.resources.sort_relevance
+import com.nikolasguillen.questlog.core.ui.mapper.toUiText
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.search.mapper.toPlaceholder
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
@@ -2305,5 +2306,85 @@ class SearchViewModelTest {
         assertEquals(listOf(1), viewModel.uiState.value.suggestions.gameSuggestions.map { it.id })
     }
 
+    // region Search type: failures and retry
+
+    @Test
+    fun `a Characters search that fails shows the mapped error`() = runTest(testDispatcher) {
+        coEvery { searchCharactersUseCase("kratos") } returns AppResult.failure(RepositoryError.NoNetwork)
+        val viewModel = createViewModel()
+
+        viewModel.selectType(SearchType.CHARACTERS)
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("kratos"))
+        advanceUntilIdle()
+
+        val error = viewModel.uiState.value.contentState as SearchContentState.Error
+        assertEquals(RepositoryError.NoNetwork.toUiText(), error.message)
+        assertEquals(SearchType.CHARACTERS, viewModel.uiState.value.resultsType)
+    }
+
+    @Test
+    fun `retry re-runs the lookup of the type that failed, not the chip picked since`() = runTest(testDispatcher) {
+        coEvery { searchCharactersUseCase("kratos") } returns
+            AppResult.failure(RepositoryError.NoNetwork) andThen AppResult.success(listOf(kratos()))
+        val viewModel = createViewModel()
+        viewModel.selectType(SearchType.CHARACTERS)
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("kratos"))
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.contentState is SearchContentState.Error)
+
+        // The chip moves on without a new search: Retry still means the search that failed.
+        viewModel.selectType(SearchType.DEVELOPERS)
+        viewModel.onEvent(SearchUiEvent.OnRetrySearch)
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) { searchCharactersUseCase("kratos") }
+        coVerify(exactly = 0) { searchDevelopersUseCase(any()) }
+        assertTrue(viewModel.uiState.value.contentState is SearchContentState.EntityResults)
+        assertEquals(SearchType.CHARACTERS, viewModel.uiState.value.resultsType)
+        assertEquals(SearchType.DEVELOPERS, viewModel.uiState.value.selectedSearchType)
+    }
+
+    @Test
+    fun `a Developers search that fails and is retried ends in the entity results`() = runTest(testDispatcher) {
+        coEvery { searchDevelopersUseCase("capcom") } returns
+            AppResult.failure(RepositoryError.RequestTimeout) andThen AppResult.success(listOf(capcom()))
+        val viewModel = createViewModel()
+        viewModel.selectType(SearchType.DEVELOPERS)
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("capcom"))
+        advanceUntilIdle()
+        assertEquals(
+            SearchContentState.Error(RepositoryError.RequestTimeout.toUiText()),
+            viewModel.uiState.value.contentState
+        )
+
+        viewModel.onEvent(SearchUiEvent.OnRetrySearch)
+        advanceUntilIdle()
+
+        val items = (viewModel.uiState.value.contentState as SearchContentState.EntityResults).items
+        assertEquals(listOf(9), items.map { it.id })
+    }
+
+    @Test
+    fun `a slow search that is replaced by a second one lands only the second result`() = runTest(testDispatcher) {
+        val slow = CompletableDeferred<AppResult<List<GameCharacter>>>()
+        coEvery { searchCharactersUseCase("kratos") } coAnswers { slow.await() }
+        givenDevelopers("capcom", capcom())
+        val viewModel = createViewModel()
+
+        viewModel.selectType(SearchType.CHARACTERS)
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("kratos"))
+        advanceUntilIdle()
+        viewModel.selectType(SearchType.DEVELOPERS)
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("capcom"))
+        advanceUntilIdle()
+        slow.complete(AppResult.success(listOf(kratos())))
+        advanceUntilIdle()
+
+        assertEquals(SearchType.DEVELOPERS, viewModel.uiState.value.resultsType)
+        val items = (viewModel.uiState.value.contentState as SearchContentState.EntityResults).items
+        assertEquals(listOf(9), items.map { it.id })
+    }
+
+    // endregion
     // endregion
 }

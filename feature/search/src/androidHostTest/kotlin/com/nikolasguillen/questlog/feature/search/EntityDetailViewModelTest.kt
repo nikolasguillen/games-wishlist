@@ -17,7 +17,9 @@ import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.CharacterProfile
 import com.nikolasguillen.questlog.core.model.DeveloperProfile
 import com.nikolasguillen.questlog.core.model.Game
+import com.nikolasguillen.questlog.core.model.RepositoryError
 import com.nikolasguillen.questlog.core.model.TranslationModelStatus
+import com.nikolasguillen.questlog.core.ui.mapper.toUiText
 import com.nikolasguillen.questlog.core.model.WishlistList
 import com.nikolasguillen.questlog.core.ui.model.DescriptionTranslationState
 import com.nikolasguillen.questlog.core.ui.model.UiText
@@ -346,6 +348,97 @@ class EntityDetailViewModelTest {
         viewModel.onEvent(EntityDetailUiEvent.ShowOriginalDescription)
 
         assertEquals(DescriptionTranslationState.Available, viewModel.uiState.value.descriptionTranslation)
+    }
+
+    // endregion
+
+    // region Failures and retry
+
+    @Test
+    fun `a games failure keeps the header and description, and retry reloads only the games`() =
+        runTest(testDispatcher) {
+            coEvery { getDeveloperProfileUseCase(401) } returns AppResult.success(developerProfile())
+            coEvery { getDeveloperGamesUseCase(401) } returns
+                AppResult.failure(RepositoryError.NoNetwork) andThen AppResult.success(listOf(game(1)))
+            val viewModel = createViewModel(developer)
+
+            assertTrue(viewModel.uiState.value.profile is EntityProfileContentState.Success)
+            assertEquals(
+                EntityGamesContentState.Error(RepositoryError.NoNetwork.toUiText()),
+                viewModel.uiState.value.games
+            )
+
+            viewModel.onEvent(EntityDetailUiEvent.OnRetry)
+            advanceUntilIdle()
+
+            assertEquals(listOf(1), viewModel.gamesSuccess().games.map { it.id })
+            coVerify(exactly = 1) { getDeveloperProfileUseCase(401) }
+            coVerify(exactly = 2) { getDeveloperGamesUseCase(401) }
+        }
+
+    @Test
+    fun `a character's games failure is retried on its own too`() = runTest(testDispatcher) {
+        coEvery { getCharacterProfileUseCase(7) } returns AppResult.success(characterProfile(gameIds = listOf(1)))
+        coEvery { getCharacterGamesUseCase(listOf(1)) } returns
+            AppResult.failure(RepositoryError.RequestTimeout) andThen AppResult.success(listOf(game(1)))
+        val viewModel = createViewModel(character)
+        assertTrue(viewModel.uiState.value.games is EntityGamesContentState.Error)
+
+        viewModel.onEvent(EntityDetailUiEvent.OnRetry)
+        advanceUntilIdle()
+
+        assertEquals(listOf(1), viewModel.gamesSuccess().games.map { it.id })
+        coVerify(exactly = 1) { getCharacterProfileUseCase(7) }
+    }
+
+    @Test
+    fun `a character's profile failure leaves the games unasked until retry succeeds`() = runTest(testDispatcher) {
+        coEvery { getCharacterProfileUseCase(7) } returns
+            AppResult.failure(RepositoryError.NoNetwork) andThen AppResult.success(characterProfile(gameIds = listOf(1, 2)))
+        coEvery { getCharacterGamesUseCase(listOf(1, 2)) } returns AppResult.success(listOf(game(1), game(2)))
+        val viewModel = createViewModel(character)
+
+        assertEquals(
+            EntityProfileContentState.Error(RepositoryError.NoNetwork.toUiText()),
+            viewModel.uiState.value.profile
+        )
+        coVerify(exactly = 0) { getCharacterGamesUseCase(any()) }
+
+        viewModel.onEvent(EntityDetailUiEvent.OnRetry)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.profile is EntityProfileContentState.Success)
+        assertEquals(listOf(1, 2), viewModel.gamesSuccess().games.map { it.id })
+        coVerify(exactly = 1) { getCharacterGamesUseCase(listOf(1, 2)) }
+    }
+
+    @Test
+    fun `a developer's profile failure is retried without asking for the games again`() = runTest(testDispatcher) {
+        coEvery { getDeveloperProfileUseCase(401) } returns
+            AppResult.failure(RepositoryError.NoNetwork) andThen AppResult.success(developerProfile())
+        coEvery { getDeveloperGamesUseCase(401) } returns AppResult.success(listOf(game(1)))
+        val viewModel = createViewModel(developer)
+        assertTrue(viewModel.uiState.value.profile is EntityProfileContentState.Error)
+        assertTrue(viewModel.uiState.value.games is EntityGamesContentState.Success)
+
+        viewModel.onEvent(EntityDetailUiEvent.OnRetry)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.profile is EntityProfileContentState.Success)
+        coVerify(exactly = 2) { getDeveloperProfileUseCase(401) }
+        coVerify(exactly = 1) { getDeveloperGamesUseCase(401) }
+    }
+
+    @Test
+    fun `retry when nothing failed does nothing`() = runTest(testDispatcher) {
+        givenDeveloper()
+        val viewModel = createViewModel(developer)
+
+        viewModel.onEvent(EntityDetailUiEvent.OnRetry)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { getDeveloperProfileUseCase(401) }
+        coVerify(exactly = 1) { getDeveloperGamesUseCase(401) }
     }
 
     // endregion

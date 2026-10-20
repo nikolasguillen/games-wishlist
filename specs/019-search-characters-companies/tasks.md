@@ -550,17 +550,21 @@ grid of every game, with save and long-press working as in Search.
 
 **Independent Test**: [quickstart.md](quickstart.md) S14 and S15.
 
-- [ ] T073 [US5] Extend `SearchViewModelTest.kt`: a Characters search that fails sets `SearchContentState.Error` with the
+- [X] T073 [US5] Extend `SearchViewModelTest.kt`: a Characters search that fails sets `SearchContentState.Error` with the
   mapped message; `OnRetrySearch` after picking a different chip without submitting re-runs the lookup for `resultsType`,
   not `selectedSearchType`; a developers failure followed by a successful retry ends in `EntityResults`; cancelling a
   slow search by submitting a second one lands only the second result.
-- [ ] T074 [US5] Extend `EntityDetailViewModelTest.kt`: a games failure keeps `profile = Success` and sets
+- [X] T074 [US5] Extend `EntityDetailViewModelTest.kt`: a games failure keeps `profile = Success` and sets
   `games = Error`, and `OnRetry` reloads only the games; a profile failure sets `profile = Error`, `OnRetry` reloads it
   (and the games after it for a character) and a character's games request is not made before the profile succeeds; a
   `Failed` translation followed by `TranslateDescription` retries.
-- [ ] T075 [US5] Hands-on, Android and (Mac) iOS: quickstart S14 (airplane mode on a Characters search, then retry) and
+- [X] T075 [US5] Hands-on, Android and (Mac) iOS: quickstart S14 (airplane mode on a Characters search, then retry) and
   S15 (cut the network while a developer page loads its games, restore, retry; the header and description stay).
   Confirm the error text comes from `RepositoryError.toUiText()` and not a new string.
+  **Result (emulator)**: S14 driven by hand: airplane mode and a Characters search gave "No internet connection. Check your network and try
+  again." with Retry (the existing `RepositoryError` text), and restoring the network and tapping Retry searched characters again ("3 characters
+  found" for "mario"). S15 could not be timed by hand (the profile and games loaded before the network could be cut), so a games-only failure,
+  its own retry and the profile failure are covered by the view-model tests only. iOS: not run (see T080).
 
 **Checkpoint**: every story is verified, including its failure paths.
 
