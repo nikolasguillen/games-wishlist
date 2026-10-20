@@ -89,6 +89,10 @@ one by hand:
 that sits in a space smaller than the window, such as the search results grid (it can be one of two panes), passes
 the size it was given to `isLandscapeShape` rather than asking the window.
 
+`LogoBackdropAnalysis.kt`, `LogoBackdropSampler.kt` and `LogoBackdropCache.kt` — what tile colour a company logo
+should sit on (`sampleLogoBackdrop` reads a painter's edge, `resolveLogoTileColor` applies the result to the theme's two
+tiles, the cache keeps it per URL); the request that loads a logo must use `readableBitmaps()`.
+
 Also: `ColorUtils.kt`, `HtmlUtils.kt`, `MetallicEffects.kt` (brush factories:
 `primaryMetallicGradient()`, `rememberAnimatedMetallicGradient()`, `rainbowMetallicGradient()`),
 `PlatformVisuals.kt`, and `Constants.kt` (`object UiConstants` — IGDB platform category/family ids,
@@ -125,7 +129,8 @@ from Android's in ways that fail quietly, so:
 What cannot be common sits behind `expect` with its Android `actual` in `androidMain`:
 `rememberNotificationPermissionState` and `NotificationPermissionDeniedDialog` (the permission and the system
 notification settings), `rememberCoverImagePicker` (the image picker; it hands back a source string, a content
-URI on Android), `rememberTextSharer` (the share sheet) and `fullScreenDialogProperties`. A common file never
+URI on Android), `rememberTextSharer` (the share sheet), `readableBitmaps` (a Coil request whose pixels can be read) and
+`fullScreenDialogProperties`. A common file never
 imports `android.*` or `androidx.activity.*`.
 
 A screen that offers a release-reminder opt-in does not wire the permission by hand: `rememberNotificationOptInRequest()`

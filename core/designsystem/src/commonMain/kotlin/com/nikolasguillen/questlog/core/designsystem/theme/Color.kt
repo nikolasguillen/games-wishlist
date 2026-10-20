@@ -20,9 +20,10 @@ val NeutralWhite = Color(0xFFFFFFFF)
 
 val ErrorRed = Color(0xFFCB1914)
 
-// The surface a company logo sits on. IGDB logos are opaque images, mostly drawn for a white page, so the tile stays
-// light in both schemes: a dark tile would frame each one in a white box.
-val LogoTileSurface = Color(0xFFF4F4F4)
+// The surfaces a company logo sits on. The tile follows the theme; a logo too close in tone to it (white artwork on
+// the light tile) is moved to the other one, so each scheme needs both.
+val LogoTileSurfaceLight = Color(0xFFF4F4F4)
+val LogoTileSurfaceDark = NeutralMediumGrey
 
 val PrimaryDark = BluePrimaryDark
 val OnPrimaryDark = BlueOnPrimaryDark

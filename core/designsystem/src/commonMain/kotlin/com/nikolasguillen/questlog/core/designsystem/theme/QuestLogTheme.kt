@@ -106,7 +106,8 @@ fun QuestLogTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composab
             createCardIconContentColor = PrimaryDark,
             createCardIconBorderColor = OutlineDark,
             accentOnScrim = PrimaryDark,
-            logoTileContainerColor = LogoTileSurface
+            logoTileContainerColor = LogoTileSurfaceDark,
+            logoTileContrastContainerColor = LogoTileSurfaceLight
         )
     } else {
         AppColors(
@@ -134,7 +135,8 @@ fun QuestLogTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composab
             createCardIconContentColor = OnPrimaryLight,
             createCardIconBorderColor = Color.Transparent,
             accentOnScrim = PrimaryDark,
-            logoTileContainerColor = LogoTileSurface
+            logoTileContainerColor = LogoTileSurfaceLight,
+            logoTileContrastContainerColor = LogoTileSurfaceDark
         )
     }
 

@@ -52,19 +52,24 @@ returns, in id order, which favours older and better-known companies. This is ac
 **Decision**:
 
 - Character portraits use `mug_shot.url` rewritten to `t_cover_big` (264×374), cropped into a circle.
-- Developer logos use `logo.url` rewritten to `t_logo_med` (284×160, fit), drawn with `ContentScale.Fit` inside a
-  rounded-square tile. The tile's background is a new `AppColors` slot, `logoTileContainerColor`, which is light in
-  both themes.
+- Developer logos use `logo.url` rewritten to `t_logo_med` (284×160, fit) and to a `.png` address, drawn with
+  `ContentScale.Fit` inside a rounded-square tile. The tile follows the theme (`AppColors.logoTileContainerColor`:
+  light in light, dark in dark) and takes two refinements from the picture's pixels, read once the image has loaded
+  (`LogoBackdrop`, `analyseLogoPixels` in `:core:ui`): an opaque logo whose edge is one colour puts that colour on the
+  tile, and a logo on a transparent edge whose artwork is too close in tone to the theme's tile moves to the opposite
+  tone (`logoTileContrastContainerColor`). Everything else keeps the theme's tile.
 - The existing `String.toIgdbImageUrl(size)` in `GameMapper.kt` becomes `internal` so the new mappers share it.
 - With no image, the circle or tile shows a neutral icon (`Icons.Outlined.Person`, `Icons.Outlined.Business`) on
   `surfaceContainerHighest`, sized as a fraction of the shape, so no new `dp` literal is needed.
 
-**Rationale**: both size names were checked (HTTP 200). IGDB logos are opaque JPEGs that mostly sit on white, so a
-light tile matches them in both themes. A logo on a dark tile would show a white box. The constitution requires colors
-to come from `MaterialTheme.appColors`, hence the new slot rather than a `Color.White` literal.
+**Rationale**: both size names were checked (HTTP 200). The `.jpg` address that IGDB's API returns is served as a
+JPEG, which has no transparency: a logo on a transparent background (`alpha_channel: true`, most of them) comes back
+on solid black, so black artwork disappears. The same image as `.png` keeps its alpha. Colours come from
+`MaterialTheme.appColors`, hence the slots rather than literals.
 
-**Alternatives considered**: PNG logos (`.png` extension) on a theme-colored tile. A transparent black logo disappears
-on the dark theme.
+**Alternatives considered**: a tile that is light in both themes (a dark tile frames an opaque logo drawn for a white
+page in a white box, but a light tile in the dark theme is jarring); the `alpha_channel` flag as the signal (it says an
+alpha channel exists, not that the edge is transparent, and would need a new field through four layers).
 
 ## R4. Where the detail page lives
 

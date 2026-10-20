@@ -77,7 +77,7 @@ class GameRepositoryImplDevelopersTest {
         assertTrue(body.captured.contains("where name ~ *\"capcom\"* & developed != null;"))
         assertTrue(body.captured.contains("limit 500;"))
         val developer = (result as AppResult.Success).data.single()
-        assertEquals("https://x/t_logo_med/c.jpg", developer.logoUrl)
+        assertEquals("https://x/t_logo_med/c.png", developer.logoUrl)
         assertEquals(3, developer.developedGameCount)
     }
 
@@ -85,7 +85,10 @@ class GameRepositoryImplDevelopersTest {
     fun `a developer profile asks for the description, the logo and the founding date`() = runTest {
         val body = slot<String>()
         coEvery { apiService.getCompanies(capture(body)) } returns listOf(
-            IgdbCompany(id = 9, name = "Naughty Dog", description = "", startDate = 473299200)
+            IgdbCompany(
+                id = 9, name = "Naughty Dog", description = "", startDate = 473299200,
+                logo = IgdbImage(2, "//x/t_thumb/n.jpg")
+            )
         )
 
         val result = repository.getDeveloperProfile(9)
@@ -95,6 +98,7 @@ class GameRepositoryImplDevelopersTest {
         val profile = (result as AppResult.Success).data
         assertEquals(null, profile.description)
         assertEquals(1984, profile.foundedYear)
+        assertEquals("https://x/t_logo_med/n.png", profile.logoUrl)
     }
 
     @Test

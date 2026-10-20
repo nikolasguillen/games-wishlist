@@ -217,6 +217,16 @@ class TextSharer(private val onShare: (text: String) -> Unit) { fun share(text: 
 |---|---|
 | `ACTION_SEND` + `Intent.createChooser` (moved verbatim from `GameDetailScreen`) | `UIActivityViewController` with the text, presented from the current `UIViewController` |
 
+### `readableBitmaps` — `:core:ui` (`specs/019-search-characters-companies`)
+
+```kotlin
+expect fun ImageRequest.Builder.readableBitmaps(): ImageRequest.Builder
+```
+
+| Android | iOS |
+|---|---|
+| `allowHardware(false)`: a hardware bitmap cannot be drawn into the software bitmap the developer logo's tile colour is read from (`sampleLogoBackdrop`) | Returns the builder unchanged: every bitmap is readable |
+
 ### Notification permission UI — `:core:ui`
 
 The existing `NotificationPermission.kt` helpers and `NotificationPermissionDeniedDialog` move to
