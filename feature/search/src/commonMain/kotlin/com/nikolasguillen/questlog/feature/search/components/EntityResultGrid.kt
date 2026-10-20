@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
@@ -64,8 +63,8 @@ internal fun EntityResultGrid(
                     Modifier
                         .animateItem(fadeOutSpec = null)
                         .padding(
-                            start = if (column == 0) edge else 0.dp,
-                            end = if (column == columnCount - 1) edge else 0.dp
+                            start = if (column == 0) edge else MaterialTheme.spacing.default,
+                            end = if (column == columnCount - 1) edge else MaterialTheme.spacing.default
                         )
                 )
             }

@@ -59,6 +59,15 @@
     <string name="search_type_characters">Characters</string>
     <string name="search_type_developers">Developers</string>
 
+    <!-- Character and developer pages -->
+    <string name="entity_games_title">Games</string>
+    <string name="entity_no_games">No games to show yet</string>
+    <string name="entity_founded_year">Founded %1$d</string>
+    <plurals name="entity_game_count">
+        <item quantity="one">%1$d game</item>
+        <item quantity="other">%1$d games</item>
+    </plurals>
+
     <!-- Genre browse -->
     <string name="browse_by_genre">Browse by genre</string>
     <string name="sort_top_picks">Top picks</string>

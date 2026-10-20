@@ -34,8 +34,11 @@ import com.nikolasguillen.questlog.feature.onboarding.OnboardingScreen
 import com.nikolasguillen.questlog.feature.onboarding.OnboardingViewModel
 import com.nikolasguillen.questlog.feature.radar.RadarScreen
 import com.nikolasguillen.questlog.feature.radar.RadarViewModel
+import com.nikolasguillen.questlog.feature.search.EntityDetailScreen
+import com.nikolasguillen.questlog.feature.search.EntityDetailViewModel
 import com.nikolasguillen.questlog.feature.search.SearchScreen
 import com.nikolasguillen.questlog.feature.search.SearchViewModel
+import com.nikolasguillen.questlog.feature.search.model.EntityDetailSubject
 import com.nikolasguillen.questlog.feature.settings.AccountBackupScreen
 import com.nikolasguillen.questlog.feature.settings.AccountBackupViewModel
 import com.nikolasguillen.questlog.feature.settings.OwnedPlatformsScreen
@@ -238,6 +241,38 @@ fun QuestLogNavDisplay(
                                 }
                             }
                         }
+                    )
+                }
+
+                is CharacterDetailRoute -> NavEntry(key) {
+                    val vm = koinViewModel<EntityDetailViewModel> {
+                        parametersOf(EntityDetailSubject.Character(key.characterId))
+                    }
+                    EntityDetailScreen(
+                        viewModel = vm,
+                        onGameClick = { gameId: Int ->
+                            val nextRoute = GameDetailRoute(gameId)
+                            if (backStack.lastOrNull() != nextRoute) {
+                                backStack.add(nextRoute)
+                            }
+                        },
+                        onBackClick = { navigateBack(backStack, twoPaneEnabled) }
+                    )
+                }
+
+                is DeveloperDetailRoute -> NavEntry(key) {
+                    val vm = koinViewModel<EntityDetailViewModel> {
+                        parametersOf(EntityDetailSubject.Developer(key.developerId))
+                    }
+                    EntityDetailScreen(
+                        viewModel = vm,
+                        onGameClick = { gameId: Int ->
+                            val nextRoute = GameDetailRoute(gameId)
+                            if (backStack.lastOrNull() != nextRoute) {
+                                backStack.add(nextRoute)
+                            }
+                        },
+                        onBackClick = { navigateBack(backStack, twoPaneEnabled) }
                     )
                 }
 

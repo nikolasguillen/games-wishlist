@@ -458,7 +458,7 @@ grid of every game, with save and long-press working as in Search.
 
 ### Detail page
 
-- [ ] T064 [P] [US4] Create in `feature/search/model/`: `EntityDetailSubject.kt` (**public** `sealed interface` with
+- [X] T064 [P] [US4] Create in `feature/search/model/`: `EntityDetailSubject.kt` (**public** `sealed interface` with
   public `data class Character(val id: Int)` and `data class Developer(val id: Int)`, KDoc saying `:shared` builds it
   for the route argument); `EntityHeaderUiModel.kt` (`@Immutable data class(name: String, imageUrl: String?,
   foundedYearText: UiText?)`); `EntityProfileContentState.kt` (`@Immutable sealed interface`: `Loading`,
@@ -469,14 +469,14 @@ grid of every game, with save and long-press working as in Search.
   `EntityDetailUiEvent.kt` (`OnRetry`, `TranslateDescription`, `ShowOriginalDescription`, `OnToggleSave(gameId)`,
   `OnOpenListSelector(gameId)`, `OnToggleListSelection(listId)`, `OnConfirmListSelection`, `OnDismissListSelector`);
   `EntityDetailUiEffect.kt` (`ShowSnackbar(message: UiText)`).
-- [ ] T065 [P] [US4] Add to `feature/search/…/composeResources/values/strings.xml`: `entity_games_title` "Games",
+- [X] T065 [P] [US4] Add to `feature/search/…/composeResources/values/strings.xml`: `entity_games_title` "Games",
   `entity_no_games` "No games to show yet", `entity_founded_year` "Founded %1$d", and the plural
   `entity_game_count` (one "%1$d game", other "%1$d games").
-- [ ] T066 [US4] Create `feature/search/mapper/EntityDetailMapper.kt`: `CharacterProfile.toHeader()`,
+- [X] T066 [US4] Create `feature/search/mapper/EntityDetailMapper.kt`: `CharacterProfile.toHeader()`,
   `DeveloperProfile.toHeader()` (`foundedYearText = UiText.StringResource(Res.string.entity_founded_year, year)` when
   `foundedYear != null`, otherwise `null`; a character's is always `null`), `Int.toGameCountText(): UiText` using
   `UiText.PluralResource(Res.plurals.entity_game_count, this, this)`, and `EntityDetailSubject.toTranslationSubject()`.
-- [ ] T067 [US4] Create `feature/search/EntityDetailViewModel.kt` with `subject: EntityDetailSubject` as its first
+- [X] T067 [US4] Create `feature/search/EntityDetailViewModel.kt` with `subject: EntityDetailSubject` as its first
   constructor parameter, then `GetCharacterProfileUseCase`, `GetDeveloperProfileUseCase`, `GetCharacterGamesUseCase`,
   `GetDeveloperGamesUseCase`, `TranslateDescriptionUseCase`, `GetTranslationModelStatusUseCase`,
   `GetWishlistedGameIdsUseCase`, `ToggleWishlistUseCase`, `GetWishlistAssignmentsUseCase`, `AddGameToListUseCase` and
@@ -494,7 +494,7 @@ grid of every game, with save and long-press working as in Search.
   the behavior of `SearchViewModel` (including the `added_to_wishlist` and `removed_from_wishlist` snackbar naming the
   default list). `OnRetry` reloads the profile when it is `Error` (and the games after it for a character), otherwise
   the games when they are `Error`.
-- [ ] T068 [US4] Create `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/EntityDetailViewModelTest.kt`
+- [X] T068 [US4] Create `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/EntityDetailViewModelTest.kt`
   (KDoc header, `StandardTestDispatcher`, `setMain`/`resetMain`, MockK use cases): a character profile then its games
   (the game use case is called with `profile.gameIds`); a developer's two requests both run; the chip text for 1 and 2
   games; an empty list is `Empty`; description `Available` only when a description exists and the model is `READY`, and
@@ -502,10 +502,10 @@ grid of every game, with save and long-press working as in Search.
   `InProgress` is ignored, and show-original goes back to `Available`; save toggles through the use case and sends the
   snackbar naming the default list; a wishlisted-ids emission patches `isSaved`; the list selector opens, toggles and
   confirms with the right add and remove calls.
-- [ ] T069 [P] [US4] Create `feature/search/components/EntityDetailTopBar.kt`: a `TopAppBar` with an empty title and a
+- [X] T069 [P] [US4] Create `feature/search/components/EntityDetailTopBar.kt`: a `TopAppBar` with an empty title and a
   back `IconButton` (`Icons.AutoMirrored.Filled.ArrowBack`, `CoreUiRes.string.back_content_description`), following
   `feature/wishlist/components/WishlistTopBar.kt`.
-- [ ] T070 [US4] Create `feature/search/EntityDetailScreen.kt` per [contracts/ui-contract.md](contracts/ui-contract.md):
+- [X] T070 [US4] Create `feature/search/EntityDetailScreen.kt` per [contracts/ui-contract.md](contracts/ui-contract.md):
   the public `EntityDetailScreen(viewModel, onGameClick, onBackClick, modifier)` with
   `@Suppress("ParamsComparedByRef")` collecting state with `collectAsStateWithLifecycle()` and effects inside
   `repeatOnLifecycle(STARTED)` (snackbars as in `SearchScreen`), delegating to `internal fun EntityDetailContent(...)`.
@@ -519,19 +519,26 @@ grid of every game, with save and long-press working as in Search.
   `choose_list_content_description` label, as in `SearchResultGrid`). `EntityGamesContentState.Loading` shows a
   full-span `ControllerLoadingAnimation`, `Empty` a full-span `EmptyPage(entity_no_games)`, `Error` a full-span
   `ErrorPage` with `OnRetry`. Previews: character, developer, loading, games error, no description.
-- [ ] T071 [US4] In `shared/QuestLogNavDisplay.kt` add the two `entryProvider` branches from the UI contract:
+- [X] T071 [US4] In `shared/QuestLogNavDisplay.kt` add the two `entryProvider` branches from the UI contract:
   `is CharacterDetailRoute -> NavEntry(key) { … koinViewModel<EntityDetailViewModel> { parametersOf(
   EntityDetailSubject.Character(key.characterId)) } … }` and the developer one, each calling `EntityDetailScreen` with
   `onGameClick` pushing `GameDetailRoute(gameId)` (plain, not `fromSearch`, guarded by the usual `lastOrNull()` check)
   and `onBackClick = { navigateBack(backStack, twoPaneEnabled) }`. Add `viewModelOf(::EntityDetailViewModel)` to
   `shared/di/ViewModelModule.kt` and `EntityDetailSubject::class` to `extraTypes` in
   `shared/src/androidHostTest/kotlin/com/nikolasguillen/questlog/shared/di/KoinGraphTest.kt`.
-- [ ] T072 [US4] Run `./gradlew :feature:search:testAndroidHostTest :shared:testAndroidHostTest --console=plain -q`,
+- [X] T072 [US4] Run `./gradlew :feature:search:testAndroidHostTest :shared:testAndroidHostTest --console=plain -q`,
   `./gradlew test --console=plain -q` and `./gradlew :androidApp:assembleDebug --console=plain -q`. Hands-on (Android):
   quickstart S5, S6 (on a device whose language is not English and whose model is ready, translate Kratos's description
   and then open the game with the same id as a character to see its own translation intact), S7, S8's page half
   (Capcom's page shows every game), S9 (Naughty Dog: none of the games is a port, bundle or edition), and S16 (two-pane
   window: the page covers both panes, no rail, and back returns to the panes).
+  **Result (emulator)**: S5 (Kratos: round portrait, "6 games" chip, description, Games grid newest first), S7's save snackbar naming the
+  default list, opening a game and coming back with the scroll position kept, and S8's page half (Capcom: "511 games", "Founded 1979", the grid
+  loads) were driven by hand. Not run by hand: S6 (needs a non-English device with the model ready), S9 (Naughty Dog) and S16 (two-pane window).
+  **Finding while testing**: installing this build over one with the old schema does **not** wipe the data, it **crashes at launch**
+  (`IllegalStateException: Room cannot verify the data integrity ... forgot to update the version number`). With `version = 1` Room only
+  falls back to a destructive migration when the version changes, not when the identity hash does. The fix on a device is clearing the app's data
+  (or reinstalling); `docs/tech-debt.md` and research R7 say "wipes", which is not what happens.
 
 **Checkpoint**: the full feature works for both types on Android.
 

@@ -2,6 +2,7 @@ package com.nikolasguillen.questlog.shared.di
 
 import android.content.Context
 import androidx.work.WorkerParameters
+import com.nikolasguillen.questlog.feature.search.model.EntityDetailSubject
 import org.junit.Test
 import org.koin.dsl.module
 import org.koin.test.verify.verify
@@ -22,7 +23,8 @@ class KoinGraphTest {
             includes(allModules(isDebugBuild = false))
         }.verify(
             extraTypes = listOf(
-                Context::class, WorkerParameters::class, Int::class, Long::class, Boolean::class
+                Context::class, WorkerParameters::class, Int::class, Long::class, Boolean::class,
+                EntityDetailSubject::class
             )
         )
     }
