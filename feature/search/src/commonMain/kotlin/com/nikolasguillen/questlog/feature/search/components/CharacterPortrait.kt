@@ -10,6 +10,10 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,31 +29,35 @@ private const val PLACEHOLDER_ICON_SHARE = 0.5f
 /**
  * A character's portrait, cropped into a circle. The size comes from [modifier] and is meant to be square.
  *
- * The person icon sits under the image, so it shows when there is no [imageUrl], while the image loads and when
- * it fails to load. Decorative: the card or header that holds it says who the character is.
+ * The person icon stands in when there is no [imageUrl] or the image fails to load. Decorative: the card or header
+ * that holds it says who the character is.
  */
 @Composable
 internal fun CharacterPortrait(
     imageUrl: String?,
     modifier: Modifier = Modifier
 ) {
+    var failed by remember(imageUrl) { mutableStateOf(false) }
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
     ) {
-        Icon(
-            imageVector = Icons.Outlined.Person,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.fillMaxSize(PLACEHOLDER_ICON_SHARE)
-        )
-        if (imageUrl != null) {
+        if (imageUrl == null || failed) {
+            Icon(
+                imageVector = Icons.Outlined.Person,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxSize(PLACEHOLDER_ICON_SHARE)
+            )
+        } else {
             AsyncImage(
                 model = imageUrl,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
+                onError = { failed = true },
                 modifier = Modifier.matchParentSize()
             )
         }
@@ -68,7 +76,7 @@ private fun CharacterPortraitWithoutImagePreview() {
 @Composable
 private fun CharacterPortraitWithImagePreview() {
     QuestLogTheme {
-        // No network in a preview, so this shows the placeholder under a pending image.
+        // No network in a preview, so the image never loads.
         CharacterPortrait(imageUrl = "https://images.igdb.com/igdb/image/upload/t_cover_big/example.jpg", modifier = Modifier.size(96.dp))
     }
 }

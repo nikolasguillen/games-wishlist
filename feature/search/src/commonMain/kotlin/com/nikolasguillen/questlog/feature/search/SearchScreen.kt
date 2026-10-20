@@ -225,6 +225,8 @@ internal fun SearchScreenContent(
     val onGameClickWithCollapse = remember(onGameClick, searchBarState, scope) { withCollapse(onGameClick) }
     val onCharacterClickWithCollapse =
         remember(onCharacterClick, searchBarState, scope) { withCollapse(onCharacterClick) }
+    val onDeveloperClickWithCollapse =
+        remember(onDeveloperClick, searchBarState, scope) { withCollapse(onDeveloperClick) }
 
     // Only fires once a query or a browse (a genre or a Discover shelf) is committed and the bar is collapsed:
     // while expanded, the search bar's own predictive-back handling owns the gesture (collapsing it instead).
@@ -284,7 +286,7 @@ internal fun SearchScreenContent(
             onEvent = onEvent,
             onGameClick = onGameClickWithCollapse,
             onCharacterClick = onCharacterClickWithCollapse,
-            onDeveloperClick = onDeveloperClick,
+            onDeveloperClick = onDeveloperClickWithCollapse,
             onSeeAllClick = onOpenShelf,
             gridState = gridState,
             activeBrowse = uiState.activeBrowse,

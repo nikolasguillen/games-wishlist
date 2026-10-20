@@ -337,31 +337,34 @@ for a missing logo and the right empty message. A tap goes to the developer's pa
 
 **Independent Test**: [quickstart.md](quickstart.md) S8 (the cards part), the developers half of S13.
 
-- [ ] T045 [P] [US3] Add `logoTileContainerColor: Color` to `AppColors` in
+- [X] T045 [P] [US3] Add `logoTileContainerColor: Color` to `AppColors` in
   `core/designsystem/theme/AppColors.kt`, give it a value in each `AppColors(...)` call (the fallback in `AppColors.kt`
   and the light and dark instances in `core/designsystem/theme/QuestLogTheme.kt`), "light in both themes": define one
   raw constant `LogoTileSurface = Color(0xFFF4F4F4)` in `core/designsystem/theme/Color.kt` and use it in both
   schemes. Update the slot count in `core/designsystem/CLAUDE.md` if it states one.
-- [ ] T046 [P] [US3] Add to `feature/search/…/composeResources/values/strings.xml`: `search_no_developers` "No
+- [X] T046 [P] [US3] Add to `feature/search/…/composeResources/values/strings.xml`: `search_no_developers` "No
   developers found for this search", `search_developers_count` "%1$d developers found" and
   `developer_card_content_description` "Developer, %1$s".
-- [ ] T047 [P] [US3] Create `feature/search/components/DeveloperLogo.kt`:
+- [X] T047 [P] [US3] Create `feature/search/components/DeveloperLogo.kt`:
   `internal fun DeveloperLogo(imageUrl: String?, modifier: Modifier = Modifier)`: a box clipped to
   `MaterialTheme.shapes.large` on `MaterialTheme.appColors.logoTileContainerColor`, holding the image with
   `ContentScale.Fit` and `spacing.medium` padding; with no image or on error, `Icons.Outlined.Business` at
   `fillMaxSize(0.5f)` tinted `onSurfaceVariant` on the same tile. Previews with and without an image.
-- [ ] T048 [P] [US3] Create `feature/search/components/DeveloperResultCard.kt`, the same layout as
+- [X] T048 [P] [US3] Create `feature/search/components/DeveloperResultCard.kt`, the same layout as
   `CharacterResultCard` with `DeveloperLogo` and `developer_card_content_description`.
-- [ ] T049 [US3] In `feature/search/components/SearchMainContent.kt` render `EntityResults` for `DEVELOPERS` with
+- [X] T049 [US3] In `feature/search/components/SearchMainContent.kt` render `EntityResults` for `DEVELOPERS` with
   `EntityResultGrid` and `DeveloperResultCard`, and add `search_no_developers` to the `Empty` message selection. In
   `SearchScreen.kt` wrap `onDeveloperClick` with the collapse helper of T042. `SearchSubHeader` already handles the
   developers count (T041).
-- [ ] T050 [P] [US3] Add a developers case to `EntityResultMapperTest.kt` and a `SearchViewModelTest.kt` case checking
+- [X] T050 [P] [US3] Add a developers case to `EntityResultMapperTest.kt` and a `SearchViewModelTest.kt` case checking
   the ranked order from `SearchDevelopersUseCase` reaches `EntityResults` unchanged.
-- [ ] T051 [US3] Run `./gradlew :feature:search:testAndroidHostTest :core:designsystem:compileAndroidMain
+- [X] T051 [US3] Run `./gradlew :feature:search:testAndroidHostTest :core:designsystem:compileAndroidMain
   :androidApp:assembleDebug --console=plain -q`. Hands-on: quickstart S8's card part ("capcom" gives light logo tiles in
   both themes, Capcom first), the developers half of S13, and S17 for the chips and both cards. Confirm a game card, a
   character card and a developer card differ by shape alone (SC-004).
+  **Result (emulator)**: "capcom" gives 18 light logo tiles in both themes with Capcom first, and the building icon only where a company
+  has no logo (a first build drew the icon behind every logo; the placeholder is now drawn only when there is no image or it fails).
+  S13's developers half and S17 (TalkBack) were not driven by hand.
 
 **Checkpoint**: both result types are searchable and tappable.
 

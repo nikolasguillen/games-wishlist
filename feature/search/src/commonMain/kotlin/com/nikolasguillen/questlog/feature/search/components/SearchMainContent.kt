@@ -30,6 +30,7 @@ import com.nikolasguillen.questlog.feature.search.resources.discover_most_antici
 import com.nikolasguillen.questlog.feature.search.resources.discover_popular_this_month
 import com.nikolasguillen.questlog.feature.search.resources.genre_browse_no_results
 import com.nikolasguillen.questlog.feature.search.resources.search_no_characters
+import com.nikolasguillen.questlog.feature.search.resources.search_no_developers
 import com.nikolasguillen.questlog.feature.search.resources.search_no_results
 import org.jetbrains.compose.resources.stringResource
 
@@ -75,8 +76,9 @@ internal fun SearchMainContent(
                 } else {
                     stringResource(
                         when (resultsType) {
-                            SearchType.GAMES, SearchType.DEVELOPERS -> Res.string.search_no_results
+                            SearchType.GAMES -> Res.string.search_no_results
                             SearchType.CHARACTERS -> Res.string.search_no_characters
+                            SearchType.DEVELOPERS -> Res.string.search_no_developers
                         }
                     )
                 },
@@ -94,8 +96,13 @@ internal fun SearchMainContent(
                         onClick = { onCharacterClick(item.id) },
                         modifier = cardModifier
                     )
-                    // Their card arrives with the developers story.
-                    SearchType.GAMES, SearchType.DEVELOPERS -> Unit
+                    SearchType.DEVELOPERS -> DeveloperResultCard(
+                        item = item,
+                        onClick = { onDeveloperClick(item.id) },
+                        modifier = cardModifier
+                    )
+                    // Games never produce entity results.
+                    SearchType.GAMES -> Unit
                 }
             }
             is SearchContentState.Success -> {
@@ -270,5 +277,28 @@ private fun SearchMainContentCharactersEmptyPreview() {
     SearchMainContentPreview(
         contentState = SearchContentState.Empty,
         resultsType = SearchType.CHARACTERS
+    )
+}
+
+@QuestLogPreviews
+@Composable
+private fun SearchMainContentDevelopersPreview() {
+    SearchMainContentPreview(
+        contentState = SearchContentState.EntityResults(
+            items = listOf(
+                EntityResultUiModel(id = 1, name = "Capcom", imageUrl = null),
+                EntityResultUiModel(id = 2, name = "Capcom Vancouver", imageUrl = null)
+            )
+        ),
+        resultsType = SearchType.DEVELOPERS
+    )
+}
+
+@QuestLogPreviews
+@Composable
+private fun SearchMainContentDevelopersEmptyPreview() {
+    SearchMainContentPreview(
+        contentState = SearchContentState.Empty,
+        resultsType = SearchType.DEVELOPERS
     )
 }

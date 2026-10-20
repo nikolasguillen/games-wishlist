@@ -20,6 +20,7 @@ import com.nikolasguillen.questlog.feature.search.model.SearchType
 import com.nikolasguillen.questlog.feature.search.resources.Res
 import com.nikolasguillen.questlog.feature.search.resources.filter_label
 import com.nikolasguillen.questlog.feature.search.resources.search_characters_count
+import com.nikolasguillen.questlog.feature.search.resources.search_developers_count
 import com.nikolasguillen.questlog.feature.search.resources.search_results_count
 import com.nikolasguillen.questlog.feature.search.resources.sort_label
 import org.jetbrains.compose.resources.stringResource
@@ -49,7 +50,7 @@ internal fun SearchSubHeader(
                 when (resultsType) {
                     SearchType.GAMES -> Res.string.search_results_count
                     SearchType.CHARACTERS -> Res.string.search_characters_count
-                    SearchType.DEVELOPERS -> Res.string.search_results_count
+                    SearchType.DEVELOPERS -> Res.string.search_developers_count
                 },
                 resultsCount
             ),
@@ -96,6 +97,20 @@ private fun SearchSubHeaderCharactersPreview() {
             onOpenSort = null,
             onOpenFilters = null,
             resultsType = SearchType.CHARACTERS
+        )
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun SearchSubHeaderDevelopersPreview() {
+    QuestLogTheme {
+        SearchSubHeader(
+            resultsCount = 12,
+            isSortActive = false,
+            onOpenSort = null,
+            onOpenFilters = null,
+            resultsType = SearchType.DEVELOPERS
         )
     }
 }

@@ -42,6 +42,9 @@
 
     <string name="search_results_count">%1$d games found</string>
     <string name="search_characters_count">%1$d characters found</string>
+    <string name="search_developers_count">%1$d developers found</string>
+    <string name="search_no_developers">No developers found for this search</string>
+    <string name="developer_card_content_description">Developer, %1$s</string>
     <string name="search_no_characters">No characters found for this search</string>
     <string name="character_card_content_description">Character, %1$s</string>
     <string name="sort_label">Sort</string>

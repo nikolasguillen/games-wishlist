@@ -2121,6 +2121,25 @@ class SearchViewModelTest {
         }
 
     @Test
+    fun `developer results reach the grid in the order the use case ranked them`() = runTest(testDispatcher) {
+        givenDevelopers(
+            "capcom",
+            Developer(id = 3, name = "Capcom", logoUrl = null, developedGameCount = 5),
+            Developer(id = 1, name = "Capcom Vancouver", logoUrl = "https://img/c.png", developedGameCount = 50),
+            Developer(id = 2, name = "Mega Capcom", logoUrl = null, developedGameCount = 900)
+        )
+        val viewModel = createViewModel()
+
+        viewModel.selectType(SearchType.DEVELOPERS)
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("capcom"))
+        advanceUntilIdle()
+
+        val items = (viewModel.uiState.value.contentState as SearchContentState.EntityResults).items
+        assertEquals(listOf(3, 1, 2), items.map { it.id })
+        assertEquals("https://img/c.png", items[1].imageUrl)
+    }
+
+    @Test
     fun `a Developers search that finds nothing is Empty`() = runTest(testDispatcher) {
         givenDevelopers("zzzz")
         val viewModel = createViewModel()
