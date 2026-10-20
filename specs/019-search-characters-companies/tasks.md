@@ -417,10 +417,10 @@ grid of every game, with save and long-press working as in Search.
 
 ### Shared UI moves (no behavior change)
 
-- [ ] T059 [US4] Move `DescriptionTranslationState` from `feature/game-detail/model/DescriptionTranslationState.kt` to
+- [X] T059 [US4] Move `DescriptionTranslationState` from `feature/game-detail/model/DescriptionTranslationState.kt` to
   `core/ui/model/DescriptionTranslationState.kt` and make it `public`. Update the imports in `GameDetailUiState.kt`,
   `GameDetailViewModel.kt`, `GameDetailSuccessContent.kt` and `GameDetailViewModelTest.kt`.
-- [ ] T060 [US4] Move the translation UI into `:core:ui`, keeping behavior: `GameDescriptionCard.kt` becomes
+- [X] T060 [US4] Move the translation UI into `:core:ui`, keeping behavior: `GameDescriptionCard.kt` becomes
   `core/ui/component/DescriptionCard.kt` with `DescriptionCard` `public` (rename the composable and its previews);
   `TranslationBadge.kt`, `GeminiNanoBadge.kt`, `AppleIntelligenceBadge.kt` and the `expect` in
   `TranslationEngineBadge.kt` move to `core/ui/component/translation/` and stay `internal` (only `DescriptionCard`
@@ -435,7 +435,7 @@ grid of every game, with save and long-press working as in Search.
   Inside the moved files `Res` is the module's own and imported bare (the old `CoreUiRes.string.description_title` and
   `got_it` become bare). Delete the originals. Update `GameDetailSuccessContent.kt` to call `DescriptionCard` with the
   `core.ui` import. Then `grep` `feature/game-detail/src` for each moved string name to confirm nothing else used it.
-- [ ] T061 [US4] Create `core/ui/component/DetailHeader.kt`: `fun DetailHeader(title: String, cover: @Composable () ->
+- [X] T061 [US4] Create `core/ui/component/DetailHeader.kt`: `fun DetailHeader(title: String, cover: @Composable () ->
   Unit, modifier: Modifier = Modifier, description: String? = null, titleMaxLines: Int = 1, chips: @Composable
   RowScope.() -> Unit = {})` and `object DetailHeaderDefaults { val CoverWidth: Dp; val CoverHeight: Dp; val
   PlaceholderIconSize: Dp }`, extracted from `WishlistDetailHeader`: a `Row` with `spacedBy(spacing.large)`,
@@ -446,13 +446,15 @@ grid of every game, with save and long-press working as in Search.
   existing `96.dp`, `128.dp` and `40.dp` literals that `WishlistDetailHeader` uses today. Rewrite
   `feature/wishlist/components/WishlistDetailHeader.kt` as a caller (its private `WishlistCover` becomes the `cover`
   argument, its chips the `chips` argument) with identical pixels, and keep its previews.
-- [ ] T062 [US4] Update `core/ui/CLAUDE.md`: add `DetailHeader`, `DescriptionCard` and the translation badge family to the
+- [X] T062 [US4] Update `core/ui/CLAUDE.md`: add `DetailHeader`, `DescriptionCard` and the translation badge family to the
   component inventory, and the leading icon to `CustomFilterChip`. Update the `TranslationEngineBadge` row of
   `specs/010-kmp-migration/contracts/platform-contracts.md` (module `:core:ui`).
-- [ ] T063 [US4] Run `./gradlew :core:ui:testAndroidHostTest :feature:game-detail:testAndroidHostTest
+- [X] T063 [US4] Run `./gradlew :core:ui:testAndroidHostTest :feature:game-detail:testAndroidHostTest
   :feature:wishlist:testAndroidHostTest --console=plain -q` and `./gradlew :androidApp:assembleDebug --console=plain -q`.
   Hands-on (Android emulator): open a game with a description (translate, show original, badge dialog) and a wishlist
   header, and confirm both look exactly as before.
+  **Result (emulator)**: the wishlist header and the game detail's description card render as before. The device is in English, so
+  the translate action itself (and the badge dialog) could not be exercised here; those need a non-English device with the model ready.
 
 ### Detail page
 

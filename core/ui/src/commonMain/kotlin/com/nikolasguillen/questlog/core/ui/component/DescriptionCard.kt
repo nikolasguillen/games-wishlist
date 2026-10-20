@@ -1,4 +1,4 @@
-package com.nikolasguillen.questlog.feature.gamedetail.components
+package com.nikolasguillen.questlog.core.ui.component
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -25,24 +25,23 @@ import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
-import com.nikolasguillen.questlog.core.ui.component.CustomContentCard
+import com.nikolasguillen.questlog.core.ui.component.translation.TranslationEngineBadge
+import com.nikolasguillen.questlog.core.ui.model.DescriptionTranslationState
+import com.nikolasguillen.questlog.core.ui.resources.Res
+import com.nikolasguillen.questlog.core.ui.resources.description_retry_translation_action
+import com.nikolasguillen.questlog.core.ui.resources.description_show_original
 import com.nikolasguillen.questlog.core.ui.resources.description_title
+import com.nikolasguillen.questlog.core.ui.resources.description_translate_action
+import com.nikolasguillen.questlog.core.ui.resources.description_translating
 import com.nikolasguillen.questlog.core.ui.util.modifiers.lineShimmer
 import com.nikolasguillen.questlog.core.ui.util.modifiers.rememberLineShimmerState
-import com.nikolasguillen.questlog.feature.gamedetail.model.DescriptionTranslationState
-import com.nikolasguillen.questlog.feature.gamedetail.resources.Res
-import com.nikolasguillen.questlog.feature.gamedetail.resources.description_retry_translation_action
-import com.nikolasguillen.questlog.feature.gamedetail.resources.description_show_original
-import com.nikolasguillen.questlog.feature.gamedetail.resources.description_translate_action
-import com.nikolasguillen.questlog.feature.gamedetail.resources.description_translating
 import org.jetbrains.compose.resources.stringResource
-import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes
 
 private val TranslationProgressIndicatorTouchTarget = 48.dp
 private val TranslationProgressIndicatorStrokeWidth = 2.dp
 
 /**
- * A card displaying the game description.
+ * A card displaying a description (a game's, a character's or a developer's), with an on-device translate action.
  *
  * [translation] drives the translate action shown next to the card title — hidden while
  * [DescriptionTranslationState.Unavailable], a translate icon while
@@ -54,7 +53,7 @@ private val TranslationProgressIndicatorStrokeWidth = 2.dp
  * retrying is just asking for a translation again.
  */
 @Composable
-internal fun GameDescriptionCard(
+fun DescriptionCard(
     description: String,
     translation: DescriptionTranslationState,
     onTranslateClick: () -> Unit,
@@ -66,7 +65,7 @@ internal fun GameDescriptionCard(
     val shimmerState = rememberLineShimmerState()
 
     CustomContentCard(
-        title = stringResource(CoreUiRes.string.description_title),
+        title = stringResource(Res.string.description_title),
         titleAction = {
             DescriptionTitleAction(
                 translation = translation,
@@ -172,9 +171,9 @@ private fun DescriptionTitleIconButton(
 
 @QuestLogPreviews
 @Composable
-private fun GameDescriptionCardAvailablePreview() {
+private fun DescriptionCardAvailablePreview() {
     QuestLogTheme {
-        GameDescriptionCard(
+        DescriptionCard(
             description = "This is a long description that showcases how the card grows to fit its " +
                     "full content. There is no expand/collapse here — the whole text is always shown, " +
                     "however long it is.",
@@ -187,9 +186,9 @@ private fun GameDescriptionCardAvailablePreview() {
 
 @QuestLogPreviews
 @Composable
-private fun GameDescriptionCardLoadingPreview() {
+private fun DescriptionCardLoadingPreview() {
     QuestLogTheme {
-        GameDescriptionCard(
+        DescriptionCard(
             description = "This is a long description that showcases how the card grows to fit its " +
                     "full content.",
             translation = DescriptionTranslationState.InProgress,
@@ -201,9 +200,9 @@ private fun GameDescriptionCardLoadingPreview() {
 
 @QuestLogPreviews
 @Composable
-private fun GameDescriptionCardTranslatedPreview() {
+private fun DescriptionCardTranslatedPreview() {
     QuestLogTheme {
-        GameDescriptionCard(
+        DescriptionCard(
             description = "This is a long description that showcases how the card grows to fit its " +
                     "full content.",
             translation = DescriptionTranslationState.Ready(
@@ -218,9 +217,9 @@ private fun GameDescriptionCardTranslatedPreview() {
 
 @QuestLogPreviews
 @Composable
-private fun GameDescriptionCardFailedPreview() {
+private fun DescriptionCardFailedPreview() {
     QuestLogTheme {
-        GameDescriptionCard(
+        DescriptionCard(
             description = "This is a long description that showcases how the card grows to fit its " +
                     "full content.",
             translation = DescriptionTranslationState.Failed,

@@ -1,14 +1,14 @@
-package com.nikolasguillen.questlog.feature.gamedetail.components
+package com.nikolasguillen.questlog.core.ui.component.translation
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.nikolasguillen.questlog.feature.gamedetail.resources.Res
-import com.nikolasguillen.questlog.feature.gamedetail.resources.ic_gemini
-import com.nikolasguillen.questlog.feature.gamedetail.resources.powered_by_gemini_nano
-import com.nikolasguillen.questlog.feature.gamedetail.resources.powered_by_gemini_nano_description
+import com.nikolasguillen.questlog.core.ui.resources.Res
+import com.nikolasguillen.questlog.core.ui.resources.ic_gemini
+import com.nikolasguillen.questlog.core.ui.resources.powered_by_gemini_nano
+import com.nikolasguillen.questlog.core.ui.resources.powered_by_gemini_nano_description
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 

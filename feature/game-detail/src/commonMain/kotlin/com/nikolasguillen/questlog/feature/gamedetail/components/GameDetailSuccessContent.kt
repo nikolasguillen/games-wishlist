@@ -28,10 +28,11 @@ import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
+import com.nikolasguillen.questlog.core.ui.component.DescriptionCard
 import com.nikolasguillen.questlog.core.ui.component.FullScreenImageViewer
 import com.nikolasguillen.questlog.core.ui.component.ImmersiveDetailLayout
 import com.nikolasguillen.questlog.core.ui.component.StatusBarProtection
-import com.nikolasguillen.questlog.feature.gamedetail.model.DescriptionTranslationState
+import com.nikolasguillen.questlog.core.ui.model.DescriptionTranslationState
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiEvent
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiModel
 import dev.chrisbanes.haze.rememberHazeState
@@ -193,7 +194,7 @@ private fun GameDetailSheetContent(
             // Description
             val descriptionString = game.description.asString()
             if (descriptionString.isNotEmpty()) {
-                GameDescriptionCard(
+                DescriptionCard(
                     description = descriptionString,
                     translation = descriptionTranslation,
                     onTranslateClick = { onEvent(GameDetailUiEvent.TranslateDescription) },

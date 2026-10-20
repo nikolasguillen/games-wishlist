@@ -7,7 +7,7 @@ Shared Compose components, UI models, mappers and utilities. Everything here is 
 
 Shared wrappers are prefixed `Custom*`:
 `CustomAlertDialog` (3 overloads — always use it instead of Material's `AlertDialog`), `CustomContentCard`,
-`CustomFab`, `CustomFilterChip`, `CustomChipRow` (horizontally scrolling chip row with fading edges;
+`CustomFab`, `CustomFilterChip` (with optional leading and trailing icons), `CustomChipRow` (horizontally scrolling chip row with fading edges;
 generic over the item, the caller draws each chip and gets a `bringIntoView` callback that scrolls a chip
 clear of the fade — call it when the chip stays after a click, skip it when the click removes the chip;
 use it for any new chip strip rather than a bare `LazyRow`), `CustomInfoChip`, `CustomModalBottomSheet`, `CustomSegmentedButton`,
@@ -20,6 +20,12 @@ internally via `MaterialTheme.isDarkTheme` — see `CustomFilterChip` for the sa
 Screen-level and domain components:
 `EmptyPage`, `ErrorPage`, `LoadingPage`, `ControllerLoadingAnimation`, `RatingBadge`, `ImageGalleryPager` (+
 `CustomPagerIndicator`), `FullScreenImageViewer`, `ImmersiveDetailLayout`, `StatusBarProtection`,
+`DetailHeader` (the band at the top of the wishlist, character and developer pages: a `cover` slot, a title,
+an optional description and a `chips` row; `DetailHeaderDefaults` holds the cover size),
+`DescriptionCard` (a description with an on-device translate action, driven by `DescriptionTranslationState`;
+game detail, the character page and the developer page share it, with `TranslationEngineBadge` (an `expect`, one
+`actual` per platform) and its Gemini Nano and Apple Intelligence variants under `component/translation/` kept
+`internal` since only the card uses them),
 `ProfileIconButton` (entry point to Settings, shared by every top-level screen), `MainScreenHeader` (2
 overloads — the title one for a plain heading, the slot one for a search bar or anything else; fixes the
 header height and the `ProfileIconButton` slot so top-level screens line up, see

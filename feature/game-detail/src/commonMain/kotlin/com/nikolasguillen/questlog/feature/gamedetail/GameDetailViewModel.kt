@@ -21,7 +21,7 @@ import com.nikolasguillen.questlog.core.model.TranslationModelStatus
 import com.nikolasguillen.questlog.core.ui.mapper.toUiText
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.gamedetail.mapper.toUiModel
-import com.nikolasguillen.questlog.feature.gamedetail.model.DescriptionTranslationState
+import com.nikolasguillen.questlog.core.ui.model.DescriptionTranslationState
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailContentState
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiEffect
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailUiEvent

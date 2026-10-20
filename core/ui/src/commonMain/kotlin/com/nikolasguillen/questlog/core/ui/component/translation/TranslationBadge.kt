@@ -1,4 +1,4 @@
-package com.nikolasguillen.questlog.feature.gamedetail.components
+package com.nikolasguillen.questlog.core.ui.component.translation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,12 +20,11 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.CustomAlertDialog
+import com.nikolasguillen.questlog.core.ui.resources.Res
 import com.nikolasguillen.questlog.core.ui.resources.got_it
 import com.nikolasguillen.questlog.core.ui.util.modifiers.rainbowMetallicBorder
-import com.nikolasguillen.questlog.feature.gamedetail.resources.Res
-import com.nikolasguillen.questlog.feature.gamedetail.resources.description_translation_info_action
+import com.nikolasguillen.questlog.core.ui.resources.description_translation_info_action
 import org.jetbrains.compose.resources.stringResource
-import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes
 
 internal val TranslationBadgeIconSize = 14.dp
 
@@ -71,7 +70,7 @@ internal fun TranslationBadge(
             message = message,
             onConfirm = { showInfoDialog = false },
             onDismiss = { showInfoDialog = false },
-            confirmButtonText = stringResource(CoreUiRes.string.got_it)
+            confirmButtonText = stringResource(Res.string.got_it)
         )
     }
 }

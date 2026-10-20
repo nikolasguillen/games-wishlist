@@ -1,4 +1,4 @@
-package com.nikolasguillen.questlog.feature.gamedetail.components
+package com.nikolasguillen.questlog.core.ui.component.translation
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -8,9 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.nikolasguillen.questlog.core.ui.util.modifiers.rainbowMetallicTint
-import com.nikolasguillen.questlog.feature.gamedetail.resources.Res
-import com.nikolasguillen.questlog.feature.gamedetail.resources.powered_by_apple_intelligence
-import com.nikolasguillen.questlog.feature.gamedetail.resources.powered_by_apple_intelligence_description
+import com.nikolasguillen.questlog.core.ui.resources.Res
+import com.nikolasguillen.questlog.core.ui.resources.powered_by_apple_intelligence
+import com.nikolasguillen.questlog.core.ui.resources.powered_by_apple_intelligence_description
 import org.jetbrains.compose.resources.stringResource
 
 /**

@@ -1,4 +1,4 @@
-package com.nikolasguillen.questlog.feature.gamedetail.components
+package com.nikolasguillen.questlog.core.ui.component.translation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
