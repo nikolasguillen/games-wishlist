@@ -21,11 +21,15 @@ Swift types.**
 
 ## Errors
 
-Every member throws only the `Cloud*Exception` types in `error/` and `CancellationException`, which is always
+Every member throws only `CloudException` subtypes (in `error/`) and `CancellationException`, which is always
 rethrown. `FirebaseErrorClassifier` is where Firebase's codes become those types; it takes the code as a string,
 because Firestore's own enum cannot be initialised in a JVM test. `:core:data` maps the exceptions to
 `RepositoryError`, so it never names a Firebase type. A new failure worth telling apart gets its own exception here
 first.
+
+`CloudException` is **sealed**, with every subtype in `error/CloudException.kt`, so the mapper in `:core:data` switches over it
+exhaustively: a new subtype fails to compile there until it has a `RepositoryError`. Throw `CloudException.Unknown` for a
+failure nothing needs to tell apart; the base class cannot be instantiated.
 
 ## Things that look wrong and are not
 

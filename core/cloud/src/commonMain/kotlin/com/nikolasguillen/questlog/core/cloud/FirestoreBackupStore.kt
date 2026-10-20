@@ -1,6 +1,6 @@
 package com.nikolasguillen.questlog.core.cloud
 
-import com.nikolasguillen.questlog.core.cloud.error.CloudTimeoutException
+import com.nikolasguillen.questlog.core.cloud.error.CloudException
 import com.nikolasguillen.questlog.core.cloud.error.toCloudException
 import com.nikolasguillen.questlog.core.cloud.model.BackupManifestDocument
 import com.nikolasguillen.questlog.core.cloud.model.BackupPartDocument
@@ -77,7 +77,7 @@ internal class FirestoreBackupStore(
     private suspend fun <T> call(block: suspend () -> T): T = try {
         withTimeout(CLOUD_CALL_TIMEOUT) { block() }
     } catch (e: TimeoutCancellationException) {
-        throw CloudTimeoutException("A Firestore call took longer than $CLOUD_CALL_TIMEOUT", e)
+        throw CloudException.Timeout("A Firestore call took longer than $CLOUD_CALL_TIMEOUT", e)
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {

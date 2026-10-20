@@ -5,7 +5,7 @@ import com.nikolasguillen.questlog.core.cloud.model.CloudUser
 import kotlinx.coroutines.flow.Flow
 
 /**
- * The cloud account. Every member throws only `Cloud*Exception` types and `CancellationException`, which is always
+ * The cloud account. Every member throws only `CloudException` subtypes and `CancellationException`, which is always
  * rethrown.
  *
  * Each platform offers exactly one sign-in method, [provider]: Google on Android and Apple on iOS. Both reach the same
@@ -23,12 +23,12 @@ interface CloudAuth {
      * the provider's own sheet, so the caller can show progress for the part that follows; it is not called when the
      * user closes the sheet.
      *
-     * @throws com.nikolasguillen.questlog.core.cloud.error.CloudSignInCancelledException the user closed the sign-in.
-     * @throws com.nikolasguillen.questlog.core.cloud.error.CloudNoAccountException the device has no account to sign
+     * @throws com.nikolasguillen.questlog.core.cloud.error.CloudException.SignInCancelled the user closed the sign-in.
+     * @throws com.nikolasguillen.questlog.core.cloud.error.CloudException.NoAccount the device has no account to sign
      * in with.
-     * @throws com.nikolasguillen.questlog.core.cloud.error.CloudCredentialCollisionException the email belongs to an
+     * @throws com.nikolasguillen.questlog.core.cloud.error.CloudException.CredentialCollision the email belongs to an
      * account that uses a method Firebase did not link by itself.
-     * @throws com.nikolasguillen.questlog.core.cloud.error.CloudConnectivityException there is no connection.
+     * @throws com.nikolasguillen.questlog.core.cloud.error.CloudException.Connectivity there is no connection.
      */
     suspend fun signIn(onAccountPicked: () -> Unit = {}): CloudUser
 
@@ -37,8 +37,8 @@ interface CloudAuth {
      * revoke the token on deletion. [onAccountPicked] is called once the user has chosen in the provider's own sheet; it
      * is not called when the user closes the sheet.
      *
-     * @throws com.nikolasguillen.questlog.core.cloud.error.CloudUnauthenticatedException nobody is signed in.
-     * @throws com.nikolasguillen.questlog.core.cloud.error.CloudSignInCancelledException the user closed the sign-in.
+     * @throws com.nikolasguillen.questlog.core.cloud.error.CloudException.Unauthenticated nobody is signed in.
+     * @throws com.nikolasguillen.questlog.core.cloud.error.CloudException.SignInCancelled the user closed the sign-in.
      */
     suspend fun reauthenticate(onAccountPicked: () -> Unit = {})
 
@@ -48,7 +48,7 @@ interface CloudAuth {
     /**
      * Revokes the held Apple grant (best effort, a failure is not thrown) and deletes the user.
      *
-     * @throws com.nikolasguillen.questlog.core.cloud.error.CloudRecentLoginRequiredException [reauthenticate] was not
+     * @throws com.nikolasguillen.questlog.core.cloud.error.CloudException.RecentLoginRequired [reauthenticate] was not
      * called first.
      */
     suspend fun deleteUser()

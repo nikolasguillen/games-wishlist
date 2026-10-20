@@ -81,7 +81,7 @@ These boundaries are load-bearing — check them before adding a dependency:
   or `:core:ai`.
 - **`:core:cloud` is reachable only from `:core:data` and `:shared`.** It owns Firebase Auth and Firestore (through
   GitLive's multiplatform SDK) and the sign-in providers. No `dev.gitlive`, `com.google.firebase` or
-  `androidx.credentials` import outside it, and its errors are its own `Cloud*Exception` types, which `:core:data`
+  `androidx.credentials` import outside it, and its errors are its own `CloudException` subtypes, which `:core:data`
   maps.
 - **`:core:ai` is reachable only from `:core:data`.** It wraps ML Kit's on-device GenAI client
   (`GeminiNanoClient`) and depends on nothing but that SDK and coroutines — not even `:core:model`.

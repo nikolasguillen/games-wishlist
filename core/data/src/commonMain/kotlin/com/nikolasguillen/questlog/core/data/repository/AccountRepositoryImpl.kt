@@ -1,7 +1,7 @@
 package com.nikolasguillen.questlog.core.data.repository
 
 import com.nikolasguillen.questlog.core.cloud.CloudAuth
-import com.nikolasguillen.questlog.core.cloud.error.CloudRecentLoginRequiredException
+import com.nikolasguillen.questlog.core.cloud.error.CloudException
 import com.nikolasguillen.questlog.core.data.mapper.toAccount
 import com.nikolasguillen.questlog.core.data.mapper.toAuthProvider
 import com.nikolasguillen.questlog.core.domain.repository.AccountRepository
@@ -46,12 +46,12 @@ internal class AccountRepositoryImpl(
     override suspend fun deleteAccount(): AppResult<Unit> = try {
         try {
             cloudAuth.deleteUser()
-        } catch (e: CloudRecentLoginRequiredException) {
+        } catch (e: CloudException.RecentLoginRequired) {
             cloudAuth.reauthenticate()
             cloudAuth.deleteUser()
         }
         AppResult.success(Unit)
-    } catch (e: CloudRecentLoginRequiredException) {
+    } catch (e: CloudException.RecentLoginRequired) {
         AppResult.failure(RepositoryError.NotSignedIn)
     } catch (e: Exception) {
         AppResult.failure(e.toRepositoryError())

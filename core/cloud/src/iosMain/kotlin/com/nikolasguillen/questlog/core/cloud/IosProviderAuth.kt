@@ -1,8 +1,6 @@
 package com.nikolasguillen.questlog.core.cloud
 
 import com.nikolasguillen.questlog.core.cloud.error.CloudException
-import com.nikolasguillen.questlog.core.cloud.error.CloudSignInCancelledException
-import com.nikolasguillen.questlog.core.cloud.error.CloudUnauthenticatedException
 import com.nikolasguillen.questlog.core.cloud.model.CloudProvider
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.AuthCredential
@@ -27,7 +25,7 @@ internal class IosProviderAuth(private val bridge: IdentityProviderBridge) : Pla
     }
 
     override suspend fun reauthenticate(onAccountPicked: () -> Unit): AppleGrant? {
-        val user = auth.currentUser ?: throw CloudUnauthenticatedException("Nobody is signed in")
+        val user = auth.currentUser ?: throw CloudException.Unauthenticated("Nobody is signed in")
         val apple = appleSignIn()
         onAccountPicked()
         user.reauthenticate(apple.credential)
@@ -38,7 +36,7 @@ internal class IosProviderAuth(private val bridge: IdentityProviderBridge) : Pla
         val revoked = suspendCancellableCoroutine { continuation ->
             bridge.revokeAppleToken(grant.value) { if (continuation.isActive) continuation.resume(it) }
         }
-        if (!revoked) throw CloudException("Apple did not revoke the token")
+        if (!revoked) throw CloudException.Unknown("Apple did not revoke the token")
     }
 
     // Apple keeps no credential on the device for this app to forget.
@@ -50,12 +48,12 @@ internal class IosProviderAuth(private val bridge: IdentityProviderBridge) : Pla
         }
         when (result.outcome) {
             ProviderOutcome.SUCCESS -> Unit
-            ProviderOutcome.CANCELLED -> throw CloudSignInCancelledException("The Apple sign-in was closed")
-            ProviderOutcome.FAILED -> throw CloudException("The Apple sign-in failed")
+            ProviderOutcome.CANCELLED -> throw CloudException.SignInCancelled("The Apple sign-in was closed")
+            ProviderOutcome.FAILED -> throw CloudException.Unknown("The Apple sign-in failed")
         }
-        val idToken = result.idToken ?: throw CloudException("Apple returned no identity token")
-        val rawNonce = result.rawNonce ?: throw CloudException("Apple returned no nonce")
-        val authorizationCode = result.authorizationCode ?: throw CloudException("Apple returned no authorization code")
+        val idToken = result.idToken ?: throw CloudException.Unknown("Apple returned no identity token")
+        val rawNonce = result.rawNonce ?: throw CloudException.Unknown("Apple returned no nonce")
+        val authorizationCode = result.authorizationCode ?: throw CloudException.Unknown("Apple returned no authorization code")
         return AppleSignIn(
             credential = OAuthProvider.credential(providerId = APPLE_PROVIDER_ID, idToken = idToken, rawNonce = rawNonce),
             authorizationCode = authorizationCode

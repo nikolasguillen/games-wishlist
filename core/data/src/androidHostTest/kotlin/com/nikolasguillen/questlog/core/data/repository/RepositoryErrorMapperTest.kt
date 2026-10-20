@@ -1,12 +1,6 @@
 package com.nikolasguillen.questlog.core.data.repository
 
-import com.nikolasguillen.questlog.core.cloud.error.CloudConnectivityException
-import com.nikolasguillen.questlog.core.cloud.error.CloudCredentialAlreadyLinkedException
-import com.nikolasguillen.questlog.core.cloud.error.CloudCredentialCollisionException
-import com.nikolasguillen.questlog.core.cloud.error.CloudNoAccountException
-import com.nikolasguillen.questlog.core.cloud.error.CloudSignInCancelledException
-import com.nikolasguillen.questlog.core.cloud.error.CloudTimeoutException
-import com.nikolasguillen.questlog.core.cloud.error.CloudUnauthenticatedException
+import com.nikolasguillen.questlog.core.cloud.error.CloudException
 import com.nikolasguillen.questlog.core.data.backup.BackupUnreadableException
 import com.nikolasguillen.questlog.core.model.RepositoryError
 import com.nikolasguillen.questlog.core.network.IgdbConnectivityException
@@ -86,34 +80,48 @@ class RepositoryErrorMapperTest {
 
     @Test
     fun `a cloud connectivity failure maps to no network`() {
-        assertEquals(RepositoryError.NoNetwork, CloudConnectivityException().toRepositoryError())
+        assertEquals(RepositoryError.NoNetwork, CloudException.Connectivity().toRepositoryError())
     }
 
     @Test
     fun `a cloud timeout maps to request timeout`() {
-        assertEquals(RepositoryError.RequestTimeout, CloudTimeoutException().toRepositoryError())
+        assertEquals(RepositoryError.RequestTimeout, CloudException.Timeout().toRepositoryError())
     }
 
     @Test
     fun `a cloud unauthenticated failure maps to not signed in`() {
-        assertEquals(RepositoryError.NotSignedIn, CloudUnauthenticatedException().toRepositoryError())
+        assertEquals(RepositoryError.NotSignedIn, CloudException.Unauthenticated().toRepositoryError())
     }
 
     @Test
     fun `a cancelled cloud sign-in maps to sign-in cancelled`() {
-        assertEquals(RepositoryError.SignInCancelled, CloudSignInCancelledException().toRepositoryError())
+        assertEquals(RepositoryError.SignInCancelled, CloudException.SignInCancelled().toRepositoryError())
     }
 
     @Test
     fun `a missing account maps to no account available and not to a cancelled sign-in`() {
-        assertEquals(RepositoryError.NoAccountAvailable, CloudNoAccountException().toRepositoryError())
+        assertEquals(RepositoryError.NoAccountAvailable, CloudException.NoAccount().toRepositoryError())
+    }
+
+    @Test
+    fun `an unclassified cloud failure keeps its cause as unknown`() {
+        val exception = CloudException.Unknown("Apple returned no nonce")
+
+        assertSame(exception, (exception.toRepositoryError() as RepositoryError.Unknown).cause)
+    }
+
+    @Test
+    fun `a recent login requirement that reaches the mapper is unknown`() {
+        val exception = CloudException.RecentLoginRequired()
+
+        assertSame(exception, (exception.toRepositoryError() as RepositoryError.Unknown).cause)
     }
 
     @Test
     fun `a credential collision maps to account exists with other method`() {
         assertEquals(
             RepositoryError.AccountExistsWithOtherMethod,
-            CloudCredentialCollisionException().toRepositoryError()
+            CloudException.CredentialCollision().toRepositoryError()
         )
     }
 
@@ -121,7 +129,7 @@ class RepositoryErrorMapperTest {
     fun `an already linked credential maps to method linked to other account`() {
         assertEquals(
             RepositoryError.MethodLinkedToOtherAccount,
-            CloudCredentialAlreadyLinkedException().toRepositoryError()
+            CloudException.CredentialAlreadyLinked().toRepositoryError()
         )
     }
 

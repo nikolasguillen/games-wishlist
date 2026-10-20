@@ -1,7 +1,6 @@
 package com.nikolasguillen.questlog.core.cloud
 
-import com.nikolasguillen.questlog.core.cloud.error.CloudRecentLoginRequiredException
-import com.nikolasguillen.questlog.core.cloud.error.CloudUnauthenticatedException
+import com.nikolasguillen.questlog.core.cloud.error.CloudException
 import com.nikolasguillen.questlog.core.cloud.error.toCloudException
 import com.nikolasguillen.questlog.core.cloud.model.CloudProvider
 import com.nikolasguillen.questlog.core.cloud.model.CloudUser
@@ -47,7 +46,7 @@ internal class FirebaseCloudAuth(
 
     override suspend fun deleteUser() = guard {
         val user = requireUser()
-        if (!reauthenticated) throw CloudRecentLoginRequiredException("Re-authenticate before deleting the user")
+        if (!reauthenticated) throw CloudException.RecentLoginRequired("Re-authenticate before deleting the user")
         appleGrant?.let { grant ->
             // Best effort: a failed revocation must not keep the user from deleting their account.
             try {
@@ -67,7 +66,7 @@ internal class FirebaseCloudAuth(
     }
 
     private fun requireUser(): FirebaseUser =
-        auth.currentUser ?: throw CloudUnauthenticatedException("Nobody is signed in")
+        auth.currentUser ?: throw CloudException.Unauthenticated("Nobody is signed in")
 
     private suspend fun <T> guard(block: suspend () -> T): T = try {
         block()

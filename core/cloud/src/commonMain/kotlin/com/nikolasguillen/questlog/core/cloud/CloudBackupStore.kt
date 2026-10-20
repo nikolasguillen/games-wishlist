@@ -5,7 +5,7 @@ import com.nikolasguillen.questlog.core.cloud.model.BackupPartDocument
 
 /**
  * The backup documents in the cloud (paths and rules are in `contracts/firestore.md`). Every member throws only
- * `Cloud*Exception` types and `CancellationException`.
+ * `CloudException` subtypes and `CancellationException`.
  */
 interface CloudBackupStore {
     /** Reads `users/{uid}` from the server, never from a cache. `null` when there is no backup. */

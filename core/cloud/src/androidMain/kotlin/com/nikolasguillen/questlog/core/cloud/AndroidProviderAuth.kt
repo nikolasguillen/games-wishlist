@@ -11,9 +11,6 @@ import androidx.credentials.exceptions.NoCredentialException
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.nikolasguillen.questlog.core.cloud.error.CloudException
-import com.nikolasguillen.questlog.core.cloud.error.CloudNoAccountException
-import com.nikolasguillen.questlog.core.cloud.error.CloudSignInCancelledException
-import com.nikolasguillen.questlog.core.cloud.error.CloudUnauthenticatedException
 import com.nikolasguillen.questlog.core.cloud.model.CloudProvider
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.AuthCredential
@@ -41,7 +38,7 @@ internal class AndroidProviderAuth(
     }
 
     override suspend fun reauthenticate(onAccountPicked: () -> Unit): AppleGrant? {
-        val user = auth.currentUser ?: throw CloudUnauthenticatedException("Nobody is signed in")
+        val user = auth.currentUser ?: throw CloudException.Unauthenticated("Nobody is signed in")
         val credential = googleCredential()
         onAccountPicked()
         user.reauthenticate(credential)
@@ -58,24 +55,24 @@ internal class AndroidProviderAuth(
     private suspend fun googleCredential(): AuthCredential {
         // With no resumed Activity the user left the app mid-tap, which is a cancelled sign-in.
         val activity = activityTracker.current
-            ?: throw CloudSignInCancelledException("The app is not in the foreground")
+            ?: throw CloudException.SignInCancelled("The app is not in the foreground")
         val request = GetCredentialRequest.Builder()
             .addCredentialOption(GetSignInWithGoogleOption.Builder(webClientId).build())
             .build()
         val credential = try {
             CredentialManager.create(activity).getCredential(activity, request).credential
         } catch (e: GetCredentialCancellationException) {
-            throw CloudSignInCancelledException("The Google sign-in was closed", e)
+            throw CloudException.SignInCancelled("The Google sign-in was closed", e)
         } catch (e: NoCredentialException) {
             // Not a cancel: the user never saw a sheet, so the screen has to say why nothing happened.
-            throw CloudNoAccountException("No Google account is available", e)
+            throw CloudException.NoAccount("No Google account is available", e)
         } catch (e: GetCredentialException) {
             // Credential Manager's other failures (provider misconfigured, interrupted, unknown) are not ours to
             // classify; wrapping them keeps this module's contract and the cause for the log.
-            throw CloudException("Credential Manager failed: ${e.type}", e)
+            throw CloudException.Unknown("Credential Manager failed: ${e.type}", e)
         }
         if (credential !is CustomCredential || credential.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-            throw CloudException("Credential Manager returned an unexpected credential type")
+            throw CloudException.Unknown("Credential Manager returned an unexpected credential type")
         }
         val idToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
         return GoogleAuthProvider.credential(idToken, null)

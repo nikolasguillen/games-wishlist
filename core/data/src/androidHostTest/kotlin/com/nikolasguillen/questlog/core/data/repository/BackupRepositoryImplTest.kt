@@ -1,6 +1,6 @@
 package com.nikolasguillen.questlog.core.data.repository
 
-import com.nikolasguillen.questlog.core.cloud.error.CloudConnectivityException
+import com.nikolasguillen.questlog.core.cloud.error.CloudException
 import com.nikolasguillen.questlog.core.cloud.model.CloudProvider
 import com.nikolasguillen.questlog.core.cloud.model.CloudUser
 import com.nikolasguillen.questlog.core.cloud.model.BackupManifestDocument
@@ -200,7 +200,7 @@ class BackupRepositoryImplTest {
     @Test
     fun `offline fails at the first read and writes nothing`() = runTest {
         givenRows()
-        store.readManifestFailure = CloudConnectivityException()
+        store.readManifestFailure = CloudException.Connectivity()
 
         val result = repository().backUp()
 

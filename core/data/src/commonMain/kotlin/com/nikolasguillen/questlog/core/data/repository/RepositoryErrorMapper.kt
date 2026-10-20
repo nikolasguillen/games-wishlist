@@ -1,12 +1,6 @@
 package com.nikolasguillen.questlog.core.data.repository
 
-import com.nikolasguillen.questlog.core.cloud.error.CloudConnectivityException
-import com.nikolasguillen.questlog.core.cloud.error.CloudCredentialAlreadyLinkedException
-import com.nikolasguillen.questlog.core.cloud.error.CloudCredentialCollisionException
-import com.nikolasguillen.questlog.core.cloud.error.CloudNoAccountException
-import com.nikolasguillen.questlog.core.cloud.error.CloudSignInCancelledException
-import com.nikolasguillen.questlog.core.cloud.error.CloudTimeoutException
-import com.nikolasguillen.questlog.core.cloud.error.CloudUnauthenticatedException
+import com.nikolasguillen.questlog.core.cloud.error.CloudException
 import com.nikolasguillen.questlog.core.data.backup.BackupUnreadableException
 import com.nikolasguillen.questlog.core.model.RepositoryError
 import com.nikolasguillen.questlog.core.network.IgdbHttpException
@@ -23,25 +17,26 @@ internal fun Throwable.toRepositoryError(): RepositoryError {
         this is IgdbHttpException -> RepositoryError.Http(code = code, message = message)
 
         // `:core:cloud` already translated Firebase's own failures, so no Firebase type is named here.
-        this is CloudConnectivityException -> RepositoryError.NoNetwork
-
-        this is CloudTimeoutException -> RepositoryError.RequestTimeout
-
-        this is CloudUnauthenticatedException -> RepositoryError.NotSignedIn
-
-        this is CloudSignInCancelledException -> RepositoryError.SignInCancelled
-
-        this is CloudNoAccountException -> RepositoryError.NoAccountAvailable
-
-        this is CloudCredentialCollisionException -> RepositoryError.AccountExistsWithOtherMethod
-
-        this is CloudCredentialAlreadyLinkedException -> RepositoryError.MethodLinkedToOtherAccount
+        this is CloudException -> toCloudRepositoryError()
 
         // A backup stream that cannot be put back together: a part missing, a length that is off, JSON that is not ours.
         this is BackupUnreadableException -> RepositoryError.BackupUnreadable
 
         else -> RepositoryError.Unknown(this)
     }
+}
+
+// Exhaustive on purpose: a new `CloudException` does not compile until it has been given a `RepositoryError` here.
+private fun CloudException.toCloudRepositoryError(): RepositoryError = when (this) {
+    is CloudException.Connectivity -> RepositoryError.NoNetwork
+    is CloudException.Timeout -> RepositoryError.RequestTimeout
+    is CloudException.Unauthenticated -> RepositoryError.NotSignedIn
+    is CloudException.SignInCancelled -> RepositoryError.SignInCancelled
+    is CloudException.NoAccount -> RepositoryError.NoAccountAvailable
+    is CloudException.CredentialCollision -> RepositoryError.AccountExistsWithOtherMethod
+    is CloudException.CredentialAlreadyLinked -> RepositoryError.MethodLinkedToOtherAccount
+    // `AccountRepositoryImpl.deleteAccount` answers this one itself, so it reaches the screen only as a surprise.
+    is CloudException.RecentLoginRequired, is CloudException.Unknown -> RepositoryError.Unknown(this)
 }
 
 // The platform's own "device is offline" and "request timed out" exception types are the part that differs per

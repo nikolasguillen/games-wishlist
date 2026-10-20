@@ -1,7 +1,7 @@
 package com.nikolasguillen.questlog.core.data.cloud
 
 import com.nikolasguillen.questlog.core.cloud.CloudBackupStore
-import com.nikolasguillen.questlog.core.cloud.error.CloudConnectivityException
+import com.nikolasguillen.questlog.core.cloud.error.CloudException
 import com.nikolasguillen.questlog.core.cloud.model.BackupManifestDocument
 import com.nikolasguillen.questlog.core.cloud.model.BackupPartDocument
 import kotlinx.coroutines.delay
@@ -44,7 +44,7 @@ class FakeCloudBackupStore : CloudBackupStore {
 
     override suspend fun writePart(uid: String, partId: String, part: BackupPartDocument) {
         partWrites++
-        if (partWrites == failWriteNumber) throw CloudConnectivityException("write $partWrites failed")
+        if (partWrites == failWriteNumber) throw CloudException.Connectivity("write $partWrites failed")
         calls += "writePart:$partId"
         parts[partId] = part
     }
@@ -66,7 +66,7 @@ class FakeCloudBackupStore : CloudBackupStore {
 
     override suspend fun deleteParts(uid: String, partIds: Collection<String>) {
         calls += "deleteParts"
-        if (failDeleteParts) throw CloudConnectivityException("sweep failed")
+        if (failDeleteParts) throw CloudException.Connectivity("sweep failed")
         partIds.forEach { parts.remove(it) }
     }
 

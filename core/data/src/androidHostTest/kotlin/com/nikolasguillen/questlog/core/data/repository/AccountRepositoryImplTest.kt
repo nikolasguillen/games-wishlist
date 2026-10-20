@@ -1,9 +1,6 @@
 package com.nikolasguillen.questlog.core.data.repository
 
-import com.nikolasguillen.questlog.core.cloud.error.CloudConnectivityException
-import com.nikolasguillen.questlog.core.cloud.error.CloudCredentialCollisionException
-import com.nikolasguillen.questlog.core.cloud.error.CloudRecentLoginRequiredException
-import com.nikolasguillen.questlog.core.cloud.error.CloudSignInCancelledException
+import com.nikolasguillen.questlog.core.cloud.error.CloudException
 import com.nikolasguillen.questlog.core.cloud.model.CloudProvider
 import com.nikolasguillen.questlog.core.cloud.model.CloudUser
 import com.nikolasguillen.questlog.core.data.cloud.FakeCloudAuth
@@ -66,7 +63,7 @@ class AccountRepositoryImplTest {
         repository.signIn(onAccountPicked = { picked++ })
         assertEquals(1, picked)
 
-        auth.signInFailure = CloudSignInCancelledException()
+        auth.signInFailure = CloudException.SignInCancelled()
         repository.signIn(onAccountPicked = { picked++ })
         assertEquals(1, picked)
     }
@@ -82,7 +79,7 @@ class AccountRepositoryImplTest {
 
     @Test
     fun `a closed sign-in becomes sign-in cancelled`() = runTest {
-        auth.signInFailure = CloudSignInCancelledException()
+        auth.signInFailure = CloudException.SignInCancelled()
 
         val result = repository.signIn()
 
@@ -91,7 +88,7 @@ class AccountRepositoryImplTest {
 
     @Test
     fun `a credential collision becomes account exists with other method`() = runTest {
-        auth.signInFailure = CloudCredentialCollisionException()
+        auth.signInFailure = CloudException.CredentialCollision()
 
         val result = repository.signIn()
 
@@ -121,7 +118,7 @@ class AccountRepositoryImplTest {
 
     @Test
     fun `signOut maps a failure`() = runTest {
-        auth.signOutFailure = CloudConnectivityException()
+        auth.signOutFailure = CloudException.Connectivity()
 
         val result = repository.signOut()
 
@@ -130,7 +127,7 @@ class AccountRepositoryImplTest {
 
     @Test
     fun `a closed reauthentication becomes sign-in cancelled`() = runTest {
-        auth.reauthenticateFailure = CloudSignInCancelledException()
+        auth.reauthenticateFailure = CloudException.SignInCancelled()
 
         val result = repository.reauthenticate()
 
@@ -153,7 +150,7 @@ class AccountRepositoryImplTest {
 
     @Test
     fun `deleteAccount signs in once more and retries once when a recent sign-in is asked for`() = runTest {
-        auth.deleteUserFailures += CloudRecentLoginRequiredException()
+        auth.deleteUserFailures += CloudException.RecentLoginRequired()
 
         val result = repository.deleteAccount()
 
@@ -163,8 +160,8 @@ class AccountRepositoryImplTest {
 
     @Test
     fun `a second recent-sign-in refusal is not-signed-in and never loops`() = runTest {
-        auth.deleteUserFailures += CloudRecentLoginRequiredException()
-        auth.deleteUserFailures += CloudRecentLoginRequiredException()
+        auth.deleteUserFailures += CloudException.RecentLoginRequired()
+        auth.deleteUserFailures += CloudException.RecentLoginRequired()
 
         val result = repository.deleteAccount()
 
@@ -174,8 +171,8 @@ class AccountRepositoryImplTest {
 
     @Test
     fun `a closed sign-in during the retry is sign-in cancelled`() = runTest {
-        auth.deleteUserFailures += CloudRecentLoginRequiredException()
-        auth.reauthenticateFailure = CloudSignInCancelledException()
+        auth.deleteUserFailures += CloudException.RecentLoginRequired()
+        auth.reauthenticateFailure = CloudException.SignInCancelled()
 
         val result = repository.deleteAccount()
 
@@ -184,7 +181,7 @@ class AccountRepositoryImplTest {
 
     @Test
     fun `deleteAccount maps another failure`() = runTest {
-        auth.deleteUserFailures += CloudConnectivityException()
+        auth.deleteUserFailures += CloudException.Connectivity()
 
         val result = repository.deleteAccount()
 
