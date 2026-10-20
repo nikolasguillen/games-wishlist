@@ -4,6 +4,12 @@ internal sealed interface SearchUiEvent {
     data class OnSearchTriggered(val query: String) : SearchUiEvent
     data object OnClearSearch : SearchUiEvent
 
+    /**
+     * The user picked a chip in the search type row. Only changes what the next submitted search looks up: the
+     * results already on screen and the text field stay as they are, and no request starts.
+     */
+    data class OnSearchTypeSelected(val type: SearchType) : SearchUiEvent
+
     /** The user tapped a genre chip in the "Browse by genre" row. */
     data class OnGenreBrowseTriggered(val genre: BrowseGenreUiModel) : SearchUiEvent
 

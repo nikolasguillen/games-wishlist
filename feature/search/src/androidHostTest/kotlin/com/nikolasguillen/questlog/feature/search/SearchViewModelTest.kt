@@ -18,11 +18,15 @@ import com.nikolasguillen.questlog.core.domain.usecase.search.GetBrowseGenresUse
 import com.nikolasguillen.questlog.core.domain.usecase.search.GetRecentSearchActivityUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.GetSearchSuggestionsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.RemoveRecentGameUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.search.SearchCharactersUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.search.SearchDevelopersUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.SearchGamesUseCase
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.DiscoverFeed
+import com.nikolasguillen.questlog.core.model.Developer
 import com.nikolasguillen.questlog.core.model.DiscoverLane
 import com.nikolasguillen.questlog.core.model.Game
+import com.nikolasguillen.questlog.core.model.GameCharacter
 import com.nikolasguillen.questlog.core.model.Genre
 import com.nikolasguillen.questlog.core.model.Platform
 import com.nikolasguillen.questlog.core.model.RecentSearchActivity
@@ -40,10 +44,12 @@ import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.DiscoverContentState
 import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfKey
 import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfUiModel
+import com.nikolasguillen.questlog.feature.search.model.EntityResultUiModel
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchBrowseUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchContentState
 import com.nikolasguillen.questlog.feature.search.model.SearchSort
+import com.nikolasguillen.questlog.feature.search.model.SearchType
 import com.nikolasguillen.questlog.feature.search.model.SearchUiEffect
 import com.nikolasguillen.questlog.feature.search.model.SearchUiEvent
 import com.nikolasguillen.questlog.feature.search.model.SortingUiModel
@@ -97,6 +103,8 @@ class SearchViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
     private val searchGamesUseCase = mockk<SearchGamesUseCase>()
+    private val searchCharactersUseCase = mockk<SearchCharactersUseCase>()
+    private val searchDevelopersUseCase = mockk<SearchDevelopersUseCase>()
     private val browseGenreUseCase = mockk<BrowseGenreUseCase>()
     private val getBrowseGenresUseCase = mockk<GetBrowseGenresUseCase>()
     private val addSearchToHistoryUseCase = mockk<AddSearchToHistoryUseCase>(relaxed = true)
@@ -174,6 +182,8 @@ class SearchViewModelTest {
     private fun TestScope.createViewModel(): SearchViewModel {
         return SearchViewModel(
             searchGamesUseCase = searchGamesUseCase,
+            searchCharactersUseCase = searchCharactersUseCase,
+            searchDevelopersUseCase = searchDevelopersUseCase,
             browseGenreUseCase = browseGenreUseCase,
             getBrowseGenresUseCase = getBrowseGenresUseCase,
             addSearchToHistoryUseCase = addSearchToHistoryUseCase,
@@ -1986,6 +1996,277 @@ class SearchViewModelTest {
             coVerify(exactly = 1) { addSearchToHistoryUseCase(any()) }
             coVerify(exactly = 1) { addSearchToHistoryUseCase("zelda") }
         }
+
+    // endregion
+
+    // region Search type
+
+    private fun givenCharacters(query: String, vararg characters: GameCharacter) {
+        coEvery { searchCharactersUseCase(query) } returns AppResult.success(characters.toList())
+    }
+
+    private fun givenDevelopers(query: String, vararg developers: Developer) {
+        coEvery { searchDevelopersUseCase(query) } returns AppResult.success(developers.toList())
+    }
+
+    private fun kratos() = GameCharacter(id = 7, name = "Kratos", imageUrl = "https://img/kratos.jpg")
+
+    private fun capcom() = Developer(id = 9, name = "Capcom", logoUrl = null, developedGameCount = 500)
+
+    private fun SearchViewModel.selectType(type: SearchType) {
+        onEvent(SearchUiEvent.OnSearchTypeSelected(type))
+    }
+
+    @Test
+    fun `Games is selected and shown by default`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        assertEquals(SearchType.GAMES, viewModel.uiState.value.selectedSearchType)
+        assertEquals(SearchType.GAMES, viewModel.uiState.value.resultsType)
+    }
+
+    @Test
+    fun `choosing a chip changes only the selected type and starts no lookup`() = runTest(testDispatcher) {
+        coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
+            SearchResult(games = listOf(testGame(id = 1)), platforms = emptyList(), genres = emptyList())
+        )
+        val viewModel = createViewModel()
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
+        advanceUntilIdle()
+        val before = viewModel.uiState.value
+
+        viewModel.selectType(SearchType.CHARACTERS)
+        advanceUntilIdle()
+
+        assertEquals(before.copy(selectedSearchType = SearchType.CHARACTERS), viewModel.uiState.value)
+        assertEquals("zelda", viewModel.textFieldState.text.toString())
+        coVerify(exactly = 0) { searchCharactersUseCase(any()) }
+        coVerify(exactly = 0) { searchDevelopersUseCase(any()) }
+        coVerify(exactly = 1) { searchGamesUseCase(any()) }
+    }
+
+    @Test
+    fun `a Characters search looks up characters only and ends in the entity results`() =
+        runTest(testDispatcher) {
+            givenCharacters("kratos", kratos())
+            val viewModel = createViewModel()
+
+            viewModel.selectType(SearchType.CHARACTERS)
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("kratos"))
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(SearchType.CHARACTERS, state.resultsType)
+            assertEquals(
+                SearchContentState.EntityResults(
+                    listOf(EntityResultUiModel(id = 7, name = "Kratos", imageUrl = "https://img/kratos.jpg"))
+                ),
+                state.contentState
+            )
+            coVerify(exactly = 1) { searchCharactersUseCase("kratos") }
+            coVerify(exactly = 0) { searchGamesUseCase(any()) }
+            coVerify(exactly = 0) { searchDevelopersUseCase(any()) }
+        }
+
+    @Test
+    fun `a Characters search that finds nothing is Empty`() = runTest(testDispatcher) {
+        givenCharacters("zzzz")
+        val viewModel = createViewModel()
+
+        viewModel.selectType(SearchType.CHARACTERS)
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zzzz"))
+        advanceUntilIdle()
+
+        assertEquals(SearchContentState.Empty, viewModel.uiState.value.contentState)
+        assertEquals(SearchType.CHARACTERS, viewModel.uiState.value.resultsType)
+    }
+
+    @Test
+    fun `a Developers search looks up developers only and ends in the entity results`() =
+        runTest(testDispatcher) {
+            givenDevelopers("capcom", capcom())
+            val viewModel = createViewModel()
+
+            viewModel.selectType(SearchType.DEVELOPERS)
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("capcom"))
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(SearchType.DEVELOPERS, state.resultsType)
+            assertEquals(
+                SearchContentState.EntityResults(listOf(EntityResultUiModel(id = 9, name = "Capcom", imageUrl = null))),
+                state.contentState
+            )
+            coVerify(exactly = 1) { searchDevelopersUseCase("capcom") }
+            coVerify(exactly = 0) { searchGamesUseCase(any()) }
+            coVerify(exactly = 0) { searchCharactersUseCase(any()) }
+        }
+
+    @Test
+    fun `a Developers search that finds nothing is Empty`() = runTest(testDispatcher) {
+        givenDevelopers("zzzz")
+        val viewModel = createViewModel()
+
+        viewModel.selectType(SearchType.DEVELOPERS)
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zzzz"))
+        advanceUntilIdle()
+
+        assertEquals(SearchContentState.Empty, viewModel.uiState.value.contentState)
+    }
+
+    @Test
+    fun `the result type stays put when another chip is picked after the results landed`() =
+        runTest(testDispatcher) {
+            givenCharacters("kratos", kratos())
+            val viewModel = createViewModel()
+            viewModel.selectType(SearchType.CHARACTERS)
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("kratos"))
+            advanceUntilIdle()
+
+            viewModel.selectType(SearchType.DEVELOPERS)
+            advanceUntilIdle()
+
+            assertEquals(SearchType.DEVELOPERS, viewModel.uiState.value.selectedSearchType)
+            assertEquals(SearchType.CHARACTERS, viewModel.uiState.value.resultsType)
+            assertTrue(viewModel.uiState.value.contentState is SearchContentState.EntityResults)
+        }
+
+    @Test
+    fun `submitting after picking another chip replaces the results with the new type`() =
+        runTest(testDispatcher) {
+            givenCharacters("capcom")
+            givenDevelopers("capcom", capcom())
+            val viewModel = createViewModel()
+            viewModel.selectType(SearchType.CHARACTERS)
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("capcom"))
+            advanceUntilIdle()
+
+            viewModel.selectType(SearchType.DEVELOPERS)
+            viewModel.onEvent(SearchUiEvent.OnSearchTriggered("capcom"))
+            advanceUntilIdle()
+
+            assertEquals(SearchType.DEVELOPERS, viewModel.uiState.value.resultsType)
+            assertEquals(
+                listOf(9),
+                (viewModel.uiState.value.contentState as SearchContentState.EntityResults).items.map { it.id }
+            )
+        }
+
+    @Test
+    fun `every type writes its submitted text to the search history`() = runTest(testDispatcher) {
+        givenCharacters("kratos", kratos())
+        givenDevelopers("capcom", capcom())
+        coEvery { searchGamesUseCase("zelda") } returns AppResult.success(
+            SearchResult(games = listOf(testGame(id = 1)), platforms = emptyList(), genres = emptyList())
+        )
+        val viewModel = createViewModel()
+
+        // Each search is let finish first: a new one cancels the one still running, history write included.
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("zelda"))
+        advanceUntilIdle()
+        viewModel.selectType(SearchType.CHARACTERS)
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("kratos"))
+        advanceUntilIdle()
+        viewModel.selectType(SearchType.DEVELOPERS)
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("capcom"))
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { addSearchToHistoryUseCase("zelda") }
+        coVerify(exactly = 1) { addSearchToHistoryUseCase("kratos") }
+        coVerify(exactly = 1) { addSearchToHistoryUseCase("capcom") }
+    }
+
+    @Test
+    fun `browsing a genre goes back to Games for both types`() = runTest(testDispatcher) {
+        givenBrowse(12, testGame(id = 1))
+        val viewModel = createViewModel()
+        viewModel.selectType(SearchType.CHARACTERS)
+
+        viewModel.onEvent(SearchUiEvent.OnGenreBrowseTriggered(rpgChip))
+        advanceUntilIdle()
+
+        assertEquals(SearchType.GAMES, viewModel.uiState.value.selectedSearchType)
+        assertEquals(SearchType.GAMES, viewModel.uiState.value.resultsType)
+        assertTrue(viewModel.uiState.value.contentState is SearchContentState.Success)
+    }
+
+    @Test
+    fun `opening a shelf goes back to Games for both types`() = runTest(testDispatcher) {
+        givenFeed(DiscoverFeed(popular = gamesFrom(firstId = 1, count = 8), upcoming = emptyList()))
+        val viewModel = createViewModel()
+        viewModel.selectType(SearchType.DEVELOPERS)
+
+        viewModel.openShelf(popularKey)
+
+        assertEquals(SearchType.GAMES, viewModel.uiState.value.selectedSearchType)
+        assertEquals(SearchType.GAMES, viewModel.uiState.value.resultsType)
+    }
+
+    @Test
+    fun `clearing the search keeps the chosen type`() = runTest(testDispatcher) {
+        givenCharacters("kratos", kratos())
+        val viewModel = createViewModel()
+        viewModel.selectType(SearchType.CHARACTERS)
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("kratos"))
+        advanceUntilIdle()
+
+        viewModel.onEvent(SearchUiEvent.OnClearSearch)
+
+        assertEquals(SearchContentState.Idle, viewModel.uiState.value.contentState)
+        assertEquals(SearchType.CHARACTERS, viewModel.uiState.value.selectedSearchType)
+    }
+
+    @Test
+    fun `typing under Characters offers recent searches and no game suggestions, with no remote lookup`() =
+        runTest(testDispatcher) {
+            coEvery { getSearchSuggestionsUseCase.getLocalSuggestions("kra") } returns
+                listOf(SearchSuggestion.HistorySuggestion("kratos"))
+            val viewModel = createViewModel()
+            viewModel.selectType(SearchType.CHARACTERS)
+
+            viewModel.setQuery("kra")
+            advanceUntilIdle()
+
+            val suggestions = viewModel.uiState.value.suggestions
+            assertEquals(listOf("kratos"), suggestions.historySuggestions)
+            assertTrue(suggestions.gameSuggestions.isEmpty())
+            assertFalse(suggestions.isLoadingRemote)
+            coVerify(exactly = 0) { getSearchSuggestionsUseCase.getRemoteSuggestions(any()) }
+        }
+
+    @Test
+    fun `switching to Characters while game suggestions are showing removes them`() = runTest(testDispatcher) {
+        coEvery { getSearchSuggestionsUseCase.getLocalSuggestions("zel") } returns
+            listOf(SearchSuggestion.HistorySuggestion("zelda"))
+        coEvery { getSearchSuggestionsUseCase.getRemoteSuggestions("zel") } returns
+            listOf(SearchSuggestion.GameSuggestion(testGame(id = 1, name = "Zelda II")))
+        val viewModel = createViewModel()
+        viewModel.setQuery("zel")
+        advanceUntilIdle()
+        assertEquals(listOf(1), viewModel.uiState.value.suggestions.gameSuggestions.map { it.id })
+
+        viewModel.selectType(SearchType.CHARACTERS)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.suggestions.gameSuggestions.isEmpty())
+        assertEquals(listOf("zelda"), viewModel.uiState.value.suggestions.historySuggestions)
+    }
+
+    @Test
+    fun `switching back to Games with text typed brings the game suggestions back`() = runTest(testDispatcher) {
+        coEvery { getSearchSuggestionsUseCase.getRemoteSuggestions("zel") } returns
+            listOf(SearchSuggestion.GameSuggestion(testGame(id = 1, name = "Zelda II")))
+        val viewModel = createViewModel()
+        viewModel.selectType(SearchType.CHARACTERS)
+        viewModel.setQuery("zel")
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.suggestions.gameSuggestions.isEmpty())
+
+        viewModel.selectType(SearchType.GAMES)
+        advanceUntilIdle()
+
+        assertEquals(listOf(1), viewModel.uiState.value.suggestions.gameSuggestions.map { it.id })
+    }
 
     // endregion
 }

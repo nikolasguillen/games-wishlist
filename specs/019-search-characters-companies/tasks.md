@@ -208,19 +208,19 @@ silent for the other two types.
 Characters or Developers search reaches `EntityResults` state but the grid area stays empty (a deliberate intermediate
 state, T031), so the view model tests (T030) carry the proof of "one lookup, one kind".
 
-- [ ] T025 [P] [US1] Create `feature/search/model/SearchType.kt`: `enum class SearchType { GAMES, CHARACTERS,
+- [X] T025 [P] [US1] Create `feature/search/model/SearchType.kt`: `enum class SearchType { GAMES, CHARACTERS,
   DEVELOPERS }` with KDoc.
-- [ ] T026 [P] [US1] Add to `feature/search/src/commonMain/composeResources/values/strings.xml` (English only):
+- [X] T026 [P] [US1] Add to `feature/search/src/commonMain/composeResources/values/strings.xml` (English only):
   `search_type_games` "Games", `search_type_characters` "Characters", `search_type_developers` "Developers",
   `search_placeholder_characters` "Search for a character…", `search_placeholder_developers` "Search for a
   developer…". `search_placeholder` ("Search for a game…") stays for Games.
-- [ ] T027 [P] [US1] Add `leadingIcon: (@Composable () -> Unit)? = null` as the last parameter of `CustomFilterChip` in
+- [X] T027 [P] [US1] Add `leadingIcon: (@Composable () -> Unit)? = null` as the last parameter of `CustomFilterChip` in
   `core/ui/component/CustomFilterChip.kt`, passed to `FilterChip`'s `leadingIcon`, and a preview with a leading icon.
   Existing callers compile unchanged.
-- [ ] T028 [US1] Create `feature/search/mapper/SearchTypeMapper.kt` with `internal fun SearchType.toLabelUiText():
+- [X] T028 [US1] Create `feature/search/mapper/SearchTypeMapper.kt` with `internal fun SearchType.toLabelUiText():
   UiText` and `internal fun SearchType.toPlaceholderUiText(): UiText`, using `UiText.StringResource` over the strings
   of T026.
-- [ ] T029 [US1] In `feature/search/model/`: create `EntityResultUiModel.kt` (`@Immutable data class(val id: Int, val
+- [X] T029 [US1] In `feature/search/model/`: create `EntityResultUiModel.kt` (`@Immutable data class(val id: Int, val
   name: String, val imageUrl: String?)`); add `data class EntityResults(val items: List<EntityResultUiModel>) :
   SearchContentState` to `SearchContentState.kt` (never empty: an empty lookup is `Empty`); add
   `selectedSearchType: SearchType = SearchType.GAMES` and `resultsType: SearchType = SearchType.GAMES` to
@@ -228,7 +228,7 @@ state, T031), so the view model tests (T030) carry the proof of "one lookup, one
   OnSearchTypeSelected(val type: SearchType)` to `SearchUiEvent.kt`. Create
   `feature/search/mapper/EntityResultMapper.kt` with `GameCharacter.toEntityResultUiModel()` and
   `Developer.toEntityResultUiModel()`. (This mapper file is one more than the plan's tree lists; add it there in T076.)
-- [ ] T030 [US1] In `feature/search/SearchViewModel.kt` implement the state rules of [data-model.md](data-model.md):
+- [X] T030 [US1] In `feature/search/SearchViewModel.kt` implement the state rules of [data-model.md](data-model.md):
   inject `SearchCharactersUseCase` and `SearchDevelopersUseCase`. `OnSearchTypeSelected(t)` sets
   `selectedSearchType` only, starts no request, and emits the current text on `suggestionsResetTrigger`. Change
   `performSearch(query, type: SearchType = _uiState.value.selectedSearchType)` to set `resultsType = type`, write the
@@ -240,33 +240,35 @@ state, T031), so the view model tests (T030) carry the proof of "one lookup, one
   and the remote lookup when `_uiState.value.selectedSearchType != SearchType.GAMES`, after clearing `gameSuggestions`
   and `isLoadingRemote`. `clearSearch` leaves both types alone. Register the new constructor parameters: they are plain
   use-case classes, so `viewModelOf(::SearchViewModel)` in `shared/di/ViewModelModule.kt` needs no edit.
-- [ ] T031 [US1] In `feature/search/components/SearchMainContent.kt` add a `SearchContentState.EntityResults` branch to
+- [X] T031 [US1] In `feature/search/components/SearchMainContent.kt` add a `SearchContentState.EntityResults` branch to
   the `when` that renders nothing yet (`Unit`), with a comment naming US2 and US3 as the ones that fill it. This is the
   documented intermediate state.
-- [ ] T032 [US1] Create `feature/search/components/SearchTypeChipRow.kt`:
+- [X] T032 [US1] Create `feature/search/components/SearchTypeChipRow.kt`:
   `internal fun SearchTypeChipRow(selected: SearchType, onSelected: (SearchType) -> Unit, modifier: Modifier = Modifier)`
   over `CustomChipRow`, one `CustomFilterChip` per `SearchType.entries` with `label = type.toLabelUiText().asString()`,
   `selected = type == selected`, and a `leadingIcon` that is `Icons.Default.Check` when selected and otherwise
   `Icons.Outlined.SportsEsports`, `Icons.Outlined.Person` or `Icons.Outlined.Business` for Games, Characters and
   Developers. Previews: each type selected.
-- [ ] T033 [US1] In `feature/search/components/SearchBars.kt`: give `SearchInputField` a `searchType: SearchType =
+- [X] T033 [US1] In `feature/search/components/SearchBars.kt`: give `SearchInputField` a `searchType: SearchType =
   SearchType.GAMES` parameter and make the placeholder text `browseText ?: searchType.toPlaceholderUiText().asString()`
   (replacing the direct `Res.string.search_placeholder` read). Give `ExpandedSearchBar` `selectedSearchType` and
   `onSearchTypeSelected`, and in its content lambda draw `SearchTypeChipRow` with a `HorizontalDivider` under it above
   the existing `when`, wrapping the `when` in a `Box(Modifier.weight(1f))` so the suggestions list and the home still
   fill the rest of the column. Thread the values through `SearchTopBar` (`uiState.selectedSearchType`,
   `onEvent(SearchUiEvent.OnSearchTypeSelected(it))`) and update every preview in the file.
-- [ ] T034 [US1] Extend `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModelTest.kt`
+- [X] T034 [US1] Extend `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/SearchViewModelTest.kt`
   (new use-case mocks in the setup) with one test per row of the state table in [data-model.md](data-model.md):
   choosing a chip changes only `selectedSearchType` and makes no use-case call; a submit under Characters calls only
   `SearchCharactersUseCase`, sets `resultsType = CHARACTERS` and ends in `EntityResults` (and `Empty` for an empty
   list); the same for Developers; the history records the text for every type; a genre browse and a shelf open reset
   both types to `GAMES`; typing under Characters yields history suggestions and no remote lookup and no
   `isLoadingRemote`; switching back to Games with text typed brings the remote lookup back.
-- [ ] T035 [US1] Run `./gradlew :feature:search:testAndroidHostTest --console=plain -q`, then
+- [X] T035 [US1] Run `./gradlew :feature:search:testAndroidHostTest --console=plain -q`, then
   `./gradlew :androidApp:assembleDebug --console=plain -q`. Hands-on, Android emulator: quickstart S1, S2, S3, S10, S11,
   S12 and S18. S10 shows the grid unchanged after a chip change and no search started; S11 needs the games grid back
   after a genre tap; with Characters or Developers submitted the grid area is empty by design until US2/US3.
+  **Result (emulator, Pixel_10_Pro)**: S1, S2, S3 and S10 driven by hand and as expected; the Developers submit ended in the
+  empty state (the games message, until US3 adds its own). S11, S12 and S18 were covered by the view-model tests only.
 
 **Checkpoint**: the selector works and the view model looks up exactly one type per search.
 

@@ -24,6 +24,9 @@ import androidx.compose.runtime.Immutable
  * @property filtersBottomSheetState State of the filters selection Bottom Sheet.
  * @property sortBottomSheetState State for the sorting options Bottom Sheet.
  * @property listSelectorState State of the list-selector bottom sheet; `null` means it is closed.
+ * @property selectedSearchType The type picked in the chip row, which the next submitted search looks up.
+ * @property resultsType The type [contentState] was searched with. It differs from [selectedSearchType] only between
+ * picking a chip and submitting, so Retry and the result cards follow what is on screen rather than the chip.
  */
 @Immutable
 internal data class SearchUiState(
@@ -35,5 +38,7 @@ internal data class SearchUiState(
     val contentState: SearchContentState = SearchContentState.Idle,
     val filtersBottomSheetState: FilterBottomSheetState = FilterBottomSheetState(),
     val sortBottomSheetState: SortBottomSheetState = SortBottomSheetState(),
-    val listSelectorState: ListSelectorState? = null
+    val listSelectorState: ListSelectorState? = null,
+    val selectedSearchType: SearchType = SearchType.GAMES,
+    val resultsType: SearchType = SearchType.GAMES
 )

@@ -22,7 +22,8 @@ fun CustomFilterChip(
     selected: Boolean,
     onFilterClick: () -> Unit,
     trailingIcon: (@Composable () -> Unit)? = null,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    leadingIcon: (@Composable () -> Unit)? = null
 ) {
     val isDarkTheme = MaterialTheme.isDarkTheme
     FilterChip(
@@ -35,11 +36,13 @@ fun CustomFilterChip(
                 maxLines = 1
             )
         },
+        leadingIcon = leadingIcon,
         trailingIcon = trailingIcon,
         shape = MaterialTheme.shapes.small,
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = MaterialTheme.appColors.chipSelectedContainerColor,
             selectedLabelColor = MaterialTheme.appColors.chipSelectedContentColor,
+            selectedLeadingIconColor = MaterialTheme.appColors.chipSelectedContentColor,
             selectedTrailingIconColor = MaterialTheme.appColors.chipSelectedContentColor
         ),
         border = FilterChipDefaults.filterChipBorder(
@@ -86,6 +89,21 @@ private fun CustomFilterChipWithTrailingIconPreview() {
             selected = true,
             onFilterClick = {},
             trailingIcon = {
+                Icon(imageVector = Icons.Default.Check, contentDescription = null)
+            }
+        )
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun CustomFilterChipWithLeadingIconPreview() {
+    QuestLogTheme {
+        CustomFilterChip(
+            label = "Characters",
+            selected = true,
+            onFilterClick = {},
+            leadingIcon = {
                 Icon(imageVector = Icons.Default.Check, contentDescription = null)
             }
         )

@@ -1,12 +1,14 @@
 package com.nikolasguillen.questlog.feature.search.components
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +22,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -59,19 +62,20 @@ import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.search.mapper.defaultBrowseGenres
 import com.nikolasguillen.questlog.feature.search.mapper.toPlaceholder
+import com.nikolasguillen.questlog.feature.search.mapper.toPlaceholderUiText
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.model.GameSuggestionUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchContentState
 import com.nikolasguillen.questlog.feature.search.model.SearchHistoryUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchSuggestionsUiModel
+import com.nikolasguillen.questlog.feature.search.model.SearchType
 import com.nikolasguillen.questlog.feature.search.model.SearchUiEvent
 import com.nikolasguillen.questlog.feature.search.model.SearchUiState
 import com.nikolasguillen.questlog.feature.search.resources.Res
 import com.nikolasguillen.questlog.feature.search.resources.back_to_discover_content_description
 import com.nikolasguillen.questlog.feature.search.resources.clear_search_content_description
 import com.nikolasguillen.questlog.feature.search.resources.search_content_description
-import com.nikolasguillen.questlog.feature.search.resources.search_placeholder
 import com.nikolasguillen.questlog.feature.search.resources.suggestions_section_games
 import com.nikolasguillen.questlog.feature.search.resources.suggestions_section_recent
 import org.jetbrains.compose.resources.stringResource
@@ -143,7 +147,8 @@ internal fun SearchTopBar(
             shape = searchBarShape,
             onSearch = { onSearch(textFieldState.text.toString()) },
             onClearSearch = { onEvent(SearchUiEvent.OnClearSearch) },
-            browsePlaceholder = uiState.activeBrowse?.toPlaceholder()
+            browsePlaceholder = uiState.activeBrowse?.toPlaceholder(),
+            searchType = uiState.selectedSearchType
         )
     }
 
@@ -179,7 +184,9 @@ internal fun SearchTopBar(
         suggestions = uiState.suggestions,
         browseGenres = uiState.browseGenres,
         searchQuery = textFieldState.text.toString(),
+        selectedSearchType = uiState.selectedSearchType,
         searchBarColors = searchBarColors,
+        onSearchTypeSelected = { onEvent(SearchUiEvent.OnSearchTypeSelected(it)) },
         onCommitSearch = onSearch,
         onBrowseGenre = onBrowseGenre,
         onGameClick = onGameClick,
@@ -197,7 +204,8 @@ internal fun SearchInputField(
     onSearch: () -> Unit,
     onClearSearch: () -> Unit,
     shape: Shape = SearchBarDefaults.inputFieldShape,
-    browsePlaceholder: UiText? = null
+    browsePlaceholder: UiText? = null,
+    searchType: SearchType = SearchType.GAMES
 ) {
     val searchInputFieldColor = if (searchBarState.currentValue == SearchBarValue.Collapsed) {
         MaterialTheme.appColors.searchBarInputFieldColor
@@ -227,7 +235,7 @@ internal fun SearchInputField(
         readOnly = searchBarState.currentValue == SearchBarValue.Collapsed,
         placeholder = {
             Text(
-                text = browseText ?: stringResource(Res.string.search_placeholder),
+                text = browseText ?: searchType.toPlaceholderUiText().asString(),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.clearAndSetSemantics {}
@@ -341,7 +349,9 @@ internal fun ExpandedSearchBar(
     suggestions: SearchSuggestionsUiModel,
     browseGenres: List<BrowseGenreUiModel>,
     searchQuery: String,
+    selectedSearchType: SearchType,
     searchBarColors: SearchBarColors,
+    onSearchTypeSelected: (SearchType) -> Unit,
     onCommitSearch: (String) -> Unit,
     onBrowseGenre: (BrowseGenreUiModel) -> Unit,
     onGameClick: (Int) -> Unit,
@@ -359,28 +369,39 @@ internal fun ExpandedSearchBar(
             containerColor = MaterialTheme.appColors.expandedSearchBarColor
         )
     ) {
+        // The type row sits above everything else, and picking a type changes nothing below it.
+        SearchTypeChipRow(
+            selected = selectedSearchType,
+            onSelected = onSearchTypeSelected,
+            modifier = Modifier.padding(vertical = MaterialTheme.spacing.small)
+        )
+        HorizontalDivider()
+
         // Typing owns the whole overlay: recent activity is what fills it before the first keystroke,
-        // and once there is a query every row either resolves it or commits it.
-        when {
-            searchQuery.isNotBlank() -> SuggestionsSection(
-                query = searchQuery,
-                suggestions = suggestions,
-                onCommitSearch = onCommitSearch,
-                onGameSuggestionClick = onGameClick
-            )
+        // and once there is a query every row either resolves it or commits it. The box takes the rest of
+        // the column, so the list or the home below the chips still fills it.
+        Box(modifier = Modifier.weight(1f)) {
+            when {
+                searchQuery.isNotBlank() -> SuggestionsSection(
+                    query = searchQuery,
+                    suggestions = suggestions,
+                    onCommitSearch = onCommitSearch,
+                    onGameSuggestionClick = onGameClick
+                )
 
-            browseGenres.isEmpty() && history.isEmpty -> InitialMessage()
+                browseGenres.isEmpty() && history.isEmpty -> InitialMessage()
 
-            else -> ExpandedSearchHome(
-                history = history,
-                browseGenres = browseGenres,
-                onBrowseGenre = onBrowseGenre,
-                onCommitSearch = onCommitSearch,
-                onGameClick = onGameClick,
-                onRemoveRecentGame = onRemoveRecentGame,
-                onClearRecentSearches = { showClearHistoryDialog = true },
-                onShowRemovalDialog = { queryToRemove = it }
-            )
+                else -> ExpandedSearchHome(
+                    history = history,
+                    browseGenres = browseGenres,
+                    onBrowseGenre = onBrowseGenre,
+                    onCommitSearch = onCommitSearch,
+                    onGameClick = onGameClick,
+                    onRemoveRecentGame = onRemoveRecentGame,
+                    onClearRecentSearches = { showClearHistoryDialog = true },
+                    onShowRemovalDialog = { queryToRemove = it }
+                )
+            }
         }
 
         queryToRemove?.let { query ->
@@ -630,7 +651,9 @@ private fun ExpandedSearchBarPreview() {
             suggestions = SearchSuggestionsUiModel(),
             browseGenres = defaultBrowseGenres(),
             searchQuery = "",
+            selectedSearchType = SearchType.GAMES,
             searchBarColors = SearchBarDefaults.colors(),
+            onSearchTypeSelected = {},
             onCommitSearch = {},
             onBrowseGenre = {},
             onGameClick = {},
@@ -663,7 +686,9 @@ private fun ExpandedSearchBarFirstTimePreview() {
             suggestions = SearchSuggestionsUiModel(),
             browseGenres = defaultBrowseGenres(),
             searchQuery = "",
+            selectedSearchType = SearchType.GAMES,
             searchBarColors = SearchBarDefaults.colors(),
+            onSearchTypeSelected = {},
             onCommitSearch = {},
             onBrowseGenre = {},
             onGameClick = {},
@@ -696,7 +721,9 @@ private fun ExpandedSearchBarTypingPreview() {
             suggestions = previewSuggestions,
             browseGenres = defaultBrowseGenres(),
             searchQuery = "cyberpunk",
+            selectedSearchType = SearchType.GAMES,
             searchBarColors = SearchBarDefaults.colors(),
+            onSearchTypeSelected = {},
             onCommitSearch = {},
             onBrowseGenre = {},
             onGameClick = {},
@@ -732,7 +759,9 @@ private fun ExpandedSearchBarLoadingPreview() {
             ),
             browseGenres = defaultBrowseGenres(),
             searchQuery = "cyberpunk",
+            selectedSearchType = SearchType.GAMES,
             searchBarColors = SearchBarDefaults.colors(),
+            onSearchTypeSelected = {},
             onCommitSearch = {},
             onBrowseGenre = {},
             onGameClick = {},

@@ -21,9 +21,12 @@ import com.nikolasguillen.questlog.core.domain.usecase.search.GetBrowseGenresUse
 import com.nikolasguillen.questlog.core.domain.usecase.search.GetRecentSearchActivityUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.GetSearchSuggestionsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.RemoveRecentGameUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.search.SearchCharactersUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.search.SearchDevelopersUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.SearchGamesUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.toSearchResult
 import com.nikolasguillen.questlog.core.model.AppResult
+import com.nikolasguillen.questlog.core.model.RepositoryError
 import com.nikolasguillen.questlog.core.model.DiscoverFeed
 import com.nikolasguillen.questlog.core.model.Game
 import com.nikolasguillen.questlog.core.model.SearchSuggestion
@@ -39,6 +42,7 @@ import com.nikolasguillen.questlog.feature.search.mapper.isSortActive
 import com.nikolasguillen.questlog.feature.search.mapper.shelfGames
 import com.nikolasguillen.questlog.feature.search.mapper.toBrowseGenreUiModels
 import com.nikolasguillen.questlog.feature.search.mapper.toDiscoverContentState
+import com.nikolasguillen.questlog.feature.search.mapper.toEntityResultUiModel
 import com.nikolasguillen.questlog.feature.search.mapper.toGenreFilters
 import com.nikolasguillen.questlog.feature.search.mapper.toPlatformFilters
 import com.nikolasguillen.questlog.feature.search.mapper.toSelectorItem
@@ -47,6 +51,7 @@ import com.nikolasguillen.questlog.feature.search.mapper.withRelevanceLabel
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.DiscoverContentState
 import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfUiModel
+import com.nikolasguillen.questlog.feature.search.model.EntityResultUiModel
 import com.nikolasguillen.questlog.feature.search.model.FilterBottomSheetState
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.model.ListSelectorState
@@ -54,6 +59,7 @@ import com.nikolasguillen.questlog.feature.search.model.SearchBrowseUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchContentState
 import com.nikolasguillen.questlog.feature.search.model.SearchHistoryUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchSort
+import com.nikolasguillen.questlog.feature.search.model.SearchType
 import com.nikolasguillen.questlog.feature.search.model.SearchSuggestionsUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchUiEffect
 import com.nikolasguillen.questlog.feature.search.model.SearchUiEvent
@@ -91,6 +97,8 @@ private const val MIN_SUGGESTION_QUERY_LENGTH = 3
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModel(
     private val searchGamesUseCase: SearchGamesUseCase,
+    private val searchCharactersUseCase: SearchCharactersUseCase,
+    private val searchDevelopersUseCase: SearchDevelopersUseCase,
     private val browseGenreUseCase: BrowseGenreUseCase,
     private val getBrowseGenresUseCase: GetBrowseGenresUseCase,
     private val addSearchToHistoryUseCase: AddSearchToHistoryUseCase,
@@ -170,6 +178,10 @@ class SearchViewModel(
 
             SearchUiEvent.OnClearSearch -> {
                 clearSearch()
+            }
+
+            is SearchUiEvent.OnSearchTypeSelected -> {
+                selectSearchType(event.type)
             }
 
             SearchUiEvent.OnClearHistory -> {
@@ -629,7 +641,23 @@ class SearchViewModel(
         }
     }
 
-    private fun performSearch(query: String) {
+    /**
+     * Picks what the next submitted search looks up. Nothing else moves: the results on screen, the text field
+     * and the filters stay, and no request starts. The current text is replayed through the suggestions
+     * pipeline, so the overlay switches between game suggestions and history-only ones without waiting for a
+     * keystroke.
+     */
+    private fun selectSearchType(type: SearchType) {
+        if (_uiState.value.selectedSearchType == type) return
+        _uiState.update { it.copy(selectedSearchType = type) }
+        suggestionsResetTrigger.tryEmit(textFieldState.text.toString())
+    }
+
+    /**
+     * Runs one search of [type] -- exactly one lookup, whatever the type. Only [SearchType.GAMES] feeds the
+     * filters and sort sheets; the other two land in [SearchContentState.EntityResults].
+     */
+    private fun performSearch(query: String, type: SearchType = _uiState.value.selectedSearchType) {
         if (query.isBlank()) return
         // Only one search may land its result: without this, a slow earlier request finishing after a
         // later one would overwrite it.
@@ -640,6 +668,7 @@ class SearchViewModel(
             it.copy(
                 suggestions = SearchSuggestionsUiModel(),
                 activeBrowse = null,
+                resultsType = type,
                 sortBottomSheetState = it.sortBottomSheetState.withRelevanceLabel(isBrowse = false)
             )
         }
@@ -649,34 +678,48 @@ class SearchViewModel(
             addSearchToHistoryUseCase(query)
 
             _uiState.update { it.copy(contentState = SearchContentState.Loading) }
-            searchGamesUseCase(query).onSuccess { searchResult ->
-                val sortedGames = sortGames(
-                    searchResult.games, _uiState.value.sortBottomSheetState.selectedSorting, query
-                )
+            when (type) {
+                SearchType.GAMES -> searchGames(query)
+                SearchType.CHARACTERS -> searchCharactersUseCase(query)
+                    .onSuccess { characters -> showEntityResults(characters.map { it.toEntityResultUiModel() }) }
+                    .onFailure(::showSearchError)
 
-                val newState = if (sortedGames.isEmpty()) {
-                    SearchContentState.Empty
-                } else {
-                    val filters =
-                        searchResult.platforms.toPlatformFilters() + searchResult.genres.toGenreFilters() + getInitialGameTypeFilters()
-
-                    SearchContentState.Success(
-                        games = sortedGames.toGameItemList(wishlistedGameIds.value),
-                        filters = filters,
-                        allGames = sortedGames
-                    )
-                }
-                _uiState.update { it.copy(contentState = newState) }
-            }.onFailure { error ->
-                _uiState.update {
-                    it.copy(
-                        contentState = SearchContentState.Error(
-                            message = error.toUiText()
-                        )
-                    )
-                }
+                SearchType.DEVELOPERS -> searchDevelopersUseCase(query)
+                    .onSuccess { developers -> showEntityResults(developers.map { it.toEntityResultUiModel() }) }
+                    .onFailure(::showSearchError)
             }
         }
+    }
+
+    private suspend fun searchGames(query: String) {
+        searchGamesUseCase(query).onSuccess { searchResult ->
+            val sortedGames = sortGames(
+                searchResult.games, _uiState.value.sortBottomSheetState.selectedSorting, query
+            )
+
+            val newState = if (sortedGames.isEmpty()) {
+                SearchContentState.Empty
+            } else {
+                val filters =
+                    searchResult.platforms.toPlatformFilters() + searchResult.genres.toGenreFilters() + getInitialGameTypeFilters()
+
+                SearchContentState.Success(
+                    games = sortedGames.toGameItemList(wishlistedGameIds.value),
+                    filters = filters,
+                    allGames = sortedGames
+                )
+            }
+            _uiState.update { it.copy(contentState = newState) }
+        }.onFailure(::showSearchError)
+    }
+
+    private fun showEntityResults(items: List<EntityResultUiModel>) {
+        val newState = if (items.isEmpty()) SearchContentState.Empty else SearchContentState.EntityResults(items)
+        _uiState.update { it.copy(contentState = newState) }
+    }
+
+    private fun showSearchError(error: RepositoryError) {
+        _uiState.update { it.copy(contentState = SearchContentState.Error(message = error.toUiText())) }
     }
 
     /**
@@ -693,6 +736,8 @@ class SearchViewModel(
             it.copy(
                 suggestions = SearchSuggestionsUiModel(),
                 activeBrowse = SearchBrowseUiModel.Genre(genre),
+                selectedSearchType = SearchType.GAMES,
+                resultsType = SearchType.GAMES,
                 contentState = SearchContentState.Loading,
                 sortBottomSheetState = it.sortBottomSheetState.withRelevanceLabel(isBrowse = true)
             )
@@ -770,6 +815,8 @@ class SearchViewModel(
             it.copy(
                 suggestions = SearchSuggestionsUiModel(),
                 activeBrowse = SearchBrowseUiModel.Shelf(shelf.key, shelf.title),
+                selectedSearchType = SearchType.GAMES,
+                resultsType = SearchType.GAMES,
                 sortBottomSheetState = sortSheet,
                 contentState = SearchContentState.Success(
                     games = sorted.toGameItemList(wishlistedGameIds.value),
@@ -783,14 +830,15 @@ class SearchViewModel(
 
     /**
      * Re-runs what failed: the genre browse while one is active, otherwise the query still held by
-     * [textFieldState]. [performSearch] re-adds that query to history through [addSearchToHistoryUseCase],
+     * [textFieldState], looked up as the type that failed ([SearchUiState.resultsType], not the chip, which
+     * may have moved since). [performSearch] re-adds that query to history through [addSearchToHistoryUseCase],
      * which is keyed by the query text, so this only refreshes its timestamp rather than creating a
      * duplicate entry. A genre browse never touches the history, retried or not.
      */
     private fun retrySearch() {
         when (val browse = _uiState.value.activeBrowse) {
             is SearchBrowseUiModel.Genre -> browseGenre(browse.genre)
-            null -> performSearch(textFieldState.text.toString())
+            null -> performSearch(textFieldState.text.toString(), _uiState.value.resultsType)
             // Nothing to retry: a shelf grid is only ever Success (see SearchUiState.activeBrowse), so no
             // Retry button can be on screen for it, and openShelf cancels every search that could have
             // written an Error before it sets the shelf.
@@ -972,6 +1020,21 @@ class SearchViewModel(
                 val local = getSearchSuggestionsUseCase.getLocalSuggestions(query)
                     .filterIsInstance<SearchSuggestion.HistorySuggestion>()
                     .map { it.query }
+
+                // Game suggestions belong to the Games type alone: under the others only the history rows and
+                // "See all results" are left, and no remote request is started.
+                if (_uiState.value.selectedSearchType != SearchType.GAMES) {
+                    _uiState.update {
+                        it.copy(
+                            suggestions = it.suggestions.copy(
+                                historySuggestions = local,
+                                gameSuggestions = emptyList(),
+                                isLoadingRemote = false
+                            )
+                        )
+                    }
+                    return@collectLatest
+                }
 
                 _uiState.update {
                     it.copy(suggestions = it.suggestions.copy(historySuggestions = local))

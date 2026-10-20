@@ -70,6 +70,8 @@ internal fun SearchMainContent(
                 onClearSearchClick = { onEvent(SearchUiEvent.OnClearSearch) }
             )
             is SearchContentState.Loading -> LoadingPage()
+            // Filled by the Characters and Developers stories: until their cards exist the area stays blank.
+            is SearchContentState.EntityResults -> Unit
             is SearchContentState.Success -> {
                 SearchResultGrid(
                     games = contentState.games,

@@ -25,5 +25,11 @@ internal sealed interface SearchContentState {
     ) : SearchContentState {
         val activeFilters: List<GameFilterUiModel> = filters.filter { it.selected }
     }
+
+    /**
+     * A Characters or Developers search that found something; which of the two is [SearchUiState.resultsType].
+     * Never empty: a lookup that found nothing is [Empty].
+     */
+    data class EntityResults(val items: List<EntityResultUiModel>) : SearchContentState
     data class Error(val message: UiText) : SearchContentState
 }

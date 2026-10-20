@@ -2,6 +2,8 @@
 <resources>
     <string name="discovery_title">Discovery</string>
     <string name="search_placeholder">Search for a game…</string>
+    <string name="search_placeholder_characters">Search for a character…</string>
+    <string name="search_placeholder_developers">Search for a developer…</string>
     <string name="search_initial_message">Search for your favorite games</string>
     <string name="expanded_search_initial_message">Search and discover some new games</string>
     <string name="search_no_results">No games found for this search</string>
@@ -45,6 +47,11 @@
     <string name="search_content_description">Search</string>
     <string name="back_to_discover_content_description">Back to discover</string>
     <string name="remove_filter_content_description">Remove %1$s filter</string>
+
+    <!-- Search type -->
+    <string name="search_type_games">Games</string>
+    <string name="search_type_characters">Characters</string>
+    <string name="search_type_developers">Developers</string>
 
     <!-- Genre browse -->
     <string name="browse_by_genre">Browse by genre</string>
