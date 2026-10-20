@@ -54,13 +54,9 @@ import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
-import com.nikolasguillen.questlog.core.ui.component.CustomAlertDialog
 import com.nikolasguillen.questlog.core.ui.component.MainScreenHeader
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
-import com.nikolasguillen.questlog.core.ui.resources.cancel
-import com.nikolasguillen.questlog.core.ui.resources.proceed_label
-import com.nikolasguillen.questlog.core.ui.util.annotatedStringResource
 import com.nikolasguillen.questlog.feature.search.mapper.defaultBrowseGenres
 import com.nikolasguillen.questlog.feature.search.mapper.toPlaceholder
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
@@ -73,17 +69,12 @@ import com.nikolasguillen.questlog.feature.search.model.SearchUiEvent
 import com.nikolasguillen.questlog.feature.search.model.SearchUiState
 import com.nikolasguillen.questlog.feature.search.resources.Res
 import com.nikolasguillen.questlog.feature.search.resources.back_to_discover_content_description
-import com.nikolasguillen.questlog.feature.search.resources.clear_history_message
-import com.nikolasguillen.questlog.feature.search.resources.clear_history_title
 import com.nikolasguillen.questlog.feature.search.resources.clear_search_content_description
-import com.nikolasguillen.questlog.feature.search.resources.remove_history_item
-import com.nikolasguillen.questlog.feature.search.resources.remove_history_item_message
 import com.nikolasguillen.questlog.feature.search.resources.search_content_description
 import com.nikolasguillen.questlog.feature.search.resources.search_placeholder
 import com.nikolasguillen.questlog.feature.search.resources.suggestions_section_games
 import com.nikolasguillen.questlog.feature.search.resources.suggestions_section_recent
 import org.jetbrains.compose.resources.stringResource
-import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes
 
 /** Rows of shimmer while the debounced fetch runs. The remote call caps the real rows at four. */
 private const val LOADING_SUGGESTION_COUNT = 3
@@ -393,32 +384,22 @@ internal fun ExpandedSearchBar(
         }
 
         queryToRemove?.let { query ->
-            CustomAlertDialog(
-                title = stringResource(Res.string.remove_history_item),
-                message = annotatedStringResource(
-                    Res.string.remove_history_item_message,
-                    query
-                ),
-                confirmButtonText = stringResource(CoreUiRes.string.proceed_label),
+            RemoveHistoryItemDialog(
+                query = query,
                 onConfirm = {
                     onRemoveRecentSearchItem(query)
                     queryToRemove = null
                 },
-                dismissButtonText = stringResource(CoreUiRes.string.cancel),
                 onDismiss = { queryToRemove = null }
             )
         }
 
         if (showClearHistoryDialog) {
-            CustomAlertDialog(
-                title = stringResource(Res.string.clear_history_title),
-                message = stringResource(Res.string.clear_history_message),
-                confirmButtonText = stringResource(CoreUiRes.string.proceed_label),
+            ClearHistoryDialog(
                 onConfirm = {
                     onClearRecentSearches()
                     showClearHistoryDialog = false
                 },
-                dismissButtonText = stringResource(CoreUiRes.string.cancel),
                 onDismiss = { showClearHistoryDialog = false }
             )
         }
