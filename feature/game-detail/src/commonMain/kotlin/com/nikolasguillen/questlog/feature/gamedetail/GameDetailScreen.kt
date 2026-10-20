@@ -9,11 +9,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
@@ -24,8 +20,7 @@ import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.ListSelectorSheet
-import com.nikolasguillen.questlog.core.ui.component.NotificationPermissionDeniedDialog
-import com.nikolasguillen.questlog.core.ui.util.rememberNotificationPermissionState
+import com.nikolasguillen.questlog.core.ui.util.rememberNotificationOptInRequest
 import com.nikolasguillen.questlog.core.ui.util.rememberTextSharer
 import com.nikolasguillen.questlog.feature.gamedetail.components.GameDetailMainContent
 import com.nikolasguillen.questlog.feature.gamedetail.model.GameDetailContentState
@@ -55,19 +50,8 @@ fun GameDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val textSharer = rememberTextSharer()
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val permissionState = rememberNotificationPermissionState()
-    // LaunchedEffect(viewModel, lifecycle) below never restarts once launched (viewModel/lifecycle are
-    // stable for the screen's whole life), so a plain `permissionState` capture would freeze it at
-    // whatever canDeliver/isPermanentlyDenied were on first composition -- e.g. staying "permanently
-    // denied" forever even after the user grants the permission from system Settings and comes back.
-    // rememberUpdatedState keeps the reference the effect closes over live: reading `.value` inside the
-    // coroutine always sees the latest permission state instead of the one captured at launch.
-    val latestPermissionState = rememberUpdatedState(permissionState)
+    val requestNotificationPermission = rememberNotificationOptInRequest()
     val snackbarHostState = remember { SnackbarHostState() }
-    var showPermissionDeniedDialog by rememberSaveable { mutableStateOf(false) }
-    // Set only while an opt-in-triggered request is in flight, so the dialog reacts to that specific
-    // request's outcome instead of nagging on every screen visit while notifications happen to be off.
-    var awaitingPermissionResult by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel, lifecycle) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -81,12 +65,7 @@ fun GameDetailScreen(
                         onGameClick(effect.id)
                     }
 
-                    GameDetailUiEffect.RequestNotificationPermission -> {
-                        if (!latestPermissionState.value.canDeliver) {
-                            awaitingPermissionResult = true
-                            latestPermissionState.value.request()
-                        }
-                    }
+                    GameDetailUiEffect.RequestNotificationPermission -> requestNotificationPermission()
 
                     is GameDetailUiEffect.ShowSnackbar -> {
                         launch {
@@ -99,13 +78,6 @@ fun GameDetailScreen(
         }
     }
 
-    LaunchedEffect(permissionState.canDeliver, permissionState.isPermanentlyDenied) {
-        if (awaitingPermissionResult && !permissionState.canDeliver) {
-            showPermissionDeniedDialog = true
-        }
-        awaitingPermissionResult = false
-    }
-
     GameDetailContent(
         uiState = uiState,
         onEvent = viewModel::onEvent,
@@ -114,10 +86,6 @@ fun GameDetailScreen(
         snackbarHostState = snackbarHostState,
         modifier = modifier
     )
-
-    if (showPermissionDeniedDialog) {
-        NotificationPermissionDeniedDialog(onDismiss = { showPermissionDeniedDialog = false })
-    }
 }
 
 @Composable

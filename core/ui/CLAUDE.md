@@ -122,6 +122,10 @@ notification settings), `rememberCoverImagePicker` (the image picker; it hands b
 URI on Android), `rememberTextSharer` (the share sheet) and `fullScreenDialogProperties`. A common file never
 imports `android.*` or `androidx.activity.*`.
 
+A screen that offers a release-reminder opt-in does not wire the permission by hand: `rememberNotificationOptInRequest()`
+(`util/NotificationOptInPermission.kt`) returns the function to call when the view model asks for the permission and
+shows `NotificationPermissionDeniedDialog` itself when the request ends denied.
+
 ## Mappers (`mapper/`)
 
 Extension functions only, no classes. `ErrorMapper.kt` (`RepositoryError.toUiText()`) is the **single**
