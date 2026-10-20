@@ -60,6 +60,15 @@ Success, Empty, Error — when the state is non-trivial), `private`, wrapped in
 - **One-shot effects**: `Channel<<Name>UiEffect>(Channel.BUFFERED)` + `receiveAsFlow()`, consumed with
   `LaunchedEffect { lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) { ... } }`.
   Reference: `feature/wishlist/WishlistScreen.kt`.
+- **Dialogs**: the text is always resolved in the composable with `stringResource(...)`; a ViewModel hands over
+  a `UiText` only for content that is not fixed (`AccountBackupDialog.AccountChange.outcome`). Who owns *whether
+  it is open* depends on the dialog:
+  - A confirmation that only emits one event when confirmed is composable state, `rememberSaveable` so a
+    rotation keeps it (Wishlist's delete, Search's clear history).
+  - A dialog the ViewModel decides to show, or that has a lifecycle or content of its own, is a nullable
+    `dialog: <Name>Dialog?` in the `UiState` (a sealed interface in `model/`) with a `DismissDialog` event
+    (`AccountBackupDialog`, `SettingsDialog`).
+  - Never an effect that only sets a local boolean: if the ViewModel decides, it owns the state.
 
 `@Immutable` is not only for `UiState`: every `ContentState`, every bottom-sheet or dialog `*State` and
 every `*UiModel` carries it too, on the `sealed` interface rather than on its implementations when the
