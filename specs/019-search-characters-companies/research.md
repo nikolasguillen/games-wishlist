@@ -152,8 +152,11 @@ the data, not a defect to fix. It is worth knowing before judging the feature on
 explicit subject is the honest key.
 
 **Consequence the owner should know**: this is a Room entity change. By the accepted policy (database pinned to
-`version = 1`, `docs/tech-debt.md`), the exported schema is regenerated and local data on development devices is wiped.
-Backing up through Settings before installing this build avoids losing lists.
+`version = 1`, `docs/tech-debt.md`), the exported schema is regenerated. **Found while building it**: Room's
+destructive fallback only runs when the *version* changes, so a device that still holds the old schema does not get
+wiped, it crashes at launch with "Room cannot verify the data integrity" until the app's data is cleared (or the app
+is reinstalled). Backing up through Settings before installing this build, and restoring after clearing, avoids losing
+lists.
 
 **Alternatives considered**:
 

@@ -163,9 +163,10 @@ feature/search/src/commonMain/.../feature/search/
 │   EntityDetail{UiState,UiEvent,UiEffect}.kt, EntityProfileContentState.kt,
 │   EntityGamesContentState.kt, EntityHeaderUiModel.kt                                 # new
 ├── model/SearchContentState.kt, SearchUiState.kt, SearchUiEvent.kt                    # extended
-├── mapper/SearchTypeMapper.kt, mapper/EntityDetailMapper.kt                           # new
+├── mapper/SearchTypeMapper.kt, mapper/EntityResultMapper.kt, mapper/EntityDetailMapper.kt   # new
 ├── components/SearchTypeChipRow.kt, EntityResultGrid.kt, CharacterResultCard.kt,
-│   DeveloperResultCard.kt, CharacterPortrait.kt, DeveloperLogo.kt, EntityDetailTopBar.kt   # new
+│   DeveloperResultCard.kt, EntityResultCard.kt, CharacterPortrait.kt, DeveloperLogo.kt,
+│   EntityDetailTopBar.kt                                                               # new
 ├── components/SearchBars.kt, SearchMainContent.kt, SearchSubHeader.kt                 # extended
 └── composeResources/values/strings.xml
 feature/search/src/androidHostTest/.../ SearchViewModelTest.kt (extended), EntityDetailViewModelTest.kt (new)
@@ -236,7 +237,8 @@ Research changed details the spec had guessed. The spec was edited so `/speckit-
    needs a new module, a new `:shared` edge, and the grid rules, selector and strings moved to `:core:ui`. Moving it
    later is a contained refactor.
 3. **Translation cache key** ([R7](./research.md#r7-translating-a-characters-or-developers-description)): the
-   recommended re-key wipes local data on dev devices once, so **back up first**. The alternative is not caching
+   recommended re-key makes the new build crash at launch on a device with the old schema until its data is cleared
+   (Room's destructive fallback does not run without a version change), so **back up first**. The alternative is not caching
    character and developer translations (no schema change, a re-translation every visit).
 4. **Logo tiles stay light in the dark theme** ([R3](./research.md#r3-images-on-the-new-cards-and-in-the-header)): IGDB
    logos are opaque JPEGs, mostly on white. A dark tile would frame each one in a white box. This is a visual call,

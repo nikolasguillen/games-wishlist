@@ -4,8 +4,9 @@
 
 - IGDB credentials in `local.properties` (`IGDB_CLIENT_ID`, `IGDB_CLIENT_SECRET`).
 - **Back up before installing**: the translation cache's key changes ([research.md R7](./research.md)), and with the
-  database pinned to `version = 1` that wipes local data. In the currently installed build, go to Settings, then
-  Account & backup, then Back up now, and restore after installing.
+  database pinned to `version = 1`, a device that already has the app crashes at launch on the new build until its
+  data is cleared (Settings, Apps, Storage, Clear data, or a reinstall). In the currently installed build, go to
+  Settings, then Account & backup, then Back up now, and restore after clearing.
 - macOS for the iOS steps. On Windows use `.\gradlew.bat`, and skip the `ios*` tasks and `xcodebuild`.
 
 ## Build and tests

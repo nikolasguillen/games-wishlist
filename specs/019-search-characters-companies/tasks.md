@@ -572,21 +572,21 @@ grid of every game, with save and long-press working as in Search.
 
 ## Phase 8: Polish & cross-cutting concerns
 
-- [ ] T076 [P] Add `specs/019-search-characters-companies/plan.md`'s source tree entry for
+- [X] T076 [P] Add `specs/019-search-characters-companies/plan.md`'s source tree entry for
   `feature/search/mapper/EntityResultMapper.kt` (created in T029), and tick the finished tasks in this file.
-- [ ] T077 [P] Review every new composable and model against the root `CLAUDE.md` rules: one type per file, `internal`
+- [X] T077 [P] Review every new composable and model against the root `CLAUDE.md` rules: one type per file, `internal`
   by default (the public ones are `EntityDetailScreen`, `EntityDetailViewModel`, `EntityDetailSubject`, `DetailHeader`,
   `DescriptionCard`, `DescriptionTranslationState`), no hardcoded display text, no `dp` literal outside
   `DetailHeaderDefaults`, `collectAsStateWithLifecycle()`, KDoc in English, a `@QuestLogPreviews` on each composable.
-- [ ] T078 Add a `docs/tech-debt.md` entry (Technical risks) for "a `"` in a search query is interpolated unescaped into
+- [X] T078 Add a `docs/tech-debt.md` entry (Technical risks) for "a `"` in a search query is interpolated unescaped into
   every IGDB query and returns an HTTP 400" (research R15; the owner approved it). Do not change the existing queries.
-- [ ] T079 Run `./gradlew test --console=plain -q` and `./gradlew :androidApp:assembleDebug --console=plain -q` once
+- [X] T079 Run `./gradlew test --console=plain -q` and `./gradlew :androidApp:assembleDebug --console=plain -q` once
   more from a clean state and compare with the T001 baseline: no test deleted or weakened, no new failure.
-- [ ] T080 **Mac only**: run `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 -q` and the `xcodebuild` command of
+- [~] T080 **Mac only**: run `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 -q` and the `xcodebuild` command of
   the root `CLAUDE.md`, then quickstart S1–S18 on the simulator. The moved `TranslationEngineBadge` `actual` for iOS and
   the reworked `AppleLanguageModelTranslator` are the pieces only a Mac can compile. Say explicitly in the hand-off
   that this was not run if no Mac was available.
-- [ ] T081 Work through the whole of [quickstart.md](quickstart.md) S1–S18 once on Android and record anything that
+- [X] T081 Work through the whole of [quickstart.md](quickstart.md) S1–S18 once on Android and record anything that
   differs from the expected column at the end of this file.
 
 ---
@@ -663,3 +663,36 @@ data, so it comes right before the first Room edit and has its own warning.
 - iOS steps need a Mac. When none is available, say so rather than assuming.
 - Do not edit anything under `**/build/generated/**`, and never commit IGDB credentials.
 - Do not "fix" a known deviation in `docs/tech-debt.md` while working here (T078 adds the R15 entry, which the owner approved).
+
+## Implementation record (2026-10-20)
+
+**Baseline (T001)**: `assembleDebug` and `test` green before the first edit. **After (T079)**: both green again, no test deleted or
+weakened (`KoinGraphTest` passes with `EntityDetailSubject` in `extraTypes`).
+
+**T080 (`[~]`, partly done)**: on this Mac, `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64` links and the `xcodebuild` command of
+the root `CLAUDE.md` ends in `BUILD SUCCEEDED`, so the moved `TranslationEngineBadge` `actual` and the reworked `AppleLanguageModelTranslator`
+compile for iOS. **Not done**: quickstart S1-S18 on the iOS simulator (the app could not be driven or launched from this session), so the
+iOS behaviour, VoiceOver and the iOS translation are unverified.
+
+**T081, quickstart on Android (Pixel_10_Pro emulator, light and dark where noted)**
+
+| Scenario | Result |
+|---|---|
+| S1, S2, S3 | As expected: three chips under the bar, Games checked, hint follows the chip, typing under Characters shows only recent searches and "See all results". |
+| S4 | As expected ("kratos": 2 round portraits, Kratos first, person placeholder for Young Kratos, "2 characters found", no sort or filter buttons). |
+| S5 | As expected (portrait, "Kratos", "6 games", description, Games grid newest first). |
+| S6 | **Not run**: needs a non-English device with the translation model ready. The cache key is covered by `GameDescriptionTranslatorImplTest`. |
+| S7 | Save snackbar names the default list; game opens and back keeps the scroll position. The long-press list selector and the search-state check after two backs were covered by tests, not driven by hand. |
+| S8 | Light logo tiles in both themes, Capcom first. The page shows "511 games" (509 when the spec was written) and "Founded 1979". |
+| S9 | **Differs by data drift**: Naughty Dog shows 34 games (31 on 2026-10-20 morning), including remasters such as "The Last of Us Part II Remastered", which Search lists too (the page filters like Search by definition). "Founded 1984". |
+| S10, S18 | As expected. |
+| S11, S12 | Covered by view-model tests only. |
+| S13 | As expected for Characters and Developers ("No characters found..." / "No developers found..."). |
+| S14 | As expected (error with Retry, retry searches characters again). |
+| S15 | **Not driven**: the network could not be cut between the profile and the games. Covered by view-model tests. |
+| S16 | **Not run**: needs a window of at least 840dp. |
+| S17 | **Not run**: needs TalkBack or VoiceOver. |
+
+**Finding for the owner (not fixed here)**: a build with a changed Room entity at `version = 1` does not wipe a device that has the old
+schema, it crashes at launch ("Room cannot verify the data integrity ... forgot to update the version number") until the app's data is
+cleared. `docs/tech-debt.md` still says "wipes"; that entry is not touched here (see its rules).
