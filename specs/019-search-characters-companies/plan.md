@@ -29,7 +29,7 @@ No new module, no new module edge and no new library.
 ## Technical Context
 
 **Language/Version**: Kotlin 2.4.20, Kotlin Multiplatform (`commonMain`; `androidMain`/`iosMain` only for the moved
-`TranslationEngineBadge` `actual`s, and for the country name if kept), Compose Multiplatform 1.12.1
+`TranslationEngineBadge` `actual`s), Compose Multiplatform 1.12.1
 
 **Primary Dependencies**: Ktor 3 + kotlinx.serialization (IGDB), Room 2.8.5 (translation cache), Koin 4.2.2, Navigation
 3, Coil 3, kotlinx-datetime (founding year). All already in use.
@@ -78,7 +78,7 @@ games after filtering). No request while typing outside Games.
 | **III. UI renders, does not decide** | Developer ranking and game ordering live in use cases; the selected-vs-results type rules, suggestion gating and loading states in view models. All are covered by JVM tests. Composables pick a card or an icon by a state value and emit events. New state, event and effect types follow the house pattern. Flows are collected with `collectAsStateWithLifecycle()`. | ✅ PASS |
 | **IV. Reuse the shared layer** | Reused: `VerticalGameCard`, `ListSelectorSheet`, `CustomChipRow`, `CustomFilterChip` (gains a leading icon), `CustomInfoChip`, `ErrorPage`, `EmptyPage`, `LoadingPage`, `ScrollToTopFab`, the search grid's column rules. The translation card and badges move to `:core:ui` instead of being copied, and the header container is extracted. One new color slot in `AppColors` instead of a literal. | ✅ PASS |
 | **V. Local verification** | Real commands only (quickstart). New mapper, use case and view model logic gets JVM tests in its own module. `KoinGraphTest` stays green with one `extraTypes` entry. | ✅ PASS |
-| **KMP constraints** | All shared code in `commonMain`. Moving the `TranslationEngineBadge` `expect`/`actual` updates its row in `platform-contracts.md`. The translator signature change updates that document's heading. A new seam (`localizedCountryName`) appears only if the owner keeps the country (R13), and goes into the same table. iOS verification is Mac-only and stated as such. | ✅ PASS |
+| **KMP constraints** | All shared code in `commonMain`. Moving the `TranslationEngineBadge` `expect`/`actual` updates its row in `platform-contracts.md`. The translator signature change updates that document's heading. iOS verification is Mac-only and stated as such. | ✅ PASS |
 | **Persistence** | One entity change. The version is not bumped. The schema JSON is regenerated and committed in the same commit. No list-shaped column. | ✅ PASS (wipe called out) |
 | **Injection** | `EntityDetailViewModel` takes its route argument (`EntityDetailSubject`) first, through `parametersOf`, and is registered with `viewModelOf`. No `SavedStateHandle`. Use cases use `factoryOf`. | ✅ PASS |
 | **Workflow** | One type per file, except the sealed state, event and effect files and `Routes.kt`. `internal` by default. The public API is the screen, the view model and `EntityDetailSubject`. English KDoc. `CLAUDE.md` files updated in the same commit as what they describe (`core/network`, `core/data`, `core/ui`). | ✅ PASS |
@@ -110,7 +110,7 @@ specs/019-search-characters-companies/
 core/network/src/commonMain/.../core/network/
 ├── IgdbApiService.kt, IgdbApiServiceImpl.kt        # + getCharacters, getCompanies
 ├── model/IgdbImage.kt, model/IgdbCharacter.kt      # new
-└── model/IgdbCompany.kt                            # + description, country, startDate, logo, developed
+└── model/IgdbCompany.kt                            # + description, startDate, logo, developed
 core/network/CLAUDE.md                              # method list
 
 core/model/src/commonMain/.../core/model/
@@ -211,9 +211,7 @@ Each step builds, passes `./gradlew test`, and is a point the work can pause on.
    - Add `EntityResults`, its grid and cards, the sub-header without sort and filter buttons, and the per-type empty
      messages.
    - Add `SearchScreen`'s new lambdas, wired in `:shared`.
-7. **Country chip** (only if the owner keeps it, R13): the ISO table with a sample test, the `localizedCountryName`
-   `expect` with both `actual`s, the header chip, and the new row in the platform-contracts table.
-8. **Verify.** Run `./gradlew test` and `:androidApp:assembleDebug`, quickstart S1–S18 on Android, then the iOS
+7. **Verify.** Run `./gradlew test` and `:androidApp:assembleDebug`, quickstart S1–S18 on Android, then the iOS
    framework link and the scenarios on the simulator on a Mac.
 
 ## Spec Updates Made During Planning
@@ -230,10 +228,9 @@ Research changed details the spec had guessed. The spec was edited so `/speckit-
 
 ## Decisions for the Owner
 
-1. **Country in the developer header** ([R13](./research.md#r13-founding-year-and-country)): it is the only header fact
-   needing a 249-entry ISO table and new platform code. It is **recommended to drop it** and show the founding year
-   and the game count. It is step 7, so cutting it touches nothing else. If dropped, FR-010 and the matching story
-   line lose "the country".
+1. **Country in the developer header** ([R13](./research.md#r13-founding-year-and-country)): **decided, dropped.** The
+   header shows the game count and, for a developer, the founding year. The country needed a 249-entry ISO table and
+   new platform code, and can be added later as its own change.
 2. **Where the detail page lives** ([R4](./research.md#r4-where-the-detail-page-lives)): `:feature:search` is
    recommended. A separate `:feature:entity-detail` module is cleaner if the page ever gets a second entry point, but
    needs a new module, a new `:shared` edge, and the grid rules, selector and strings moved to `:core:ui`. Moving it

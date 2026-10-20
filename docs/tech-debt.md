@@ -87,6 +87,10 @@ Last audited: 2026-10-09.
   `ProviderSignInButton` carries no logo.
 - **The cloud backup's size and speed targets were not measured**: SC-001 and SC-002 (a 500-game collection on mobile
   data) have not been timed on a device.
+- **A `"` in a search query breaks the IGDB request**: `GameRepositoryImpl` interpolates the user's text unescaped into
+  the apicalypse body (`search "$query"`, and the `name ~ *"$query"*` filters), so a query containing a double quote
+  comes back as an HTTP 400 and shows the generic error. Every search query has it, including the character and
+  developer ones. The fix is to escape `\` and `"` once, where the query string is built.
 
 ## Infrastructure
 

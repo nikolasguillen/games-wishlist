@@ -198,7 +198,7 @@ The entity page passes, as the cover:
 - a circular portrait for a character (`DetailHeaderDefaults.CoverWidth` square, `CircleShape`);
 - a rounded-square logo tile for a developer (same square, `MaterialTheme.shapes.large`).
 
-Its chips are the game count (`CustomInfoChip`), plus "Founded <year>" for a developer, and the country if kept (R13).
+Its chips are the game count (`CustomInfoChip`), plus "Founded <year>" for a developer.
 Long names wrap to two lines.
 
 **Rationale**: the owner asked for a design like the wishlist detail screen. Sharing the container keeps both headers
@@ -275,20 +275,9 @@ duplicated lines), or one route with a kind (see above).
 
 - **Founding year**: `start_date` (Unix seconds) is turned into a year in UTC with `kotlinx-datetime` in
   `:core:data`'s mapper (`DeveloperProfile.foundedYear: Int?`). The chip reads "Founded %1$d".
-- **Country (only if the owner keeps it)**: IGDB's `country` is an ISO 3166-1 numeric code (840). It is mapped to
-  alpha-2 by a 249-entry table in `:core:data` (`IsoCountryCodes.kt`), and the localized name comes from a new
-  `expect fun localizedCountryName(isoAlpha2: String): String?` in `:core:ui`:
-  - Android: `Locale("", code).displayCountry`.
-  - iOS: `NSLocale.currentLocale.localizedStringForCountryCode(code)`.
-  - This is a new compatibility seam, added to the platform contracts table.
-
-**Rationale**: Compose resources cannot hold 249 country names in every language, and common code has no locale
-display API. The country is the one header fact that needs platform code and a data table. It is built as the plan's
-last independent step so it can be dropped without touching anything else. The plan recommends dropping it, and the
-owner decides.
-
-**Alternatives considered**: flag emoji from the alpha-2 code. That is pure Kotlin, but emoji rendering on iOS through
-Skia is unverified and a flag alone is ambiguous on screen.
+- **Country: dropped by the owner.** IGDB's `country` is an ISO 3166-1 numeric code, and showing a localized name
+  needs a 249-entry table plus an `expect`/`actual` for the locale display name. That is a separate change if it is
+  ever wanted.
 
 ## R14. A profile IGDB no longer has
 

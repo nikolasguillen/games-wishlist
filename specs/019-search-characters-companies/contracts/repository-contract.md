@@ -59,7 +59,7 @@ methods; the six existing methods keep their inline copies and are not touched.
 characters  search:   search "<q>"; fields name, mug_shot.url; limit 100;
 companies   search:   fields name, logo.url, developed; where name ~ *"<q>"* & developed != null; limit 500;
 characters  profile:  fields name, description, mug_shot.url, games; where id = <id>;
-companies   profile:  fields name, description, logo.url, start_date[, country]; where id = <id>;
+companies   profile:  fields name, description, logo.url, start_date; where id = <id>;
 games       by ids:   fields <GAME_FIELDS>; where id = (<ids>) & game_type != (<noisy>) & version_parent = null;
                       sort id asc; limit 500; offset <n>;
 games       developed: fields <GAME_FIELDS>; where involved_companies.company = <id> & involved_companies.developer = true

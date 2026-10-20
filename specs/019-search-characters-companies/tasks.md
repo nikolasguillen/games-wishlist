@@ -83,7 +83,7 @@ can start before this phase ends. Nothing here changes what the user sees.
   val games: List<Int>? = null)`. KDoc: a search requests `name, mug_shot.url` only; a profile adds `description, games`
   (an id array).
 - [ ] T004 [P] Extend `core/network/model/IgdbCompany.kt` with nullable defaulted fields `description: String? = null`,
-  `country: Int? = null`, `@SerialName("start_date") startDate: Long? = null`, `logo: IgdbImage? = null`,
+  `@SerialName("start_date") startDate: Long? = null`, `logo: IgdbImage? = null`,
   `developed: List<Int>? = null`. `id` and `name` stay as they are, so an `involved_companies.company` row (only `id`
   and `name`) still decodes. Update the KDoc `@property` tags.
 - [ ] T005 In `core/network/IgdbApiService.kt` add `suspend fun getCharacters(query: String): List<IgdbCharacter>` and
@@ -106,8 +106,7 @@ can start before this phase ends. Nothing here changes what the user sees.
   `core/model/CharacterProfile.kt` (`id`, `name`, `imageUrl: String?`, `description: String?`, `gameIds: List<Int>`),
   `core/model/Developer.kt` (`id`, `name`, `logoUrl: String?`, `developedGameCount: Int`) and
   `core/model/DeveloperProfile.kt` (`id`, `name`, `logoUrl: String?`, `description: String?`, `foundedYear: Int?`). One
-  file each, KDoc with `@property`, no Android or Compose dependency. Do not add `countryCode` here: T083 adds it only
-  if the owner keeps the country.
+  file each, KDoc with `@property`, no Android or Compose dependency.
 - [ ] T009 In `core/data/mapper/GameMapper.kt` change `private fun String.toIgdbImageUrl(size: String = "t_720p")` to
   `internal`, so the new mappers share it. Behavior is unchanged: it prefixes `https:` to a `//` url and replaces
   `t_thumb` with the size.
@@ -558,9 +557,8 @@ grid of every game, with save and long-press working as in Search.
   by default (the public ones are `EntityDetailScreen`, `EntityDetailViewModel`, `EntityDetailSubject`, `DetailHeader`,
   `DescriptionCard`, `DescriptionTranslationState`), no hardcoded display text, no `dp` literal outside
   `DetailHeaderDefaults`, `collectAsStateWithLifecycle()`, KDoc in English, a `@QuestLogPreviews` on each composable.
-- [ ] T078 Ask the owner whether to add a `docs/tech-debt.md` entry for "a `"` in a search query is interpolated
-  unescaped into every IGDB query and returns an HTTP 400" (research R15). Do not add it without their answer, and do
-  not change the existing queries.
+- [ ] T078 Add a `docs/tech-debt.md` entry (Technical risks) for "a `"` in a search query is interpolated unescaped into
+  every IGDB query and returns an HTTP 400" (research R15; the owner approved it). Do not change the existing queries.
 - [ ] T079 Run `./gradlew test --console=plain -q` and `./gradlew :androidApp:assembleDebug --console=plain -q` once
   more from a clean state and compare with the T001 baseline: no test deleted or weakened, no new failure.
 - [ ] T080 **Mac only**: run `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 -q` and the `xcodebuild` command of
@@ -569,28 +567,6 @@ grid of every game, with save and long-press working as in Search.
   that this was not run if no Mac was available.
 - [ ] T081 Work through the whole of [quickstart.md](quickstart.md) S1–S18 once on Android and record anything that
   differs from the expected column at the end of this file.
-
----
-
-## Phase 9 (optional): Developer country
-
-**Only if the owner keeps the country** ([plan.md](plan.md), Decision 1; the plan recommends dropping it). If dropped,
-skip this phase and remove "the country" from spec FR-010 and Story 4 scenario 1 in the same commit.
-
-- [ ] T082 [P] Create `core/data/mapper/IsoCountryCodes.kt`: an `internal` map from ISO 3166-1 numeric code to alpha-2
-  for all 249 entries, and `internal fun Int.toIsoAlpha2(): String?`. Add a sample test (`840` is `US`, `392` is `JP`,
-  `250` is `FR`, an unknown code is `null`) in `core/data/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/data/mapper/IsoCountryCodesTest.kt`.
-- [ ] T083 Add `countryCode: String?` to `core/model/DeveloperProfile.kt`, request `country` in the profile query of
-  `getDeveloperProfile` in `core/data/repository/GameRepositoryImpl.kt`, and map it with `toIsoAlpha2()` in
-  `core/data/mapper/DeveloperMapper.kt` (and its test).
-- [ ] T084 Add `expect fun localizedCountryName(isoAlpha2: String): String?` to `:core:ui`
-  (`core/ui/util/LocalizedCountryName.kt`), with the Android `actual` `Locale("", code).displayCountry` (null when blank)
-  in `core/ui/src/androidMain/kotlin/com/nikolasguillen/questlog/core/ui/util/` and the iOS `actual`
-  `NSLocale.currentLocale.localizedStringForCountryCode(code)` in `core/ui/src/iosMain/…/util/`. Add its row to the
-  compatibility seams table of `specs/010-kmp-migration/contracts/platform-contracts.md`.
-- [ ] T085 Add `countryCode: String?` to `EntityHeaderUiModel`, fill it in `DeveloperProfile.toHeader()`, and draw a
-  `CustomInfoChip` with `localizedCountryName(code)` in `EntityDetailScreen.kt`'s header when it is non-null. Hands-on:
-  Naughty Dog's page shows "United States" (or the device language's name).
 
 ---
 
@@ -609,7 +585,6 @@ skip this phase and remove "the country" from spec FR-010 and Story 4 scenario 1
   that order.
 - **Phase 7 (US5)**: depends on US1, US2, US3 and US4.
 - **Phase 8 (Polish)**: depends on every story.
-- **Phase 9 (optional country)**: depends on US4.
 
 ### Story dependencies
 
@@ -666,4 +641,4 @@ data, so it comes right before the first Room edit and has its own warning.
   [quickstart.md](quickstart.md).
 - iOS steps need a Mac. When none is available, say so rather than assuming.
 - Do not edit anything under `**/build/generated/**`, and never commit IGDB credentials.
-- Do not "fix" a known deviation in `docs/tech-debt.md` while working here (T078 asks first about R15).
+- Do not "fix" a known deviation in `docs/tech-debt.md` while working here (T078 adds the R15 entry, which the owner approved).

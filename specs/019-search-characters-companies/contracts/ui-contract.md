@@ -108,7 +108,7 @@ Layout follows the wishlist detail screen:
   while `listSelectorState != null`.
 - One `LazyVerticalGrid` with `SearchResultGridCells` (columns from `resultGridColumnCount` on its own space). It holds:
   1. `DetailHeader`, full span: portrait or logo, name (up to 2 lines), and chips (`gameCountText` once the games are
-     loaded, `foundedYearText`, and the country if kept).
+     loaded, and `foundedYearText`).
   2. `DescriptionCard`, full span, only when `description != null`, driven by `descriptionTranslation`.
   3. A "Games" section title, full span.
   4. Games: `VerticalGameCard` per game, with `onSaveClick` and long press to the list selector, as in the search grid.

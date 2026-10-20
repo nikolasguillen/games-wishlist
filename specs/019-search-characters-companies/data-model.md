@@ -8,7 +8,7 @@ One type per file, as everywhere in the project. All new types are `commonMain`.
 |---|---|---|
 | `IgdbImage` (new) | `id: Int`, `url: String?` | A character's `mug_shot` or a company's `logo`. Same shape as `IgdbCover`, but a separate type, because `IgdbCover` is documented as a game's cover. |
 | `IgdbCharacter` (new) | `id: Int`, `name: String`, `description: String?`, `@SerialName("mug_shot") mugShot: IgdbImage?`, `games: List<Int>?` | `games` is an id array. A search requests `name, mug_shot.url` only; a profile adds `description, games`. |
-| `IgdbCompany` (extended) | existing `id`, `name`, plus nullable `description: String?`, `country: Int?`, `@SerialName("start_date") startDate: Long?`, `logo: IgdbImage?`, `developed: List<Int>?` | Still decodes `involved_companies.company` rows, which carry only `id` and `name`: every new field is nullable and `IgdbJson` reads absent as `null`. |
+| `IgdbCompany` (extended) | existing `id`, `name`, plus nullable `description: String?`, `@SerialName("start_date") startDate: Long?`, `logo: IgdbImage?`, `developed: List<Int>?` | Still decodes `involved_companies.company` rows, which carry only `id` and `name`: every new field is nullable and `IgdbJson` reads absent as `null`. |
 
 KDoc with `@property` tags on each, as `core/network/CLAUDE.md` requires.
 
@@ -19,7 +19,7 @@ KDoc with `@property` tags on each, as `core/network/CLAUDE.md` requires.
 | `GameCharacter` | `id: Int`, `name: String`, `imageUrl: String?` | `IgdbCharacter.toGameCharacter()` |
 | `CharacterProfile` | `id: Int`, `name: String`, `imageUrl: String?`, `description: String?`, `gameIds: List<Int>` | `IgdbCharacter.toCharacterProfile()` (`gameIds` empty when absent) |
 | `Developer` | `id: Int`, `name: String`, `logoUrl: String?`, `developedGameCount: Int` | `IgdbCompany.toDeveloper()`. The count is `developed.size`, raw from IGDB, and is used only for ranking (research R2). |
-| `DeveloperProfile` | `id: Int`, `name: String`, `logoUrl: String?`, `description: String?`, `foundedYear: Int?`, `countryCode: String?` | `IgdbCompany.toDeveloperProfile()`. `foundedYear` is the UTC year of `start_date`. `countryCode` is ISO alpha-2 and exists only if the country is kept (R13); otherwise the field is not added. |
+| `DeveloperProfile` | `id: Int`, `name: String`, `logoUrl: String?`, `description: String?`, `foundedYear: Int?` | `IgdbCompany.toDeveloperProfile()`. `foundedYear` is the UTC year of `start_date`. |
 
 A blank `description` from IGDB maps to `null`, so "no description" has one representation.
 
@@ -109,7 +109,7 @@ The filters sheet, the sort sheet, `OnToggleSave` and `OnOpenListSelector` alrea
 | `EntityDetailSubject` (public) | `sealed interface { data class Character(val id: Int); data class Developer(val id: Int) }` |
 | `EntityDetailUiState` | `@Immutable data class(subject: EntityDetailSubject, profile: EntityProfileContentState = Loading, games: EntityGamesContentState = Loading, gameCountText: UiText? = null, descriptionTranslation: DescriptionTranslationState = Unavailable, listSelectorState: ListSelectorState? = null)` |
 | `EntityProfileContentState` | `Loading` · `Error(message: UiText)` · `Success(header: EntityHeaderUiModel, description: String?)` |
-| `EntityHeaderUiModel` | `@Immutable data class(name: String, imageUrl: String?, foundedYearText: UiText?, countryCode: String?)`. The last two are always `null` for a character, and `countryCode` exists only if kept (R13). |
+| `EntityHeaderUiModel` | `@Immutable data class(name: String, imageUrl: String?, foundedYearText: UiText?)`. `foundedYearText` is always `null` for a character. |
 | `EntityGamesContentState` | `Loading` · `Empty` · `Error(message: UiText)` · `Success(games: List<GameItemUiModel>)` |
 | `EntityDetailUiEvent` | `OnRetry`, `TranslateDescription`, `ShowOriginalDescription`, `OnToggleSave(gameId)`, `OnOpenListSelector(gameId)`, `OnToggleListSelection(listId)`, `OnConfirmListSelection`, `OnDismissListSelector` |
 | `EntityDetailUiEffect` | `ShowSnackbar(message: UiText)` |
@@ -141,7 +141,6 @@ Membership: `GetWishlistedGameIdsUseCase` is collected for the view model's life
 | `DescriptionTranslationState`, `DescriptionCard`, `TranslationBadge`, `TranslationEngineBadge` (`expect` with 2 `actual`s), `GeminiNanoBadge`, `AppleIntelligenceBadge` | moved from `:feature:game-detail` (R8) |
 | `DetailHeader` + `DetailHeaderDefaults` | new, extracted from `WishlistDetailHeader` (R9) |
 | `CustomFilterChip` | + `leadingIcon: (@Composable () -> Unit)? = null` (R11) |
-| `localizedCountryName(isoAlpha2)` | `expect`, only if the country is kept (R13) |
 
 ## Design system (`:core:designsystem`)
 

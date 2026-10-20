@@ -115,8 +115,7 @@ confirm the developer's detail page opens.
 
 The detail page of a character or a developer looks like the wishlist detail screen. A header at the top
 carries the entity's image (the portrait for a character, the logo for a developer), its name and its key
-facts as small chips: the number of games, plus the country and the founding year for a developer when
-known. Below the header, the body has the entity's description, which the user can translate the same way as
+facts as small chips: the number of games, plus the founding year for a developer when known. Below the header, the body has the entity's description, which the user can translate the same way as
 a game's description, and under it a grid of every game the character appears in or that the developer
 created. The grid is always a grid, with no switch to a list. Tapping a game opens its detail; saving and the
 long-press action work as they do on any game card. Back returns to the results the user came from.
@@ -132,8 +131,7 @@ grid, then go back twice and confirm the search query and results are intact.
 **Acceptance Scenarios**:
 
 1. **Given** the user taps a character or developer card, **When** the page opens, **Then** the header shows
-   its image, name and game count, and for a developer also the country and founding year when the catalogue
-   has them.
+   its image, name and game count, and for a developer also the founding year when the catalogue has it.
 2. **Given** the page has a description, **When** the user looks at the body, **Then** the description sits
    above the grid, and the user can translate it, view the translation info, retry a failed translation and
    see the same "translated on your device" badge as in game detail, with the same behavior when the device
@@ -231,7 +229,7 @@ whose games fail to load.
 - **FR-009**: The detail page MUST follow the wishlist detail screen's design: a header at the top, then a
   scrolling body.
 - **FR-010**: The header MUST show the entity's image, its name and a game-count chip; for a developer it MUST
-  also show the country and the founding year when the catalogue has them.
+  also show the founding year when the catalogue has it.
 - **FR-011**: The body MUST show the entity's description above the games when one exists, and nothing in its
   place when none does.
 - **FR-012**: The description MUST be translatable with the same actions, states and badge as a game's
@@ -267,7 +265,7 @@ whose games fail to load.
 - **Character**: A person, creature or avatar that appears in one or more games. Has a name, an optional
   portrait, an optional description and the games it appears in.
 - **Developer (company)**: A company credited as the developer of at least one game. Has a name, an optional
-  logo, an optional description, an optional country and founding year, and the games it created.
+  logo, an optional description, an optional founding year, and the games it created.
 - **Entity detail page**: The page of one character or developer: header, description, grid of games.
 
 ## Success Criteria *(mandatory)*
@@ -297,7 +295,7 @@ whose games fail to load.
   images, and surfaced characters but not companies. Batching several lookups into one request only worked with
   name-contains matches, not text search. The type selector makes this moot for the user: one lookup per
   search, so nothing needs to be batched or merged. The catalogue holds a description for characters and
-  companies, a country and founding date for companies, and the list of games for each.
+  companies, a founding date for companies, and the list of games for each.
 - Characters and developers are matched on their name only, the same way a game is matched on its title.
 - "Developer" is a company in the catalogue credited as the developer of at least one game, matched on its
   name; a company that only published games is not a Developers result. The games on a developer's page are the
