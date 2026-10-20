@@ -149,8 +149,8 @@ grid, then go back twice and confirm the search query and results are intact.
    results with the query, selected type and scroll position intact.
 7. **Given** the entity has no games in the catalogue, **When** the page opens, **Then** an explanatory empty
    message replaces the grid.
-8. **Given** the entity has many games, **When** the user scrolls the grid, **Then** it keeps loading without
-   making the user wait for everything up front.
+8. **Given** the entity has many games (some studios have several hundred), **When** the page opens, **Then**
+   every one of them is shown once they arrive, and the header and description are readable meanwhile.
 
 ---
 
@@ -179,15 +179,15 @@ whose games fail to load.
 
 - A name that matches a game, a character and a company at once (a franchise): each type returns its own
   results when selected; nothing is merged or hidden.
-- The same character appears in dozens of games, or a studio has hundreds: the grid loads progressively.
-- A character or company with no games in the catalogue: the card still shows and its page explains why the
-  grid is empty.
+- The same character appears in dozens of games, or a studio has hundreds: every game is shown, and the header
+  and description do not wait for them.
+- A character with no games, or a developer whose credited games are all editions or extras the app does not
+  list: the card still shows and its page explains why the grid is empty.
 - Very long names (a studio with a long legal name) and names in non-Latin scripts stay readable on both the
   card and the header without breaking the layout.
 - Several entries with the same name (different characters called "Link", a studio and its subsidiaries): each
   is its own card in a stable order.
-- A very long description: the body scrolls with the grid and the description can be expanded or collapsed the
-  way a game description can.
+- A very long description is shown in full, as a game's description is, and scrolls with the page.
 - Existing filters and sorting only make sense for games: they are offered on game results and are not
   offered on character or developer results, nor on the detail page.
 - Changing type while a game filter is active: the game filters are kept for when the user returns to Games.
@@ -239,7 +239,8 @@ whose games fail to load.
 - **FR-013**: The body MUST show the games the character appears in, or the games the developer created, as a
   grid of game cards. It MUST NOT offer a list view or a toggle to one.
 - **FR-014**: The games in that grid MUST support opening the detail, saving to a list and the long-press
-  action exactly as game cards do elsewhere, and MUST load progressively.
+  action exactly as game cards do elsewhere. Every game MUST be shown however many there are, without
+  delaying the header and description.
 - **FR-015**: Going back from the detail page MUST return to the results with the query, selected type and
   scroll position intact.
 - **FR-016**: The existing game filters and sorting MUST keep working exactly as today on game results, and
@@ -265,8 +266,8 @@ whose games fail to load.
 - **Game**: Unchanged. A title with a cover, found by name.
 - **Character**: A person, creature or avatar that appears in one or more games. Has a name, an optional
   portrait, an optional description and the games it appears in.
-- **Developer (company)**: A studio or publisher. Has a name, an optional logo, an optional description, an
-  optional country and founding year, and the games it created.
+- **Developer (company)**: A company credited as the developer of at least one game. Has a name, an optional
+  logo, an optional description, an optional country and founding year, and the games it created.
 - **Entity detail page**: The page of one character or developer: header, description, grid of games.
 
 ## Success Criteria *(mandatory)*
@@ -298,15 +299,16 @@ whose games fail to load.
   search, so nothing needs to be batched or merged. The catalogue holds a description for characters and
   companies, a country and founding date for companies, and the list of games for each.
 - Characters and developers are matched on their name only, the same way a game is matched on its title.
-- "Developer" is the company-level type of the catalogue: a name match on any company. The games on a
-  developer's page are the games it developed, which is why publishers that only published are not expected
-  to list games there.
+- "Developer" is a company in the catalogue credited as the developer of at least one game, matched on its
+  name; a company that only published games is not a Developers result. The games on a developer's page are the
+  games it developed.
 - Characters use a circular portrait and developers use a rounded square tile with the logo fitted inside
   rather than cropped, since logos are not portraits. The exact tokens come from the existing design system.
 - The detail page's header reuses the look of the wishlist detail header (tinted card, image on the left, name
   and chips beside it); the entity's description is not repeated in the header because it has its own block in
   the body.
-- The games on the detail page are shown in the catalogue's default order, with no filter or sort controls.
+- The games on the detail page are shown newest first, with games that have no release date last, and with no
+  filter or sort controls.
 - Descriptions come from the catalogue in its source language and are translated with the same on-device
   translation game detail already uses; no new translation engine or setting is introduced.
 - The expanded view's content below the chip row is deliberately type-independent (see the clarifications):
