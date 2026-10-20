@@ -26,6 +26,7 @@ import com.nikolasguillen.questlog.core.ui.model.UiText
  * the App group. Starts `SYSTEM`, matching the persisted default.
  * @property accountSummary The signed-in address, or "Not signed in", shown as the Account & backup row's subtitle.
  * `null` until the first emission, like [ownedPlatformsSummary].
+ * @property dialog The dialog shown over the screen, or `null` for none.
  */
 @Immutable
 internal data class SettingsUiState(
@@ -35,5 +36,6 @@ internal data class SettingsUiState(
     val releaseNotificationCount: Int = 0,
     val notificationPermission: NotificationPermissionRowState = NotificationPermissionRowState.Granted,
     val appearanceMode: AppearanceMode = AppearanceMode.SYSTEM,
-    val accountSummary: UiText? = null
+    val accountSummary: UiText? = null,
+    val dialog: SettingsDialog? = null
 )

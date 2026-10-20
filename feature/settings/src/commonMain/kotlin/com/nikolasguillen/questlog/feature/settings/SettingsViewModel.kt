@@ -16,18 +16,16 @@ import com.nikolasguillen.questlog.core.model.TranslationModelStatus
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.settings.mapper.toSummaryUiText
 import com.nikolasguillen.questlog.feature.settings.model.NotificationPermissionRowState
-import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEffect
+import com.nikolasguillen.questlog.feature.settings.model.SettingsDialog
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiState
 import com.nikolasguillen.questlog.feature.settings.model.TranslationModelRowState
 import com.nikolasguillen.questlog.feature.settings.resources.Res
 import com.nikolasguillen.questlog.feature.settings.resources.settings_account_not_signed_in
 import com.nikolasguillen.questlog.feature.settings.resources.settings_account_signed_in
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 class SettingsViewModel(
@@ -47,9 +45,6 @@ class SettingsViewModel(
     )
     internal val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
-    private val _uiEffect = Channel<SettingsUiEffect>(Channel.BUFFERED)
-    internal val uiEffect = _uiEffect.receiveAsFlow()
-
     init {
         observeOwnedPlatforms()
         loadTranslationModelStatus()
@@ -61,8 +56,12 @@ class SettingsViewModel(
     internal fun onEvent(event: SettingsUiEvent) {
         when (event) {
             SettingsUiEvent.DownloadTranslationModel -> requestTranslationModelDownload()
-            SettingsUiEvent.ConfirmDownloadTranslationModel ->
+            SettingsUiEvent.ConfirmDownloadTranslationModel -> {
+                _uiState.update { it.copy(dialog = null) }
                 viewModelScope.launch { observeTranslationModelDownload() }
+            }
+
+            SettingsUiEvent.DismissDialog -> _uiState.update { it.copy(dialog = null) }
 
             is SettingsUiEvent.NotificationPermissionChanged -> {
                 val rowState = if (event.canDeliver) {
@@ -147,10 +146,10 @@ class SettingsViewModel(
             // AICore only transfers the model's several GB over an unmetered connection; on mobile data
             // it accepts the request and then silently sits at 0% forever, with no error the SDK
             // surfaces — so this is refused up front instead of leaving the user staring at a stuck bar.
-            viewModelScope.launch { _uiEffect.send(SettingsUiEffect.ShowWifiRequiredDialog) }
+            _uiState.update { it.copy(dialog = SettingsDialog.WifiRequired) }
             return
         }
-        viewModelScope.launch { _uiEffect.send(SettingsUiEffect.ShowDownloadConfirmDialog) }
+        _uiState.update { it.copy(dialog = SettingsDialog.ConfirmTranslationModelDownload) }
     }
 
     private suspend fun observeTranslationModelDownload() {

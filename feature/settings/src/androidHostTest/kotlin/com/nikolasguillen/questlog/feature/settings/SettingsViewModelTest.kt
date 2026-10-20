@@ -16,7 +16,7 @@ import com.nikolasguillen.questlog.core.model.TranslationModelDownload
 import com.nikolasguillen.questlog.core.model.TranslationModelStatus
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.feature.settings.model.NotificationPermissionRowState
-import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEffect
+import com.nikolasguillen.questlog.feature.settings.model.SettingsDialog
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiState
 import com.nikolasguillen.questlog.feature.settings.model.TranslationModelRowState
@@ -42,6 +42,7 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.yield
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 
@@ -50,9 +51,9 @@ import org.junit.Test
  * per [TranslationModelStatus] — including a DOWNLOADING status resuming live progress rather than a
  * static indeterminate spinner — the download progressing the row from Downloading to Ready, a failed
  * download landing on Failed, a second tap while a download is already running being ignored, a tap on
- * an unmetered network asking for confirmation via [SettingsUiEffect.ShowDownloadConfirmDialog] rather
+ * an unmetered network asking for confirmation via [SettingsDialog.ConfirmTranslationModelDownload] rather
  * than starting immediately, and a tap off an unmetered network being refused with
- * [SettingsUiEffect.ShowWifiRequiredDialog] instead of starting a download AICore would silently never
+ * [SettingsDialog.WifiRequired] instead of starting a download AICore would silently never
  * progress. Also covers the Appearance selector: [GetAppearanceModeUseCase] seeding
  * [SettingsUiState.appearanceMode], and [SettingsUiEvent.AppearanceModeChanged] writing through
  * [SetAppearanceModeUseCase].
@@ -252,24 +253,22 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `DownloadTranslationModel off an unmetered network shows the Wi-Fi required effect instead of starting`() =
+    fun `DownloadTranslationModel off an unmetered network shows the Wi-Fi required dialog instead of starting`() =
         runTest {
             coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.DOWNLOADABLE
             every { networkStatusProvider.isUnmeteredNetworkAvailable } returns false
 
             val viewModel = viewModel()
-            val effects = mutableListOf<SettingsUiEffect>()
-            val effectJob = launch { viewModel.uiEffect.collect { effects.add(it) } }
-            val stateJob = collectStates(viewModel, mutableListOf())
+            val states = mutableListOf<SettingsUiState>()
+            val job = collectStates(viewModel, states)
             advanceUntilIdle()
 
             viewModel.onEvent(SettingsUiEvent.DownloadTranslationModel)
             advanceUntilIdle()
 
-            assertEquals(listOf(SettingsUiEffect.ShowWifiRequiredDialog), effects)
+            assertEquals(SettingsDialog.WifiRequired, states.last().dialog)
             coVerify(exactly = 0) { downloadTranslationModelUseCase() }
-            effectJob.cancel()
-            stateJob.cancel()
+            job.cancel()
         }
 
     @Test
@@ -277,18 +276,34 @@ class SettingsViewModelTest {
         coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.DOWNLOADABLE
 
         val viewModel = viewModel()
-        val effects = mutableListOf<SettingsUiEffect>()
-        val effectJob = launch { viewModel.uiEffect.collect { effects.add(it) } }
-        val stateJob = collectStates(viewModel, mutableListOf())
+        val states = mutableListOf<SettingsUiState>()
+        val job = collectStates(viewModel, states)
         advanceUntilIdle()
 
         viewModel.onEvent(SettingsUiEvent.DownloadTranslationModel)
         advanceUntilIdle()
 
-        assertEquals(listOf(SettingsUiEffect.ShowDownloadConfirmDialog), effects)
+        assertEquals(SettingsDialog.ConfirmTranslationModelDownload, states.last().dialog)
         coVerify(exactly = 0) { downloadTranslationModelUseCase() }
-        effectJob.cancel()
-        stateJob.cancel()
+        job.cancel()
+    }
+
+    @Test
+    fun `DismissDialog closes the dialog without starting the download`() = runTest {
+        coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.DOWNLOADABLE
+
+        val viewModel = viewModel()
+        val states = mutableListOf<SettingsUiState>()
+        val job = collectStates(viewModel, states)
+        advanceUntilIdle()
+
+        viewModel.onEvent(SettingsUiEvent.DownloadTranslationModel)
+        viewModel.onEvent(SettingsUiEvent.DismissDialog)
+        advanceUntilIdle()
+
+        assertNull(states.last().dialog)
+        coVerify(exactly = 0) { downloadTranslationModelUseCase() }
+        job.cancel()
     }
 
     @Test
@@ -306,6 +321,7 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(TranslationModelRowState.Ready, states.last().translationModel)
+        assertNull(states.last().dialog)
         coVerify(exactly = 1) { downloadTranslationModelUseCase() }
         job.cancel()
     }

@@ -32,17 +32,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.repeatOnLifecycle
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
@@ -57,7 +51,7 @@ import com.nikolasguillen.questlog.feature.settings.components.SettingsGroup
 import com.nikolasguillen.questlog.feature.settings.components.SettingsRow
 import com.nikolasguillen.questlog.feature.settings.components.WifiRequiredDialog
 import com.nikolasguillen.questlog.feature.settings.model.NotificationPermissionRowState
-import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEffect
+import com.nikolasguillen.questlog.feature.settings.model.SettingsDialog
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiEvent
 import com.nikolasguillen.questlog.feature.settings.model.SettingsUiState
 import com.nikolasguillen.questlog.feature.settings.model.TranslationModelRowState
@@ -103,21 +97,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
     val permissionState = rememberNotificationPermissionState()
-    var showWifiRequiredDialog by remember { mutableStateOf(false) }
-    var showDownloadConfirmDialog by remember { mutableStateOf(false) }
-
-    LaunchedEffect(viewModel, lifecycle) {
-        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            viewModel.uiEffect.collect { effect ->
-                when (effect) {
-                    SettingsUiEffect.ShowWifiRequiredDialog -> showWifiRequiredDialog = true
-                    SettingsUiEffect.ShowDownloadConfirmDialog -> showDownloadConfirmDialog = true
-                }
-            }
-        }
-    }
 
     LaunchedEffect(permissionState.canDeliver, permissionState.isPermanentlyDenied) {
         viewModel.onEvent(
@@ -140,18 +120,17 @@ fun SettingsScreen(
         modifier = modifier
     )
 
-    if (showWifiRequiredDialog) {
-        WifiRequiredDialog(onDismiss = { showWifiRequiredDialog = false })
-    }
-
-    if (showDownloadConfirmDialog) {
-        DownloadTranslationModelDialog(
-            onConfirm = {
-                showDownloadConfirmDialog = false
-                viewModel.onEvent(SettingsUiEvent.ConfirmDownloadTranslationModel)
-            },
-            onDismiss = { showDownloadConfirmDialog = false }
+    when (state.dialog) {
+        SettingsDialog.WifiRequired -> WifiRequiredDialog(
+            onDismiss = { viewModel.onEvent(SettingsUiEvent.DismissDialog) }
         )
+
+        SettingsDialog.ConfirmTranslationModelDownload -> DownloadTranslationModelDialog(
+            onConfirm = { viewModel.onEvent(SettingsUiEvent.ConfirmDownloadTranslationModel) },
+            onDismiss = { viewModel.onEvent(SettingsUiEvent.DismissDialog) }
+        )
+
+        null -> Unit
     }
 }
 
