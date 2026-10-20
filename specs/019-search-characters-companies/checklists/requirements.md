@@ -34,7 +34,8 @@
 - The "Investigation result" bullet in Assumptions describes the catalogue service's behavior in general
   terms because the request explicitly asked for that finding. It names no endpoint, field or library, and
   it is the only place in the spec that touches how the data is fetched.
-- Two product decisions were taken as defaults rather than clarified, and are worth confirming in
-  `/speckit-clarify`: (1) tapping a character or company opens the list of its games inside Search, with back
-  returning to the results; (2) mixed results are shown as labelled sections with games first, plus a way to
-  look at one kind only.
+- The two product decisions defaulted in the first draft (where a tap leads, how mixed results are organized)
+  were replaced by the owner's direction in the 2026-10-20 clarification session: a detail page per entity,
+  and one search type per search chosen with a chip row. No open decisions remain.
+- Defaults worth a glance when planning: genre browse selects the Games chip; remote game suggestions are
+  hidden while Characters or Developers is selected; picking a chip never starts a search by itself.
