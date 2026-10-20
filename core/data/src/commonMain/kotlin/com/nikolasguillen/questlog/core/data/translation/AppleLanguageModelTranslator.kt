@@ -2,6 +2,7 @@ package com.nikolasguillen.questlog.core.data.translation
 
 import com.nikolasguillen.questlog.core.database.dao.TranslationDao
 import com.nikolasguillen.questlog.core.domain.translation.GameDescriptionTranslator
+import com.nikolasguillen.questlog.core.domain.translation.TranslationSubject
 import com.nikolasguillen.questlog.core.model.TranslationModelDownload
 import com.nikolasguillen.questlog.core.model.TranslationModelStatus
 import kotlinx.coroutines.delay
@@ -34,8 +35,8 @@ internal class AppleLanguageModelTranslator(
         }
     }
 
-    override suspend fun translate(gameId: Int, description: String): String? =
-        translationDao.translateWithCache(gameId, bridge.preferredLanguageTag(), description) {
+    override suspend fun translate(subject: TranslationSubject, description: String): String? =
+        translationDao.translateWithCache(subject, bridge.preferredLanguageTag(), description) {
             bridge.generateText(
                 instructions = buildTranslationInstructions(bridge.preferredLanguageEnglishName()),
                 prompt = buildTranslationSource(description)

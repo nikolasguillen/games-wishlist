@@ -8,6 +8,7 @@ import com.nikolasguillen.questlog.core.data.mapper.toTranslationModelStatus
 import com.nikolasguillen.questlog.core.data.translation.GameDescriptionTranslatorImpl.Companion.STATUS_POLL_INTERVAL
 import com.nikolasguillen.questlog.core.database.dao.TranslationDao
 import com.nikolasguillen.questlog.core.domain.translation.GameDescriptionTranslator
+import com.nikolasguillen.questlog.core.domain.translation.TranslationSubject
 import com.nikolasguillen.questlog.core.model.TranslationModelDownload
 import com.nikolasguillen.questlog.core.model.TranslationModelStatus
 import kotlinx.coroutines.CoroutineScope
@@ -31,8 +32,8 @@ internal class GameDescriptionTranslatorImpl(
         return geminiNanoClient.status().toTranslationModelStatus()
     }
 
-    override suspend fun translate(gameId: Int, description: String): String? =
-        translationDao.translateWithCache(gameId, Locale.getDefault().toLanguageTag(), description) {
+    override suspend fun translate(subject: TranslationSubject, description: String): String? =
+        translationDao.translateWithCache(subject, Locale.getDefault().toLanguageTag(), description) {
             geminiNanoClient.generate(
                 // The blank line closes the rules block; it belongs to the cached prefix so the variable half
                 // starts at the <text> tag.

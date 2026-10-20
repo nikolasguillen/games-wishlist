@@ -62,7 +62,10 @@ Signatures changed from `schedule(gameId, at: Instant)` / `cancel(gameId)` / `no
 serialized instance (`singleOf` plus a `Mutex`), so two syncs never interleave that step with the delivered-date
 read.
 
-### `GameDescriptionTranslator` — `:core:domain` (unchanged signature)
+### `GameDescriptionTranslator` — `:core:domain`
+
+The description to translate is identified by a `TranslationSubject` (a game, a character or a developer), which is also
+the cache key, so ids of different kinds do not collide. The platform behaviour below is the same for every subject.
 
 | | Android | iOS |
 |---|---|---|

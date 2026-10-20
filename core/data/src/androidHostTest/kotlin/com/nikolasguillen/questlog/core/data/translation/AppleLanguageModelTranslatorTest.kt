@@ -2,6 +2,7 @@ package com.nikolasguillen.questlog.core.data.translation
 
 import com.nikolasguillen.questlog.core.database.dao.TranslationDao
 import com.nikolasguillen.questlog.core.database.entity.TranslatedDescriptionEntity
+import com.nikolasguillen.questlog.core.domain.translation.TranslationSubject
 import com.nikolasguillen.questlog.core.model.TranslationModelDownload
 import com.nikolasguillen.questlog.core.model.TranslationModelStatus
 import io.mockk.coEvery
@@ -70,9 +71,9 @@ class AppleLanguageModelTranslatorTest {
 
     @Test
     fun `the model gets the rules as instructions and the wrapped description as the prompt`() = runTest {
-        coEvery { translationDao.getTranslation(1, "it-IT") } returns null
+        coEvery { translationDao.getTranslation("game", 1, "it-IT") } returns null
 
-        translator.translate(1, "A legendary RPG.")
+        translator.translate(TranslationSubject.Game(1), "A legendary RPG.")
 
         val request = bridge.requests.single()
         assertTrue("into Italian." in request.instructions)
@@ -82,16 +83,17 @@ class AppleLanguageModelTranslatorTest {
 
     @Test
     fun `the sanitized result is saved under the game and the bridge's language tag`() = runTest {
-        coEvery { translationDao.getTranslation(1, "it-IT") } returns null
+        coEvery { translationDao.getTranslation("game", 1, "it-IT") } returns null
         bridge.result = "Descrizione: Un GDR leggendario."
 
-        val result = translator.translate(1, "A legendary RPG.")
+        val result = translator.translate(TranslationSubject.Game(1), "A legendary RPG.")
 
         assertEquals("Un GDR leggendario.", result)
         coVerify {
             translationDao.saveTranslation(
                 TranslatedDescriptionEntity(
-                    gameId = 1,
+                    subjectType = "game",
+                    subjectId = 1,
                     languageTag = "it-IT",
                     sourceHash = "A legendary RPG.".hashCode(),
                     translatedText = "Un GDR leggendario."
@@ -102,40 +104,41 @@ class AppleLanguageModelTranslatorTest {
 
     @Test
     fun `a null result yields null and writes nothing`() = runTest {
-        coEvery { translationDao.getTranslation(1, "it-IT") } returns null
+        coEvery { translationDao.getTranslation("game", 1, "it-IT") } returns null
         bridge.result = null
 
-        assertNull(translator.translate(1, "A legendary RPG."))
+        assertNull(translator.translate(TranslationSubject.Game(1), "A legendary RPG."))
         coVerify(exactly = 0) { translationDao.saveTranslation(any()) }
     }
 
     @Test
     fun `a cache hit with a matching hash never reaches the model`() = runTest {
         val description = "A legendary RPG."
-        coEvery { translationDao.getTranslation(1, "it-IT") } returns TranslatedDescriptionEntity(
-            gameId = 1,
+        coEvery { translationDao.getTranslation("game", 1, "it-IT") } returns TranslatedDescriptionEntity(
+            subjectType = "game",
+            subjectId = 1,
             languageTag = "it-IT",
             sourceHash = description.hashCode(),
             translatedText = "Un GDR leggendario."
         )
 
-        assertEquals("Un GDR leggendario.", translator.translate(1, description))
+        assertEquals("Un GDR leggendario.", translator.translate(TranslationSubject.Game(1), description))
         assertTrue(bridge.requests.isEmpty())
     }
 
     @Test
     fun `a blank or oversized description never reaches the model`() = runTest {
-        assertNull(translator.translate(1, "   "))
-        assertNull(translator.translate(1, "a".repeat(MAX_TRANSLATABLE_CHARS + 1)))
+        assertNull(translator.translate(TranslationSubject.Game(1), "   "))
+        assertNull(translator.translate(TranslationSubject.Game(1), "a".repeat(MAX_TRANSLATABLE_CHARS + 1)))
         assertTrue(bridge.requests.isEmpty())
     }
 
     @Test
     fun `cancelling the caller cancels the generation running in Swift`() = runTest {
-        coEvery { translationDao.getTranslation(1, "it-IT") } returns null
+        coEvery { translationDao.getTranslation("game", 1, "it-IT") } returns null
         bridge.respond = false
 
-        val job = launch { translator.translate(1, "A legendary RPG.") }
+        val job = launch { translator.translate(TranslationSubject.Game(1), "A legendary RPG.") }
         runCurrent()
         assertFalse(bridge.cancelled)
 

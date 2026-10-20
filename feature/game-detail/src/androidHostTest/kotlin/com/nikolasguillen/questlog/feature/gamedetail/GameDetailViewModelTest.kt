@@ -12,7 +12,8 @@ import com.nikolasguillen.questlog.core.domain.usecase.list.RemoveGameFromListUs
 import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.SetReleaseNotificationEnabledUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.GetTranslationModelStatusUseCase
-import com.nikolasguillen.questlog.core.domain.usecase.translation.TranslateGameDescriptionUseCase
+import com.nikolasguillen.questlog.core.domain.translation.TranslationSubject
+import com.nikolasguillen.questlog.core.domain.usecase.translation.TranslateDescriptionUseCase
 import com.nikolasguillen.questlog.core.model.AppResult
 import com.nikolasguillen.questlog.core.model.Game
 import com.nikolasguillen.questlog.core.model.GameStatus
@@ -74,7 +75,7 @@ class GameDetailViewModelTest {
     private val getWishlistAssignmentsUseCase = mockk<GetWishlistAssignmentsUseCase>()
     private val addGameToListUseCase = mockk<AddGameToListUseCase>(relaxed = true)
     private val removeGameFromListUseCase = mockk<RemoveGameFromListUseCase>(relaxed = true)
-    private val translateGameDescriptionUseCase = mockk<TranslateGameDescriptionUseCase>()
+    private val translateDescriptionUseCase = mockk<TranslateDescriptionUseCase>()
     private val getTranslationModelStatusUseCase = mockk<GetTranslationModelStatusUseCase>()
     private val getReleaseNotificationGameIdsUseCase = mockk<GetReleaseNotificationGameIdsUseCase>()
     private val setReleaseNotificationEnabledUseCase = mockk<SetReleaseNotificationEnabledUseCase>()
@@ -119,7 +120,7 @@ class GameDetailViewModelTest {
         getWishlistAssignmentsUseCase = getWishlistAssignmentsUseCase,
         addGameToListUseCase = addGameToListUseCase,
         removeGameFromListUseCase = removeGameFromListUseCase,
-        translateGameDescriptionUseCase = translateGameDescriptionUseCase,
+        translateDescriptionUseCase = translateDescriptionUseCase,
         getTranslationModelStatusUseCase = getTranslationModelStatusUseCase,
         getReleaseNotificationGameIdsUseCase = getReleaseNotificationGameIdsUseCase,
         setReleaseNotificationEnabledUseCase = setReleaseNotificationEnabledUseCase
@@ -310,7 +311,7 @@ class GameDetailViewModelTest {
         val viewModel = createViewModel(game)
 
         assertEquals(DescriptionTranslationState.Available, viewModel.uiState.value.descriptionTranslation)
-        coVerify(exactly = 0) { translateGameDescriptionUseCase(any(), any()) }
+        coVerify(exactly = 0) { translateDescriptionUseCase(any(), any()) }
     }
 
     @Test
@@ -318,7 +319,7 @@ class GameDetailViewModelTest {
         val game = testGame(description = "A legendary RPG.")
         coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.READY
         coEvery {
-            translateGameDescriptionUseCase(game.id, game.description)
+            translateDescriptionUseCase(TranslationSubject.Game(game.id), game.description)
         } coAnswers {
             // A real translation call always suspends; without a suspension point here the whole
             // update runs to completion in one dispatch and the collector below never observes the
@@ -349,7 +350,7 @@ class GameDetailViewModelTest {
     fun `a null translation result yields Failed`() = runTest(testDispatcher) {
         val game = testGame(description = "A legendary RPG.")
         coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.READY
-        coEvery { translateGameDescriptionUseCase(game.id, game.description) } returns null
+        coEvery { translateDescriptionUseCase(TranslationSubject.Game(game.id), game.description) } returns null
 
         val viewModel = createViewModel(game)
 
@@ -365,7 +366,7 @@ class GameDetailViewModelTest {
         val gameFlow = MutableStateFlow(game)
         every { getGameDetailUseCase(game.id) } returns gameFlow
         coEvery { getTranslationModelStatusUseCase() } returns TranslationModelStatus.READY
-        coEvery { translateGameDescriptionUseCase(game.id, game.description) } returns "Un GDR leggendario."
+        coEvery { translateDescriptionUseCase(TranslationSubject.Game(game.id), game.description) } returns "Un GDR leggendario."
 
         val viewModel = gameDetailViewModel(game.id)
         advanceUntilIdle()

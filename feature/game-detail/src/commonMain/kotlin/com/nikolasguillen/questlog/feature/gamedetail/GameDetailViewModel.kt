@@ -12,8 +12,9 @@ import com.nikolasguillen.questlog.core.domain.usecase.list.GetWishlistAssignmen
 import com.nikolasguillen.questlog.core.domain.usecase.list.RemoveGameFromListUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.SetReleaseNotificationEnabledUseCase
+import com.nikolasguillen.questlog.core.domain.translation.TranslationSubject
 import com.nikolasguillen.questlog.core.domain.usecase.translation.GetTranslationModelStatusUseCase
-import com.nikolasguillen.questlog.core.domain.usecase.translation.TranslateGameDescriptionUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.translation.TranslateDescriptionUseCase
 import com.nikolasguillen.questlog.core.model.GameStatus
 import com.nikolasguillen.questlog.core.model.Priority
 import com.nikolasguillen.questlog.core.model.TranslationModelStatus
@@ -54,7 +55,7 @@ class GameDetailViewModel(
     private val getWishlistAssignmentsUseCase: GetWishlistAssignmentsUseCase,
     private val addGameToListUseCase: AddGameToListUseCase,
     private val removeGameFromListUseCase: RemoveGameFromListUseCase,
-    private val translateGameDescriptionUseCase: TranslateGameDescriptionUseCase,
+    private val translateDescriptionUseCase: TranslateDescriptionUseCase,
     private val getTranslationModelStatusUseCase: GetTranslationModelStatusUseCase,
     getReleaseNotificationGameIdsUseCase: GetReleaseNotificationGameIdsUseCase,
     private val setReleaseNotificationEnabledUseCase: SetReleaseNotificationEnabledUseCase
@@ -135,7 +136,7 @@ class GameDetailViewModel(
         val description = currentGameFlow.value?.description ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(descriptionTranslation = DescriptionTranslationState.InProgress) }
-            val translation = translateGameDescriptionUseCase(gameId, description)
+            val translation = translateDescriptionUseCase(TranslationSubject.Game(gameId), description)
                 ?.let { DescriptionTranslationState.Ready(it) }
                 ?: DescriptionTranslationState.Failed
             _uiState.update { it.copy(descriptionTranslation = translation) }

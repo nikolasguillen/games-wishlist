@@ -2,22 +2,24 @@ package com.nikolasguillen.questlog.core.data.translation
 
 import com.nikolasguillen.questlog.core.database.dao.TranslationDao
 import com.nikolasguillen.questlog.core.database.entity.TranslatedDescriptionEntity
+import com.nikolasguillen.questlog.core.domain.translation.TranslationSubject
 
 /**
- * The engine-independent half of translating a description: the guard, the Room cache keyed by game and
+ * The engine-independent half of translating a description: the guard, the Room cache keyed by subject and
  * language, the staleness check against [TranslatedDescriptionEntity.sourceHash], and sanitizing what a small
  * on-device model leaves behind. Each platform's translator supplies only [generate].
  */
 internal suspend fun TranslationDao.translateWithCache(
-    gameId: Int,
+    subject: TranslationSubject,
     languageTag: String,
     description: String,
     generate: suspend () -> String?
 ): String? {
     if (description.isBlank() || description.length > MAX_TRANSLATABLE_CHARS) return null
 
+    val (subjectType, subjectId) = subject.toCacheKey()
     val sourceHash = description.hashCode()
-    val cached = getTranslation(gameId, languageTag)
+    val cached = getTranslation(subjectType, subjectId, languageTag)
     if (cached != null && cached.sourceHash == sourceHash) {
         // Rows written before the prompt fix can still carry a leaked label; sanitize on read too.
         return cached.translatedText.stripTranslationArtifacts()
@@ -29,7 +31,8 @@ internal suspend fun TranslationDao.translateWithCache(
     val sanitized = translated.stripTranslationArtifacts()
     saveTranslation(
         TranslatedDescriptionEntity(
-            gameId = gameId,
+            subjectType = subjectType,
+            subjectId = subjectId,
             languageTag = languageTag,
             sourceHash = sourceHash,
             translatedText = sanitized

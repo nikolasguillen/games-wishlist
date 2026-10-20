@@ -62,7 +62,7 @@ import com.nikolasguillen.questlog.core.domain.usecase.settings.GetOnboardingCom
 import com.nikolasguillen.questlog.core.domain.usecase.settings.SetAppearanceModeUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.DownloadTranslationModelUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.translation.GetTranslationModelStatusUseCase
-import com.nikolasguillen.questlog.core.domain.usecase.translation.TranslateGameDescriptionUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.translation.TranslateDescriptionUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -133,5 +133,5 @@ val domainModule = module {
     factoryOf(::SetAppearanceModeUseCase)
     factoryOf(::DownloadTranslationModelUseCase)
     factoryOf(::GetTranslationModelStatusUseCase)
-    factoryOf(::TranslateGameDescriptionUseCase)
+    factoryOf(::TranslateDescriptionUseCase)
 }

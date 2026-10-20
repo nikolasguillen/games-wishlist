@@ -30,7 +30,8 @@ So when you change an entity:
 - Entities: `<Name>Entity` with an explicit `@Entity(tableName = "snake_case")` —
   `GameEntity`("games"), `ListEntity`("wishlists"), `SearchHistoryEntity`("search_history"),
   `PlatformEntity`, `GenreEntity`, `CompanyEntity`, `EngineEntity`, `GameArtworkEntity`("game_artworks"),
-  `TranslatedDescriptionEntity`("translated_descriptions") — keyed by game id + language tag, plus a hash
+  `TranslatedDescriptionEntity`("translated_descriptions") — keyed by subject type (`"game"`, `"character"`
+  or `"developer"`, as text) + subject id + language tag, plus a hash
   of the source text so an IGDB summary that gets edited in place is re-translated instead of served stale,
   `RelatedGameEntity`("related_games") — a child table, not a cross-ref, because it carries the related
   game's own name and cover, `OwnedPlatformEntity`("owned_platforms") — one row per platform the user

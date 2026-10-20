@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "82cd2b4613482a0c1a24971641b2090e",
+    "identityHash": "091a0ac263d354262efe5904382ca846",
     "entities": [
       {
         "tableName": "search_history",
@@ -596,11 +596,17 @@
       },
       {
         "tableName": "translated_descriptions",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`gameId` INTEGER NOT NULL, `languageTag` TEXT NOT NULL, `sourceHash` INTEGER NOT NULL, `translatedText` TEXT NOT NULL, PRIMARY KEY(`gameId`, `languageTag`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`subjectType` TEXT NOT NULL, `subjectId` INTEGER NOT NULL, `languageTag` TEXT NOT NULL, `sourceHash` INTEGER NOT NULL, `translatedText` TEXT NOT NULL, PRIMARY KEY(`subjectType`, `subjectId`, `languageTag`))",
         "fields": [
           {
-            "fieldPath": "gameId",
-            "columnName": "gameId",
+            "fieldPath": "subjectType",
+            "columnName": "subjectType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subjectId",
+            "columnName": "subjectId",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -626,7 +632,8 @@
         "primaryKey": {
           "autoGenerate": false,
           "columnNames": [
-            "gameId",
+            "subjectType",
+            "subjectId",
             "languageTag"
           ]
         }
@@ -850,7 +857,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '82cd2b4613482a0c1a24971641b2090e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '091a0ac263d354262efe5904382ca846')"
     ]
   }
 }

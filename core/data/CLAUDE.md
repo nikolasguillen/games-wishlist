@@ -140,8 +140,9 @@ Three files sit beside it in `commonMain`, `internal` top-level functions as eve
 all free of the client: `TranslationPromptBuilder.kt` (`buildTranslationInstructions(targetLanguage)`,
 `buildTranslationSource(description)`) owns the prompt text, `TranslationArtifactSanitizer.kt`
 (`String.stripTranslationArtifacts()`) strips what a small on-device model leaves behind, and
-`TranslationCache.kt` (`TranslationDao.translateWithCache(...)`) holds the length guard, the Room cache and its
-staleness check, taking only the engine's generate step. All three are common so every engine shares one prompt
+`TranslationCache.kt` (`TranslationDao.translateWithCache(...)`) holds the length guard, the Room cache (keyed by a
+`TranslationSubject`, mapped to its stored kind and id in `TranslationSubjectKey.kt`) and its staleness check,
+taking only the engine's generate step. All three are common so every engine shares one prompt
 and one cache. Keep them out of the translator — they are the parts worth unit-testing without a device.
 
 `dataModule` also registers an application-scoped `CoroutineScope` for this feature only: the model

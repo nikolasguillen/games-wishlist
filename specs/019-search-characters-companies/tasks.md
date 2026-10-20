@@ -379,39 +379,39 @@ grid of every game, with save and long-press working as in Search.
 
 ### Translation key (the step that wipes dev devices)
 
-- [ ] T052 [US4] **Back up first** (Settings, Account & backup, Back up now) on any device you care about: the next
+- [X] T052 [US4] **Back up first** (Settings, Account & backup, Back up now) on any device you care about: the next
   tasks change a Room entity under the `version = 1` policy, which wipes local data on the next install. Tell the owner
   this is about to happen before starting T053. (A checkpoint with no file edit; see research.md R7.)
-- [ ] T053 [US4] Create `core/domain/translation/TranslationSubject.kt`: `sealed interface TranslationSubject` with
+- [X] T053 [US4] Create `core/domain/translation/TranslationSubject.kt`: `sealed interface TranslationSubject` with
   `data class Game(val id: Int)`, `data class Character(val id: Int)` and `data class Developer(val id: Int)` (the
   sealed hierarchy keeps its implementations in the one file). Change `GameDescriptionTranslator.translate` in
   `core/domain/translation/GameDescriptionTranslator.kt` to `translate(subject: TranslationSubject, description:
   String): String?` and update its KDoc. Rename `core/domain/usecase/translation/TranslateGameDescriptionUseCase.kt` to
   `TranslateDescriptionUseCase.kt` with `invoke(subject: TranslationSubject, description: String): String?`, and update
   its binding in `core/domain/di/DomainKoin.kt`.
-- [ ] T054 [US4] In `core/database/entity/TranslatedDescriptionEntity.kt` rename `gameId` to `subjectId`, add
+- [X] T054 [US4] In `core/database/entity/TranslatedDescriptionEntity.kt` rename `gameId` to `subjectId`, add
   `subjectType: String`, and make the primary key `["subjectType", "subjectId", "languageTag"]`, updating the KDoc.
   Change `core/database/dao/TranslationDao.kt` to `getTranslation(subjectType: String, subjectId: Int, languageTag:
   String)`. Do not bump `version = 1` in `QuestLogDatabase.kt`. Run `./gradlew :core:database:compileAndroidMain
   --console=plain -q` so Room regenerates `core/database/schemas/com.nikolasguillen.questlog.core.database.QuestLogDatabase/1.json`,
   and stage that file with the entity change.
-- [ ] T055 [US4] Create `core/data/translation/TranslationSubjectKey.kt` with an `internal` mapping from
+- [X] T055 [US4] Create `core/data/translation/TranslationSubjectKey.kt` with an `internal` mapping from
   `TranslationSubject` to `(type, id)` using the literals `"game"`, `"character"` and `"developer"`. Change
   `translateWithCache` in `core/data/translation/TranslationCache.kt` to take `subject: TranslationSubject` instead of
   `gameId`, reading and saving through the new DAO signature. Update
   `core/data/translation/AppleLanguageModelTranslator.kt` and
   `core/data/src/androidMain/kotlin/com/nikolasguillen/questlog/core/data/translation/GameDescriptionTranslatorImpl.kt`
   to the new `translate(subject, description)`. The Swift bridge is not touched.
-- [ ] T056 [US4] In `feature/game-detail/GameDetailViewModel.kt` swap `TranslateGameDescriptionUseCase` for
+- [X] T056 [US4] In `feature/game-detail/GameDetailViewModel.kt` swap `TranslateGameDescriptionUseCase` for
   `TranslateDescriptionUseCase`, calling it with `TranslationSubject.Game(gameId)`. Update
   `feature/game-detail/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/gamedetail/GameDetailViewModelTest.kt`
   and the two translator tests in `core/data/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/data/translation/`
   to the new signatures, and add one case to `GameDescriptionTranslatorImplTest.kt`: a game and a character with the
   same id keep separate cache rows (the DAO is asked for `"game"` and `"character"` respectively).
-- [ ] T057 [US4] Update the translation paragraphs of `core/data/CLAUDE.md` (cache key is a subject, not a game id) and
+- [X] T057 [US4] Update the translation paragraphs of `core/data/CLAUDE.md` (cache key is a subject, not a game id) and
   the heading of "`GameDescriptionTranslator`" in `specs/010-kmp-migration/contracts/platform-contracts.md` ("(unchanged
   signature)" becomes a note that the key is a `TranslationSubject`).
-- [ ] T058 [US4] Run `./gradlew :core:database:compileAndroidMain :core:data:testAndroidHostTest
+- [X] T058 [US4] Run `./gradlew :core:database:compileAndroidMain :core:data:testAndroidHostTest
   :core:domain:testAndroidHostTest :feature:game-detail:testAndroidHostTest --console=plain -q` and
   `./gradlew :androidApp:assembleDebug --console=plain -q`. All green before the next block.
 

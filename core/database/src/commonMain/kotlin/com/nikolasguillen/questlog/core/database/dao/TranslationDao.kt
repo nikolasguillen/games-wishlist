@@ -8,8 +8,11 @@ import com.nikolasguillen.questlog.core.database.entity.TranslatedDescriptionEnt
 
 @Dao
 interface TranslationDao {
-    @Query("SELECT * FROM translated_descriptions WHERE gameId = :gameId AND languageTag = :languageTag")
-    suspend fun getTranslation(gameId: Int, languageTag: String): TranslatedDescriptionEntity?
+    @Query(
+        "SELECT * FROM translated_descriptions " +
+            "WHERE subjectType = :subjectType AND subjectId = :subjectId AND languageTag = :languageTag"
+    )
+    suspend fun getTranslation(subjectType: String, subjectId: Int, languageTag: String): TranslatedDescriptionEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveTranslation(entity: TranslatedDescriptionEntity)
