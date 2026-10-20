@@ -63,11 +63,16 @@ Success, Empty, Error — when the state is non-trivial), `private`, wrapped in
 - **Dialogs**: the text is always resolved in the composable with `stringResource(...)`; a ViewModel hands over
   a `UiText` only for content that is not fixed (`AccountBackupDialog.AccountChange.outcome`). Who owns *whether
   it is open* depends on the dialog:
-  - A confirmation that only emits one event when confirmed is composable state, `rememberSaveable` so a
-    rotation keeps it (Wishlist's delete, Search's clear history).
+  - A confirmation that only emits one event when confirmed, and needs nothing but a flag or a string to
+    word itself, is composable state, `rememberSaveable` so a rotation keeps it (Wishlist's delete, Search's
+    clear history).
   - A dialog the ViewModel decides to show, or that has a lifecycle or content of its own, is a nullable
     `dialog: <Name>Dialog?` in the `UiState` (a sealed interface in `model/`) with a `DismissDialog` event
     (`AccountBackupDialog`, `SettingsDialog`).
+  - A confirmation that needs a model the ViewModel already holds is ViewModel state too, because a model
+    object is not saveable without a custom `Saver`. The ViewModel keeps the id and derives the model from the
+    loaded list, so the dialog also closes when the item leaves the list (Wishlist's remove-game,
+    `WishlistUiState.gamePendingRemoval`).
   - Never an effect that only sets a local boolean: if the ViewModel decides, it owns the state.
 
 `@Immutable` is not only for `UiState`: every `ContentState`, every bottom-sheet or dialog `*State` and

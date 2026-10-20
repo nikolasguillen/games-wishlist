@@ -54,6 +54,10 @@ class WishlistViewModel(
     // persisted. Declared before uiState, which combines it.
     private val selectedFilter = MutableStateFlow<WishlistStatusFilter>(WishlistStatusFilter.All)
 
+    // The game the remove confirmation is open for. Only its id is kept; the state derives the game from the
+    // loaded list, so the dialog closes by itself when that game is no longer in it. Declared before uiState.
+    private val gameIdPendingRemoval = MutableStateFlow<Int?>(null)
+
     // Single source of truth: reactively observes local storage, no manually mirrored copy.
     internal val uiState: StateFlow<WishlistUiState> = combine(
         getWishlistDetailUseCase(listId)
@@ -68,10 +72,16 @@ class WishlistViewModel(
                 // added with nothing on screen to explain or clear it. A filter whose status merely ran out
                 // of games is kept on purpose: the user sees the filtered-empty message instead.
                 if (detail != null && detail.games.isEmpty()) selectedFilter.value = WishlistStatusFilter.All
+                // A game that left the list while its confirmation was open must not bring the dialog back if
+                // it is saved again later.
+                val pendingId = gameIdPendingRemoval.value
+                val stillInList = detail?.games?.any { it.id == pendingId } == true
+                if (pendingId != null && !stillInList) gameIdPendingRemoval.value = null
             },
         getWishlistViewModeUseCase(),
-        selectedFilter
-    ) { detail, viewMode, filter ->
+        selectedFilter,
+        gameIdPendingRemoval
+    ) { detail, viewMode, filter, pendingRemovalId ->
         if (detail == null) {
             WishlistUiState(viewMode = viewMode)
         } else {
@@ -99,6 +109,9 @@ class WishlistViewModel(
                 ),
                 viewMode = viewMode,
                 filterChips = allSections.toFilterChips(filter),
+                gamePendingRemoval = allSections.firstNotNullOfOrNull { section ->
+                    section.games.firstOrNull { it.id == pendingRemovalId }
+                },
                 contentState = when {
                     allSections.isEmpty() -> WishlistContentState.Empty
                     visibleSections.isEmpty() -> WishlistContentState.FilteredEmpty
@@ -113,6 +126,8 @@ class WishlistViewModel(
         return when (event) {
             is WishlistUiEvent.OnSetAsDefault -> setAsDefault()
             is WishlistUiEvent.OnWishlistDeleted -> deleteList()
+            is WishlistUiEvent.OnGameRemovalRequested -> gameIdPendingRemoval.value = event.gameId
+            is WishlistUiEvent.OnGameRemovalDismissed -> gameIdPendingRemoval.value = null
             is WishlistUiEvent.OnGameRemoved -> removeGame(event.gameId)
             is WishlistUiEvent.OnListEdited -> editList(event.values)
             is WishlistUiEvent.OnViewModeToggled -> toggleViewMode()
@@ -174,6 +189,7 @@ class WishlistViewModel(
     }
 
     private fun removeGame(gameId: Int) {
+        gameIdPendingRemoval.value = null
         viewModelScope.launch {
             removeGameFromListUseCase(gameId, listId)
         }

@@ -139,7 +139,6 @@ internal fun WishlistContent(
     // Saveable so a rotation keeps the sheet open; its own fields are saveable too.
     var showEditSheet by rememberSaveable { mutableStateOf(false) }
     var revealedGameId by remember { mutableStateOf<Int?>(null) }
-    var gamePendingRemoval by remember { mutableStateOf<GameItemUiModel?>(null) }
     // Hoisted so one scroll state serves both views (and whatever needs to observe it later).
     val gridState = rememberLazyGridState()
     val scope = rememberCoroutineScope()
@@ -224,7 +223,7 @@ internal fun WishlistContent(
                 revealedGameId = revealedGameId,
                 onRevealedGameIdChange = { revealedGameId = it },
                 onGameClick = onGameClick,
-                onGameRemoveClick = { game -> gamePendingRemoval = game },
+                onGameRemoveClick = { game -> onEvent(WishlistUiEvent.OnGameRemovalRequested(game.id)) },
                 header = header,
                 viewOptionsRow = viewOptionsRow,
                 modifier = contentModifier
@@ -255,17 +254,16 @@ internal fun WishlistContent(
             )
         }
 
-        gamePendingRemoval?.let { game ->
+        state.gamePendingRemoval?.let { game ->
             RemoveGameDialog(
                 gameName = game.name,
                 onConfirm = {
-                    gamePendingRemoval = null
                     revealedGameId = null
                     onEvent(WishlistUiEvent.OnGameRemoved(game.id))
                 },
                 onDismiss = {
-                    gamePendingRemoval = null
                     revealedGameId = null
+                    onEvent(WishlistUiEvent.OnGameRemovalDismissed)
                 }
             )
         }

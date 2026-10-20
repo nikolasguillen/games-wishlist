@@ -690,4 +690,60 @@ class WishlistViewModelTest {
         assertEquals(listOf<WishlistStatusFilter>(WishlistStatusFilter.All), refilled.selectedFilters())
         assertEquals(listOf<GameStatus?>(GameStatus.PLAYING, GameStatus.COMPLETED), refilled.sectionStatuses())
     }
+
+    @Test
+    fun `OnGameRemovalRequested opens the confirmation for that game`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(detailWith(GameStatus.PLAYING, GameStatus.COMPLETED))
+
+        viewModel.onEvent(WishlistUiEvent.OnGameRemovalRequested(gameId = 2))
+        advanceUntilIdle()
+
+        assertEquals("Game 2", viewModel.uiState.value.gamePendingRemoval?.name)
+        coVerify(exactly = 0) { removeGameFromListUseCase(any(), any()) }
+    }
+
+    @Test
+    fun `OnGameRemovalDismissed closes the confirmation without removing the game`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(detailWith(GameStatus.PLAYING))
+        viewModel.onEvent(WishlistUiEvent.OnGameRemovalRequested(gameId = 1))
+        advanceUntilIdle()
+
+        viewModel.onEvent(WishlistUiEvent.OnGameRemovalDismissed)
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.gamePendingRemoval)
+        coVerify(exactly = 0) { removeGameFromListUseCase(any(), any()) }
+    }
+
+    @Test
+    fun `OnGameRemoved removes the game from the list and closes the confirmation`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(detailWith(GameStatus.PLAYING))
+        viewModel.onEvent(WishlistUiEvent.OnGameRemovalRequested(gameId = 1))
+        advanceUntilIdle()
+
+        viewModel.onEvent(WishlistUiEvent.OnGameRemoved(gameId = 1))
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.gamePendingRemoval)
+        coVerify(exactly = 1) { removeGameFromListUseCase(1, LIST_ID) }
+    }
+
+    @Test
+    fun `the confirmation closes when its game leaves the list and stays closed if it comes back`() =
+        runTest(testDispatcher) {
+            val details = MutableSharedFlow<WishlistDetail?>()
+            val viewModel = createViewModel(details)
+            details.emit(detailWith(GameStatus.PLAYING, GameStatus.COMPLETED))
+            advanceUntilIdle()
+            viewModel.onEvent(WishlistUiEvent.OnGameRemovalRequested(gameId = 2))
+            advanceUntilIdle()
+
+            details.emit(detailWith(GameStatus.PLAYING))
+            advanceUntilIdle()
+            assertNull(viewModel.uiState.value.gamePendingRemoval)
+
+            details.emit(detailWith(GameStatus.PLAYING, GameStatus.COMPLETED))
+            advanceUntilIdle()
+            assertNull(viewModel.uiState.value.gamePendingRemoval)
+        }
 }
