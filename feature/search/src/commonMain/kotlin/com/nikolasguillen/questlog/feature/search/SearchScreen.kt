@@ -213,16 +213,18 @@ internal fun SearchScreenContent(
             }
         }
 
-    val onGameClickWithCollapse: (Int) -> Unit =
-        remember(onGameClick, searchBarState, scope) {
-            { gameId ->
-                scope.launch {
-                    onGameClick(gameId)
-                    delay(SEARCH_BAR_COLLAPSE_DELAY)
-                    searchBarState.snapTo(0F)
-                }
-            }
+    // A tap on a result opens its page, then the search bar collapses behind it, the same for every type.
+    fun withCollapse(onClick: (Int) -> Unit): (Int) -> Unit = { id ->
+        scope.launch {
+            onClick(id)
+            delay(SEARCH_BAR_COLLAPSE_DELAY)
+            searchBarState.snapTo(0F)
         }
+    }
+
+    val onGameClickWithCollapse = remember(onGameClick, searchBarState, scope) { withCollapse(onGameClick) }
+    val onCharacterClickWithCollapse =
+        remember(onCharacterClick, searchBarState, scope) { withCollapse(onCharacterClick) }
 
     // Only fires once a query or a browse (a genre or a Discover shelf) is committed and the bar is collapsed:
     // while expanded, the search bar's own predictive-back handling owns the gesture (collapsing it instead).
@@ -281,9 +283,12 @@ internal fun SearchScreenContent(
             discoverState = uiState.discover,
             onEvent = onEvent,
             onGameClick = onGameClickWithCollapse,
+            onCharacterClick = onCharacterClickWithCollapse,
+            onDeveloperClick = onDeveloperClick,
             onSeeAllClick = onOpenShelf,
             gridState = gridState,
             activeBrowse = uiState.activeBrowse,
+            resultsType = uiState.resultsType,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),

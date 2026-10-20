@@ -282,19 +282,19 @@ right empty message. A tap goes to the character's page (US4).
 **Independent Test**: [quickstart.md](quickstart.md) S4 and the characters half of S13. Until US4, tapping a card opens
 a blank page and back returns to the results.
 
-- [ ] T036 [P] [US2] Add to `feature/search/…/composeResources/values/strings.xml`: `search_no_characters` "No
+- [X] T036 [P] [US2] Add to `feature/search/…/composeResources/values/strings.xml`: `search_no_characters` "No
   characters found for this search", `search_characters_count` "%1$d characters found" and
   `character_card_content_description` "Character, %1$s".
-- [ ] T037 [P] [US2] Create `feature/search/components/CharacterPortrait.kt`:
+- [X] T037 [P] [US2] Create `feature/search/components/CharacterPortrait.kt`:
   `internal fun CharacterPortrait(imageUrl: String?, modifier: Modifier = Modifier)`: an `AsyncImage` with
   `ContentScale.Crop` clipped to `CircleShape` and `contentDescription = null`; with no image, or on error, a
   `CircleShape` box in `MaterialTheme.colorScheme.surfaceContainerHighest` holding `Icons.Outlined.Person` at half the
   circle's width (use `fillMaxSize(0.5f)` so no `dp` literal is needed). Previews with and without an image.
-- [ ] T038 [P] [US2] Create `feature/search/components/CharacterResultCard.kt`: a `Column` with a square
+- [X] T038 [P] [US2] Create `feature/search/components/CharacterResultCard.kt`: a `Column` with a square
   `CharacterPortrait` (`aspectRatio(1f)`, full card width), then the name, `maxLines = 2`, centered, `bodyMedium`, under
   it with `spacing.medium` between. The whole card is `clickable(role = Role.Button)` with `semantics(mergeDescendants
   = true) { contentDescription = stringResource(Res.string.character_card_content_description, item.name) }`.
-- [ ] T039 [US2] Create `feature/search/components/EntityResultGrid.kt`:
+- [X] T039 [US2] Create `feature/search/components/EntityResultGrid.kt`:
   `internal fun EntityResultGrid(items: List<EntityResultUiModel>, state: LazyGridState, modifier: Modifier = Modifier,
   card: @Composable (EntityResultUiModel, Modifier) -> Unit)`. Copy the geometry of `SearchResultGrid`: a
   `BoxWithConstraints`, `resultGridColumnCount(maxWidth, spacing.large, edge = spacing.large,
@@ -302,27 +302,29 @@ a blank page and back returns to the results.
   state, horizontalArrangement/verticalArrangement = spacedBy(spacing.large), contentPadding =
   PaddingValues(bottom = ScrollToTopFabDefaults.ContentBottomPadding))`, `itemsIndexed` keyed by `item.id`, each card
   padded `start = edge` in column 0 and `end = edge` in the last column, with `animateItem(fadeOutSpec = null)`.
-- [ ] T040 [US2] In `feature/search/components/SearchMainContent.kt` pass `resultsType` and the two click lambdas down
+- [X] T040 [US2] In `feature/search/components/SearchMainContent.kt` pass `resultsType` and the two click lambdas down
   (add parameters), render `EntityResults` for `CHARACTERS` with `EntityResultGrid` and `CharacterResultCard`, and make
   the `Empty` message depend on `resultsType`: `search_no_results` for Games (unchanged), `search_no_characters` for
   Characters. Update the previews.
-- [ ] T041 [US2] In `feature/search/components/SearchSubHeader.kt` make `onOpenSort` and `onOpenFilters` nullable (the
+- [X] T041 [US2] In `feature/search/components/SearchSubHeader.kt` make `onOpenSort` and `onOpenFilters` nullable (the
   buttons are drawn only when non-null), add `resultsType: SearchType = SearchType.GAMES`, and pick the count string by
   type (`search_results_count`, `search_characters_count`, and US3's `search_developers_count`). In
   `SearchBars.kt`'s `bottomContent`, add a `SearchContentState.EntityResults` branch calling it with `items.size`,
   `resultsType`, and `null` callbacks.
-- [ ] T042 [US2] In `feature/search/SearchScreen.kt` replace `onGameClickWithCollapse` with a helper that takes any
+- [X] T042 [US2] In `feature/search/SearchScreen.kt` replace `onGameClickWithCollapse` with a helper that takes any
   `(Int) -> Unit` and returns it wrapped with the same `launch { onClick(id); delay(SEARCH_BAR_COLLAPSE_DELAY);
   searchBarState.snapTo(0F) }`, and use it for `onGameClick` and `onCharacterClick` (and `onDeveloperClick` in T049).
   Pass `uiState.resultsType` and the click lambdas to `SearchMainContent`.
-- [ ] T043 [P] [US2] Add a test to `SearchViewModelTest.kt` pinning that a character result maps to
+- [X] T043 [P] [US2] Add a test to `SearchViewModelTest.kt` pinning that a character result maps to
   `EntityResultUiModel(id, name, imageUrl)` in the API's relevance order, and add `EntityResultMapperTest.kt` in
   `feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/mapper/` for both mappers
   (a null image stays null).
-- [ ] T044 [US2] Run `./gradlew :feature:search:testAndroidHostTest :androidApp:assembleDebug --console=plain -q`.
+- [X] T044 [US2] Run `./gradlew :feature:search:testAndroidHostTest :androidApp:assembleDebug --console=plain -q`.
   Hands-on: quickstart S4 (portraits, Kratos first, placeholder for Young Kratos, "2 characters found", no sort or
   filter buttons, scroll-to-top works) and the characters half of S13; tapping a card shows a blank page and back
   returns with query, chip and scroll position intact.
+  **Result (emulator)**: S4 as expected (round portraits, Kratos first, person placeholder for Young Kratos, "2 characters found", no sort or
+  filter buttons); a tap opens a blank page and back returns to the results. The empty-state wording was covered by a preview only.
 
 **Checkpoint**: characters can be searched and tapped. With US1 this is the first demonstrable slice.
 

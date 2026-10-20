@@ -2069,6 +2069,24 @@ class SearchViewModelTest {
         }
 
     @Test
+    fun `character results keep the catalogue's relevance order`() = runTest(testDispatcher) {
+        givenCharacters(
+            "kratos",
+            GameCharacter(id = 30, name = "Kratos", imageUrl = null),
+            GameCharacter(id = 10, name = "Young Kratos", imageUrl = null),
+            GameCharacter(id = 20, name = "Kratos's Wife", imageUrl = null)
+        )
+        val viewModel = createViewModel()
+
+        viewModel.selectType(SearchType.CHARACTERS)
+        viewModel.onEvent(SearchUiEvent.OnSearchTriggered("kratos"))
+        advanceUntilIdle()
+
+        val items = (viewModel.uiState.value.contentState as SearchContentState.EntityResults).items
+        assertEquals(listOf(30, 10, 20), items.map { it.id })
+    }
+
+    @Test
     fun `a Characters search that finds nothing is Empty`() = runTest(testDispatcher) {
         givenCharacters("zzzz")
         val viewModel = createViewModel()

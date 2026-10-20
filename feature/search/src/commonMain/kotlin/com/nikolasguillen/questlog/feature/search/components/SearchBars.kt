@@ -173,6 +173,17 @@ internal fun SearchTopBar(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
+            } else if (state is SearchContentState.EntityResults) {
+                // Characters and developers have nothing to sort by or filter on: just the count.
+                SearchSubHeader(
+                    resultsCount = state.items.size,
+                    isSortActive = false,
+                    onOpenSort = null,
+                    onOpenFilters = null,
+                    resultsType = uiState.resultsType,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
             }
         }
     )

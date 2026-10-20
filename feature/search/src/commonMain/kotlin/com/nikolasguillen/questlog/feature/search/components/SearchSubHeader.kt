@@ -16,19 +16,28 @@ import androidx.compose.ui.Modifier
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
+import com.nikolasguillen.questlog.feature.search.model.SearchType
 import com.nikolasguillen.questlog.feature.search.resources.Res
 import com.nikolasguillen.questlog.feature.search.resources.filter_label
+import com.nikolasguillen.questlog.feature.search.resources.search_characters_count
 import com.nikolasguillen.questlog.feature.search.resources.search_results_count
 import com.nikolasguillen.questlog.feature.search.resources.sort_label
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * The count of what is on screen, with the sort and filter buttons when there is something to sort or filter.
+ *
+ * Characters and developers have neither, so a `null` [onOpenSort] or [onOpenFilters] leaves that button out.
+ * [resultsType] picks the wording of the count.
+ */
 @Composable
 internal fun SearchSubHeader(
     resultsCount: Int,
     isSortActive: Boolean,
-    onOpenSort: () -> Unit,
-    onOpenFilters: () -> Unit,
-    modifier: Modifier = Modifier
+    onOpenSort: (() -> Unit)?,
+    onOpenFilters: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+    resultsType: SearchType = SearchType.GAMES
 ) {
     Row(
         modifier = modifier.padding(horizontal = MaterialTheme.spacing.large),
@@ -37,7 +46,11 @@ internal fun SearchSubHeader(
     ) {
         Text(
             text = stringResource(
-                Res.string.search_results_count,
+                when (resultsType) {
+                    SearchType.GAMES -> Res.string.search_results_count
+                    SearchType.CHARACTERS -> Res.string.search_characters_count
+                    SearchType.DEVELOPERS -> Res.string.search_results_count
+                },
                 resultsCount
             ),
             maxLines = 1,
@@ -46,26 +59,44 @@ internal fun SearchSubHeader(
         )
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onOpenSort) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Sort,
-                    contentDescription = stringResource(Res.string.sort_label),
-                    tint = if (isSortActive) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    }
-                )
+            if (onOpenSort != null) {
+                IconButton(onClick = onOpenSort) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Sort,
+                        contentDescription = stringResource(Res.string.sort_label),
+                        tint = if (isSortActive) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        }
+                    )
+                }
             }
 
-            IconButton(onClick = onOpenFilters) {
-                Icon(
-                    imageVector = Icons.Default.Tune,
-                    contentDescription = stringResource(Res.string.filter_label),
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
+            if (onOpenFilters != null) {
+                IconButton(onClick = onOpenFilters) {
+                    Icon(
+                        imageVector = Icons.Default.Tune,
+                        contentDescription = stringResource(Res.string.filter_label),
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
+    }
+}
+
+@QuestLogPreviews
+@Composable
+private fun SearchSubHeaderCharactersPreview() {
+    QuestLogTheme {
+        SearchSubHeader(
+            resultsCount = 2,
+            isSortActive = false,
+            onOpenSort = null,
+            onOpenFilters = null,
+            resultsType = SearchType.CHARACTERS
+        )
     }
 }
 

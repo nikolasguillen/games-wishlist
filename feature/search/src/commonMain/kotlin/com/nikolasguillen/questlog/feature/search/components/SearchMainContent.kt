@@ -1,6 +1,7 @@
 package com.nikolasguillen.questlog.feature.search.components
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -18,14 +19,17 @@ import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.DiscoverContentState
 import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfKey
 import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfUiModel
+import com.nikolasguillen.questlog.feature.search.model.EntityResultUiModel
 import com.nikolasguillen.questlog.feature.search.model.GameFilterUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchBrowseUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchContentState
+import com.nikolasguillen.questlog.feature.search.model.SearchType
 import com.nikolasguillen.questlog.feature.search.model.SearchUiEvent
 import com.nikolasguillen.questlog.feature.search.resources.Res
 import com.nikolasguillen.questlog.feature.search.resources.discover_most_anticipated
 import com.nikolasguillen.questlog.feature.search.resources.discover_popular_this_month
 import com.nikolasguillen.questlog.feature.search.resources.genre_browse_no_results
+import com.nikolasguillen.questlog.feature.search.resources.search_no_characters
 import com.nikolasguillen.questlog.feature.search.resources.search_no_results
 import org.jetbrains.compose.resources.stringResource
 
@@ -34,7 +38,8 @@ import org.jetbrains.compose.resources.stringResource
  * [SearchContentState.Idle] means no search is running, so the area belongs to [discoverState].
  *
  * [activeBrowse] is what the grid is showing when it is not a typed query, if anything. A browse renders like
- * a text search, so it only decides which message the empty state shows.
+ * a text search, so it only decides which message the empty state shows. [resultsType] is what the committed
+ * search looked up, which picks the cards of [SearchContentState.EntityResults] and the empty message.
  */
 @Composable
 internal fun SearchMainContent(
@@ -42,9 +47,12 @@ internal fun SearchMainContent(
     discoverState: DiscoverContentState,
     onEvent: (SearchUiEvent) -> Unit,
     onGameClick: (Int) -> Unit,
+    onCharacterClick: (Int) -> Unit,
+    onDeveloperClick: (Int) -> Unit,
     onSeeAllClick: (DiscoverShelfUiModel) -> Unit,
     gridState: LazyGridState,
     activeBrowse: SearchBrowseUiModel?,
+    resultsType: SearchType,
     modifier: Modifier = Modifier,
     discoverListState: LazyListState = rememberLazyListState()
 ) {
@@ -65,13 +73,31 @@ internal fun SearchMainContent(
                 message = if (activeBrowse is SearchBrowseUiModel.Genre) {
                     stringResource(Res.string.genre_browse_no_results, activeBrowse.genre.label.asString())
                 } else {
-                    stringResource(Res.string.search_no_results)
+                    stringResource(
+                        when (resultsType) {
+                            SearchType.GAMES, SearchType.DEVELOPERS -> Res.string.search_no_results
+                            SearchType.CHARACTERS -> Res.string.search_no_characters
+                        }
+                    )
                 },
                 onClearSearchClick = { onEvent(SearchUiEvent.OnClearSearch) }
             )
             is SearchContentState.Loading -> LoadingPage()
-            // Filled by the Characters and Developers stories: until their cards exist the area stays blank.
-            is SearchContentState.EntityResults -> Unit
+            is SearchContentState.EntityResults -> EntityResultGrid(
+                items = contentState.items,
+                state = gridState,
+                modifier = Modifier.fillMaxSize()
+            ) { item, cardModifier ->
+                when (resultsType) {
+                    SearchType.CHARACTERS -> CharacterResultCard(
+                        item = item,
+                        onClick = { onCharacterClick(item.id) },
+                        modifier = cardModifier
+                    )
+                    // Their card arrives with the developers story.
+                    SearchType.GAMES, SearchType.DEVELOPERS -> Unit
+                }
+            }
             is SearchContentState.Success -> {
                 SearchResultGrid(
                     games = contentState.games,
@@ -124,7 +150,8 @@ private fun DiscoverContent(
 private fun SearchMainContentPreview(
     contentState: SearchContentState,
     discoverState: DiscoverContentState = DiscoverContentState.Loading,
-    activeBrowse: SearchBrowseUiModel? = null
+    activeBrowse: SearchBrowseUiModel? = null,
+    resultsType: SearchType = SearchType.GAMES
 ) {
     QuestLogTheme {
         SearchMainContent(
@@ -132,9 +159,12 @@ private fun SearchMainContentPreview(
             discoverState = discoverState,
             onEvent = {},
             onGameClick = {},
+            onCharacterClick = {},
+            onDeveloperClick = {},
             onSeeAllClick = {},
             gridState = rememberLazyGridState(),
-            activeBrowse = activeBrowse
+            activeBrowse = activeBrowse,
+            resultsType = resultsType
         )
     }
 }
@@ -217,5 +247,28 @@ private fun SearchMainContentSuccessPreview() {
                 GameFilterUiModel.Platform(id = 0, label = UiText.DynamicString("PC"), selected = true)
             )
         )
+    )
+}
+
+@QuestLogPreviews
+@Composable
+private fun SearchMainContentCharactersPreview() {
+    SearchMainContentPreview(
+        contentState = SearchContentState.EntityResults(
+            items = listOf(
+                EntityResultUiModel(id = 1, name = "Kratos", imageUrl = null),
+                EntityResultUiModel(id = 2, name = "Young Kratos", imageUrl = null)
+            )
+        ),
+        resultsType = SearchType.CHARACTERS
+    )
+}
+
+@QuestLogPreviews
+@Composable
+private fun SearchMainContentCharactersEmptyPreview() {
+    SearchMainContentPreview(
+        contentState = SearchContentState.Empty,
+        resultsType = SearchType.CHARACTERS
     )
 }
