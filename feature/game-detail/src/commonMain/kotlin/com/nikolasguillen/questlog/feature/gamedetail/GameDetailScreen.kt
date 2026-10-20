@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,7 +64,7 @@ fun GameDetailScreen(
     // coroutine always sees the latest permission state instead of the one captured at launch.
     val latestPermissionState = rememberUpdatedState(permissionState)
     val snackbarHostState = remember { SnackbarHostState() }
-    var showPermissionDeniedDialog by remember { mutableStateOf(false) }
+    var showPermissionDeniedDialog by rememberSaveable { mutableStateOf(false) }
     // Set only while an opt-in-triggered request is in flight, so the dialog reacts to that specific
     // request's outcome instead of nagging on every screen visit while notifications happen to be off.
     var awaitingPermissionResult by remember { mutableStateOf(false) }

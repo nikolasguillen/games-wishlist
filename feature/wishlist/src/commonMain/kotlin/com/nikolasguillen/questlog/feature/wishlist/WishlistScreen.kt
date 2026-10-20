@@ -135,7 +135,7 @@ internal fun WishlistContent(
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier
 ) {
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
     // Saveable so a rotation keeps the sheet open; its own fields are saveable too.
     var showEditSheet by rememberSaveable { mutableStateOf(false) }
     var revealedGameId by remember { mutableStateOf<Int?>(null) }
