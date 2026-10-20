@@ -389,21 +389,28 @@ class SearchViewModel(
 
     /**
      * No optimistic update: the toggle writes to Room, which [observeWishlistedGameIds] re-emits from,
-     * and that is what actually patches the card. The confirmation snackbar does not wait for that
-     * round trip either -- [wasSaved] is read from [wishlistedGameIds], the shared membership cache, so
-     * it agrees with the toggle regardless of whether it came from the search grid or the Discover feed.
+     * and that is what actually patches the card. [wasSaved] is read from [wishlistedGameIds], the shared
+     * membership cache, so it agrees with the toggle regardless of whether it came from the search grid
+     * or the Discover feed. The confirmation names the default wishlist the toggle targets, since the user
+     * can rename it.
      */
     private fun toggleSave(gameId: Int) {
         val game = findGame(gameId) ?: return
         val wasSaved = gameId in wishlistedGameIds.value
 
-        viewModelScope.launch { toggleWishlistUseCase(game) }
+        viewModelScope.launch {
+            val defaultListName = getWishlistAssignmentsUseCase(game.id).first()
+                .firstOrNull { it.isDefault }?.list?.name
+            toggleWishlistUseCase(game)
 
-        val messageRes =
-            if (wasSaved) Res.string.removed_from_wishlist else Res.string.added_to_wishlist
-        _uiEffect.trySend(
-            SearchUiEffect.ShowSnackbar(message = UiText.StringResource(messageRes, game.name))
-        )
+            defaultListName?.let {
+                val messageRes =
+                    if (wasSaved) Res.string.removed_from_wishlist else Res.string.added_to_wishlist
+                _uiEffect.trySend(
+                    SearchUiEffect.ShowSnackbar(message = UiText.StringResource(messageRes, game.name, it))
+                )
+            }
+        }
     }
 
     private fun openListSelector(gameId: Int) {

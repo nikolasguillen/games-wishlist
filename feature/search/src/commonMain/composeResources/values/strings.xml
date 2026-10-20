@@ -53,6 +53,6 @@
     <string name="genre_browse_no_results">No popular %1$s games released recently</string>
 
     <!-- Wishlist toggle -->
-    <string name="added_to_wishlist">Added %1$s to Wishlist</string>
-    <string name="removed_from_wishlist">Removed %1$s from Wishlist</string>
+    <string name="added_to_wishlist">Added %1$s to %2$s</string>
+    <string name="removed_from_wishlist">Removed %1$s from %2$s</string>
 </resources>

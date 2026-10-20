@@ -763,11 +763,14 @@ class SearchViewModelTest {
         }
 
     @Test
-    fun `OnToggleSave on an unsaved game toggles it and confirms the addition by name`() =
+    fun `OnToggleSave on an unsaved game toggles it and confirms the addition by game and default list name`() =
         runTest(testDispatcher) {
             val game = testGame(id = 1, name = "Elden Ring")
             coEvery { searchGamesUseCase("elden") } returns AppResult.success(
                 SearchResult(games = listOf(game), platforms = emptyList(), genres = emptyList())
+            )
+            every { getWishlistAssignmentsUseCase(1) } returns flowOf(
+                listOf(WishlistAssignment(WishlistList(id = 10, name = "Backlog"), isAssigned = false, isDefault = true))
             )
             val viewModel = createViewModel()
             viewModel.onEvent(SearchUiEvent.OnSearchTriggered("elden"))
@@ -781,18 +784,21 @@ class SearchViewModelTest {
 
             coVerify { toggleWishlistUseCase(game) }
             val effect = effects.single() as SearchUiEffect.ShowSnackbar
-            assertEquals(UiText.StringResource(Res.string.added_to_wishlist, "Elden Ring"), effect.message)
+            assertEquals(UiText.StringResource(Res.string.added_to_wishlist, "Elden Ring", "Backlog"), effect.message)
             collectJob.cancel()
         }
 
     @Test
-    fun `OnToggleSave on a saved game toggles it and confirms the removal by name`() =
+    fun `OnToggleSave on a saved game toggles it and confirms the removal by game and default list name`() =
         runTest(testDispatcher) {
             val game = testGame(id = 1, name = "Elden Ring")
             coEvery { searchGamesUseCase("elden") } returns AppResult.success(
                 SearchResult(games = listOf(game), platforms = emptyList(), genres = emptyList())
             )
             every { getWishlistedGameIdsUseCase() } returns flowOf(setOf(1))
+            every { getWishlistAssignmentsUseCase(1) } returns flowOf(
+                listOf(WishlistAssignment(WishlistList(id = 10, name = "Backlog"), isAssigned = false, isDefault = true))
+            )
             val viewModel = createViewModel()
             viewModel.onEvent(SearchUiEvent.OnSearchTriggered("elden"))
             advanceUntilIdle()
@@ -805,7 +811,7 @@ class SearchViewModelTest {
 
             coVerify { toggleWishlistUseCase(game) }
             val effect = effects.single() as SearchUiEffect.ShowSnackbar
-            assertEquals(UiText.StringResource(Res.string.removed_from_wishlist, "Elden Ring"), effect.message)
+            assertEquals(UiText.StringResource(Res.string.removed_from_wishlist, "Elden Ring", "Backlog"), effect.message)
             collectJob.cancel()
         }
 
