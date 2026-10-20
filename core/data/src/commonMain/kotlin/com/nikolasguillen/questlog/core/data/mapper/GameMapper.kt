@@ -74,7 +74,7 @@ fun IgdbGame.toGame(): Game {
     )
 }
 
-private fun String.toIgdbImageUrl(size: String = "t_720p"): String {
+internal fun String.toIgdbImageUrl(size: String = "t_720p"): String {
     val formattedUrl = if (this.startsWith("//")) "https:$this" else this
     return formattedUrl.replace("t_thumb", size)
 }

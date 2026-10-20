@@ -49,3 +49,17 @@ data class WishlistRoute(val listId: Long) : GameNavKey
  */
 @Serializable
 data class GameDetailRoute(val gameId: Int, val fromSearch: Boolean = false) : GameNavKey
+
+/**
+ * A game character's detail page: its portrait, description and the games it appears in. Reached from a
+ * Characters search; always full-screen, never part of the two-pane Search layout.
+ */
+@Serializable
+data class CharacterDetailRoute(val characterId: Int) : GameNavKey
+
+/**
+ * A developer's detail page: its logo, description and every game it developed. Reached from a Developers
+ * search; always full-screen, never part of the two-pane Search layout.
+ */
+@Serializable
+data class DeveloperDetailRoute(val developerId: Int) : GameNavKey

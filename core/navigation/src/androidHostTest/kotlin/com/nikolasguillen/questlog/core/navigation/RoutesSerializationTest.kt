@@ -28,7 +28,9 @@ class RoutesSerializationTest {
         OnboardingRoute,
         WishlistRoute(listId = 42L),
         GameDetailRoute(gameId = 1942),
-        GameDetailRoute(gameId = 1942, fromSearch = true)
+        GameDetailRoute(gameId = 1942, fromSearch = true),
+        CharacterDetailRoute(characterId = 2134),
+        DeveloperDetailRoute(developerId = 401)
     )
 
     @Test

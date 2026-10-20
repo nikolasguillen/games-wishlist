@@ -1,5 +1,7 @@
 package com.nikolasguillen.questlog.core.network
 
+import com.nikolasguillen.questlog.core.network.model.IgdbCharacter
+import com.nikolasguillen.questlog.core.network.model.IgdbCompany
 import com.nikolasguillen.questlog.core.network.model.IgdbGame
 import com.nikolasguillen.questlog.core.network.model.IgdbPlatform
 import com.nikolasguillen.questlog.core.network.model.IgdbPopularityPrimitive
@@ -19,4 +21,8 @@ interface IgdbApiService {
     suspend fun getPlatforms(query: String): List<IgdbPlatform>
 
     suspend fun getReleaseDates(query: String): List<IgdbReleaseDateEntry>
+
+    suspend fun getCharacters(query: String): List<IgdbCharacter>
+
+    suspend fun getCompanies(query: String): List<IgdbCompany>
 }

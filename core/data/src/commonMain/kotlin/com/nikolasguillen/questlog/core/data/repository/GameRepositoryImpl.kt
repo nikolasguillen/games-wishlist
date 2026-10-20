@@ -9,7 +9,11 @@ import com.nikolasguillen.questlog.core.data.mapper.toCachedGamePlatformCrossRef
 import com.nikolasguillen.questlog.core.data.mapper.toCompanyEntities
 import com.nikolasguillen.questlog.core.data.mapper.toEngineEntities
 import com.nikolasguillen.questlog.core.data.mapper.toEntity
+import com.nikolasguillen.questlog.core.data.mapper.toCharacterProfile
+import com.nikolasguillen.questlog.core.data.mapper.toDeveloper
+import com.nikolasguillen.questlog.core.data.mapper.toDeveloperProfile
 import com.nikolasguillen.questlog.core.data.mapper.toGame
+import com.nikolasguillen.questlog.core.data.mapper.toGameCharacter
 import com.nikolasguillen.questlog.core.data.mapper.toGameCompanyCrossRefs
 import com.nikolasguillen.questlog.core.data.mapper.toGameEngineCrossRefs
 import com.nikolasguillen.questlog.core.data.mapper.toGameGenreCrossRefs
@@ -33,8 +37,12 @@ import com.nikolasguillen.questlog.core.database.entity.SearchHistoryEntity
 import com.nikolasguillen.questlog.core.domain.model.CoverImageUpdate
 import com.nikolasguillen.questlog.core.domain.repository.GameRepository
 import com.nikolasguillen.questlog.core.model.AppResult
+import com.nikolasguillen.questlog.core.model.CharacterProfile
+import com.nikolasguillen.questlog.core.model.Developer
+import com.nikolasguillen.questlog.core.model.DeveloperProfile
 import com.nikolasguillen.questlog.core.model.DiscoverLane
 import com.nikolasguillen.questlog.core.model.Game
+import com.nikolasguillen.questlog.core.model.GameCharacter
 import com.nikolasguillen.questlog.core.model.GameType
 import com.nikolasguillen.questlog.core.model.Platform
 import com.nikolasguillen.questlog.core.model.RepositoryError
@@ -191,6 +199,29 @@ private const val RADAR_REFRESH_CONCURRENCY = 3
  * slow-moving signals, so one window covers both.
  */
 private const val DISCOVER_LANE_CACHE_TTL = 6 * 60 * 60 * 1000L
+
+/**
+ * Page size for the queries that must return every game of a character or developer. 500 is IGDB's hard `limit`
+ * cap, so the loop pages with `offset` rather than assuming one response is enough: Capcom alone has 509 games
+ * once the editions are filtered out.
+ */
+private const val CREDITED_GAMES_PAGE_SIZE = 500
+
+/**
+ * Upper bound on the pages one credited-games lookup requests, so a runaway catalogue entry cannot loop for
+ * ever. Ten pages are 5,000 games, about five times the largest studio seen (Konami, 871).
+ */
+private const val CREDITED_GAMES_MAX_PAGES = 10
+
+/**
+ * The fields a game card needs, exactly as the search query asks for them. The two credited-games queries
+ * share it; the older queries above keep their own inline copies.
+ */
+private const val GAME_FIELDS =
+    "name, url, game_type, summary, first_release_date, cover.url, total_rating, total_rating_count, " +
+        "aggregated_rating, hypes, platforms.name, platforms.abbreviation, platforms.generation, " +
+        "platforms.category, platforms.platform_family, genres.name, involved_companies.company.name, " +
+        "involved_companies.developer, involved_companies.publisher"
 
 internal class GameRepositoryImpl(
     private val apiService: IgdbApiService,
@@ -378,6 +409,113 @@ internal class GameRepositoryImpl(
         } catch (e: Exception) {
             AppResult.failure(e.toRepositoryError())
         }
+    }
+
+    override suspend fun searchCharacters(query: String): AppResult<List<GameCharacter>> {
+        return try {
+            val queryText = """
+                search "$query";
+                fields name, mug_shot.url;
+                limit 100;
+            """.trimIndent()
+            AppResult.success(apiService.getCharacters(queryText).map { it.toGameCharacter() })
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override suspend fun searchDevelopers(query: String): AppResult<List<Developer>> {
+        return try {
+            // `/companies` ignores `search`, so the name is matched with a contains filter instead. Requiring
+            // `developed` keeps out the publishers and the catalogue's empty entries.
+            val queryText = """
+                fields name, logo.url, developed;
+                where name ~ *"$query"* & developed != null;
+                limit 500;
+            """.trimIndent()
+            AppResult.success(apiService.getCompanies(queryText).map { it.toDeveloper() })
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override suspend fun getCharacterProfile(characterId: Int): AppResult<CharacterProfile> {
+        return try {
+            val queryText = """
+                fields name, description, mug_shot.url, games;
+                where id = $characterId;
+            """.trimIndent()
+            val row = apiService.getCharacters(queryText).firstOrNull()
+                ?: return AppResult.failure(RepositoryError.Unknown())
+            AppResult.success(row.toCharacterProfile())
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override suspend fun getDeveloperProfile(developerId: Int): AppResult<DeveloperProfile> {
+        return try {
+            val queryText = """
+                fields name, description, logo.url, start_date;
+                where id = $developerId;
+            """.trimIndent()
+            val row = apiService.getCompanies(queryText).firstOrNull()
+                ?: return AppResult.failure(RepositoryError.Unknown())
+            AppResult.success(row.toDeveloperProfile())
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override suspend fun getGamesByIds(gameIds: List<Int>): AppResult<List<Game>> {
+        return try {
+            // A chunk of at most one page of ids can match at most one page of games, so each chunk is a single
+            // request. The chunks run one after the other: a long list is rare, and the rate budget is shared.
+            val games = gameIds.chunked(CREDITED_GAMES_PAGE_SIZE).flatMap { chunk ->
+                fetchCreditedGames(where = "id = (${chunk.joinToString(",")})", maxPages = 1)
+            }
+            AppResult.success(games)
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    override suspend fun getDevelopedGames(developerId: Int): AppResult<List<Game>> {
+        return try {
+            // Both conditions sit in one where clause, and IGDB applies them to the same involved_companies
+            // element, so a game the company only published is not matched.
+            val games = fetchCreditedGames(
+                where = "involved_companies.company = $developerId & involved_companies.developer = true",
+                maxPages = CREDITED_GAMES_MAX_PAGES
+            )
+            AppResult.success(games)
+        } catch (e: Exception) {
+            AppResult.failure(e.toRepositoryError())
+        }
+    }
+
+    /**
+     * Pages through the games matching [where], filtered like Search (no noisy game type, no edition), and
+     * concatenates the pages. Stops at the first page shorter than [CREDITED_GAMES_PAGE_SIZE] or after
+     * [maxPages]. A failure on any page propagates and fails the whole call: a partial list would show a wrong
+     * game count.
+     */
+    private suspend fun fetchCreditedGames(where: String, maxPages: Int): List<Game> {
+        val excludedIds = GameType.noisyTypes.joinToString(",") { it.id.toString() }
+        val games = mutableListOf<Game>()
+        for (page in 0 until maxPages) {
+            val queryText = """
+                fields $GAME_FIELDS;
+                where $where & game_type != ($excludedIds) & version_parent = null;
+                sort id asc;
+                limit $CREDITED_GAMES_PAGE_SIZE;
+                offset ${page * CREDITED_GAMES_PAGE_SIZE};
+            """.trimIndent()
+            val rows = apiService.searchGames(queryText)
+            games += rows.map { it.toGame() }
+            if (rows.size < CREDITED_GAMES_PAGE_SIZE) break
+        }
+        return games
     }
 
     /**

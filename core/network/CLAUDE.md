@@ -15,10 +15,12 @@ interface IgdbApiService {
     suspend fun getPopularityPrimitives(query: String): List<IgdbPopularityPrimitive>
     suspend fun getPlatforms(query: String): List<IgdbPlatform>
     suspend fun getReleaseDates(query: String): List<IgdbReleaseDateEntry>
+    suspend fun getCharacters(query: String): List<IgdbCharacter>
+    suspend fun getCompanies(query: String): List<IgdbCompany>
 }
 ```
 
-Four IGDB paths, five methods: `searchGames` and `getGameDetail` are the same call under two names, kept
+Six IGDB paths, seven methods: `searchGames` and `getGameDetail` are the same call under two names, kept
 apart only so the repository reads clearly. What distinguishes one `/games` call from another is the query
 string, so **a new kind of query needs no new method here** — Discover's shelves, the platform catalogue
 sync and the Radar refresh all reuse these.

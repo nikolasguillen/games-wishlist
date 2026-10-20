@@ -61,10 +61,11 @@ the moves in T059–T062.
 
 **Purpose**: Know the starting point, so any later failure is attributable to this feature.
 
-- [ ] T001 On branch `019-search-characters-companies`, run `./gradlew :androidApp:assembleDebug --console=plain -q`
+- [X] T001 On branch `019-search-characters-companies`, run `./gradlew :androidApp:assembleDebug --console=plain -q`
   and `./gradlew test --console=plain -q`, and record the result at the end of this task. If either is red before any
   edit, stop and tell the owner which test or module, rather than working on top of a red baseline (the 018 baseline
   had 9 environmental `:core:data` DataStore failures on Windows, so a known red set is possible).
+  **Result (2026-10-20, macOS)**: both green before any edit (`assembleDebug` and `test`, exit 0).
 
 ---
 
@@ -75,45 +76,45 @@ can start before this phase ends. Nothing here changes what the user sees.
 
 ### Network
 
-- [ ] T002 [P] Create `core/network/model/IgdbImage.kt`: `@Serializable data class IgdbImage(val id: Int, val url: String?)`
+- [X] T002 [P] Create `core/network/model/IgdbImage.kt`: `@Serializable data class IgdbImage(val id: Int, val url: String?)`
   with class KDoc and `@property` tags ("A character's `mug_shot` or a company's `logo`", url "usually starts with
   `//`"). Same shape as `IgdbCover`, which is a game's cover and stays untouched.
-- [ ] T003 [P] Create `core/network/model/IgdbCharacter.kt`: `@Serializable data class IgdbCharacter(val id: Int,
+- [X] T003 [P] Create `core/network/model/IgdbCharacter.kt`: `@Serializable data class IgdbCharacter(val id: Int,
   val name: String, val description: String? = null, @SerialName("mug_shot") val mugShot: IgdbImage? = null,
   val games: List<Int>? = null)`. KDoc: a search requests `name, mug_shot.url` only; a profile adds `description, games`
   (an id array).
-- [ ] T004 [P] Extend `core/network/model/IgdbCompany.kt` with nullable defaulted fields `description: String? = null`,
+- [X] T004 [P] Extend `core/network/model/IgdbCompany.kt` with nullable defaulted fields `description: String? = null`,
   `@SerialName("start_date") startDate: Long? = null`, `logo: IgdbImage? = null`,
   `developed: List<Int>? = null`. `id` and `name` stay as they are, so an `involved_companies.company` row (only `id`
   and `name`) still decodes. Update the KDoc `@property` tags.
-- [ ] T005 In `core/network/IgdbApiService.kt` add `suspend fun getCharacters(query: String): List<IgdbCharacter>` and
+- [X] T005 In `core/network/IgdbApiService.kt` add `suspend fun getCharacters(query: String): List<IgdbCharacter>` and
   `suspend fun getCompanies(query: String): List<IgdbCompany>`; in `core/network/IgdbApiServiceImpl.kt` implement them as
   `post("characters", query)` and `post("companies", query)`, using the existing private `post`, so timeouts and
   transport failures translate exactly as for games. Do not add a method for a character's or developer's games: they
   reuse `searchGames` (same `/games` path).
-- [ ] T006 [P] In `core/network/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/network/IgdbHttpClientTest.kt`
+- [X] T006 [P] In `core/network/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/network/IgdbHttpClientTest.kt`
   add a test per new method over `MockEngine`: it posts to `…/characters` or `…/companies` with the query as a
   `text/plain` body and decodes the rows. In `IgdbDtoDecodingTest.kt` add: a character without `mug_shot` decodes it as
   `null`; a company with only `id` and `name` still decodes; a company with `logo`, `developed` and `start_date`
   decodes them.
-- [ ] T007 [P] Update `core/network/CLAUDE.md`: add the two methods to the interface listing, and change "Four IGDB
+- [X] T007 [P] Update `core/network/CLAUDE.md`: add the two methods to the interface listing, and change "Four IGDB
   paths, five methods" to six paths and seven methods, keeping the sentence that a new kind of `/games` query needs no
   new method.
 
 ### Domain models and mapping
 
-- [ ] T008 [P] Create `core/model/GameCharacter.kt` (`id: Int`, `name: String`, `imageUrl: String?`),
+- [X] T008 [P] Create `core/model/GameCharacter.kt` (`id: Int`, `name: String`, `imageUrl: String?`),
   `core/model/CharacterProfile.kt` (`id`, `name`, `imageUrl: String?`, `description: String?`, `gameIds: List<Int>`),
   `core/model/Developer.kt` (`id`, `name`, `logoUrl: String?`, `developedGameCount: Int`) and
   `core/model/DeveloperProfile.kt` (`id`, `name`, `logoUrl: String?`, `description: String?`, `foundedYear: Int?`). One
   file each, KDoc with `@property`, no Android or Compose dependency.
-- [ ] T009 In `core/data/mapper/GameMapper.kt` change `private fun String.toIgdbImageUrl(size: String = "t_720p")` to
+- [X] T009 In `core/data/mapper/GameMapper.kt` change `private fun String.toIgdbImageUrl(size: String = "t_720p")` to
   `internal`, so the new mappers share it. Behavior is unchanged: it prefixes `https:` to a `//` url and replaces
   `t_thumb` with the size.
-- [ ] T010 [P] Create `core/data/mapper/CharacterMapper.kt` with `internal fun IgdbCharacter.toGameCharacter()` and
+- [X] T010 [P] Create `core/data/mapper/CharacterMapper.kt` with `internal fun IgdbCharacter.toGameCharacter()` and
   `internal fun IgdbCharacter.toCharacterProfile()`. Portraits use `mugShot?.url?.toIgdbImageUrl("t_cover_big")`. "A
   blank `description` from IGDB maps to `null`" (use `takeIf { it.isNotBlank() }`). `gameIds` is `games.orEmpty()`.
-- [ ] T011 [P] Create `core/data/mapper/DeveloperMapper.kt` with `internal fun IgdbCompany.toDeveloper()` and
+- [X] T011 [P] Create `core/data/mapper/DeveloperMapper.kt` with `internal fun IgdbCompany.toDeveloper()` and
   `internal fun IgdbCompany.toDeveloperProfile()`. Logos use `logo?.url?.toIgdbImageUrl("t_logo_med")`.
   `developedGameCount` is `developed.orEmpty().size`. A blank `description` maps to `null`. `foundedYear` is the UTC
   year of `startDate` (Unix seconds) through `kotlinx-datetime`:
@@ -121,11 +122,11 @@ can start before this phase ends. Nothing here changes what the user sees.
 
 ### Repository
 
-- [ ] T012 In `core/domain/repository/GameRepository.kt` add the six methods exactly as written, with their KDoc, in
+- [X] T012 In `core/domain/repository/GameRepository.kt` add the six methods exactly as written, with their KDoc, in
   [contracts/repository-contract.md](contracts/repository-contract.md): `searchCharacters(query)`,
   `searchDevelopers(query)`, `getCharacterProfile(characterId)`, `getDeveloperProfile(developerId)`,
   `getGamesByIds(gameIds)` and `getDevelopedGames(developerId)`, all returning `AppResult<…>`.
-- [ ] T013 In `core/data/repository/GameRepositoryImpl.kt` implement the six methods (same commit as T012), each as
+- [X] T013 In `core/data/repository/GameRepositoryImpl.kt` implement the six methods (same commit as T012), each as
   `try { … AppResult.success(…) } catch (e: Exception) { AppResult.failure(e.toRepositoryError()) }`. Add a private
   constant `GAME_FIELDS` holding the exact field list the existing queries send (copy it from `getGamesByDeveloper`) for
   the two games queries only; do not touch the existing six methods. Queries:
@@ -141,35 +142,35 @@ can start before this phase ends. Nothing here changes what the user sees.
   `where … & game_type != ($excludedIds) & version_parent = null` with `excludedIds` built from
   `GameType.noisyTypes` as in the other methods; the developer one is
   `where involved_companies.company = $id & involved_companies.developer = true & …`. Map rows with `toGame()`.
-- [ ] T014 [P] Create `core/data/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImplCharactersTest.kt`
+- [X] T014 [P] Create `core/data/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/data/repository/GameRepositoryImplCharactersTest.kt`
   and `GameRepositoryImplDevelopersTest.kt` (follow `GameRepositoryImplDeveloperGamesTest.kt` for the MockK setup and
   query capture): each method sends the query above; a blank description maps to `null`; 500 then 120 rows give 620
   games over two requests; exactly 500 rows give a third request; 750 ids are chunked; a thrown `IgdbHttpException` on
   page two gives `AppResult.Failure` with the mapped `Http` error; an empty profile gives `Failure(Unknown)`; more than
   ten full pages stop at 5,000 games.
-- [ ] T015 [P] Create `core/data/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/data/mapper/CharacterMapperTest.kt`
+- [X] T015 [P] Create `core/data/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/data/mapper/CharacterMapperTest.kt`
   and `DeveloperMapperTest.kt`: image urls are rewritten to `t_cover_big` and `t_logo_med` with the `https:` prefix, a
   blank description is `null`, `developedGameCount` counts `developed`, and `start_date` `473299200` (Naughty Dog) maps
-  to `1985`.
+  to `1984` (473299200 is 1984-12-31 UTC; the original text said 1985 by mistake).
 
 ### Use cases
 
-- [ ] T016 [P] Create `core/domain/usecase/search/SearchCharactersUseCase.kt`: a plain class over `GameRepository` with
+- [X] T016 [P] Create `core/domain/usecase/search/SearchCharactersUseCase.kt`: a plain class over `GameRepository` with
   `suspend operator fun invoke(query: String): AppResult<List<GameCharacter>>`, a pass-through, like
   `SearchGamesUseCase`.
-- [ ] T017 Create `core/domain/usecase/search/SearchDevelopersUseCase.kt`: `invoke(query)` returns the repository's list
+- [X] T017 Create `core/domain/usecase/search/SearchDevelopersUseCase.kt`: `invoke(query)` returns the repository's list
   ranked and capped at `DEVELOPER_RESULTS_LIMIT = 100`. Order: exact name match (ignoring case) first; then names that
   start with the query; then the rest; within a group, higher `developedGameCount` first; then name ascending.
   Put the ranking in an `internal` top-level function so the test reaches it.
-- [ ] T018 [P] Create `core/domain/usecase/profile/GetCharacterProfileUseCase.kt` and `GetDeveloperProfileUseCase.kt`:
+- [X] T018 [P] Create `core/domain/usecase/profile/GetCharacterProfileUseCase.kt` and `GetDeveloperProfileUseCase.kt`:
   pass-throughs over `getCharacterProfile` and `getDeveloperProfile`.
-- [ ] T019 [P] Create `core/domain/usecase/profile/GetCharacterGamesUseCase.kt` (`invoke(gameIds: List<Int>)`: an empty
+- [X] T019 [P] Create `core/domain/usecase/profile/GetCharacterGamesUseCase.kt` (`invoke(gameIds: List<Int>)`: an empty
   list returns `AppResult.success(emptyList())` with no repository call, otherwise `getGamesByIds`) and
   `GetDeveloperGamesUseCase.kt` (`invoke(developerId: Int)` over `getDevelopedGames`). Both return the games newest
   first by `releaseDate`, with games that have no release date last. Share the ordering through one `internal` function
   in `core/domain/usecase/profile/GameOrdering.kt`.
-- [ ] T020 Register `factoryOf` for the six new use cases in `core/domain/di/DomainKoin.kt`.
-- [ ] T021 [P] Create tests in `core/domain/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/domain/usecase/`:
+- [X] T020 Register `factoryOf` for the six new use cases in `core/domain/di/DomainKoin.kt`.
+- [X] T021 [P] Create tests in `core/domain/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/domain/usecase/`:
   `search/SearchDevelopersUseCaseTest.kt` (exact before prefix before contains, ties by count then name, case
   insensitive, cap of 100) and `profile/GetCharacterGamesUseCaseTest.kt` / `GetDeveloperGamesUseCaseTest.kt` (newest
   first, undated last, empty ids make no repository call, a failure passes through). Follow the MockK and
@@ -177,19 +178,19 @@ can start before this phase ends. Nothing here changes what the user sees.
 
 ### Navigation plumbing
 
-- [ ] T022 In `core/navigation/Routes.kt` add `@Serializable data class CharacterDetailRoute(val characterId: Int) :
+- [X] T022 In `core/navigation/Routes.kt` add `@Serializable data class CharacterDetailRoute(val characterId: Int) :
   GameNavKey` and `@Serializable data class DeveloperDetailRoute(val developerId: Int) : GameNavKey`, with KDoc. Add
   `subclass(CharacterDetailRoute::class)` and `subclass(DeveloperDetailRoute::class)` to
   `core/navigation/GameNavSavedStateConfiguration.kt`, and add `CharacterDetailRoute(characterId = 2134)` and
   `DeveloperDetailRoute(developerId = 401)` to `everyRoute` in
   `core/navigation/src/androidHostTest/kotlin/com/nikolasguillen/questlog/core/navigation/RoutesSerializationTest.kt`.
-- [ ] T023 Add `onCharacterClick: (Int) -> Unit` and `onDeveloperClick: (Int) -> Unit` to `SearchScreen` and
+- [X] T023 Add `onCharacterClick: (Int) -> Unit` and `onDeveloperClick: (Int) -> Unit` to `SearchScreen` and
   `SearchScreenContent` in `feature/search/SearchScreen.kt` (after `onGameClick`, before `onProfileClick`; update the
   `@QuestLogPreviews` calls with `{}`). Nothing calls them yet. In `shared/QuestLogNavDisplay.kt`'s `SearchRoute` branch,
   pass `onCharacterClick = { id -> val next = CharacterDetailRoute(id); if (backStack.lastOrNull() != next)
   backStack.add(next) }` and the same for `DeveloperDetailRoute`. Do not add `entryProvider` branches for the new routes
   yet: the existing `else -> NavEntry(key) { }` shows a blank page for them until US4.
-- [ ] T024 Run `./gradlew :core:network:testAndroidHostTest :core:data:testAndroidHostTest
+- [X] T024 Run `./gradlew :core:network:testAndroidHostTest :core:data:testAndroidHostTest
   :core:domain:testAndroidHostTest :core:navigation:testAndroidHostTest :feature:search:compileAndroidMain
   --console=plain -q` and `./gradlew :androidApp:assembleDebug --console=plain -q`. All must pass.
 

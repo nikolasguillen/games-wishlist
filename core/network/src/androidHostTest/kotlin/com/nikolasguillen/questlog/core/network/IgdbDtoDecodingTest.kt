@@ -1,6 +1,8 @@
 package com.nikolasguillen.questlog.core.network
 
 import com.nikolasguillen.questlog.core.network.model.IgdbAuthResponse
+import com.nikolasguillen.questlog.core.network.model.IgdbCharacter
+import com.nikolasguillen.questlog.core.network.model.IgdbCompany
 import com.nikolasguillen.questlog.core.network.model.IgdbGame
 import com.nikolasguillen.questlog.core.network.model.IgdbInvolvedCompany
 import com.nikolasguillen.questlog.core.network.model.IgdbPlatform
@@ -220,5 +222,48 @@ class IgdbDtoDecodingTest {
         assertThrows(Exception::class.java) { decode<IgdbGame>("""{ "id": 1 }""") }
         assertTrue(runCatching { decode<IgdbPlatform>("""{ "id": 1 }""") }.isFailure)
         assertFalse(runCatching { decode<IgdbPlatform>("""{ "id": 1, "name": "ok" }""") }.isFailure)
+    }
+
+    @Test
+    fun `a character without a mug shot decodes it and the other optional fields as null`() {
+        val character = decode<IgdbCharacter>("""{ "id": 7, "name": "Kratos" }""")
+
+        assertEquals("Kratos", character.name)
+        assertNull(character.mugShot)
+        assertNull(character.description)
+        assertNull(character.games)
+    }
+
+    @Test
+    fun `a character with a mug shot, a description and games decodes them`() {
+        val character = decode<IgdbCharacter>(
+            """{ "id": 7, "name": "Kratos", "description": "d", "mug_shot": { "id": 2, "url": "//u" }, "games": [1, 2] }"""
+        )
+
+        assertEquals("//u", character.mugShot?.url)
+        assertEquals("d", character.description)
+        assertEquals(listOf(1, 2), character.games)
+    }
+
+    @Test
+    fun `a company with only an id and a name still decodes`() {
+        val company = decode<IgdbCompany>("""{ "id": 3, "name": "Capcom" }""")
+
+        assertEquals("Capcom", company.name)
+        assertNull(company.logo)
+        assertNull(company.developed)
+        assertNull(company.startDate)
+        assertNull(company.description)
+    }
+
+    @Test
+    fun `a company with a logo, developed games and a start date decodes them`() {
+        val company = decode<IgdbCompany>(
+            """{ "id": 3, "name": "Naughty Dog", "logo": { "id": 5, "url": "//l" }, "developed": [4, 5], "start_date": 473299200 }"""
+        )
+
+        assertEquals("//l", company.logo?.url)
+        assertEquals(listOf(4, 5), company.developed)
+        assertEquals(473299200L, company.startDate)
     }
 }

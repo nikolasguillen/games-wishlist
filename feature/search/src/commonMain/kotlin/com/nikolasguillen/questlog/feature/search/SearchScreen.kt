@@ -77,6 +77,8 @@ private val SEARCH_BAR_COLLAPSE_DELAY = 300.milliseconds
 fun SearchScreen(
     viewModel: SearchViewModel,
     onGameClick: (Int) -> Unit,
+    onCharacterClick: (Int) -> Unit,
+    onDeveloperClick: (Int) -> Unit,
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -104,6 +106,8 @@ fun SearchScreen(
         textFieldState = viewModel.textFieldState,
         onEvent = viewModel::onEvent,
         onGameClick = onGameClick,
+        onCharacterClick = onCharacterClick,
+        onDeveloperClick = onDeveloperClick,
         onProfileClick = onProfileClick,
         snackbarHostState = snackbarHostState,
         modifier = modifier
@@ -116,6 +120,8 @@ internal fun SearchScreenContent(
     textFieldState: TextFieldState,
     onEvent: (SearchUiEvent) -> Unit,
     onGameClick: (Int) -> Unit,
+    onCharacterClick: (Int) -> Unit,
+    onDeveloperClick: (Int) -> Unit,
     onProfileClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier
@@ -336,6 +342,8 @@ private fun SearchScreenPreview() {
             textFieldState = rememberTextFieldState(),
             onEvent = {},
             onGameClick = {},
+            onCharacterClick = {},
+            onDeveloperClick = {},
             onProfileClick = {},
             snackbarHostState = remember { SnackbarHostState() }
         )
@@ -360,6 +368,8 @@ private fun SearchScreenInitialWithHistoryPreview() {
             textFieldState = rememberTextFieldState(),
             onEvent = {},
             onGameClick = {},
+            onCharacterClick = {},
+            onDeveloperClick = {},
             onProfileClick = {},
             snackbarHostState = remember { SnackbarHostState() }
         )
@@ -377,6 +387,8 @@ private fun SearchScreenLoadingPreview() {
             textFieldState = rememberTextFieldState(),
             onEvent = {},
             onGameClick = {},
+            onCharacterClick = {},
+            onDeveloperClick = {},
             onProfileClick = {},
             snackbarHostState = remember { SnackbarHostState() }
         )
@@ -392,6 +404,8 @@ private fun SearchScreenInitialPreview() {
             textFieldState = rememberTextFieldState(),
             onEvent = {},
             onGameClick = {},
+            onCharacterClick = {},
+            onDeveloperClick = {},
             onProfileClick = {},
             snackbarHostState = remember { SnackbarHostState() }
         )
@@ -409,6 +423,8 @@ private fun SearchScreenEmptyPreview() {
             textFieldState = rememberTextFieldState(),
             onEvent = {},
             onGameClick = {},
+            onCharacterClick = {},
+            onDeveloperClick = {},
             onProfileClick = {},
             snackbarHostState = remember { SnackbarHostState() }
         )

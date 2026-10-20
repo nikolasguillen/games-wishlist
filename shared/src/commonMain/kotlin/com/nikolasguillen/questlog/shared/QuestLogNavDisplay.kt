@@ -15,6 +15,8 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.nikolasguillen.questlog.core.navigation.AccountBackupRoute
+import com.nikolasguillen.questlog.core.navigation.CharacterDetailRoute
+import com.nikolasguillen.questlog.core.navigation.DeveloperDetailRoute
 import com.nikolasguillen.questlog.core.navigation.GameDetailRoute
 import com.nikolasguillen.questlog.core.navigation.ListsRoute
 import com.nikolasguillen.questlog.core.navigation.OnboardingRoute
@@ -82,6 +84,18 @@ fun QuestLogNavDisplay(
                         viewModel = vm,
                         onGameClick = { gameId: Int ->
                             openSearchDetail(backStack, gameId, twoPaneEnabled)
+                        },
+                        onCharacterClick = { characterId: Int ->
+                            val nextRoute = CharacterDetailRoute(characterId)
+                            if (backStack.lastOrNull() != nextRoute) {
+                                backStack.add(nextRoute)
+                            }
+                        },
+                        onDeveloperClick = { developerId: Int ->
+                            val nextRoute = DeveloperDetailRoute(developerId)
+                            if (backStack.lastOrNull() != nextRoute) {
+                                backStack.add(nextRoute)
+                            }
                         },
                         onProfileClick = {
                             if (backStack.lastOrNull() != SettingsRoute) {

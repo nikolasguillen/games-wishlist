@@ -2,8 +2,13 @@ package com.nikolasguillen.questlog.core.domain.repository
 
 import com.nikolasguillen.questlog.core.domain.model.CoverImageUpdate
 import com.nikolasguillen.questlog.core.model.AppResult
+import com.nikolasguillen.questlog.core.model.CharacterProfile
+import com.nikolasguillen.questlog.core.model.Developer
+import com.nikolasguillen.questlog.core.model.DeveloperProfile
 import com.nikolasguillen.questlog.core.model.Game
+import com.nikolasguillen.questlog.core.model.GameCharacter
 import com.nikolasguillen.questlog.core.model.Platform
+import com.nikolasguillen.questlog.core.model.RepositoryError
 import com.nikolasguillen.questlog.core.model.WishlistIcon
 import com.nikolasguillen.questlog.core.model.WishlistList
 import kotlinx.coroutines.flow.Flow
@@ -73,6 +78,34 @@ interface GameRepository {
      * Not persisted, like the other Discover shelves.
      */
     suspend fun getGamesByDeveloper(companyId: Int, platformIds: Set<Int>): AppResult<List<Game>>
+
+    /** Characters whose name matches [query], in IGDB's relevance order, at most 100. */
+    suspend fun searchCharacters(query: String): AppResult<List<GameCharacter>>
+
+    /**
+     * Companies credited as the developer of at least one game whose name contains [query], unranked, at most
+     * 500. Ranking is the caller's job (`SearchDevelopersUseCase`).
+     */
+    suspend fun searchDevelopers(query: String): AppResult<List<Developer>>
+
+    /** One character with its description and its game ids. No row → [RepositoryError.Unknown]. */
+    suspend fun getCharacterProfile(characterId: Int): AppResult<CharacterProfile>
+
+    /** One developer with its description and founding year. No row → [RepositoryError.Unknown]. */
+    suspend fun getDeveloperProfile(developerId: Int): AppResult<DeveloperProfile>
+
+    /**
+     * The games among [gameIds] that Search would also list (no noisy game type, no edition), every one of
+     * them, in no particular order. Network only, not cached.
+     */
+    suspend fun getGamesByIds(gameIds: List<Int>): AppResult<List<Game>>
+
+    /**
+     * Every game [developerId] is credited as developer of, filtered like Search, in no particular order.
+     * Network only, not cached. Unlike [getGamesByDeveloper] (the Discover shelf), it excludes games the
+     * company only published and applies no platform filter.
+     */
+    suspend fun getDevelopedGames(developerId: Int): AppResult<List<Game>>
     suspend fun addSearchToHistory(query: String)
     fun getRecentSearchHistory(): Flow<List<String>>
     suspend fun getFilteredSearchHistory(query: String): List<String>

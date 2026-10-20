@@ -94,11 +94,35 @@ class IgdbHttpClientTest {
         service.getPopularityPrimitives("q")
         service.getPlatforms("q")
         service.getReleaseDates("q")
+        service.getCharacters("q")
+        service.getCompanies("q")
 
         assertEquals(
-            listOf("games", "games", "popularity_primitives", "platforms", "release_dates"),
+            listOf("games", "games", "popularity_primitives", "platforms", "release_dates", "characters", "companies"),
             engine.requestHistory.map { it.url.encodedPath.removePrefix("/v4/") }
         )
+    }
+
+    @Test
+    fun `characters and companies are posted as plain text and their rows come back decoded`() = runTest {
+        val engine = MockEngine { request ->
+            if (request.url.encodedPath.endsWith("/characters")) {
+                json("""[ { "id": 7, "name": "Kratos", "mug_shot": { "id": 1, "url": "//x/t_thumb/a.jpg" } } ]""")
+            } else {
+                json("""[ { "id": 9, "name": "Capcom", "developed": [1, 2, 3] } ]""")
+            }
+        }
+        val service = serviceOver(engine)
+
+        val characters = service.getCharacters("search \"kratos\";")
+        val companies = service.getCompanies("fields name;")
+
+        assertEquals(listOf("Kratos"), characters.map { it.name })
+        assertEquals("//x/t_thumb/a.jpg", characters.single().mugShot?.url)
+        assertEquals(listOf(1, 2, 3), companies.single().developed)
+        assertEquals("search \"kratos\";", engine.requestHistory[0].text)
+        assertEquals(ContentType.Text.Plain.contentSubtype, (engine.requestHistory[0].body as TextContent).contentType.contentSubtype)
+        assertEquals("fields name;", engine.requestHistory[1].text)
     }
 
     @Test

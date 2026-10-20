@@ -40,6 +40,10 @@ import com.nikolasguillen.questlog.core.domain.usecase.notification.DeliverRelea
 import com.nikolasguillen.questlog.core.domain.usecase.notification.GetReleaseNotificationGameIdsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.SetReleaseNotificationEnabledUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.notification.SyncReleaseNotificationsUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.profile.GetCharacterGamesUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.profile.GetCharacterProfileUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.profile.GetDeveloperGamesUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.profile.GetDeveloperProfileUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.AddSearchToHistoryUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.BrowseGenreUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.ClearAllHistoryUseCase
@@ -49,6 +53,8 @@ import com.nikolasguillen.questlog.core.domain.usecase.search.GetBrowseGenresUse
 import com.nikolasguillen.questlog.core.domain.usecase.search.GetRecentSearchActivityUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.GetSearchSuggestionsUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.RemoveRecentGameUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.search.SearchCharactersUseCase
+import com.nikolasguillen.questlog.core.domain.usecase.search.SearchDevelopersUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.search.SearchGamesUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.settings.CompleteOnboardingUseCase
 import com.nikolasguillen.questlog.core.domain.usecase.settings.GetAppearanceModeUseCase
@@ -113,6 +119,12 @@ val domainModule = module {
     factoryOf(::GetSearchSuggestionsUseCase)
     factoryOf(::RemoveRecentGameUseCase)
     factoryOf(::SearchGamesUseCase)
+    factoryOf(::SearchCharactersUseCase)
+    factoryOf(::SearchDevelopersUseCase)
+    factoryOf(::GetCharacterProfileUseCase)
+    factoryOf(::GetDeveloperProfileUseCase)
+    factoryOf(::GetCharacterGamesUseCase)
+    factoryOf(::GetDeveloperGamesUseCase)
     factoryOf(::BrowseGenreUseCase)
     factoryOf(::GetBrowseGenresUseCase)
     factoryOf(::CompleteOnboardingUseCase)
