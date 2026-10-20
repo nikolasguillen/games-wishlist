@@ -3,6 +3,7 @@ package com.nikolasguillen.questlog.core.data.repository
 import com.nikolasguillen.questlog.core.cloud.error.CloudConnectivityException
 import com.nikolasguillen.questlog.core.cloud.error.CloudCredentialAlreadyLinkedException
 import com.nikolasguillen.questlog.core.cloud.error.CloudCredentialCollisionException
+import com.nikolasguillen.questlog.core.cloud.error.CloudNoAccountException
 import com.nikolasguillen.questlog.core.cloud.error.CloudSignInCancelledException
 import com.nikolasguillen.questlog.core.cloud.error.CloudTimeoutException
 import com.nikolasguillen.questlog.core.cloud.error.CloudUnauthenticatedException
@@ -29,6 +30,8 @@ internal fun Throwable.toRepositoryError(): RepositoryError {
         this is CloudUnauthenticatedException -> RepositoryError.NotSignedIn
 
         this is CloudSignInCancelledException -> RepositoryError.SignInCancelled
+
+        this is CloudNoAccountException -> RepositoryError.NoAccountAvailable
 
         this is CloudCredentialCollisionException -> RepositoryError.AccountExistsWithOtherMethod
 

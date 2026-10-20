@@ -6,10 +6,12 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.exceptions.NoCredentialException
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.nikolasguillen.questlog.core.cloud.error.CloudException
+import com.nikolasguillen.questlog.core.cloud.error.CloudNoAccountException
 import com.nikolasguillen.questlog.core.cloud.error.CloudSignInCancelledException
 import com.nikolasguillen.questlog.core.cloud.error.CloudUnauthenticatedException
 import com.nikolasguillen.questlog.core.cloud.model.CloudProvider
@@ -65,8 +67,12 @@ internal class AndroidProviderAuth(
         } catch (e: GetCredentialCancellationException) {
             throw CloudSignInCancelledException("The Google sign-in was closed", e)
         } catch (e: NoCredentialException) {
-            // No Google account on the device: nothing to say, the user adds one and tries again.
-            throw CloudSignInCancelledException("No Google account is available", e)
+            // Not a cancel: the user never saw a sheet, so the screen has to say why nothing happened.
+            throw CloudNoAccountException("No Google account is available", e)
+        } catch (e: GetCredentialException) {
+            // Credential Manager's other failures (provider misconfigured, interrupted, unknown) are not ours to
+            // classify; wrapping them keeps this module's contract and the cause for the log.
+            throw CloudException("Credential Manager failed: ${e.type}", e)
         }
         if (credential !is CustomCredential || credential.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
             throw CloudException("Credential Manager returned an unexpected credential type")

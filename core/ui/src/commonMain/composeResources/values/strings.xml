@@ -25,6 +25,7 @@
     <string name="error_file_storage">Couldn't save the file.\nPlease try again.</string>
     <string name="error_unknown">An unexpected error occurred.\nPlease try again.</string>
     <string name="error_not_signed_in">Sign in again to continue.</string>
+    <string name="error_no_account_available">No Google account was found on this device.\nAdd one in your device settings, then try again.</string>
     <string name="error_account_exists_other_method">This email is already registered with another sign-in method. Sign in with that method, then link this one from Settings.</string>
     <string name="error_method_linked_other_account">That sign-in method already belongs to another account.</string>
     <string name="error_backup_not_found">There is no backup to restore.</string>

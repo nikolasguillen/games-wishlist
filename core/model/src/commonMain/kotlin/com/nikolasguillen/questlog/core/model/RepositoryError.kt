@@ -31,6 +31,9 @@ sealed interface RepositoryError {
     /** The user closed a provider's sign-in UI. The screen shows nothing for it. */
     data object SignInCancelled : RepositoryError
 
+    /** The device has no account to sign in with, so the provider's sign-in had nothing to offer. */
+    data object NoAccountAvailable : RepositoryError
+
     /** Signing in collided with an account that belongs to a different sign-in method. */
     data object AccountExistsWithOtherMethod : RepositoryError
 

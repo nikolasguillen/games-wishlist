@@ -74,7 +74,7 @@ Mapped cases on Android: `UnknownHostException` / `ConnectException` / `SocketEx
 → `Unknown(cause)`.
 
 The `Cloud*Exception` types from `:core:cloud` map to `NoNetwork`, `RequestTimeout`, `NotSignedIn`,
-`SignInCancelled`, `AccountExistsWithOtherMethod` and `MethodLinkedToOtherAccount`, and `BackupUnreadableException`
+`SignInCancelled`, `NoAccountAvailable`, `AccountExistsWithOtherMethod` and `MethodLinkedToOtherAccount`, and `BackupUnreadableException`
 (a stream that cannot be put back together) maps to `BackupUnreadable`. `CloudRecentLoginRequiredException` is
 never mapped: `AccountRepositoryImpl.deleteAccount` answers it with one more sign-in and one retry, and a second
 refusal becomes `NotSignedIn`. A new `Cloud*` branch goes **above** the catch-all.

@@ -3,6 +3,7 @@ package com.nikolasguillen.questlog.core.data.repository
 import com.nikolasguillen.questlog.core.cloud.error.CloudConnectivityException
 import com.nikolasguillen.questlog.core.cloud.error.CloudCredentialAlreadyLinkedException
 import com.nikolasguillen.questlog.core.cloud.error.CloudCredentialCollisionException
+import com.nikolasguillen.questlog.core.cloud.error.CloudNoAccountException
 import com.nikolasguillen.questlog.core.cloud.error.CloudSignInCancelledException
 import com.nikolasguillen.questlog.core.cloud.error.CloudTimeoutException
 import com.nikolasguillen.questlog.core.cloud.error.CloudUnauthenticatedException
@@ -101,6 +102,11 @@ class RepositoryErrorMapperTest {
     @Test
     fun `a cancelled cloud sign-in maps to sign-in cancelled`() {
         assertEquals(RepositoryError.SignInCancelled, CloudSignInCancelledException().toRepositoryError())
+    }
+
+    @Test
+    fun `a missing account maps to no account available and not to a cancelled sign-in`() {
+        assertEquals(RepositoryError.NoAccountAvailable, CloudNoAccountException().toRepositoryError())
     }
 
     @Test

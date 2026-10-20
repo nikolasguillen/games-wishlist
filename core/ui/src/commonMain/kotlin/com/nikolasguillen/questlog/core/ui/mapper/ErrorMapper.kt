@@ -11,6 +11,7 @@ import com.nikolasguillen.questlog.core.ui.resources.error_backup_unreadable
 import com.nikolasguillen.questlog.core.ui.resources.error_file_storage
 import com.nikolasguillen.questlog.core.ui.resources.error_http
 import com.nikolasguillen.questlog.core.ui.resources.error_method_linked_other_account
+import com.nikolasguillen.questlog.core.ui.resources.error_no_account_available
 import com.nikolasguillen.questlog.core.ui.resources.error_no_network
 import com.nikolasguillen.questlog.core.ui.resources.error_not_signed_in
 import com.nikolasguillen.questlog.core.ui.resources.error_request_timeout
@@ -26,6 +27,7 @@ fun RepositoryError.toUiText(): UiText {
         RepositoryError.NotSignedIn -> UiText.StringResource(Res.string.error_not_signed_in)
         // Never shown: the screen ignores a cancelled sign-in. The branch exists only to keep the `when` exhaustive.
         RepositoryError.SignInCancelled -> UiText.StringResource(Res.string.error_unknown)
+        RepositoryError.NoAccountAvailable -> UiText.StringResource(Res.string.error_no_account_available)
         RepositoryError.AccountExistsWithOtherMethod ->
             UiText.StringResource(Res.string.error_account_exists_other_method)
         RepositoryError.MethodLinkedToOtherAccount ->

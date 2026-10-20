@@ -24,6 +24,8 @@ interface CloudAuth {
      * user closes the sheet.
      *
      * @throws com.nikolasguillen.questlog.core.cloud.error.CloudSignInCancelledException the user closed the sign-in.
+     * @throws com.nikolasguillen.questlog.core.cloud.error.CloudNoAccountException the device has no account to sign
+     * in with.
      * @throws com.nikolasguillen.questlog.core.cloud.error.CloudCredentialCollisionException the email belongs to an
      * account that uses a method Firebase did not link by itself.
      * @throws com.nikolasguillen.questlog.core.cloud.error.CloudConnectivityException there is no connection.
