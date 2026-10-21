@@ -40,6 +40,7 @@ import com.nikolasguillen.questlog.feature.gamedetail.resources.favorite_content
 import com.nikolasguillen.questlog.feature.gamedetail.resources.share_content_description
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.blur.HazeBlurDefaults
 import dev.chrisbanes.haze.blur.HazeBlurStyle
 import dev.chrisbanes.haze.blur.HazeColorEffect
 import dev.chrisbanes.haze.blur.hazeBlur
@@ -111,23 +112,33 @@ internal fun GameDetailActionPill(
 /**
  * The blurred, metal-bordered surface the actions sit on. Drawn as a sibling of the action [Row]
  * so the glow is not clipped by the pill shape.
+ *
+ * Haze only blurs where [HazeBlurDefaults.isBlurEnabledByDefault] holds (Android 12 and later, and
+ * iOS); elsewhere it would draw the translucent tint alone, which leaves the actions unreadable over
+ * the content, so the pill gets a solid surface instead.
  */
 @Composable
 private fun PillBackground(
     hazeState: HazeState,
     modifier: Modifier = Modifier
 ) {
-    val tintColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+    val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
 
     Box(
         modifier = modifier
             .pillGlow(color = MaterialTheme.colorScheme.primary)
             .size(width = PILL_WIDTH, height = PILL_HEIGHT)
             .clip(CircleShape)
-            .hazeBlur(
-                input = HazeInput.Sources(hazeState),
-                style = HazeBlurStyle {
-                    colorEffects(listOf(HazeColorEffect.tint(tintColor)))
+            .then(
+                if (HazeBlurDefaults.isBlurEnabledByDefault()) {
+                    Modifier.hazeBlur(
+                        input = HazeInput.Sources(hazeState),
+                        style = HazeBlurStyle {
+                            colorEffects(listOf(HazeColorEffect.tint(surfaceColor.copy(alpha = 0.4f))))
+                        }
+                    )
+                } else {
+                    Modifier.background(surfaceColor)
                 }
             )
     )
