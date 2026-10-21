@@ -20,8 +20,8 @@ val NeutralWhite = Color(0xFFFFFFFF)
 
 val ErrorRed = Color(0xFFCB1914)
 
-// The surfaces a company logo sits on. The tile follows the theme; a logo too close in tone to it (white artwork on
-// the light tile) is moved to the other one, so each scheme needs both.
+// The two tiles a company logo sits on: a light logo goes on the dark one and a dark logo on the light one. Both are
+// the same in either theme; the theme only picks which shows while the logo loads.
 val LogoTileSurfaceLight = Color(0xFFF4F4F4)
 val LogoTileSurfaceDark = NeutralMediumGrey
 

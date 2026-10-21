@@ -89,9 +89,10 @@ one by hand:
 that sits in a space smaller than the window, such as the search results grid (it can be one of two panes), passes
 the size it was given to `isLandscapeShape` rather than asking the window.
 
-`LogoBackdropAnalysis.kt`, `LogoBackdropSampler.kt` and `LogoBackdropCache.kt` — what tile colour a company logo
-should sit on (`sampleLogoBackdrop` reads a painter's edge, `resolveLogoTileColor` applies the result to the theme's two
-tiles, the cache keeps it per URL); the request that loads a logo must use `readableBitmaps()`.
+`LogoToneAnalysis.kt`, `LogoToneSampler.kt` and `LogoToneCache.kt` — whether a company logo is light or dark
+(`sampleLogoTone` reads a painter's pixels, `analyseLogoTone` is the pure rule, the cache keeps it per URL), so the
+caller can put a light logo on the dark tile and a dark one on the light tile; the request that loads such a logo must
+use `readableBitmaps()`.
 
 Also: `ColorUtils.kt`, `HtmlUtils.kt`, `MetallicEffects.kt` (brush factories:
 `primaryMetallicGradient()`, `rememberAnimatedMetallicGradient()`, `rainbowMetallicGradient()`),

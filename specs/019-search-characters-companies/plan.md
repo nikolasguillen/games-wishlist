@@ -137,7 +137,7 @@ core/data/src/commonMain/.../core/data/
 └── (androidMain) translation/GameDescriptionTranslatorImpl.kt
 core/data/CLAUDE.md                                 # mappers list, translation cache key
 
-core/designsystem/.../theme/AppColors.kt (+ light/dark instances)                     # + logoTileContainerColor
+core/designsystem/.../theme/AppColors.kt (+ light/dark instances)                     # + logoTileLightColor, logoTileDarkColor
 
 core/ui/src/
 ├── commonMain/.../core/ui/component/DetailHeader.kt                                   # new (extracted)
@@ -197,7 +197,7 @@ Each step builds, passes `./gradlew test`, and is a point the work can pause on.
 4. **Shared UI, no behavior change.**
    - Move the description card and badge family to `:core:ui`; game detail imports it.
    - Extract `DetailHeader`; the wishlist uses it.
-   - Add `CustomFilterChip.leadingIcon` and `AppColors.logoTileContainerColor`.
+   - Add `CustomFilterChip.leadingIcon` and `AppColors.logoTileLightColor` and `logoTileDarkColor`.
    - Update the `core/ui/CLAUDE.md` inventory and the platform-contracts badge row.
    - Check game detail and the wishlist header by eye: they must look exactly as before.
 5. **Detail page.** Add `EntityDetailSubject`, its state, events and effects, the view model with its tests, the

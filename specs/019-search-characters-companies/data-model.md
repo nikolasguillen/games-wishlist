@@ -144,4 +144,4 @@ Membership: `GetWishlistedGameIdsUseCase` is collected for the view model's life
 
 ## Design system (`:core:designsystem`)
 
-`AppColors` gains `logoTileContainerColor`, light in both schemes (R3).
+`AppColors` gains `logoTileLightColor` and `logoTileDarkColor`, the same in both schemes (R3).

@@ -28,12 +28,12 @@ import coil3.request.ImageRequest
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
+import com.nikolasguillen.questlog.core.designsystem.theme.isDarkTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
-import com.nikolasguillen.questlog.core.ui.util.LogoBackdrop
-import com.nikolasguillen.questlog.core.ui.util.LogoBackdropCache
+import com.nikolasguillen.questlog.core.ui.util.LogoTone
+import com.nikolasguillen.questlog.core.ui.util.LogoToneCache
 import com.nikolasguillen.questlog.core.ui.util.readableBitmaps
-import com.nikolasguillen.questlog.core.ui.util.resolveLogoTileColor
-import com.nikolasguillen.questlog.core.ui.util.sampleLogoBackdrop
+import com.nikolasguillen.questlog.core.ui.util.sampleLogoTone
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -44,12 +44,10 @@ private const val PLACEHOLDER_ICON_SHARE = 0.5f
 /**
  * A developer's logo on a rounded tile. The size comes from [modifier] and is meant to be square.
  *
- * The logo is shown whole (never cropped) with room around it. The tile starts in the theme's tone and, once the
- * picture is loaded, moves to the logo's own edge colour, so a logo drawn on a black or coloured rectangle reads as
- * one field. A logo with a transparent edge keeps the theme's tone, or the opposite one when its artwork is too close
- * to the theme's to be read (see [resolveLogoTileColor]). The building icon stands in when there is no [imageUrl] or
- * the image fails to load; it is not drawn behind a logo, which rarely fills the tile. Decorative: the card or header
- * that holds it says who the developer is.
+ * The logo is shown whole (never cropped) with room around it. Once the picture is loaded, a light logo gets the dark
+ * tile and a dark logo the light one, with a short fade from the theme's own tone, which is what shows until then. The
+ * building icon stands in when there is no [imageUrl] or the image fails to load; it is not drawn behind a logo, which
+ * rarely fills the tile. Decorative: the card or header that holds it says who the developer is.
  */
 @Composable
 internal fun DeveloperLogo(
@@ -57,14 +55,16 @@ internal fun DeveloperLogo(
     modifier: Modifier = Modifier
 ) {
     var failed by remember(imageUrl) { mutableStateOf(false) }
-    var backdrop by remember(imageUrl) {
-        mutableStateOf(imageUrl?.let { LogoBackdropCache[it] } ?: LogoBackdrop.Undetermined)
-    }
+    var tone by remember(imageUrl) { mutableStateOf(imageUrl?.let { LogoToneCache[it] }) }
     val platformContext = LocalPlatformContext.current
     val scope = rememberCoroutineScope()
     val colors = MaterialTheme.appColors
     val tileColor by animateColorAsState(
-        targetValue = backdrop.resolveLogoTileColor(colors.logoTileContainerColor, colors.logoTileContrastContainerColor),
+        targetValue = when (tone) {
+            LogoTone.LIGHT -> colors.logoTileDarkColor
+            LogoTone.DARK -> colors.logoTileLightColor
+            null -> if (MaterialTheme.isDarkTheme) colors.logoTileDarkColor else colors.logoTileLightColor
+        },
         label = "LogoTileColor"
     )
 
@@ -91,13 +91,15 @@ internal fun DeveloperLogo(
                 contentScale = ContentScale.Fit,
                 onError = { failed = true },
                 onSuccess = { state ->
-                    if (LogoBackdropCache[imageUrl] == null) {
+                    if (LogoToneCache[imageUrl] == null) {
                         scope.launch {
                             val found = withContext(Dispatchers.Default) {
-                                state.result.image.asPainter(platformContext).sampleLogoBackdrop()
+                                state.result.image.asPainter(platformContext).sampleLogoTone()
                             }
-                            LogoBackdropCache[imageUrl] = found
-                            backdrop = found
+                            if (found != null) {
+                                LogoToneCache[imageUrl] = found
+                                tone = found
+                            }
                         }
                     }
                 },

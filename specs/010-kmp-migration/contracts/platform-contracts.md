@@ -225,7 +225,7 @@ expect fun ImageRequest.Builder.readableBitmaps(): ImageRequest.Builder
 
 | Android | iOS |
 |---|---|
-| `allowHardware(false)`: a hardware bitmap cannot be drawn into the software bitmap the developer logo's tile colour is read from (`sampleLogoBackdrop`) | Returns the builder unchanged: every bitmap is readable |
+| `allowHardware(false)`: a hardware bitmap cannot be drawn into the software bitmap the developer logo's tone is read from (`sampleLogoTone`) | Returns the builder unchanged: every bitmap is readable |
 
 ### Notification permission UI — `:core:ui`
 

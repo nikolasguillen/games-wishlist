@@ -33,8 +33,8 @@ data class AppColors(
     val createCardIconContentColor: Color,
     val createCardIconBorderColor: Color,
     val accentOnScrim: Color,
-    val logoTileContainerColor: Color,
-    val logoTileContrastContainerColor: Color
+    val logoTileLightColor: Color,
+    val logoTileDarkColor: Color
 )
 
 internal val LocalAppColors = staticCompositionLocalOf {
@@ -63,8 +63,8 @@ internal val LocalAppColors = staticCompositionLocalOf {
         createCardIconContentColor = Color.Unspecified,
         createCardIconBorderColor = Color.Unspecified,
         accentOnScrim = Color.Unspecified,
-        logoTileContainerColor = Color.Unspecified,
-        logoTileContrastContainerColor = Color.Unspecified
+        logoTileLightColor = Color.Unspecified,
+        logoTileDarkColor = Color.Unspecified
     )
 }
 

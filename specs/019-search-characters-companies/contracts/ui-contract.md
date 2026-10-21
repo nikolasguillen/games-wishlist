@@ -72,7 +72,7 @@ What renders where:
 | Composable | Look | Semantics |
 |---|---|---|
 | `CharacterPortrait(imageUrl, modifier)` | the image cropped into `CircleShape`, or the `Person` placeholder | decorative (`contentDescription = null`) |
-| `DeveloperLogo(imageUrl, modifier)` | a `shapes.large` tile in the theme's `appColors.logoTileContainerColor`, animated to the logo's own edge colour or the contrast tile once the picture is read (`LogoBackdrop`); logo `ContentScale.Fit` with `spacing.medium` inset, or the `Business` placeholder | decorative |
+| `DeveloperLogo(imageUrl, modifier)` | a `shapes.large` tile, `appColors.logoTileDarkColor` for a light logo and `logoTileLightColor` for a dark one (`LogoTone`), the theme's own tone until the picture is read; logo `ContentScale.Fit` with `spacing.medium` inset, or the `Business` placeholder | decorative |
 | `CharacterResultCard(item, onClick, modifier)` | a square `CharacterPortrait` at card width, the name under it (2 lines, centered) | merged node, content description "Character, %1$s", role Button |
 | `DeveloperResultCard(item, onClick, modifier)` | a square `DeveloperLogo` at card width, the name under it | merged node, "Developer, %1$s", role Button |
 
