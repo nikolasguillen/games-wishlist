@@ -384,7 +384,7 @@ internal fun ExpandedSearchBar(
         SearchTypeChipRow(
             selected = selectedSearchType,
             onSelected = onSearchTypeSelected,
-            modifier = Modifier.padding(vertical = MaterialTheme.spacing.small)
+            modifier = Modifier.padding(vertical = MaterialTheme.spacing.small).fillMaxWidth()
         )
         HorizontalDivider()
 

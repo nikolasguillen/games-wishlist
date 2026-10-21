@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.feature.search.components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Business
@@ -29,6 +30,7 @@ internal fun SearchTypeChipRow(
     CustomChipRow(
         items = SearchType.entries,
         key = { it.name },
+        horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = modifier
     ) { type, bringIntoView ->
         CustomFilterChip(

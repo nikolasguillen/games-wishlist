@@ -44,6 +44,7 @@ fun <T> CustomChipRow(
     items: List<T>,
     key: (T) -> Any,
     modifier: Modifier = Modifier,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.spacedBy(MaterialTheme.spacing.medium),
     state: LazyListState = rememberLazyListState(),
     chip: @Composable (item: T, bringIntoView: () -> Unit) -> Unit
 ) {
@@ -53,7 +54,7 @@ fun <T> CustomChipRow(
 
     LazyRow(
         state = state,
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
+        horizontalArrangement = horizontalArrangement,
         verticalAlignment = Alignment.CenterVertically,
         contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.large),
         modifier = modifier.fadingEdgeHorizontal(
