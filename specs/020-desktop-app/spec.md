@@ -28,6 +28,16 @@ the operating system, not a resident process, has to deliver them on the release
 
 Windows is the primary development and verification platform; macOS must work equally.
 
+## Clarifications
+
+### Session 2026-10-25
+
+- Q: Does the owner have a paid Apple Developer account to sign and notarize the macOS build during this feature? → A: No. macOS closed-app reminders are built but verified end to end on Windows only; macOS signing and notarization come later.
+- Q: What happens if the plan finds cloud sign-in cannot work on desktop (library unsupported on the desktop runtime, or no provider can be offered)? → A: Desktop ships local-only; Story 5 becomes a follow-up and the account and backup screens are absent on desktop.
+- Q: What should closing the QuestLog window do on desktop? → A: Fully quit the app on both Windows and macOS; no Dock-resident or tray state.
+- Q: Which minimum operating system versions must the desktop app support? → A: Windows 10 22H2 and Windows 11; macOS 13 Ventura or later.
+- Q: Should desktop register QuestLog's game link scheme with the operating system so external links open the game? → A: No. Only notification clicks open a game; the installers register no URL scheme.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Use QuestLog as a desktop app (Priority: P1)
@@ -161,7 +171,8 @@ a backup made on desktop restores on the phone. Both directions work and use the
 mobile apps.
 
 **Why this priority**: It is what makes desktop part of the same product instead of a separate island, but
-the app is fully usable locally without it.
+the app is fully usable locally without it. If the plan finds cloud sign-in cannot work on desktop, this story
+becomes a follow-up and desktop ships local-only (see FR-024).
 
 **Independent Test**: Make a backup on a phone, sign in with the same account on desktop and restore it, then
 change the wishlist on desktop, back up, and restore on the phone.
@@ -243,7 +254,8 @@ from the installed copy.
 - **FR-001**: The system MUST provide a desktop app for Windows and macOS containing every user-facing screen
   and flow that exists on Android and iOS: Search (games, characters, developers, with their detail pages),
   game detail, saved games and lists, Radar, Settings, the account and backup screens, the welcome flow and
-  the deep-link routes that open a game.
+  the in-app route that opens a game from a notification click. Desktop MUST NOT register QuestLog's link
+  scheme with the operating system: a QuestLog link clicked in a browser or another app is not handled.
 - **FR-002**: The desktop app MUST reuse the existing adaptive layouts, including the navigation rail and the
   two-pane Search and game detail layout on wide windows, and MUST NOT introduce desktop-only screens.
 - **FR-003**: The desktop app MUST behave as mobile does for the same data: the same wording, rules, states
@@ -254,6 +266,9 @@ from the installed copy.
   have a desktop equivalent, and text input MUST support the standard clipboard and selection shortcuts.
 - **FR-006**: Only one instance of the app MUST run per user at a time. A second launch MUST bring the
   running window forward, including when it carries a game to open.
+- **FR-006a**: Closing the app's window MUST quit the app completely on both Windows and macOS. The app MUST
+  NOT stay resident in the macOS Dock without a window, and MUST NOT minimize to the system tray or menu bar.
+  "App closed" in this spec means this state.
 
 **Local data**
 
@@ -302,7 +317,10 @@ from the installed copy.
 - **FR-023**: Users MUST be able to sign in, sign out, back up and restore on desktop, with the same data
   model, rules and account as on mobile, so a backup made on one platform restores on any other.
 - **FR-024**: Desktop MUST offer the same sign-in providers as mobile. If a provider cannot be offered on a
-  platform, the account screen MUST NOT show it, and the planning phase MUST report this to the owner.
+  platform, the account screen MUST NOT show it, and the planning phase MUST report this to the owner. If no
+  provider can be offered, or the cloud library does not support the desktop runtime, desktop MUST ship
+  local-only: the account and backup screens and every entry point to them are absent on desktop, FR-023 and
+  SC-004 move to a follow-up, and the release of the rest of the feature is not blocked.
 
 **Platform features that are not supported**
 
@@ -318,10 +336,13 @@ from the installed copy.
 - **FR-028**: The project MUST produce a `.msi` installer on Windows and a `.dmg` installer on macOS, each
   built on its own operating system, and MUST document one command that starts the app from the repository on
   each.
-- **FR-029**: The macOS build MUST be signed and notarized to the extent the operating system requires for
-  notifications to work. The plan MUST state what the owner has to provide (for example an Apple developer
-  account and certificates) and what, if anything, is still not verifiable without it.
+- **FR-029**: Signing and notarizing the macOS build is out of scope for this feature: the owner has no Apple
+  developer account. The plan MUST state what signing and notarization will require later (account,
+  certificates, build steps) and which macOS behaviors cannot be verified until then. The macOS code paths for
+  reminders and notification clicks MUST still be implemented, not stubbed.
 - **FR-030**: Linux MUST NOT be a target, an installer or a tested platform.
+- **FR-030a**: The desktop app MUST support Windows 10 22H2, Windows 11 and macOS 13 Ventura or later. Older
+  versions are not supported or tested, and the installers MAY refuse to install on them.
 
 **Compatibility and documentation**
 
@@ -365,9 +386,10 @@ from the installed copy.
   with every saved game, list and setting the backup holds present afterward.
 - **SC-005**: Every opted-in game with an exact future release day produces exactly one notification on that
   day on both operating systems with the app fully closed, with no duplicate and no miss across normal use
-  including quitting and reopening.
+  including quitting and reopening. (Verified on Windows only in this feature; see Assumptions.)
 - **SC-006**: Clicking a release notification lands the user on the right game's detail screen in 100 % of
-  attempts from a closed or running app, always in a single window.
+  attempts from a closed or running app, always in a single window. (Closed-app clicks verified on Windows
+  only in this feature.)
 - **SC-007**: After a release date is refreshed while the app is open, 100 % of opted-in games are reminded on
   the new day and none on the old one; after a launch following a closed-app change, the same holds.
 - **SC-008**: Turning a reminder off, or unsaving the game, results in no notification for that game in 100 %
@@ -375,14 +397,16 @@ from the installed copy.
 - **SC-009**: A user who has blocked notifications can tell from inside the app that reminders will not fire
   and reach the system settings in one action from the Settings Notifications group.
 - **SC-010**: A `.msi` is produced on Windows and a `.dmg` on macOS, and the reminder behavior of SC-005
-  holds from the installed copy, not only from a development run.
+  holds from the installed copy, not only from a development run. (The `.dmg` is unsigned in this feature, so
+  the installed-copy reminder check is done on Windows.)
 - **SC-011**: No screen on desktop offers translation, mentions background refresh, or shows a control that
   does nothing.
 - **SC-012**: All existing Android and iOS tests still pass, and Android builds at every commit.
 
 ## Assumptions
 
-- "Desktop" means Windows and macOS only. Linux, web, tablets and TV targets are out of scope.
+- "Desktop" means Windows (10 22H2 and 11) and macOS (13 Ventura or later) only. Linux, web, tablets and TV
+  targets are out of scope.
 - The same reminder rules as mobile apply: one notification per game, on its release day, not repeated or
   escalated, with the same wording per language and the same local time of day iOS uses.
 - Release dates on desktop are kept current by the existing in-app refresh (at launch and while the app is
@@ -391,9 +415,10 @@ from the installed copy.
 - Closed-app delivery uses the operating system's own scheduling (scheduled toast notifications on Windows,
   user notifications on macOS) and no resident background process; this is the owner's decision. Whether
   each one works from a development run, an installed copy, or only a signed one is a planning question.
-- A macOS build that the system accepts for notifications has to be signed and notarized. If the owner has no
-  Apple developer account, closed-app reminders on macOS cannot be verified end to end, and SC-005, SC-006
-  and SC-010 are verified on Windows only for the time being. The plan states what the owner needs to supply.
+- A macOS build that the system accepts for notifications has to be signed and notarized. The owner has no
+  Apple developer account for this feature, so closed-app reminders on macOS cannot be verified end to end:
+  SC-005, SC-006 and SC-010 are verified on Windows only, and macOS is verified to build, run and pass every
+  other criterion. The plan states what the owner will need to supply later.
 - The Windows installer is not code-signed in this feature; the operating system may show an unrecognised
   publisher warning on first run. Signing it is a later decision.
 - Desktop is verified on Windows first and on a Mac when one is at hand; anything only the Mac can verify is
@@ -409,7 +434,8 @@ from the installed copy.
 1. How sign-in works on desktop, since the mobile mechanisms (Android's account picker, Sign in with Apple's
    native sheet) do not exist there; likely a system-browser sign-in. This decides FR-024 for each provider.
 2. Whether the cloud library the project uses supports the account and database features on the desktop
-   runtime. If it does not, the plan must propose an alternative; that is a library swap the owner decides.
+   runtime. If it does not, the plan may propose an alternative, which is a library swap the owner decides;
+   without an approved swap, desktop ships local-only per FR-024.
 3. How the app reaches each operating system's notification scheduling, what identity or packaging each
    needs, and what that adds to the build and installers.
 4. Whether a missed reminder (computer off at the time) is delivered when it wakes, per platform.
