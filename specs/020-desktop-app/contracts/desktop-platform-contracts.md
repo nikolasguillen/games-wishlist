@@ -35,7 +35,7 @@ implementation picks at runtime through `DesktopNotifications` (below) or `os.na
 | `TranslationEngineBadge` (`:core:ui`) | Draws nothing (unreachable) |
 | `runBlockingCompat` (`:shared`) | `kotlinx.coroutines.runBlocking` |
 | `databasePlatformModule` (`:core:database`) | `Room.databaseBuilder<QuestLogDatabase>(appDataDirectory()/questlog.db)` with `BundledSQLiteDriver` |
-| `networkPlatformModule` (`:core:network`) | OkHttp engine; `ElapsedRealtimeSource` over `System.nanoTime()` |
+| `networkPlatformModule` (`:core:network`) | OkHttp engine; `ElapsedRealtimeSource` over `System.currentTimeMillis()` (keeps counting through sleep) |
 | `CloudAuth`, `CloudBackupStore` (`:core:cloud`) | `RestCloudAuth`, `RestBackupStore` (research R3–R6, [firestore-rest.md](firestore-rest.md)). `provider = GOOGLE`. `PlatformProviderAuth` is not used on desktop |
 
 ### Contract change: `TextSharer`

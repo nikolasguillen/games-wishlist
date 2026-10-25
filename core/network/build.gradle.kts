@@ -40,6 +40,9 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
         }
+        getByName("desktopMain").dependencies {
+            implementation(libs.ktor.client.okhttp)
+        }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
