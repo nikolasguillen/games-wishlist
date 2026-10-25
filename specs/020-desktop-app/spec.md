@@ -209,8 +209,8 @@ from the installed copy.
    the app starts.
 2. **Given** a Windows machine, **When** the installer is built, **Then** a `.msi` is produced; on a Mac,
    **When** the installer is built, **Then** a `.dmg` is produced.
-3. **Given** an installed copy, **When** the user uninstalls it, **Then** the app and the reminders it armed
-   are removed (see Edge Cases for what the platform can guarantee).
+3. **Given** an installed copy, **When** the user uninstalls it, **Then** the app is removed. Reminders it
+   armed are removed only where the operating system allows it (see Edge Cases and FR-021).
 
 ---
 
@@ -235,7 +235,8 @@ from the installed copy.
   database twice.
 - **Reinstall, data cleared or uninstall.** No stale notification from a previous install is delivered. Where
   the platform cannot remove pending notifications on uninstall, the plan says so and the first launch after a
-  reinstall clears them.
+  reinstall clears them. On Windows a reminder armed before an uninstall may still appear on its date, without
+  opening the game.
 - **Backup restore on a machine that has opt-ins armed.** Reminders end up matching the restored data; none
   remain armed for games the restore removed.
 - **Offline at launch.** Release-date refresh is skipped without blocking the app; the staleness check runs

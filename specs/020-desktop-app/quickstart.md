@@ -86,3 +86,7 @@ marked **record** in the platform contracts' register.
 | 30 | W: sleep or shut down over a reminder's 09:00; wake / start later | **record** whether it is shown late | Edge: computer off |
 | 31 | W: change the time zone after arming; relaunch | Re-armed to 09:00 in the new zone | FR-019 |
 | 32 | M *(if possible)*: rows 10, 15 and 16 from `runDistributable` | **record** the result | SC-005/006 on macOS |
+| 33 | Opt in a game whose release date was refreshed to a past day, and one that is already released | No notification is armed or delivered for either | FR-014 |
+| 34 | Opt in 65 games with different future dates | Only the 64 soonest are pending; unsaving one arms the next | FR-020 |
+| 35 | Toggle "Notify me" on Radar, game detail and Settings for one game | The state matches on all three surfaces | FR-009 |
+| 36 | W: with notifications blocked, opt in from game detail | The denied dialog appears once and its button opens Windows Settings | FR-017 |
