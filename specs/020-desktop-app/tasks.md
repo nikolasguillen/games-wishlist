@@ -39,7 +39,7 @@ and macOS bindings are covered by the walkthrough in `quickstart.md §5`, not by
 
 **Purpose**: Make the build able to have a desktop target at all.
 
-- [ ] T001 Add `desktop` to the `SCOPES` list in `.githooks/commit-msg` so `feat(desktop): …` commits pass the hook
+- [X] T001 Add `desktop` to the `SCOPES` list in `.githooks/commit-msg` so `feat(desktop): …` commits pass the hook
 - [ ] T002 [P] Add `jna` and `jna-platform` (version `5.19.1`) and `kotlinx-coroutines-swing` (version `1.11.0`, group `org.jetbrains.kotlinx`) to `gradle/libs.versions.toml` (`[versions]` + `[libraries]`)
 - [ ] T003 [P] Add `include(":desktopApp")` after `include(":shared")` in `settings.gradle.kts`
 - [ ] T004 Add `jvm("desktop")` to `build-logic/convention/src/main/kotlin/KmpLibraryConventionPlugin.kt` inside the `KotlinMultiplatformExtension` block, with `compilerOptions.jvmTarget.set(JvmTarget.JVM_17)` for the desktop target (R1); also add `desktopTest` dependencies `junit`, `mockk`, `kotlinx-coroutines-test` there so every module can host desktop tests. Update the class KDoc ("an Android target, the two iOS targets and a desktop target")
