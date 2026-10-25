@@ -59,7 +59,7 @@ Reminders and cloud are temporarily inert here (bound but doing nothing); US2–
 
 ### Platform actuals per module
 
-- [ ] T007 [P] `core/common/build.gradle.kts`: add `desktopMain` dependencies `libs.jna`, `libs.jna.platform`, `libs.kotlinx.coroutines.core`, `libs.koin.core` (match the module's existing Android/iOS dependencies for everything else)
+- [X] T007 [P] `core/common/build.gradle.kts`: add `desktopMain` dependencies `libs.jna`, `libs.jna.platform`, `libs.kotlinx.coroutines.core`, `libs.koin.core` (match the module's existing Android/iOS dependencies for everything else)
 - [ ] T008 [P] `core/common/src/desktopMain/kotlin/PKG/core/common/DateRendering.desktop.kt`: `actual fun renderLocalDate(date, pattern)`, `renderLocalDate(date, style: DateStyle)` and `renderLocalDateTime(dateTime, dateStyle, timeStyle)` using `java.time.format.DateTimeFormatter` with `Locale.getDefault()`, same output as `DateRendering.android.kt`
 - [ ] T009 [P] `core/common/src/desktopMain/kotlin/PKG/core/common/AppVersionProviderImpl.kt` (`versionName = System.getProperty("questlog.version").orEmpty()`) and `NetworkStatusProviderImpl.kt` (`isUnmeteredNetworkAvailable = true`)
 - [ ] T010 [P] `core/common/src/desktopMain/kotlin/PKG/core/common/desktop/AppDataDirectory.kt`: `fun appDataDirectory(): java.nio.file.Path` — `%LOCALAPPDATA%\QuestLog` on Windows (fallback `user.home\AppData\Local\QuestLog`), `~/Library/Application Support/QuestLog` on macOS; creates the directory on first use (data-model §1, R10)
