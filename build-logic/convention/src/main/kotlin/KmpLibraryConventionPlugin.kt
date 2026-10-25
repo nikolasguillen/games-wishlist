@@ -7,13 +7,16 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 /**
- * `questlog.kmp.library`: a multiplatform library module with an Android target and the two iOS targets.
+ * `questlog.kmp.library`: a multiplatform library module with an Android target, the two iOS targets and a desktop
+ * (JVM) target.
  *
  * It owns what every module used to repeat by hand — `compileSdk`, `minSdk`, Java 11 and the namespace — and
  * derives the namespace from the project path, so `:feature:game-detail` becomes
  * `com.nikolasguillen.questlog.feature.gamedetail`, exactly what it was before the conversion.
  *
- * Android host tests live in `androidHostTest` and run with `testAndroidHostTest`.
+ * Android host tests live in `androidHostTest` and run with `testAndroidHostTest`; desktop tests live in
+ * `desktopTest` and run with `desktopTest`. The desktop target compiles to JVM 17 bytecode while the installers bundle
+ * a JDK 21 runtime, so a module's desktop code is free of anything newer than 17.
  */
 class KmpLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -24,6 +27,16 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
             extensions.configure<KotlinMultiplatformExtension> {
                 iosArm64()
                 iosSimulatorArm64()
+
+                jvm("desktop") {
+                    compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
+                }
+
+                sourceSets.getByName("desktopTest").dependencies {
+                    implementation(lib("junit"))
+                    implementation(lib("mockk"))
+                    implementation(lib("kotlinx-coroutines-test"))
+                }
 
                 targets.withType<KotlinMultiplatformAndroidLibraryTarget>().configureEach {
                     namespace = questLogNamespace()
