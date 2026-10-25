@@ -46,3 +46,6 @@ __pycache__/
 xcuserdata/
 iosApp/build/
 DerivedData/
+
+# Desktop app: the built macOS notifications library, copied in by the :desktopApp build
+desktopApp/resources/

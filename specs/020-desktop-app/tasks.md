@@ -44,7 +44,7 @@ and macOS bindings are covered by the walkthrough in `quickstart.md §5`, not by
 - [X] T003 [P] Add `include(":desktopApp")` after `include(":shared")` in `settings.gradle.kts`
 - [X] T004 Add `jvm("desktop")` to `build-logic/convention/src/main/kotlin/KmpLibraryConventionPlugin.kt` inside the `KotlinMultiplatformExtension` block, with `compilerOptions.jvmTarget.set(JvmTarget.JVM_17)` for the desktop target (R1); also add `desktopTest` dependencies `junit`, `mockk`, `kotlinx-coroutines-test` there so every module can host desktop tests. Update the class KDoc ("an Android target, the two iOS targets and a desktop target")
 - [ ] T005 Extend the root `test` task in `build.gradle.kts` so each multiplatform module also `dependsOn(module.tasks.named("desktopTest"))` next to `testAndroidHostTest`; update its comment ("every JVM unit test: Android host tests and desktop tests"). Also make `test` depend on the plain JVM shell's tests, because `:desktopApp` has no `kotlin.multiplatform` plugin and the loop skips it: `project(":desktopApp").pluginManager.withPlugin("org.jetbrains.kotlin.jvm") { dependsOn(project(":desktopApp").tasks.named("test")) }`
-- [ ] T006 [P] Add to `.gitignore`: `desktopApp/resources/` (the built macOS dylib) and any `desktopApp/build` output not already covered
+- [X] T006 [P] Add to `.gitignore`: `desktopApp/resources/` (the built macOS dylib) and any `desktopApp/build` output not already covered
 
 **Checkpoint**: `./gradlew :core:model:tasks` still configures; no module compiles for desktop yet.
 
