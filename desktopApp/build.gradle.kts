@@ -27,6 +27,9 @@ dependencies {
     implementation(compose.desktop.currentOs)
     // startQuestLogDesktop returns the Koin instance, and the compiler needs its class to name it.
     implementation(libs.koin.core)
+    // The back keys feed the same navigation-event dispatcher that :shared's back handlers listen to.
+    implementation(libs.jetbrains.navigationevent.compose)
+    implementation(libs.jetbrains.lifecycle.runtime.compose)
     implementation(libs.kotlinx.coroutines.swing)
     implementation(libs.jna)
     implementation(libs.jna.platform)
