@@ -15,15 +15,20 @@ plugins {
     alias(libs.plugins.google.services) apply false
 }
 
-// A multiplatform module has no `test` task: its JVM tests are `testAndroidHostTest`. This root task keeps
-// `./gradlew test` meaning "every module's unit tests". It is not `allTests`, which would also run the iOS simulator
-// tests.
+// A multiplatform module has no `test` task: its JVM tests are `testAndroidHostTest` and `desktopTest`. This root task
+// keeps `./gradlew test` meaning "every module's unit tests". It is not `allTests`, which would also run the iOS
+// simulator tests.
 tasks.register("test") {
     group = "verification"
-    description = "Runs the Android host tests of every multiplatform module."
+    description = "Runs every JVM unit test: the Android host tests and the desktop tests."
     subprojects.forEach { module ->
         module.pluginManager.withPlugin("org.jetbrains.kotlin.multiplatform") {
             dependsOn(module.tasks.named("testAndroidHostTest"))
+            dependsOn(module.tasks.named("desktopTest"))
         }
+    }
+    // :desktopApp is a plain JVM module, so the loop above does not see it.
+    project(":desktopApp").pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
+        dependsOn(project(":desktopApp").tasks.named("test"))
     }
 }
