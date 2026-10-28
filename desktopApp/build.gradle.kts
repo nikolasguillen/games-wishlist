@@ -1,3 +1,4 @@
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 // The desktop shell: the window, the single-instance guard and the notification click handling around `:shared`. It is
@@ -38,10 +39,38 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
 }
 
+// What the app reports as its version (AppVersionProvider) and the installers carry.
+val appVersion = "1.0.0"
+
 compose.desktop {
     application {
         mainClass = "com.nikolasguillen.questlog.desktop.MainKt"
-        // What the app reports as its version (AppVersionProvider); the packaged copy gets the same value in T100.
-        jvmArgs += "-Dquestlog.version=1.0.0"
+        jvmArgs += "-Dquestlog.version=$appVersion"
+
+        nativeDistributions {
+            targetFormats(TargetFormat.Msi, TargetFormat.Dmg)
+            packageName = "QuestLog"
+            packageVersion = appVersion
+            vendor = "Nikolas Guillen"
+            // The JLink runtime keeps only these modules; `suggestRuntimeModules` lists what the app needs.
+            modules("java.desktop", "java.instrument", "java.management", "java.naming", "java.sql", "jdk.httpserver", "jdk.unsupported")
+
+            // Icons: `icons/` is exported from the launcher artwork, `androidApp/src/main/ic_launcher-playstore.png`.
+            windows {
+                menu = true
+                shortcut = true
+                perUserInstall = true
+                // Fixed once so that a new installer upgrades the installed copy instead of installing beside it.
+                upgradeUuid = "09DDB8C2-443B-4AB2-8BF9-381999F4290C"
+                iconFile.set(project.file("icons/QuestLog.ico"))
+            }
+            macOS {
+                bundleID = "com.nikolasguillen.questlog"
+                iconFile.set(project.file("icons/QuestLog.icns"))
+                infoPlist {
+                    extraKeysRawXml = "<key>LSMinimumSystemVersion</key><string>13.0</string>"
+                }
+            }
+        }
     }
 }

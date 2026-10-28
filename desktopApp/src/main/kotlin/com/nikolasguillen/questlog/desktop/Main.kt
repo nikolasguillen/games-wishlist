@@ -25,10 +25,12 @@ fun main() {
     val instance = SingleInstance.acquireOrHandOver(handOver = SingleInstanceMessage.Focus) ?: exitProcess(0)
 
     startQuestLogDesktop(isDebugBuild = true)
+    installDockIcon()
 
     application {
         Window(
             title = "QuestLog", // The brand name, so it is not a string resource.
+            icon = appIconPainter,
             state = rememberWindowState(size = DpSize(1100.dp, 760.dp)),
             onCloseRequest = ::exitApplication
         ) {
