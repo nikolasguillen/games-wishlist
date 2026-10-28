@@ -202,4 +202,5 @@
     <string name="owned_platforms_clear_search_action">Clear search</string>
     <string name="owned_platforms_no_results">No platform matches your search.</string>
     <string name="owned_platforms_empty">No platforms cached yet.\nCheck your connection and try again.</string>
+    <string name="share_copied_to_clipboard">Copied to clipboard</string>
 </resources>

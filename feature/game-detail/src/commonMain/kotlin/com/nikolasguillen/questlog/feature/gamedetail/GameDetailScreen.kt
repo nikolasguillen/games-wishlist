@@ -20,6 +20,9 @@ import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
 import com.nikolasguillen.questlog.core.ui.component.ListSelectorSheet
+import com.nikolasguillen.questlog.core.ui.model.UiText
+import com.nikolasguillen.questlog.core.ui.resources.Res as CoreUiRes
+import com.nikolasguillen.questlog.core.ui.resources.share_copied_to_clipboard
 import com.nikolasguillen.questlog.core.ui.util.rememberNotificationOptInRequest
 import com.nikolasguillen.questlog.core.ui.util.rememberTextSharer
 import com.nikolasguillen.questlog.feature.gamedetail.components.GameDetailMainContent
@@ -59,6 +62,15 @@ fun GameDetailScreen(
                 when (effect) {
                     is GameDetailUiEffect.ShareGame -> {
                         textSharer.share(effect.text.resolve())
+                        // Where sharing is a copy there is no sheet to show for it, so say that it happened.
+                        if (textSharer.copiesToClipboard) {
+                            launch {
+                                snackbarHostState.currentSnackbarData?.dismiss()
+                                snackbarHostState.showSnackbar(
+                                    UiText.StringResource(CoreUiRes.string.share_copied_to_clipboard).resolve()
+                                )
+                            }
+                        }
                     }
 
                     is GameDetailUiEffect.NavigateToGame -> {
