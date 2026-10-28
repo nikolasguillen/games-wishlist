@@ -1,5 +1,7 @@
 package com.nikolasguillen.questlog.shared
 
+import com.nikolasguillen.questlog.core.cloud.di.CLOUD_DATA_DIRECTORY_PROPERTY
+import com.nikolasguillen.questlog.core.common.desktop.appDataDirectory
 import com.nikolasguillen.questlog.core.domain.radar.ReleaseRefreshScheduler
 import com.nikolasguillen.questlog.shared.di.initKoin
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +18,10 @@ import org.koin.mp.KoinPlatform
  */
 fun startQuestLogDesktop(isDebugBuild: Boolean): Koin {
     KoinPlatform.getKoinOrNull()?.let { return it }
-    val koin = initKoin(isDebugBuild).koin
+    val koin = initKoin(isDebugBuild) {
+        // The cloud module does not know where the app keeps its data, so the signed-in session's directory is given.
+        properties(mapOf(CLOUD_DATA_DIRECTORY_PROPERTY to appDataDirectory().toString()))
+    }.koin
     koin.get<ReleaseRefreshScheduler>().schedulePeriodicRefresh()
     return koin
 }

@@ -5,6 +5,7 @@ import com.nikolasguillen.questlog.feature.search.model.EntityDetailSubject
 import org.junit.Test
 import org.koin.dsl.module
 import org.koin.test.verify.verify
+import java.nio.file.Path
 
 /**
  * The desktop counterpart of the Android `KoinGraphTest`: every dependency of every registered class is declared in
@@ -25,7 +26,9 @@ class DesktopKoinGraphTest {
                 Int::class, Long::class, Boolean::class, EntityDetailSubject::class,
                 // Only the Android worker delivers a notification itself, through DeliverReleaseNotificationUseCase;
                 // here the operating system posts it, so nothing binds a notifier and nothing resolves that use case.
-                ReleaseNotifier::class
+                ReleaseNotifier::class,
+                // The signed-in session's directory is passed as a Koin property and turned into a path in the module.
+                Path::class
             )
         )
     }
