@@ -8,6 +8,8 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 actual val cloudPlatformModule = module {
+    includes(firebaseCloudModule)
+
     // Created at start so the lifecycle callbacks are registered before the first Activity resumes.
     single(createdAtStart = true) {
         CurrentActivityTracker().also { (androidContext() as Application).registerActivityLifecycleCallbacks(it) }

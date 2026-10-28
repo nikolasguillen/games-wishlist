@@ -6,6 +6,8 @@ import com.nikolasguillen.questlog.core.cloud.PlatformProviderAuth
 import org.koin.dsl.module
 
 actual val cloudPlatformModule = module {
+    includes(firebaseCloudModule)
+
     // The bridge itself is bound by startQuestLog, like the other Swift bridges.
     single<PlatformProviderAuth> { IosProviderAuth(get<IdentityProviderBridge>()) }
 }
