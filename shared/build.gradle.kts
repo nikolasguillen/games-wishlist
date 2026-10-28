@@ -57,6 +57,12 @@ kotlin {
             implementation(libs.jetbrains.compose.ui)
             implementation(libs.ktor.client.darwin)
         }
+        desktopMain.dependencies {
+            implementation(libs.jetbrains.compose.ui)
+            implementation(libs.ktor.client.okhttp)
+            // Dispatchers.Main on desktop is the Swing event thread.
+            implementation(libs.kotlinx.coroutines.swing)
+        }
         androidHostTest.dependencies {
             implementation(libs.junit)
             implementation(libs.mockk)
@@ -65,6 +71,10 @@ kotlin {
             implementation(libs.koin.test.junit4)
             // WorkerParameters is a type the graph test declares as supplied at runtime.
             implementation(libs.androidx.work.runtime.ktx)
+        }
+        desktopTest.dependencies {
+            implementation(libs.koin.test)
+            implementation(libs.koin.test.junit4)
         }
     }
 }
