@@ -8,6 +8,7 @@ plugins {
     // The multiplatform plugins are applied by the convention plugins in build-logic; declaring them here puts
     // them on the build's plugin classpath once, at one version.
     alias(libs.plugins.jetbrains.kotlin.multiplatform) apply false
+    alias(libs.plugins.jetbrains.kotlin.jvm) apply false
     alias(libs.plugins.android.kotlin.multiplatform.library) apply false
     alias(libs.plugins.jetbrains.compose) apply false
     alias(libs.plugins.androidx.room) apply false
