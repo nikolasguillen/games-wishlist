@@ -248,6 +248,7 @@ settings when blocked.
 - [ ] T103 [US6] Build on macOS: `./gradlew :desktopApp:packageDmg` → `desktopApp/build/compose/binaries/main/dmg/QuestLog-1.0.0.dmg`; mount, drag to Applications, launch (unsigned: right-click → Open on first run). State in the walkthrough that this is Apple silicon only (R9). If no Mac is at hand, say so in the final report instead of assuming it works
 - [ ] T104 [US6] Document the one command per OS in the root `CLAUDE.md` **Commands** section: `./gradlew :desktopApp:run` (macOS) and `.\gradlew.bat :desktopApp:run` (Windows), plus `packageMsi`, `packageDmg`, `runDistributable` and the desktop test/compile commands (`compileKotlinDesktop`, `desktopTest`); also state that the desktop OAuth keys and Firebase keys belong in `local.properties`
 - [ ] T105 [US6] Verify US6: quickstart §5 rows 27–29 (installed copy runs; row 10 holds from the installed copy; uninstall result recorded)
+- [ ] T115 [US6] App icon while the app runs, not only in the installer: `Window(icon = …)` in `desktopApp/src/main/kotlin/PKG/desktop/Main.kt` shows the Java logo in the Windows taskbar and title bar today, because T100 sets the icon only for the installed copy. Load the QuestLog artwork from `desktopApp/src/main/resources/` (a PNG exported from the T099 icons, 256 px) with `painterResource`/`BitmapPainter` and pass it to `Window`; on macOS also call `java.awt.Taskbar.getTaskbar().iconImage = …` (guarded by `Taskbar.isTaskbarSupported()` and `Feature.ICON_IMAGE`), because the Dock icon of a `run` or `runDistributable` process ignores `Window(icon)`. Do it after T099. Verify on Windows (`:desktopApp:run`: taskbar and title bar) and on macOS (Dock)
 
 **Checkpoint**: All six stories work; installers exist.
 
@@ -280,7 +281,7 @@ settings when blocked.
 - **US3 (Phase 5)**: after US2 (needs the toast stack and `Main.kt` click wiring).
 - **US4 (Phase 6)**: after US2 (T065 authorization cache); independent of US3.
 - **US5 (Phase 7)**: after Phase 2 and spike T036; independent of US2–US4 and may run in parallel with them (different module: `:core:cloud`).
-- **US6 (Phase 8)**: after US1; the Windows/macOS reminder checks in T102–T105 need US2 and US3 done.
+- **US6 (Phase 8)**: after US1 (T115 after T099); the Windows/macOS reminder checks in T102–T105 need US2 and US3 done.
 - **Polish (Phase 9)**: after the stories you intend to ship. T111 waits for the owner's approval.
 
 ### Within a story
