@@ -138,9 +138,16 @@ internal class RestCloudAuth(
     } catch (e: CancellationException) {
         throw e
     } catch (e: CloudException) {
+        report(e)
         throw e
     } catch (e: Exception) {
-        throw CloudException.Unknown(cause = e)
+        throw CloudException.Unknown(cause = e).also(::report)
+    }
+
+    // The account screen only says that something went wrong; this is where a developer reads what. The messages are
+    // error codes and never carry a token.
+    private fun report(e: CloudException) {
+        System.err.println("QuestLog cloud: ${e::class.simpleName}: ${e.message ?: e.cause}")
     }
 
     private fun DesktopCloudSession.toCloudUser() = CloudUser(
