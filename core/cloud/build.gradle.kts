@@ -1,4 +1,5 @@
 import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
@@ -6,6 +7,27 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 plugins {
     id("questlog.kmp.library")
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
+    alias(libs.plugins.buildconfig)
+}
+
+val localProps = Properties().also { props ->
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { props.load(it) }
+}
+
+// Generates `internal object DesktopCloudCredentials` into desktopMain's generated sources, under build/, so the keys
+// never reach the Android or iOS binaries. The values come from local.properties and the generated file is never
+// committed. A missing key is an empty string: the build still works and signing in fails at run time (R6).
+buildConfig {
+    sourceSets.named("desktopMain") {
+        packageName("com.nikolasguillen.questlog.core.cloud")
+        className("DesktopCloudCredentials")
+        useKotlinOutput { internalVisibility = true }
+        buildConfigField("FIREBASE_WEB_API_KEY", localProps.getProperty("FIREBASE_WEB_API_KEY") ?: "")
+        buildConfigField("FIREBASE_PROJECT_ID", localProps.getProperty("FIREBASE_PROJECT_ID") ?: "")
+        buildConfigField("GOOGLE_DESKTOP_CLIENT_ID", localProps.getProperty("GOOGLE_DESKTOP_CLIENT_ID") ?: "")
+        buildConfigField("GOOGLE_DESKTOP_CLIENT_SECRET", localProps.getProperty("GOOGLE_DESKTOP_CLIENT_SECRET") ?: "")
+    }
 }
 
 kotlin {
@@ -50,6 +72,15 @@ kotlin {
             implementation(libs.googleid)
             implementation(libs.koin.android)
             implementation(libs.kotlinx.coroutines.android)
+        }
+        getByName("desktopMain").dependencies {
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.okhttp)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+        }
+        getByName("desktopTest").dependencies {
+            implementation(libs.ktor.client.mock)
         }
         androidHostTest.dependencies {
             implementation(libs.junit)
