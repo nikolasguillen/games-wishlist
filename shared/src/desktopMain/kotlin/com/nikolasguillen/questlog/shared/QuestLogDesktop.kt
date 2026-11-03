@@ -2,10 +2,15 @@ package com.nikolasguillen.questlog.shared
 
 import com.nikolasguillen.questlog.core.cloud.di.CLOUD_DATA_DIRECTORY_PROPERTY
 import com.nikolasguillen.questlog.core.common.desktop.appDataDirectory
+import com.nikolasguillen.questlog.core.data.notification.ReleaseReminderCoordinator
+import com.nikolasguillen.questlog.core.data.notification.ReminderSyncTriggers
 import com.nikolasguillen.questlog.core.domain.radar.ReleaseRefreshScheduler
+import com.nikolasguillen.questlog.core.ui.util.DesktopNotificationAuthorization
 import com.nikolasguillen.questlog.shared.di.initKoin
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.runBlocking
 import org.koin.core.Koin
+import org.koin.dsl.module
 import org.koin.mp.KoinPlatform
 
 /**
@@ -21,8 +26,13 @@ fun startQuestLogDesktop(isDebugBuild: Boolean): Koin {
     val koin = initKoin(isDebugBuild) {
         // The cloud module does not know where the app keeps its data, so the signed-in session's directory is given.
         properties(mapOf(CLOUD_DATA_DIRECTORY_PROPERTY to appDataDirectory().toString()))
+        // The permission state the triggers listen to lives in :core:ui, which :core:data cannot see.
+        modules(module { single<ReminderSyncTriggers> { DesktopReminderSyncTriggers() } })
     }.koin
     koin.get<ReleaseRefreshScheduler>().schedulePeriodicRefresh()
+    // The permission is read before the coordinator's launch sync, which arms nothing while it is still unknown.
+    runBlocking { DesktopNotificationAuthorization.refresh() }
+    koin.get<ReleaseReminderCoordinator>().start()
     return koin
 }
 

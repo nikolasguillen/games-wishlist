@@ -2,6 +2,7 @@ package com.nikolasguillen.questlog.desktop
 
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.FrameWindowScope
@@ -9,6 +10,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.nikolasguillen.questlog.shared.DesktopWindowFocus
 import com.nikolasguillen.questlog.shared.QuestLogRoot
 import com.nikolasguillen.questlog.shared.consumeReminderDeepLink
 import com.nikolasguillen.questlog.shared.emitReminderDeepLink
@@ -35,6 +37,9 @@ fun main() {
             onCloseRequest = ::exitApplication
         ) {
             window.minimumSize = MINIMUM_WINDOW_SIZE
+
+            val isWindowFocused = LocalWindowInfo.current.isWindowFocused
+            LaunchedEffect(isWindowFocused) { if (isWindowFocused) DesktopWindowFocus.onFocusGained() }
 
             LaunchedEffect(instance) {
                 instance.messages.collect { message ->

@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -30,11 +31,12 @@ class ReleaseReminderCoordinatorTest {
         override val events: Flow<Unit> = triggerEvents
     }
 
-    private fun TestScope.coordinator() = ReleaseReminderCoordinator(
+    private fun TestScope.coordinator(beforeFirstSync: suspend () -> Unit = {}) = ReleaseReminderCoordinator(
         syncReleaseNotifications = sync,
         getSavedGameIds = { savedIds },
         triggers = triggers,
-        scope = backgroundScope
+        scope = backgroundScope,
+        beforeFirstSync = beforeFirstSync
     )
 
     @Test
@@ -158,6 +160,35 @@ class ReleaseReminderCoordinatorTest {
         runCurrent()
 
         triggerEvents.tryEmit(Unit)
+        runCurrent()
+
+        coVerify(exactly = 1) { sync(null) }
+    }
+
+    @Test
+    fun `beforeFirstSync runs once and before the launch sync`() = runTest {
+        val order = mutableListOf<String>()
+        coEvery { sync(null) } coAnswers { order += "sync" }
+        coordinator(beforeFirstSync = { order += "before" }).start()
+        runCurrent()
+
+        triggerEvents.tryEmit(Unit)
+        runCurrent()
+
+        assertEquals(listOf("before", "sync", "sync"), order)
+    }
+
+    @Test
+    fun `a failing beforeFirstSync is swallowed and the sync still runs`() = runTest {
+        coordinator(beforeFirstSync = { error("boom") }).start()
+        runCurrent()
+
+        coVerify(exactly = 1) { sync(null) }
+    }
+
+    @Test
+    fun `without beforeFirstSync the launch sync runs at once as on iOS`() = runTest {
+        coordinator().start()
         runCurrent()
 
         coVerify(exactly = 1) { sync(null) }

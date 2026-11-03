@@ -1,5 +1,6 @@
 package com.nikolasguillen.questlog.shared.di
 
+import com.nikolasguillen.questlog.core.data.notification.ReminderSyncTriggers
 import com.nikolasguillen.questlog.core.domain.notification.ReleaseNotifier
 import com.nikolasguillen.questlog.feature.search.model.EntityDetailSubject
 import org.junit.Test
@@ -27,6 +28,8 @@ class DesktopKoinGraphTest {
                 // Only the Android worker delivers a notification itself, through DeliverReleaseNotificationUseCase;
                 // here the operating system posts it, so nothing binds a notifier and nothing resolves that use case.
                 ReleaseNotifier::class,
+                // Bound by startQuestLogDesktop, because the permission state it listens to lives in :core:ui.
+                ReminderSyncTriggers::class,
                 // The signed-in session's directory is passed as a Koin property and turned into a path in the module.
                 Path::class
             )
