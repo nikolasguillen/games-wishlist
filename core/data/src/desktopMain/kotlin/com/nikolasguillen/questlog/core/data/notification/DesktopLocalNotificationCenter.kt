@@ -14,8 +14,7 @@ internal class DesktopLocalNotificationCenter(
 
     override suspend fun add(request: LocalReminderRequest): Boolean {
         // The system accepts a request it will never deliver while notifications are off, so ask first.
-        if (notifications.status() != DesktopNotificationStatus.AUTHORIZED) return false
-        return notifications.schedule(
+        return notifications.status() == DesktopNotificationStatus.AUTHORIZED && notifications.schedule(
             DesktopNotificationRequest(
                 gameId = request.gameId,
                 title = request.title,

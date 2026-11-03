@@ -1,26 +1,29 @@
 package com.nikolasguillen.questlog.shared
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class DesktopReminderSyncTriggersTest {
 
     @Test
-    fun `the window gaining focus is a sync trigger`() = runTest {
-        val events = mutableListOf<Unit>()
-        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
-            DesktopReminderSyncTriggers().events.collect { events += it }
+    fun `the window gaining focus is a sync trigger`() = runBlocking {
+        val events = Channel<Unit>(Channel.UNLIMITED)
+        // The permission is read off the main thread before each event, so the test waits in real time.
+        val job = launch(Dispatchers.Default) { DesktopReminderSyncTriggers().events.collect { events.send(it) } }
+        // Focus is a hot signal that is only seen once the collector has subscribed, so it is repeated until one lands.
+        repeat(2) {
+            withTimeout(5_000) {
+                while (events.tryReceive().isFailure) {
+                    DesktopWindowFocus.onFocusGained()
+                    delay(20)
+                }
+            }
         }
-
-        DesktopWindowFocus.onFocusGained()
-        DesktopWindowFocus.onFocusGained()
-
-        assertEquals(2, events.size)
         job.cancel()
     }
 }

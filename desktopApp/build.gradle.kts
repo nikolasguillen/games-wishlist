@@ -39,6 +39,30 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
 }
 
+// The macOS notifications library (native/macos). It is built by swiftc into the resources root of the Compose
+// application, in the folder named after the OS and architecture, so run, runDistributable and packageDmg find it
+// through the `compose.application.resources.dir` property. Never committed. Other systems build nothing.
+val isMacOs = System.getProperty("os.name").startsWith("Mac")
+val macNotificationsDirectory = layout.buildDirectory.dir(
+    if (System.getProperty("os.arch") == "aarch64") "native-resources/macos-arm64" else "native-resources/macos-x64"
+)
+val buildMacNotifications by tasks.registering(Exec::class) {
+    enabled = isMacOs
+    val source = layout.projectDirectory.file("native/macos/QuestLogNotifications.swift")
+    val library = macNotificationsDirectory.map { it.file("libQuestLogNotifications.dylib") }
+    inputs.file(source)
+    outputs.file(library)
+    val output = library.get().asFile
+    val input = source.asFile
+    commandLine(
+        "sh", "-c",
+        "mkdir -p '${output.parent}' && swiftc -emit-library -o '$output' '$input' " +
+            "-framework UserNotifications -framework Foundation"
+    )
+}
+tasks.matching { it.name in setOf("prepareAppResources", "run", "runDistributable", "createDistributable") }
+    .configureEach { dependsOn(buildMacNotifications) }
+
 // What the app reports as its version (AppVersionProvider) and the installers carry.
 val appVersion = "1.0.0"
 
@@ -51,6 +75,7 @@ compose.desktop {
             targetFormats(TargetFormat.Msi, TargetFormat.Dmg)
             packageName = "QuestLog"
             packageVersion = appVersion
+            appResourcesRootDir.set(layout.buildDirectory.dir("native-resources"))
             vendor = "Nikolas Guillen"
             // The JLink runtime keeps only these modules; `suggestRuntimeModules` lists what the app needs.
             modules("java.desktop", "java.instrument", "java.management", "java.naming", "java.sql", "jdk.httpserver", "jdk.unsupported")
