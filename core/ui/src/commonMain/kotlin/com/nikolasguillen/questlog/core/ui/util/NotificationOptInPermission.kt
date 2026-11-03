@@ -2,6 +2,7 @@ package com.nikolasguillen.questlog.core.ui.util
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,16 +22,26 @@ import com.nikolasguillen.questlog.core.ui.component.NotificationPermissionDenie
  */
 @Composable
 fun rememberNotificationOptInRequest(): () -> Unit {
-    val permissionState = rememberNotificationPermissionState()
+    var showDeniedDialog by rememberSaveable { mutableStateOf(false) }
+    // Set only while a request is in flight, so the dialog reacts to that specific request's outcome instead of
+    // nagging on every screen visit while notifications happen to be off.
+    var awaitingResult by remember { mutableStateOf(false) }
+    val isBlocked = remember { mutableStateOf(false) }
+    val permissionState = rememberNotificationPermissionState { granted ->
+        // A request that is refused while the permission is already blocked (Windows: nothing to ask) changes no
+        // state, so the effect below cannot see it; this is the only signal. It is a no-op everywhere else, where
+        // the block shows up as a state change first.
+        if (!granted && awaitingResult && isBlocked.value) {
+            showDeniedDialog = true
+            awaitingResult = false
+        }
+    }
+    SideEffect { isBlocked.value = permissionState.isPermanentlyDenied }
     // The function returned below outlives any one composition, so a plain `permissionState` capture would freeze
     // at whatever canDeliver/isPermanentlyDenied were on first composition -- e.g. staying "permanently denied"
     // forever even after the user grants the permission from system Settings and comes back.
     // rememberUpdatedState keeps the reference it closes over live: reading `.value` always sees the latest state.
     val latestPermissionState = rememberUpdatedState(permissionState)
-    var showDeniedDialog by rememberSaveable { mutableStateOf(false) }
-    // Set only while a request is in flight, so the dialog reacts to that specific request's outcome instead of
-    // nagging on every screen visit while notifications happen to be off.
-    var awaitingResult by remember { mutableStateOf(false) }
 
     LaunchedEffect(permissionState.canDeliver, permissionState.isPermanentlyDenied) {
         if (awaitingResult && !permissionState.canDeliver) showDeniedDialog = true

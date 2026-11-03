@@ -1,10 +1,26 @@
 package com.nikolasguillen.questlog.core.ui.component
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import com.nikolasguillen.questlog.core.common.desktop.openSystemNotificationSettings
+import com.nikolasguillen.questlog.core.ui.resources.Res
+import com.nikolasguillen.questlog.core.ui.resources.cancel
+import com.nikolasguillen.questlog.core.ui.resources.notification_permission_denied_action
+import com.nikolasguillen.questlog.core.ui.resources.notification_permission_denied_message
+import com.nikolasguillen.questlog.core.ui.resources.notification_permission_denied_title
+import org.jetbrains.compose.resources.stringResource
 
-// Stub so the module compiles (specs/020-desktop-app, T023): shows nothing and is dismissed at once. Replaced in T079.
+/** Explains that notifications are off and sends the user to the operating system's notification settings. */
 @Composable
 actual fun NotificationPermissionDeniedDialog(onDismiss: () -> Unit) {
-    LaunchedEffect(Unit) { onDismiss() }
+    CustomAlertDialog(
+        title = stringResource(Res.string.notification_permission_denied_title),
+        message = stringResource(Res.string.notification_permission_denied_message),
+        confirmButtonText = stringResource(Res.string.notification_permission_denied_action),
+        onConfirm = {
+            openSystemNotificationSettings()
+            onDismiss()
+        },
+        dismissButtonText = stringResource(Res.string.cancel),
+        onDismiss = onDismiss
+    )
 }

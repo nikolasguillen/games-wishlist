@@ -15,7 +15,7 @@ fun appDataDirectory(): Path = directory.also { Files.createDirectories(it) }
 
 private val directory: Path by lazy {
     val home = Paths.get(System.getProperty("user.home"))
-    if (System.getProperty("os.name").orEmpty().startsWith("Mac", ignoreCase = true)) {
+    if (isMacOs()) {
         home.resolve("Library").resolve("Application Support").resolve(APP_DIRECTORY_NAME)
     } else {
         val localAppData = System.getenv("LOCALAPPDATA")?.takeIf { it.isNotBlank() }
