@@ -24,8 +24,12 @@ import kotlin.system.exitProcess
 private val MINIMUM_WINDOW_SIZE = Dimension(400, 640)
 
 fun main() {
-    // Creating the notifications registers the Windows app identity, which has to precede the first window.
-    desktopNotifications()
+    // Creating the notifications registers the Windows app identity, which has to precede the first window. The click
+    // handler goes in before anything else: on macOS a click that launched the app is delivered as soon as it is set.
+    desktopNotifications().setClickHandler { gameId ->
+        emitReminderDeepLink(gameId)
+        BringToFrontRequests.request()
+    }
 
     // One window per user: a second launch tells the first to come forward and ends here.
     val instance = SingleInstance.acquireOrHandOver(handOver = SingleInstanceMessage.Focus) ?: exitProcess(0)
@@ -44,6 +48,8 @@ fun main() {
 
             val isWindowFocused = LocalWindowInfo.current.isWindowFocused
             LaunchedEffect(isWindowFocused) { if (isWindowFocused) DesktopWindowFocus.onFocusGained() }
+
+            LaunchedEffect(Unit) { BringToFrontRequests.requests.collect { bringToFront() } }
 
             LaunchedEffect(instance) {
                 instance.messages.collect { message ->
