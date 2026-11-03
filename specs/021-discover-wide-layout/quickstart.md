@@ -27,10 +27,8 @@ Expected new coverage:
   - about 1080dp of content gives 6 columns; narrower widths give fewer, never below 1;
   - "See all" shows when `hasMore`, or when the games outnumber the columns, and never otherwise;
   - the hero height is ≥ 1.3 × 240dp at 800dp tall, stays within [280, 560], and is capped by 0.8 × the width.
-- **`DiscoverMapperTest`**, new cases for `heroReleaseText`: `null` date gives "TBA"; 31 December gives the
-  "(est.)" resource with the year; an exact date gives the formatted date; no hero gives `null`.
-- **Unchanged and still green**: `SearchViewModelTest` (no ViewModel change), the existing `DiscoverMapperTest`
-  cases, `SearchResultGridCellsTest`.
+- **Unchanged and still green**: `SearchViewModelTest` and `DiscoverMapperTest` (no ViewModel, mapper or state
+  change), `SearchResultGridCellsTest`.
 
 ## 2. Desktop, the main wide target
 
@@ -42,7 +40,7 @@ Open Search with the field empty.
 
 | Step | Expected |
 |---|---|
-| Window at about 1280 × 800 | Full-width banner, clearly taller than the phone hero, with the kicker, title, the `developer · date` meta line and two buttons inside it. The footnote sits under it. The first shelf's title and the top of its cards are visible without scrolling. |
+| Window at about 1280 × 800 | Full-width banner, clearly taller than the phone hero, with the kicker, title, the same `developer · release date` meta line as the phone hero, and two buttons inside it. The footnote sits under it. Each card shows cover, title, release year (or TBA) and the heart, like the phone's shelf card. The first shelf's title and the top of its cards are visible without scrolling. |
 | Count the cards in a full shelf at about 1080dp of content | Six, all whole. |
 | Click "Add to wishlist" | The game is saved and the label becomes "In wishlist". A second click removes it. |
 | Press and hold "Add to wishlist" | The list chooser opens. |

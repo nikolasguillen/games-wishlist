@@ -126,86 +126,51 @@ shelf's games with `DiscoverFeed.shelfGames(key)` and never checks `hasMore`
 
 ## R5. The wide shelf card (FR-010)
 
-**Decision**: A new Discover-only card, `WideDiscoverShelfCard`, in `feature/search/components/`. It is built from
-the public pieces in `:core:ui`:
-- `GenericGameCardLayout`: the card shell and the tap, with no long press on the card itself.
-- `GameCoverImage`: the cover, cropped to fill.
-- `SaveToWishlistButton`: the heart, top end. Its long press opens the list chooser, exactly as on
-  `CompactGameCard`.
-- `RatingBadge`: the score.
-- The dark bottom scrim with `fadingEdge`, as every cover card draws it.
+**Decision**: A new Discover-only card, `WideDiscoverShelfCard`, in `feature/search/components/`. It shows exactly
+what today's shelf card (`CompactGameCard`) shows, re-proportioned for a wide row:
+- the cover, filling a 3:4 card;
+- the heart at the top end;
+- over the bottom scrim, the title (one line) and `releaseYear ?: releaseDateText` (a year, or "TBA") on one line,
+  the same expression `CompactGameCard` renders.
 
-Over the scrim are the title (one line), the developer (one line, left out when `null`) and, at the end of the
-developer line, the badge. The badge is `RatingBadge(rating)` when `rating > 0`, otherwise a release badge holding
-`releaseYear ?: releaseDateText` (a year, or "TBA"), drawn in `RatingBadge`'s own shape and colours. The release
-badge is a private composable in the card's file.
+It is built from public `:core:ui` pieces:
+- `GenericGameCardLayout`: the shell and the tap, with no long press on the card itself, as on `CompactGameCard`.
+- `GameCoverImage`: the cover, cropped to fill.
+- `SaveToWishlistButton`: tap toggles the save, long press opens the list chooser.
+- The `fadingEdge` dark scrim, with text in fixed white like every cover card.
 
 **Rationale**:
-- None of the existing cards matches the mockup. `CompactGameCard` is a fixed 150dp square with a title and a year.
-  `VerticalGameCard` is a fixed 180 × 250 with rating, developer and year inline and a whole-card long press.
-  Widening either would change the screens that use them (the compact shelf, the results grid), which this feature
-  must not do.
+- `CompactGameCard` cannot be reused for a 3:4 slot. It forces `height(150.dp)` and `aspectRatio(1f)`, and its cover
+  header is drawn at a fixed 150dp. Giving it size parameters would change a shared component that the compact feed
+  depends on, which the owner's constraint (separate wide composables) and SC-006 argue against.
+- `VerticalGameCard` shows rating · developer · year and long-presses the whole card. The owner chose today's
+  Discover information (title and year), not the results grid's.
 - A card used only by Discover stays in the feature, like `DiscoverHero`.
-- Choosing between the score and the release badge is presentation over two fields the model already has. It
-  follows `VerticalGameCard`'s `rating > 0` check, not a filtering or sorting decision.
 
 **Alternatives considered**:
+- *The mockup's card (developer line plus a score-or-release badge).* Rejected by the owner (clarify 2026-11-03,
+  "keep the same rows that we already use").
 - *A new `:core:ui` card.* Rejected until a second screen needs it.
-- *A UI-model field for the badge text.* Rejected: `releaseYear ?: releaseDateText` is already what the compact
-  card renders, and duplicating it into state adds nothing.
 
-## R6. The release date in the hero's meta line, and the "(est.)" mark (FR-004, FR-005)
+## R6. The release date in the hero's meta line (FR-004, FR-005)
 
-**Finding**: The Discover lanes do not carry date precision. The lane queries in `GameRepositoryImpl` request
-`first_release_date` only, not `release_dates.date_format`, and the lane cache (`CachedGameEntity`,
-`CachedGameMapper`) stores the scalar date and nothing else. The only precision signals available are:
-- the date is `null`, so to be announced;
-- `DateUtils.isYearOnlyPlaceholder(date)`: IGDB's 31 December placeholder, so only the year is known.
+**Decision**: The wide hero's meta line is the compact hero's, unchanged: `developer · releaseDateText`, with the
+developer and its separator left out when `developer` is `null`. No estimate mark ("(est.)") is added: the owner
+asked not to follow the mockup that strictly (clarify 2026-11-03). So there is no new state, no mapper change and
+no new string for it.
 
-A quarter-precision date ("Q4 2026") cannot be told apart from an exact day in this data.
+**Finding kept for later**: The Discover lanes request only `first_release_date`, not `release_dates.date_format`,
+and the lane cache stores the scalar date only. If an estimate mark is ever wanted, a year-only date can be told
+from IGDB's 31 December placeholder (`DateUtils.isYearOnlyPlaceholder`), but a quarter needs the lane query and
+cache to carry the precision. That would be a data change.
 
-**Decision**: The hero's release text is computed in the mapper, not in the composable, from the domain hero's
-`releaseDate`:
-- `null` → "TBA" (`CoreUiRes.string.release_date_tba`), which is itself the uncertainty label and gets no extra
-  mark;
-- a year-only placeholder → "2026 (est.)" (new `discover_release_estimate`, `%1$s (est.)`, with the year);
-- any other date → the localised medium date (`DateUtils.formatIsoDate(date)`), unmarked.
+## R7. Genre
 
-It is carried as a new `heroReleaseText: UiText?` field on `DiscoverContentState.Content`, set by
-`toDiscoverContentState` alongside `hero` and `null` exactly when `hero` is. The compact layout ignores it and keeps
-rendering `hero.releaseDateText` as it does today.
+**Finding**: The domain `Game` the feed holds carries genres (the lane queries request `genres.name` and the cache
+keeps a genre cross-reference). `GameItemUiModel` has no genre field.
 
-**Spec gap, owner to confirm**: FR-005 lists "a quarter" among the estimates to mark. With the feed's current data
-the plan meets FR-005 for year-only dates and for TBA, and shows a quarter-precision game's placeholder day as if
-it were exact. That is the same thing the compact hero shows today. Marking quarters needs a data change:
-- add `release_dates.date_format` to the lane query;
-- add a precision column to the cache entity, regenerate the exported schema under `core/database/schemas/`, and
-  update the cached-game mapper.
-
-That is outside "layout only", so the plan does not do it. It belongs in its own spec if wanted.
-
-**Rationale for a field rather than a wrapper model**: A `DiscoverHeroUiModel(game, releaseText)` is more cohesive,
-but it changes the type the compact `DiscoverFeed`/`DiscoverHero` take. It would also touch the ViewModel's
-saved-state update and about a dozen previews and test assertions, all for a value only the wide layout reads. The
-additive field leaves the compact path and `SearchViewModel` untouched. `isSaved` is not part of it, so the
-ViewModel's `hero.copy(isSaved = …)` update needs no change.
-
-**Alternatives considered**:
-- *Compute it in the wide composable from `GameItemUiModel`.* Not possible: the UI model has only `releaseYear` and
-  the already formatted `releaseDateText`, not the raw date, so the year-only placeholder cannot be detected there.
-  It would also put a decision in a composable.
-- *Add an `isReleaseDateEstimate` flag to `GameItemUiModel` in `:core:ui`.* Rejected: it widens a model shared by
-  every screen for one reader.
-
-## R7. Genre (spec correction)
-
-**Finding**: The spec says the feed's games "carry none today". That is accurate for `GameItemUiModel`, which has no
-genre field, but not for the domain: the lane queries request `genres.name` and the cache keeps a genre
-cross-reference, so the domain `Game` the feed holds does carry genres.
-
-**Decision**: No change to the plan. The owner's clarify answer (no genre shown, no new rows) stands, and the plan
-shows developer and release date only. The spec's assumption is reworded to say where the genre is and is not
-available. If the owner later wants a genre on the cards, it is a `:core:ui` mapper change, not a data change.
+**Decision**: No genre is shown, per the owner. The hero and the cards keep the information rows today's Discover
+uses. The spec's assumption is worded accordingly.
 
 ## R8. The hero's two actions, the refresh prompt, and keyboard reach (FR-006, FR-013, FR-014, SC-008)
 

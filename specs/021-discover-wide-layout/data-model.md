@@ -2,41 +2,26 @@
 
 **Feature**: `021-discover-wide-layout` | **Date**: 2026-11-03
 
-This feature changes layout only. There are no changes to persistence, the network layer, the domain models or the
-database schema. It makes one additive change to UI state and adds a few layout constants. Everything else the wide
-layout renders already exists.
+This feature changes layout only. **There is no change to UI state, domain models, persistence, the network layer
+or the database schema.** The wide layout renders the existing `DiscoverContentState` and reads only fields the
+compact layout already reads. This note records what it reads, the new layout constants and rules, the shared
+lazy-list keys, and the new strings.
 
-## UI state
+## UI state it renders (unchanged)
 
-### `DiscoverContentState.Content` (`feature/search/model/DiscoverContentState.kt`), one field added
+`DiscoverContentState` (`feature/search/model/DiscoverContentState.kt`): `Loading`, `Error(message)` and
+`Content(popular, upcoming, hero, recommended, isStale, isRefreshing)`, exactly as today.
 
-| Field | Type | Status | Meaning |
-|---|---|---|---|
-| `popular` | `DiscoverShelfUiModel?` | unchanged | "Popular this month", or `null` when the lane is empty |
-| `upcoming` | `DiscoverShelfUiModel?` | unchanged | "Most anticipated" without the hero |
-| `hero` | `GameItemUiModel?` | unchanged | The featured game |
-| **`heroReleaseText`** | **`UiText?`** | **new**, default `null` | The hero's release date as the wide meta line shows it, with the estimate mark applied (research R6). `null` exactly when `hero` is `null`. |
-| `recommended` | `List<DiscoverShelfUiModel>` | unchanged | Personalised shelves |
-| `isStale` | `Boolean` | unchanged | Drives the refresh prompt |
-| `isRefreshing` | `Boolean` | unchanged | The prompt's spinner |
+What the wide layout reads from `GameItemUiModel`, the same fields as today's Discover:
 
-**Rules for `heroReleaseText`**, set in `DiscoverFeed.toDiscoverContentState` from the domain hero's `releaseDate`:
+| Where | Fields | Shown as |
+|---|---|---|
+| Hero banner | `coverImage`, `name`, `developer`, `releaseDateText`, `isSaved`, `id` | Cover, title, meta line `developer · releaseDateText` (developer and separator left out when `null`, as on the compact hero), save action state |
+| Shelf card | `coverImage`, `name`, `releaseYear`, `releaseDateText`, `isSaved`, `id` | Cover, title, `releaseYear ?: releaseDateText` (a year, or "TBA"), the heart |
+| Shelf | `DiscoverShelfUiModel.title`, `games`, `hasMore`, `key` | Title, the row, "See all" |
 
-| Hero `releaseDate` | `heroReleaseText` |
-|---|---|
-| `null` | `UiText.StringResource(CoreUiRes.string.release_date_tba)` ("TBA") |
-| a year-only placeholder (`DateUtils.isYearOnlyPlaceholder`, 31 December) | `UiText.StringResource(Res.string.discover_release_estimate, "<year>")` ("2026 (est.)") |
-| any other ISO date | `UiText.DynamicString(DateUtils.formatIsoDate(date))` (a localised medium date) |
-| no hero at all | `null` |
-
-**Invariants**:
-- `heroReleaseText == null` ⇔ `hero == null`.
-- The field does not depend on saved state, so `SearchViewModel`'s update of `hero.isSaved` (`hero.copy(isSaved = …)`)
-  leaves it untouched and needs no change.
-- The compact layout never reads it.
-
-`DiscoverShelfUiModel`, `DiscoverShelfKey`, `GameItemUiModel`, `SearchUiState`, `SearchUiEvent` and `SearchUiEffect`
-are unchanged.
+The wide card and hero do not add the mockup's genre, developer-on-card, score badge or estimate mark (clarify,
+2026-11-03).
 
 ## Layout constants (new, private or `internal` to `feature/search/components/`)
 
@@ -48,7 +33,7 @@ They are layout dimensions, not spacing tokens. Like `MIN_CARD_WIDTH` in `Search
 |---|---|---|---|
 | `WIDE_SHELF_CARD_MIN_WIDTH` | `160.dp` | `wideShelfColumnCount` | Mockup: ~167dp cards, six to ~1080dp |
 | `WIDE_SHELF_CARD_ASPECT_RATIO` | `3f / 4f` | `WideDiscoverShelfCard` | Portrait cover, as `ExpandedSearchHome`'s grid |
-| `WIDE_HERO_HEIGHT_FRACTION` | `0.45f` | `wideHeroHeight` | R3 |
+| `WIDE_HERO_HEIGHT_FRACTION` | `0.45f` | `wideHeroHeight` | research R3 |
 | `WIDE_HERO_MIN_HEIGHT` | `280.dp` | `wideHeroHeight` | R3, keeps ≥ compact at any height |
 | `WIDE_HERO_MAX_HEIGHT` | `560.dp` | `wideHeroHeight` | R3 |
 | `WIDE_HERO_MAX_ASPECT` | `0.8f` (height ÷ width) | `wideHeroHeight` | R3, a half-width pane |
@@ -86,8 +71,6 @@ key in both.
 | `discover_in_wishlist` | In wishlist | Hero save action, saved |
 | `discover_view_details` | View details | Hero details action |
 | `discover_see_all` | See all | Shelf link, visible text (announced with the existing `discover_see_all_shelf`, "See all: %1$s") |
-| `discover_release_estimate` | %1$s (est.) | Hero meta line, year-only date |
 
 Reused unchanged: `discover_most_anticipated` (the kicker, uppercased as today), `discover_release_date_disclaimer`
-(the footnote), `discover_see_all_shelf`, `CoreUiRes.string.release_date_tba`,
-`CoreUiRes.string.choose_list_content_description`.
+(the footnote), `discover_see_all_shelf`, `CoreUiRes.string.choose_list_content_description`.

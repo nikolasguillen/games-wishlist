@@ -16,6 +16,8 @@
 - Q: Should the wide layout add genre to the hero's meta line and the cards, which the feed's data does not carry? → A: No. No genre is shown and no genre data is added; the existing rows of information stay (developer and release date).
 - Q: When a game is open beside the feed (spec 018), does the wide Discover follow the window or the narrower pane? → A: The window: the wide layout stays and adapts to the pane through its fitting rules.
 - Q: Do shelf rows scroll sideways when more games exist than fit? → A: No. The row shows what fits and "show all" reaches the rest.
+- Q: Should the hero's release date be marked as an estimate, as in the mockup? → A: No. The mockup is not followed that strictly; the date is shown as the compact hero shows it.
+- Q: What information do the wide cards and hero show? → A: The same as today's Discover: a card shows title and release year (or TBA) plus the heart; the hero's meta line is developer · release date. The wide hero alone also gets the mockup's in-banner buttons; the compact hero is unchanged.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -25,7 +27,7 @@ A user opens Search on a desktop window or a tablet and, before typing anything,
 the top of it is a short strip: the phone hero stretched across the window, capped at 240dp, and tapping it
 anywhere opens the game. With this feature, on a wide window the top of Discover is a full-width banner that
 is clearly taller and grows with the window. It carries a kicker, the featured game's title, one line of
-meta (developer and release date, the date marked as an estimate when it is one) and two buttons placed inside the
+meta (developer and release date, as the phone hero shows them) and two buttons placed inside the
 banner: one to add the game to the wishlist, one to open its details.
 
 **Why this priority**: The hero is the first thing the eye lands on and the main reason today's wide
@@ -53,10 +55,7 @@ confirm the game opens.
 6. **Given** the featured game has no developer or no cover, **When** the hero is shown, **Then** the meta
    line leaves out the developer without leaving a stray separator, and a missing cover shows the same
    fallback artwork the phone hero uses.
-7. **Given** the featured game's release date is an estimate (a quarter, a year, or to be announced),
-   **When** the meta line is shown, **Then** the date is marked as an estimate, as the mockup shows ("Q4
-   2026 (est.)"), and a firm date is shown without that mark.
-8. **Given** the hero is shown, **When** the user looks directly beneath it, **Then** the footnote that
+7. **Given** the hero is shown, **When** the user looks directly beneath it, **Then** the footnote that
    release dates are publisher estimates is there, as on the phone.
 
 ---
@@ -66,15 +65,14 @@ confirm the game opens.
 Below the hero, each shelf of Discover is a row of cards that fills the available width: as many cards as fit
 side by side, six in the mockup at about 1080dp, instead of a short strip of phone-sized cards with empty
 space beside it. Each shelf has its title on the left and a "show all" link on the right. Each card shows the
-cover, the title, the developer, a wishlist heart, and a badge: the game's score when it has one, its release
-timing otherwise.
+same information as today's shelf card: the cover, the title, the release year (or TBA), and a wishlist heart.
 
 **Why this priority**: Shelves are most of what Discover is. Filling the row is what makes the screen feel
 designed for a large window, and it is independently testable on any feed that has at least one shelf.
 
 **Independent Test**: On a window at least 840dp wide, open Discover with a feed that has the generic shelves
 and at least one personalised one. Confirm every shelf is a single row filling the content width, each with a
-title and a "show all" link, each card showing cover, title, developer, heart and badge. Widen and
+title and a "show all" link, each card showing cover, title, release year and heart. Widen and
 narrow the window and confirm the number of cards per row follows the width.
 
 **Acceptance Scenarios**:
@@ -88,8 +86,8 @@ narrow the window and confirm the number of cards per row follows the width.
    cards in each row changes with it and cards keep a similar size instead of stretching, and no card is ever
    shown cut off.
 4. **Given** a card is shown, **When** the user looks at it, **Then** it shows the cover, the game's title,
-   the developer (left out when unknown), a heart reflecting whether the game is saved, and a badge showing
-   the game's score when it has one and its release timing (year, date, or to be announced) otherwise.
+   the release year (or TBA when there is no date) and a heart reflecting whether the game is saved, the
+   same information as today's shelf card.
 5. **Given** the user taps a card, **When** the tap fires, **Then** the game opens; **Given** the user taps
    the heart, **Then** the game is saved or unsaved without opening it; **Given** the user long-presses the
    heart, **Then** the list chooser opens: all as on the phone card today.
@@ -146,7 +144,7 @@ before.
   pane): the cards that do not fit are left out of the row rather than cut off or scrolled sideways, and the
   shelf offers "show all" so every game stays reachable.
 - A very long game title, developer or shelf title: it is truncated to one line (the hero title may use two)
-  and never pushes a button, the heart, the badge or the "show all" link out of view.
+  and never pushes a button, the heart or the "show all" link out of view.
 - A very tall or very short window: the hero's height has a floor and a ceiling, so it neither collapses nor
   swallows the screen; on a short window the first shelf's title still shows without scrolling.
 - The stale-recommendations prompt is showing: it still pins to the top of the feed and does not cover the
@@ -173,8 +171,8 @@ before.
 - **FR-004**: The hero MUST show the cover art, a kicker label, the game's title, and one meta line holding
   the developer and the release date, in that order, leaving out the developer when it is unknown. No genre
   is shown.
-- **FR-005**: The meta line MUST mark a release date as an estimate whenever it is one (a quarter, a year, or
-  to be announced) and MUST NOT mark a firm date.
+- **FR-005**: The meta line MUST show the release date exactly as the compact hero shows it today. No
+  estimate mark is added.
 - **FR-006**: The hero MUST contain two actions inside the banner: "add to wishlist" and "view details". The
   first MUST save or remove the game exactly as the phone hero's heart does, reflect the saved state, and
   open the list chooser on a long press. The second MUST open the game exactly as the phone hero's tap does.
@@ -185,18 +183,17 @@ before.
   the link MUST open the same see-all grid the compact feed opens for that shelf, and MUST appear under the
   same conditions as the compact feed's arrow, plus whenever the row is showing fewer games than the shelf
   holds.
-- **FR-010**: Each card MUST show the cover, the title, the developer (left out when unknown), a heart
-  reflecting the saved state, and a badge: the game's score when it has one, otherwise its release timing
-  (year, date, or to be announced). Taps MUST do what they do on the compact card: a tap opens the game, the
-  heart toggles the save, a long press on the heart opens the list chooser.
+- **FR-010**: Each card MUST show the same information as today's shelf card: the cover, the title, the
+  release year (or TBA when there is no date) and a heart reflecting the saved state. Taps MUST do what they
+  do on the compact card: a tap opens the game, the heart toggles the save, a long press on the heart opens
+  the list chooser.
 - **FR-011**: The search bar at the top and the navigation on the left MUST be unchanged.
 - **FR-012**: Resizing the window across the 840dp boundary in either direction MUST swap the layout without
   reloading the feed, without a loading state, and without losing the scroll position: the same shelf stays
   at the top of the view.
 - **FR-013**: The stale-recommendations prompt MUST keep its current behaviour, including its state across a
   layout swap, and MUST remain reachable and legible over the wide layout.
-- **FR-014**: Every piece of new text (the kicker, "add to wishlist", its saved state, "view details", "show
-  all", the estimate mark) MUST come from the app's string resources, none hardcoded, and MUST be announced
+- **FR-014**: Every piece of new text ("add to wishlist", its saved state, "view details", "show all") MUST come from the app's string resources, none hardcoded, and MUST be announced
   sensibly by screen readers; the banner's two buttons and the "show all" link MUST be reachable and
   activatable by keyboard, since desktop is the main wide target.
 - **FR-015**: The wide layout MUST work in the light and the dark theme, and every cover-art overlay MUST keep
@@ -205,11 +202,10 @@ before.
 ### Key Entities
 
 - **Featured game (hero)**: the one game the feed highlights. Attributes used: cover, title, developer,
-  release date and whether that date is an estimate, saved state.
+  release date, saved state.
 - **Shelf**: a titled, ordered group of games (generic lanes, or personalised by genre or developer), with
   whether it holds more games than it shows. Unchanged by this feature.
-- **Shelf card**: one game in a shelf: cover, title, developer, saved state, and the badge (the
-  score when the game has one, its release timing otherwise).
+- **Shelf card**: one game in a shelf: cover, title, release year, saved state.
 - **Wide window**: a window at least 840dp wide, the same threshold the two-pane Search layout uses.
 
 ## Success Criteria *(mandatory)*
@@ -218,8 +214,9 @@ before.
 
 - **SC-001**: On a window at least 840dp wide, a side-by-side comparison of Discover with variant A of the
   mockup (cover art and wording aside) finds the same structure: full-width banner with kicker, title, meta
-  line and two buttons, the estimate footnote, then titled rows with a "show all" link and cards with cover,
-  title, developer, heart and badge (genre aside, which is not shown).
+  line and two buttons, the estimate footnote, then titled rows with a "show all" link and cover cards with a
+  heart. The cards' and the meta line's information is today's, not the mockup's: no genre, no developer or
+  score on cards, no estimate mark.
 - **SC-002**: On a window 800dp tall or taller, the hero is at least 1.3 times as tall as the compact hero
   would be in the same window, and the first shelf's title is visible without scrolling.
 - **SC-003**: On a window with about 1080dp of content width, every shelf with six or more games shows exactly
@@ -246,28 +243,27 @@ before.
 - **Out of scope, each its own spec**: the search-results filter sidebar, the dropdown search overlay, the
   "most popular" and "recently viewed" side panel (mockup variant B), the full-detail expand button, and
   everything price-related in the mockup (offers, price sources).
-- **The mockup is a layout reference only**: its copy is Italian placeholder text and its images are grey
-  placeholders. The app's own English copy and real cover art are used. The reference is variant A,
-  `docs/design/01-search-home-a-hero-banner.png`.
+- **The mockup is a layout reference only, not followed strictly**: its copy is Italian placeholder text
+  and its images are grey placeholders. The app's own English copy and real cover art are used. The
+  reference is variant A, `docs/design/01-search-home-a-hero-banner.png`. What it takes from the mockup is
+  the arrangement (tall banner, in-banner buttons, full-width rows, "show all" links), not its information:
+  the cards and the hero keep the information today's Discover shows (see Clarifications).
 - **The kicker keeps the hero's current wording** ("Most anticipated", the label the compact hero already
   shows), not the mockup's "coming out for you". Confirmed by the owner (see Clarifications).
 - **No genre is shown**: the mockup's meta line and card subtitle show a genre. The feed's games do carry
   genres, but the UI model the hero and cards are drawn from does not, and the owner chose not to add one.
-  So the meta line is developer and release date, and the card subtitle is the developer. Confirmed by the
-  owner. The
-  personalised "by genre" shelves are unaffected: they are shelves, not a genre label on a card.
-- **The card badge is built from existing parts**: today's shelf card shows a title and a release-year line,
-  with no score. The wide card's badge reuses the existing score badge and the existing release text, per
-  the mockup: the score for a game that has one, the release timing (year, date, or to be announced) for one
-  that does not.
+  So the meta line is developer and release date, and the cards show title and release year, as today.
+  Confirmed by the owner. The personalised "by genre" shelves are unaffected: they are shelves, not a genre
+  label on a card.
+- **The in-banner buttons are wide-only**: the compact hero keeps its heart and its whole-banner tap,
+  unchanged.
 - **The hero banner itself is not a tap target**: unlike today's phone hero, only its two buttons act, as in
   the mockup. The long-press list chooser moves to the "add to wishlist" button.
 - **Shelf rows never scroll sideways**: shelves already hold at most six games, so a wide window shows up to
   six cards, fewer when the width allows fewer, and the rest are reached through "show all", since a mouse
   wheel does not scroll a row sideways (see the open backlog item on wheel scrolling in Discover). A shelf
   that holds more than the row shows therefore always offers "show all", even where the compact feed would
-  not. Confirmed by the owner. Whether the see-all grid already works for a shelf the compact feed gives no
-  arrow is for planning to verify.
+  not. Confirmed by the owner. The see-all grid already opens for any shelf, with or without an arrow.
 - **"Wide" follows the window, not the pane**: the layout is chosen once from the window width at the same
   840dp threshold as two-pane Search. When a game is open beside the feed, Discover sits in a narrower left
   pane in the wide layout and adapts through its own fitting rules (fewer cards per row, the banner's

@@ -60,7 +60,6 @@ FAB, the sheets and the snackbar are shared by both layouts.
 @Composable
 internal fun WideDiscoverFeed(
     hero: GameItemUiModel?,
-    heroReleaseText: UiText?,
     popular: DiscoverShelfUiModel?,
     upcoming: DiscoverShelfUiModel?,
     onGameClick: (Int) -> Unit,
@@ -92,7 +91,6 @@ internal fun WideDiscoverFeed(
 @Composable
 internal fun WideDiscoverHero(
     game: GameItemUiModel,
-    releaseText: UiText?,
     onDetailsClick: () -> Unit,
     onSaveClick: () -> Unit,
     onSaveLongClick: () -> Unit,
@@ -104,8 +102,8 @@ internal fun WideDiscoverHero(
 - The cover fills the banner and is not clickable. A missing or failed cover falls back to the compact hero's
   fallback artwork.
 - The kicker is `discover_most_anticipated`, uppercased, in the compact hero's pill.
-- The bottom block holds the title (≤ 2 lines) and the meta line: `developer · releaseText`, with the developer and
-  its separator left out when `null`.
+- The bottom block holds the title (≤ 2 lines) and the meta line: `developer · releaseDateText`, the compact hero's
+  meta line, with the developer and its separator left out when `null`. There is no estimate mark.
 - The actions are "Add to wishlist" / "In wishlist" (tap → `onSaveClick`, long press → `onSaveLongClick`, long-click
   label `choose_list_content_description`) and "View details" (→ `onDetailsClick`). They sit at the end of the title
   row, or below it when the banner is narrower than `WIDE_HERO_STACKED_BELOW`.
@@ -145,8 +143,8 @@ internal fun WideDiscoverShelfCard(
 - It fills its slot's width, with a 3:4 height.
 - A tap on the card → `onClick`. The heart (`SaveToWishlistButton`, top end): tap → `onSaveClick`, long press →
   `onSaveLongClick`. The card has no long press of its own, as on `CompactGameCard`.
-- The scrim holds the title (one line), the developer (one line, omitted when `null`), and at the end of that line
-  `RatingBadge(rating)` when `rating > 0`, otherwise the release badge with `releaseYear ?: releaseDateText`.
+- The scrim holds the title (one line) and `releaseYear ?: releaseDateText` (one line): the same information as
+  `CompactGameCard`. There is no developer and no score.
 
 ## 4. Moved, unchanged in behaviour
 
