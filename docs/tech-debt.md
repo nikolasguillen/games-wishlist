@@ -92,6 +92,25 @@ Last audited: 2026-10-09.
   comes back as an HTTP 400 and shows the generic error. Every search query has it, including the character and
   developer ones. The fix is to escape `\` and `"` once, where the query string is built.
 
+- **The desktop app's Windows reminders have never run on Windows**: the scheduled-toast layer
+  (`core/common/.../desktop/windows/`) calls WinRT through JNA vtables, and its interface ids and slot numbers
+  were written from memory of the SDK headers. The spike that proves it (`specs/020-desktop-app` T034) is open.
+  The click-through from a closed app (the COM activator, T071-T074, T076) is not written, because it depends on
+  that spike: if it fails, the owner has to choose between it and a C# helper that adds the .NET SDK to Windows
+  builds. Until then a toast click does nothing on Windows. Also open on Windows: the US2/US4 walkthroughs (T068,
+  T081) and building and installing the `.msi` (T102, T105).
+- **The desktop macOS reminders were never seen delivered**: the Swift library loads and schedules from a bundle, but
+  no notification or click was observed, because that needs the permission prompt answered (T035). The installed
+  `.dmg` was not opened (T103), and closed-app reminders are not part of acceptance without signing.
+- **The desktop walkthroughs have not been done**: US1 smoke and quickstart rows 1-9 (T033, T048), the unsaved-game
+  reminder path (T075), the Settings/onboarding/opt-in audit (T080), the real-Firebase round trip with Android
+  (T098) and the complete walkthrough with its record (T113).
+- **The documents still describe a two-platform project**: the root `CLAUDE.md` says iOS is the only platform
+  besides Android and has no desktop commands, `core/cloud/CLAUDE.md` still has GitLive in `commonMain`, the platform
+  contracts have no Desktop column, `docs/roadmap.md` says "iOS only", and the constitution is at 1.3.5 (T104,
+  T106-T111; the constitution amendment needs the owner's approval). The final gate and spec review (T112, T114)
+  also wait for the above. These were held back so they describe what was verified.
+
 ## Infrastructure
 
 - **No CI** (`.github/` does not exist) and **no static analysis** (no detekt, ktlint, spotless,
