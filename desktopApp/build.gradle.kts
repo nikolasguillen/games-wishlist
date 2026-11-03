@@ -60,8 +60,13 @@ val buildMacNotifications by tasks.registering(Exec::class) {
             "-framework UserNotifications -framework Foundation"
     )
 }
+// The toast icon for Windows: its registration points at this file, which ships in the resources of every system.
+val copyNotificationIcon by tasks.registering(Copy::class) {
+    from(layout.projectDirectory.file("icons/notification.png"))
+    into(layout.buildDirectory.dir("native-resources/common"))
+}
 tasks.matching { it.name in setOf("prepareAppResources", "run", "runDistributable", "createDistributable") }
-    .configureEach { dependsOn(buildMacNotifications) }
+    .configureEach { dependsOn(buildMacNotifications, copyNotificationIcon) }
 
 // What the app reports as its version (AppVersionProvider) and the installers carry.
 val appVersion = "1.0.0"

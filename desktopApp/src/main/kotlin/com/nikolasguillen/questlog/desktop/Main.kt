@@ -10,6 +10,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.nikolasguillen.questlog.core.common.desktop.desktopNotifications
 import com.nikolasguillen.questlog.shared.DesktopWindowFocus
 import com.nikolasguillen.questlog.shared.QuestLogRoot
 import com.nikolasguillen.questlog.shared.consumeReminderDeepLink
@@ -23,6 +24,9 @@ import kotlin.system.exitProcess
 private val MINIMUM_WINDOW_SIZE = Dimension(400, 640)
 
 fun main() {
+    // Creating the notifications registers the Windows app identity, which has to precede the first window.
+    desktopNotifications()
+
     // One window per user: a second launch tells the first to come forward and ends here.
     val instance = SingleInstance.acquireOrHandOver(handOver = SingleInstanceMessage.Focus) ?: exitProcess(0)
 
