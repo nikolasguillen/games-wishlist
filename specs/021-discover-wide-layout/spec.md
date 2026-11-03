@@ -251,9 +251,10 @@ before.
   `docs/design/01-search-home-a-hero-banner.png`.
 - **The kicker keeps the hero's current wording** ("Most anticipated", the label the compact hero already
   shows), not the mockup's "coming out for you". Confirmed by the owner (see Clarifications).
-- **No genre is shown**: the mockup's meta line and card subtitle show a genre, but the featured game and the
-  shelf cards carry none today. This feature does not widen what the feed fetches or stores, so the meta line
-  is developer and release date, and the card subtitle is the developer. Confirmed by the owner. The
+- **No genre is shown**: the mockup's meta line and card subtitle show a genre. The feed's games do carry
+  genres, but the UI model the hero and cards are drawn from does not, and the owner chose not to add one.
+  So the meta line is developer and release date, and the card subtitle is the developer. Confirmed by the
+  owner. The
   personalised "by genre" shelves are unaffected: they are shelves, not a genre label on a card.
 - **The card badge is built from existing parts**: today's shelf card shows a title and a release-year line,
   with no score. The wide card's badge reuses the existing score badge and the existing release text, per
