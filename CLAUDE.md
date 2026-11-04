@@ -8,10 +8,8 @@ Coil 3 · WorkManager + `koin-androidx-workmanager` (Radar's release-date refres
 
 ## Git
 
-**Project-specific override of the owner's global CLAUDE.md.** The global rule forbidding a
-`Co-Authored-By: Claude` trailer does not apply here: commit messages in this repository **do** end with
-that trailer. This applies only to the commit trailer — PR bodies still omit the "Generated with Claude
-Code" footer, per the global rule.
+Never add a `Co-Authored-By: Claude` trailer (or any other attribution to Claude/Anthropic) to a commit
+message, and no "Generated with Claude Code" footer to a PR body: the owner's global rule applies here too.
 
 Commit messages follow `type(scope): subject`, enforced by `.githooks/commit-msg`. Enable it once per clone
 with `git config core.hooksPath .githooks`.
