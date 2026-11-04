@@ -149,7 +149,10 @@ wide window it is shown beside the results and replaces the previous one instead
 `GameDetailRoute(id, fromSearch = true)`. A screen knows none of this. `GameDetailScreen` takes an optional
 `onBackClick` (a back arrow) and an optional `onCloseClick` (an X in the same place, for when it is one pane of two and
 has no history to go back through); `:shared` passes one or the other. A component that has to choose a layout by
-shape reads the space it was given, not the window.
+shape reads the space it was given, not the window. A screen with a separate wide layout is the one case that
+reads the window: it receives the window's width class from `:shared` as a `Boolean` (`isWideWindow`, the 840dp
+rule `QuestLogRoot` already computes) and dispatches on it once, in one place, while the components inside either
+layout still size themselves by the space they are given.
 
 ## Resources and visibility
 
