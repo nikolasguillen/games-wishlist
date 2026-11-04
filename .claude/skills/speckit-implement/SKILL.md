@@ -153,6 +153,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **Execution flow**: Order and dependency requirements
 
 6. Execute implementation following the task plan:
+   - **Batch-by-batch execution**: Work in small batches and stop for user review after each one (see step 9)
    - **Phase-by-phase execution**: Complete each phase before moving to the next
    - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together
    - **Follow TDD approach**: Execute test tasks before their corresponding implementation tasks
@@ -174,7 +175,41 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Suggest next steps if implementation cannot proceed
    - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
 
-9. Completion validation:
+9. **Review checkpoints (MANDATORY — the user reviews the code before it is committed)**:
+
+   Never run through the task list in one go. Implement in small batches and **STOP at the end of each
+   batch** so the user can review the edits.
+
+   - **Batch size**: one task, or a small group of closely related tasks that naturally land in one commit
+     (same file or same module, a test task together with the code it covers, a `[P]` group touching one
+     concern). Never span unrelated modules or more than a handful of tasks in one batch. When in doubt,
+     make the batch smaller. A phase boundary is always a batch boundary.
+   - **Before stopping**, run the fast check that matches the touched modules (see the Commands section of
+     the project `CLAUDE.md`) and fix what it reports. Say plainly if a check could not be run (e.g. iOS
+     verification needs a Mac).
+   - **Mark the batch's tasks `[X]`** in tasks.md before stopping, so the checkpoint commit includes it.
+   - **At the checkpoint, report**:
+     1. The tasks completed in this batch (IDs and titles).
+     2. The files changed, one line each saying what changed and why. Point at the key spots as
+        `file_path:line_number` so the review is quick.
+     3. The check results (what ran, pass/fail).
+     4. Anything surprising: a deviation from plan.md, a known-debt item met on the way, a decision you
+        made that the user may want to veto.
+     5. **A proposed commit message**, in a code block, following the project's commit convention
+        (`type(scope): subject`, lowercase imperative subject, first line at most 72 characters, optional
+        body explaining *why*, wrapped at 72). Do not add a `Co-Authored-By` trailer or any attribution to
+        Claude/Anthropic.
+     6. What the next batch will be.
+   - **Do not commit, stage, or push anything yourself.** The user reviews the working-tree diff and
+     commits (or asks you to commit with the proposed or an amended message). Do not start the next batch
+     until the user explicitly says to continue.
+   - **If the user requests changes**, apply them within the same batch, re-run the checks, and present the
+     checkpoint again with an updated commit message.
+   - The `after_implement` auto-commit hook must never sweep up unreviewed work: by the time it runs, every
+     batch should already have been through a checkpoint. If any unreviewed edits remain, run a final
+     checkpoint for them first.
+
+10. Completion validation:
    - Verify all required tasks are completed
    - Check that implemented features match the original specification
    - Validate that tests pass and coverage meets requirements
@@ -224,6 +259,7 @@ Report final status with summary of completed work.
 ## Done When
 
 - [ ] All tasks in tasks.md completed and marked `[X]`
+- [ ] Every batch went through a review checkpoint (summary, check results, proposed commit message) and was approved by the user before the next one started
 - [ ] Implementation validated against specification, plan, and test coverage
 - [ ] Extension hooks dispatched or skipped according to the rules in Mandatory Post-Execution Hooks above
 - [ ] Completion reported to user with summary of completed work
