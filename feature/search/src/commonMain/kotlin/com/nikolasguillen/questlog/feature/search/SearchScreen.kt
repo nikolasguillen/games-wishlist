@@ -80,7 +80,8 @@ fun SearchScreen(
     onCharacterClick: (Int) -> Unit,
     onDeveloperClick: (Int) -> Unit,
     onProfileClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isWideWindow: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -110,7 +111,8 @@ fun SearchScreen(
         onDeveloperClick = onDeveloperClick,
         onProfileClick = onProfileClick,
         snackbarHostState = snackbarHostState,
-        modifier = modifier
+        modifier = modifier,
+        isWideWindow = isWideWindow
     )
 }
 
@@ -124,7 +126,8 @@ internal fun SearchScreenContent(
     onDeveloperClick: (Int) -> Unit,
     onProfileClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isWideWindow: Boolean = false
 ) {
 
     // 1. UI States & Behaviors
@@ -294,7 +297,8 @@ internal fun SearchScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            discoverListState = discoverListState
+            discoverListState = discoverListState,
+            isWideWindow = isWideWindow
         )
 
         SearchFilterBottomSheet(state = uiState.filtersBottomSheetState, onEvent = onEvent)

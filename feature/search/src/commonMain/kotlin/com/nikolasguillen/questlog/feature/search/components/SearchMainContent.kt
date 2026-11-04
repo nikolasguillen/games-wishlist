@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.model.DiscoverLane
@@ -41,6 +42,9 @@ import org.jetbrains.compose.resources.stringResource
  * [activeBrowse] is what the grid is showing when it is not a typed query, if anything. A browse renders like
  * a text search, so it only decides which message the empty state shows. [resultsType] is what the committed
  * search looked up, which picks the cards of [SearchContentState.EntityResults] and the empty message.
+ *
+ * [isWideWindow] is the one switch between the two Discover layouts: the window is at least as wide as the
+ * two-pane threshold. Nothing else in the screen reads it.
  */
 @Composable
 internal fun SearchMainContent(
@@ -55,7 +59,8 @@ internal fun SearchMainContent(
     activeBrowse: SearchBrowseUiModel?,
     resultsType: SearchType,
     modifier: Modifier = Modifier,
-    discoverListState: LazyListState = rememberLazyListState()
+    discoverListState: LazyListState = rememberLazyListState(),
+    isWideWindow: Boolean = false
 ) {
     Box(modifier = modifier) {
         when (contentState) {
@@ -64,7 +69,8 @@ internal fun SearchMainContent(
                 onEvent = onEvent,
                 onGameClick = onGameClick,
                 onSeeAllClick = onSeeAllClick,
-                listState = discoverListState
+                listState = discoverListState,
+                isWideWindow = isWideWindow
             )
             is SearchContentState.Error -> ErrorPage(
                 message = contentState.message,
@@ -127,7 +133,8 @@ private fun DiscoverContent(
     onEvent: (SearchUiEvent) -> Unit,
     onGameClick: (Int) -> Unit,
     onSeeAllClick: (DiscoverShelfUiModel) -> Unit,
-    listState: LazyListState
+    listState: LazyListState,
+    isWideWindow: Boolean
 ) {
     when (state) {
         is DiscoverContentState.Loading -> LoadingPage()
@@ -135,21 +142,46 @@ private fun DiscoverContent(
             message = state.message,
             onRetryClick = { onEvent(SearchUiEvent.OnRetryDiscover) }
         )
-        is DiscoverContentState.Content -> DiscoverFeed(
-            hero = state.hero,
-            popular = state.popular,
-            upcoming = state.upcoming,
-            onGameClick = onGameClick,
-            onSaveClick = { onEvent(SearchUiEvent.OnToggleSave(it)) },
-            onLongClick = { onEvent(SearchUiEvent.OnOpenListSelector(it)) },
-            onSeeAllClick = onSeeAllClick,
-            recommended = state.recommended,
-            isStale = state.isStale,
-            isRefreshing = state.isRefreshing,
-            onRefreshClick = { onEvent(SearchUiEvent.OnRefreshDiscover) },
-            onDismissRefreshClick = { onEvent(SearchUiEvent.OnDismissDiscoverRefresh) },
-            state = listState
-        )
+        is DiscoverContentState.Content -> {
+            val onSaveClick: (Int) -> Unit = { onEvent(SearchUiEvent.OnToggleSave(it)) }
+            val onLongClick: (Int) -> Unit = { onEvent(SearchUiEvent.OnOpenListSelector(it)) }
+            val onRefreshClick = { onEvent(SearchUiEvent.OnRefreshDiscover) }
+            val onDismissRefreshClick = { onEvent(SearchUiEvent.OnDismissDiscoverRefresh) }
+
+            if (isWideWindow) {
+                WideDiscoverFeed(
+                    hero = state.hero,
+                    popular = state.popular,
+                    upcoming = state.upcoming,
+                    onGameClick = onGameClick,
+                    onSaveClick = onSaveClick,
+                    onLongClick = onLongClick,
+                    onSeeAllClick = onSeeAllClick,
+                    recommended = state.recommended,
+                    isStale = state.isStale,
+                    isRefreshing = state.isRefreshing,
+                    onRefreshClick = onRefreshClick,
+                    onDismissRefreshClick = onDismissRefreshClick,
+                    state = listState
+                )
+            } else {
+                DiscoverFeed(
+                    hero = state.hero,
+                    popular = state.popular,
+                    upcoming = state.upcoming,
+                    onGameClick = onGameClick,
+                    onSaveClick = onSaveClick,
+                    onLongClick = onLongClick,
+                    onSeeAllClick = onSeeAllClick,
+                    recommended = state.recommended,
+                    isStale = state.isStale,
+                    isRefreshing = state.isRefreshing,
+                    onRefreshClick = onRefreshClick,
+                    onDismissRefreshClick = onDismissRefreshClick,
+                    state = listState
+                )
+            }
+        }
     }
 }
 
@@ -158,7 +190,8 @@ private fun SearchMainContentPreview(
     contentState: SearchContentState,
     discoverState: DiscoverContentState = DiscoverContentState.Loading,
     activeBrowse: SearchBrowseUiModel? = null,
-    resultsType: SearchType = SearchType.GAMES
+    resultsType: SearchType = SearchType.GAMES,
+    isWideWindow: Boolean = false
 ) {
     QuestLogTheme {
         SearchMainContent(
@@ -171,31 +204,44 @@ private fun SearchMainContentPreview(
             onSeeAllClick = {},
             gridState = rememberLazyGridState(),
             activeBrowse = activeBrowse,
-            resultsType = resultsType
+            resultsType = resultsType,
+            isWideWindow = isWideWindow
         )
     }
 }
+
+private val previewDiscoverContent = DiscoverContentState.Content(
+    hero = GameItemUiModel.getDummy().copy(id = 3, name = "Hollow Knight: Silksong"),
+    popular = DiscoverShelfUiModel(
+        key = DiscoverShelfKey.Lane(DiscoverLane.POPULAR_THIS_MONTH),
+        title = UiText.StringResource(Res.string.discover_popular_this_month),
+        games = listOf(GameItemUiModel.getDummy()),
+        hasMore = false
+    ),
+    upcoming = DiscoverShelfUiModel(
+        key = DiscoverShelfKey.Lane(DiscoverLane.MOST_ANTICIPATED),
+        title = UiText.StringResource(Res.string.discover_most_anticipated),
+        games = listOf(GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077")),
+        hasMore = false
+    )
+)
 
 @QuestLogPreviews
 @Composable
 private fun SearchMainContentDiscoverPreview() {
     SearchMainContentPreview(
         contentState = SearchContentState.Idle,
-        discoverState = DiscoverContentState.Content(
-            hero = GameItemUiModel.getDummy().copy(id = 3, name = "Hollow Knight: Silksong"),
-            popular = DiscoverShelfUiModel(
-                key = DiscoverShelfKey.Lane(DiscoverLane.POPULAR_THIS_MONTH),
-                title = UiText.StringResource(Res.string.discover_popular_this_month),
-                games = listOf(GameItemUiModel.getDummy()),
-                hasMore = false
-            ),
-            upcoming = DiscoverShelfUiModel(
-                key = DiscoverShelfKey.Lane(DiscoverLane.MOST_ANTICIPATED),
-                title = UiText.StringResource(Res.string.discover_most_anticipated),
-                games = listOf(GameItemUiModel.getDummy().copy(id = 2, name = "Cyberpunk 2077")),
-                hasMore = false
-            )
-        )
+        discoverState = previewDiscoverContent
+    )
+}
+
+@Preview(widthDp = 1280, heightDp = 800)
+@Composable
+private fun SearchMainContentWideDiscoverPreview() {
+    SearchMainContentPreview(
+        contentState = SearchContentState.Idle,
+        discoverState = previewDiscoverContent,
+        isWideWindow = true
     )
 }
 

@@ -104,7 +104,8 @@ fun QuestLogNavDisplay(
                             if (backStack.lastOrNull() != SettingsRoute) {
                                 backStack.add(SettingsRoute)
                             }
-                        }
+                        },
+                        isWideWindow = twoPaneEnabled
                     )
                 }
 
