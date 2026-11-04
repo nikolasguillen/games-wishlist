@@ -50,7 +50,9 @@ already uses as `shape`, a gap from `MaterialTheme.spacing`, and
   collapsed bar's width (`collapsedBounds.width`, falling back to 360dp). The input field is capped at 720dp
   (`SearchBarMaxWidth`), so the panel is exactly as wide as the bar, which is FR-002.
 - Its height fits the content between 240dp and half of the window's height, and the content area scrolls beyond
-  that (FR-003).
+  that (FR-003). The 240dp is a hard minimum of the component (`DockedExpandedTableMinHeight`), so a sparse panel
+  (typing with no suggestions: the chips and "See all") has blank space under its last row. The owner accepted this on
+  2026-11-04 rather than build a custom panel; FR-003 states the minimum.
 - It re-renders the input field inside the popup, as `ExpandedFullScreenSearchBar` does inside its dialog, and
   requests focus on it the first time it opens. The text and the caret live in the ViewModel's `TextFieldState`, so
   both copies show the same text and caret.
@@ -87,6 +89,8 @@ which item, if any, Enter will activate.
 - **Shift+Delete** on a highlighted recent search asks to remove it (the existing dialog); on a highlighted recently
   viewed game it removes it, as the card's remove button does. On anything else it is left to the field.
 - **Left, Right, Home, End, typing and the usual shortcuts** are never intercepted: they edit the text (FR-019).
+
+**Keeping focus in the field** (owner decision, 2026-11-04, from the analysis): Compose requests focus on a mouse press for any `clickable` (foundation 1.12.1, `Clickable.kt`, `requestFocusWhenInMouseInputMode`), and every chip, genre, row and card of the panel is one. Left alone, a click on a type chip would put keyboard focus on the chip, and the key handler below (which is on the field) would stop seeing Down, Up, Enter and Escape, and typing would no longer reach the field. So the panel items are made non-focusable (`focusProperties { canFocus = false }` on the panel root, plus the nested remove button of a recent game card if it needs it). They stay reachable by the arrow keys through the highlight, by the mouse, and by assistive tools through the live region. The alternative of handing focus back to the field after every click was rejected: it leaves a moment where focus is on the item, and Tab would still enter the popup.
 
 The handler is an `onPreviewKeyEvent` on the input field, passed in through the field's modifier. A modifier passed
 to `SearchBarDefaults.InputField` sits *outside* Material's own `onPreviewKeyEvent`, so it sees Down first and
@@ -132,6 +136,8 @@ three triggers. Flipping to open-on-keyboard-focus later is one `onFocusChanged`
   quickstart.
 - **Tab**: see R3. The panel collapses first. Focus then moves on from the bar where the platform allows it; at worst
   it stays on the collapsed bar, and the next Tab moves on.
+- **What "the bar loses focus" means** (owner decision, 2026-11-04): only Tab and Shift+Tab. The app window losing
+  focus (switching to another application) leaves the panel as it is, and FR-021 says so.
 - **While a history dialog is open**, `dismissOnClickOutside` is off, so a click inside the dialog cannot count as a
   click outside the popup and close the panel behind it (US3-6).
 - Collapsing never touches `TextFieldState` (FR-023). The app window losing focus (switching apps) leaves the panel

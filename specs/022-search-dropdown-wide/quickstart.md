@@ -55,6 +55,7 @@ Desktop window at about 1280×800, with some history (search a few games, open t
 | 3.8 | Clear all history, then click the bar | Type chips, genres and the first-time message |
 | 3.9 | Shrink the window height to about 500dp with a full history | The panel stops at about half the window and scrolls inside itself; the page does not move |
 | 3.10 | Open and close the panel over Discover, results, and a character grid | The page behind never scrolls, reflows or reloads (SC-008) |
+| 3.11 | With the same history, type the same query once on this window and once on a window under 840dp | The same chips, recent matches, games and "See all" row, in the same order (SC-007) |
 
 ## 4. Keyboard (US2)
 
@@ -64,7 +65,7 @@ Panel open, nothing highlighted. Keep the mouse still.
 |---|---|---|
 | 4.1 | Press Down repeatedly | The highlight walks every item in reading order (chips, genres, "Clear all", recent searches, recent games) and stops at the last |
 | 4.2 | Press Up back to the top, once more | The highlight leaves the first chip; the caret is where it was, the text unchanged |
-| 4.3 | Type "ma", Down to a game, Enter | The game opens |
+| 4.3 | Type "ma", Down to a game, Enter. Time it from the first keystroke | The game opens, in under 5 seconds (SC-002) |
 | 4.4 | Type "ma", Enter with nothing highlighted | The search is committed for "ma" |
 | 4.5 | Highlight a row, then type, Left/Right, Backspace, Cmd/Ctrl+A, C, V | All go to the text field; suggestions update; a highlight whose row disappears clears |
 | 4.6 | Down to a chip, Enter | The type changes, the panel stays open |
@@ -72,6 +73,7 @@ Panel open, nothing highlighted. Keep the mouse still.
 | 4.8 | Highlight a recent game, Shift+Delete | The game leaves "Recently viewed" |
 | 4.9 | Highlight an item low in a long panel | It is scrolled into view |
 | 4.10 | Tab to the bar from elsewhere (panel closed) | The bar shows focus and does not open; Down or typing opens it |
+| 4.11 | With the mouse, click a type chip, then a recent game's remove button (if one is shown), then press Down, Up and Escape and type a letter | The highlight moves, Escape closes the panel and the letter goes into the text field: keyboard focus never left the field. Tab does not move into the panel's chips, rows or cards |
 
 ## 5. Mouse and closing (US2, US3)
 
@@ -85,6 +87,7 @@ Panel open, nothing highlighted. Keep the mouse still.
 | 5.6 | Reopen, press Tab | Panel closes, "ember" stays, focus moves on from the bar (or stays on the bar: note which) |
 | 5.7 | Reopen, click inside the text to move the caret | Panel stays open |
 | 5.8 | Reopen with an empty query, click "Clear all", then click inside the dialog | The dialog works and the panel stays open behind it; cancel returns to the panel |
+| 5.9 | Type "ember", press Escape (panel closes), then press Escape again | Record what happens: a second Escape does what it does today, and today's back handling clears a committed search when the bar is collapsed with text. If it clears the typed text, note it |
 
 ## 6. Crossing 840dp (US4)
 

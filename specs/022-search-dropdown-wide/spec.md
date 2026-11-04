@@ -18,6 +18,10 @@
 - Q: Does the dropdown keep the genre quick-browse shown before the first keystroke? → A: Yes. It sits right
   below the search-type chips and above the recent searches and the recently viewed games, the same order as
   the full-screen overlay. This departs from the mockup, which omits it.
+- Q: Does the panel take a minimum height from the component it is built on? → A: Yes, 240dp, and it is accepted
+  (analysis, 2026-11-04): a sparse panel has blank space instead of a custom panel being built.
+- Q: What counts as the bar losing focus? → A: Tab and Shift+Tab only; the window losing focus leaves the panel
+  open (analysis, 2026-11-04).
 - Q: Does the dropdown get the mockup's expanded game card beside it? → A: No, and not later either. The owner
   does not want it: the panel is only the list, nothing opens beside it.
 
@@ -73,36 +77,36 @@ suggestions ending with the "see all results" row.
 ### User Story 2 - Use the dropdown entirely from the keyboard or the mouse (Priority: P1)
 
 A desktop user searches without touching the mouse, or with only the mouse. With the keyboard, the arrow keys
-move through the panel's rows, the highlighted row is clearly marked, and Enter activates it. With the mouse,
-hovering a row highlights it and a click activates it. Escape closes the panel.
+move through the panel's items, the highlighted item is clearly marked, and Enter activates it. With the mouse,
+hovering an item highlights it and a click activates it. Escape closes the panel.
 
 **Why this priority**: A dropdown on desktop that cannot be driven by the keyboard is worse than the overlay it
 replaces. Keyboard and mouse use is the reason a dropdown fits a desktop window, so it ships with the panel,
 not after it.
 
-**Independent Test**: Open the panel with several rows showing. Without the mouse, press Down repeatedly and
-confirm the highlight moves row by row through every row, press Up to go back, press Enter on a game and
-confirm it opens. Reopen the panel, hover rows with the mouse and confirm the highlight follows the pointer,
+**Independent Test**: Open the panel with several items showing. Without the mouse, press Down repeatedly and
+confirm the highlight moves item by item through every item, press Up to go back, press Enter on a game and
+confirm it opens. Reopen the panel, hover items with the mouse and confirm the highlight follows the pointer,
 then click one and confirm it activates.
 
 **Acceptance Scenarios**:
 
-1. **Given** the panel is open, **When** the user presses Down, **Then** the highlight moves to the next row,
-   and from the last row it does not run off the end of the panel.
-2. **Given** a row is highlighted, **When** the user presses Up, **Then** the highlight moves to the previous
-   row, and from the first row focus returns to the text field with its text and caret intact.
-3. **Given** a row is highlighted, **When** the user presses Enter, **Then** that row is activated exactly as a
+1. **Given** the panel is open, **When** the user presses Down, **Then** the highlight moves to the next item,
+   and from the last item it does not run off the end of the panel.
+2. **Given** an item is highlighted, **When** the user presses Up, **Then** the highlight moves to the previous
+   item, and from the first item focus returns to the text field with its text and caret intact.
+3. **Given** an item is highlighted, **When** the user presses Enter, **Then** that item is activated exactly as a
    click on it would be.
-4. **Given** no row is highlighted and there is a typed query, **When** the user presses Enter, **Then** the
+4. **Given** no item is highlighted and there is a typed query, **When** the user presses Enter, **Then** the
    search is committed for the typed text, as it is from the full-screen overlay today.
-5. **Given** the highlight is on a row, **When** the user types or edits text, **Then** typing still goes to the
+5. **Given** the highlight is on an item, **When** the user types or edits text, **Then** typing still goes to the
    text field and the suggestions update.
-6. **Given** the panel is open, **When** the user moves the mouse over a row, **Then** that row shows the same
-   highlight as a keyboard-selected row, and a click on it activates it.
+6. **Given** the panel is open, **When** the user moves the mouse over an item, **Then** that item shows the same
+   highlight as a keyboard-selected item, and a click on it activates it.
 7. **Given** a list taller than the panel, **When** the highlight moves with the keyboard, **Then** the
-   highlighted row is always scrolled into view.
+   highlighted item is always scrolled into view.
 8. **Given** a screen reader or assistive tool is in use, **When** the highlight moves, **Then** the
-   highlighted row is announced, and every item of the panel is reachable with the arrow keys while focus
+   highlighted item is announced, and every item of the panel is reachable with the arrow keys while focus
    stays in the text field.
 
 ---
@@ -110,13 +114,13 @@ then click one and confirm it activates.
 ### User Story 3 - The panel closes without losing what was typed (Priority: P1)
 
 The user can dismiss the panel at any time and come back to it. It closes on Escape, on a click outside it, and
-when the search bar loses focus. Closing it never clears the text in the bar, so refocusing the bar reopens the
-panel on the same query.
+when the search bar loses focus by Tab. Closing it never clears the text in the bar, so clicking the bar again (or
+typing or pressing Down in it) reopens the panel on the same query.
 
 **Why this priority**: A dropdown that eats the user's query when it is dismissed would make every accidental
 click costly. It is also the half of "dropdown behaviour" that users expect without being told.
 
-**Independent Test**: Type "ember", press Escape: the panel closes and "ember" is still in the bar. Focus the
+**Independent Test**: Type "ember", press Escape: the panel closes and "ember" is still in the bar. Click the
 bar again: the panel reopens on "ember". Repeat closing by clicking the page outside the panel, and by moving
 focus away with Tab.
 
@@ -127,13 +131,13 @@ focus away with Tab.
 2. **Given** the panel is open, **When** the user clicks or taps anywhere outside the panel and the bar,
    **Then** the panel closes, the typed text stays in the bar, and the click does not also activate whatever
    was beneath the panel.
-3. **Given** the panel is open, **When** the search bar loses focus (for example Tab moves focus away),
+3. **Given** the panel is open, **When** the search bar loses focus (Tab or Shift+Tab moves focus away),
    **Then** the panel closes and the typed text stays in the bar.
 4. **Given** the panel was closed with text in the bar, **When** the user clicks the bar again (or types, or
    presses Down in it), **Then** the panel reopens showing suggestions for that same text.
 5. **Given** the user clicks inside the bar to move the caret while the panel is open, **When** the click
    lands, **Then** the panel stays open.
-6. **Given** a row's remove button or the "clear all" action is used, **When** it fires, **Then** the same
+6. **Given** an item's remove button or the "clear all" action is used, **When** it fires, **Then** the same
    confirmation dialog the full-screen overlay shows appears, the panel stays open behind it, and confirming
    or cancelling returns the user to the panel (confirming a removal updates the list in place).
 
@@ -170,26 +174,24 @@ full-screen overlay is showing with "ember" in the bar. Widen it back to 1000dp:
 
 - The window is exactly 840dp wide: the dropdown is used.
 - The bar is already focused when the search screen is shown, or the screen returns from a game opened from a
-  suggestion: the panel follows the same open and close rules as any other focus change; it does not reopen on
-  its own once closed, until the bar is focused again.
+  suggestion: the bar having focus does not open the panel by itself; it opens on a click or tap, typing or Down,
+  and once closed it does not reopen on its own.
 - Two panes are shown (Search beside a game's detail): the panel stays as wide as the bar and does not extend
   over the detail pane.
 - The page behind the panel is a results grid, a character or developer grid, or the Discover feed: the panel
   floats over it in the same way, and the page does not scroll, reflow or reload when the panel opens or closes.
-- The panel has more rows than fit under the bar in a short window: the panel is capped to the space available,
-  scrolls inside itself, and never runs off the bottom of the window.
-- The empty-query panel is at its tallest (chips, genres, recent searches and recently viewed games all
-  present): it is capped to the space available under the bar and scrolls inside itself, never past the bottom
-  of the window.
-- The user presses Down with no rows to highlight (empty state, or only the loading rows): nothing happens and
-  the text field keeps focus.
-- Suggestions arrive or change while a row is highlighted: the highlight does not jump to a different row
-  silently; if the highlighted row disappears, the highlight returns to the text field.
+- The panel has more content than fits (a short window, or the empty-query panel at its tallest with chips,
+  genres, recent searches and recently viewed games all present): it stops growing at about half the window's
+  height, scrolls inside itself, and never runs off the bottom of the window.
+- The panel holds only the three search-type chips (the empty state, or only the loading rows): Down highlights the
+  first chip and there is nothing further to move to; the text field keeps focus.
+- Suggestions arrive or change while an item is highlighted: the highlight does not jump to a different item
+  silently; if the highlighted item disappears, the highlight returns to the text field.
 - A game suggestion has no year or no developer: the row shows what exists, without a stray separator, as the
   full-screen overlay does today.
 - The query is blank (only spaces): the panel behaves as it does for an empty query, as the overlay does today.
 - A very long query or a very long game title: the text is cut with an ellipsis and never widens the panel.
-- The mouse pointer rests over a row while the keyboard moves the highlight: the keyboard's highlight wins until
+- The mouse pointer rests over an item while the keyboard moves the highlight: the keyboard's highlight wins until
   the pointer actually moves.
 - The user uses select-all, copy or paste in the text field while the panel is open: they work on the text as
   normal and do not close the panel or move the highlight.
@@ -206,8 +208,9 @@ full-screen overlay is showing with "ember" in the bar. Widen it back to 1000dp:
   a search field with suggestions, and what keeps a panel closed with Escape from reopening by itself).
 - **FR-002**: The panel MUST be as wide as the search bar, MUST float over the page, and MUST NOT cover the
   navigation rail, the area beside the bar or the whole window.
-- **FR-003**: The panel's height MUST fit its content up to a maximum that keeps the lower part of the window
-  visible, scrolling inside itself beyond that, and MUST NOT extend past the bottom of the window.
+- **FR-003**: The panel's height MUST fit its content between a minimum of 240dp (a sparse panel keeps blank space
+  under its last row) and a maximum of about half the window's height, scrolling inside itself beyond that, and
+  MUST NOT extend past the bottom of the window.
 - **FR-004**: On a window narrower than 840dp, the search bar MUST open the existing full-screen overlay,
   unchanged in appearance, content and behaviour.
 - **FR-005**: The page behind the panel MUST NOT scroll, reflow, reload or lose its state when the panel opens
@@ -231,8 +234,9 @@ full-screen overlay is showing with "ember" in the bar. Widen it back to 1000dp:
   panel), and the chosen type MUST be the one the suggestions and the committed search use.
 - **FR-010**: With an empty or blank query, the panel MUST keep the genre quick-browse as a section directly
   below the search-type chips and above the recent searches and the recently viewed games, so the order from the
-  top is chips, genres, recent searches, recently viewed games, as in the full-screen overlay, with the same genres, the same order and the same result
-  when one is chosen as in the full-screen overlay. It is not shown while a query is typed, as today. When there
+  top is chips, genres, recent searches, recently viewed games, as in the full-screen overlay. It MUST show the
+  same genres in the same order, and choosing one MUST have the same result as in the full-screen overlay. It is
+  not shown while a query is typed, as today. When there
   is no history, the section still shows, as it does today for a first-time user.
 - **FR-011**: All text in the panel MUST be the app's own localized strings, not the mockup's copy.
 
@@ -246,28 +250,29 @@ full-screen overlay is showing with "ember" in the bar. Widen it back to 1000dp:
 
 **Keyboard and mouse**
 
-- **FR-015**: The Up and Down arrow keys MUST move the highlight through every row of the panel (the search-type
+- **FR-015**: The Up and Down arrow keys MUST move the highlight through every item of the panel (the search-type
   chips, the genres, the "clear all" action, the recent searches, the games and the final row) in visual order, without wrapping past
-  either end, and Up from the first row MUST return focus to the text field with its text
+  either end, and Up from the first item MUST return focus to the text field with its text
   and caret unchanged.
-- **FR-016**: Enter MUST activate the highlighted row exactly as a click does; with no row highlighted, Enter
+- **FR-016**: Enter MUST activate the highlighted item exactly as a click does; with no item highlighted, Enter
   MUST commit the typed query as it does from the full-screen overlay today. Shift+Delete on a highlighted recent
   search MUST ask to remove it with the same confirmation as today, and on a highlighted recently viewed game MUST
   remove it as its remove button does.
-- **FR-017**: The highlighted row MUST be visibly marked, distinct from the other rows, and the same mark MUST
+- **FR-017**: The highlighted item MUST be visibly marked, distinct from the other items, and the same mark MUST
   be used for the keyboard's highlight and the mouse's hover.
-- **FR-018**: Hovering a row with the mouse MUST highlight it and clicking it MUST activate it.
-- **FR-019**: Typing, editing and the usual text-field shortcuts MUST keep working while a row is highlighted,
+- **FR-018**: Hovering an item with the mouse MUST highlight it and clicking it MUST activate it.
+- **FR-019**: Typing, editing and the usual text-field shortcuts MUST keep working while an item is highlighted,
   and MUST NOT be swallowed by the panel.
-- **FR-020**: The highlighted row MUST always be scrolled into view, and MUST be exposed to assistive tools,
+- **FR-020**: The highlighted item MUST always be scrolled into view, and MUST be exposed to assistive tools,
   which MUST announce it when it changes.
 
 **Closing**
 
 - **FR-021**: The panel MUST close on Escape, on a click or tap outside the panel and the bar, and when the
-  search bar loses focus.
+  search bar loses focus by Tab or Shift+Tab. Switching to another application (the whole window losing focus)
+  does not close it.
 - **FR-022**: A click or tap that closes the panel MUST NOT also activate whatever was beneath it.
-- **FR-023**: Closing the panel MUST NOT clear or alter the typed text, and focusing the bar again MUST reopen
+- **FR-023**: Closing the panel MUST NOT clear or alter the typed text, and clicking the bar again (or typing, or pressing Down in it) MUST reopen
   the panel on the same text.
 - **FR-024**: A click inside the search bar while the panel is open MUST NOT close it.
 
@@ -289,13 +294,14 @@ full-screen overlay is showing with "ember" in the bar. Widen it back to 1000dp:
 
 ### Key Entities *(include if feature involves data)*
 
-- **Search panel row**: One selectable line of the panel. It is a recent search, a recently viewed game, a
-  matching recent search, a matching game (title, year, developer) or the final "see all results" row. Each row
-  has one action when chosen, and exactly one row at a time can be highlighted.
-- **Highlight**: Which row, if any, the arrow keys or the mouse have marked as the one Enter will activate. It
+- **Search panel item**: One selectable element of the panel. It is a search-type chip, a genre, the "clear all"
+  action, a recent search, a recently viewed game, a matching recent search, a matching game (title, year,
+  developer) or the final "see all results" row. Each item has one action when chosen, and exactly one item at a
+  time can be highlighted.
+- **Highlight**: Which item, if any, the arrow keys or the mouse have marked as the one Enter will activate. It
   belongs to the panel, resets when the panel closes, and is separate from the text field's focus.
-- **Panel open state**: Whether the dropdown is showing. It follows the search bar's focus and is closed by
-  Escape or an outside click; it never owns the typed text.
+- **Panel open state**: Whether the dropdown is showing. It is opened by a click or tap on the bar, typing or Down,
+  and closed by Escape, an outside click or Tab; it never owns the typed text.
 
 The recents, suggestions and history themselves are not new: this feature reads exactly the data the
 full-screen overlay reads.
@@ -308,10 +314,10 @@ full-screen overlay reads.
   width equals the bar's width, with the navigation rail and the page visible around it.
 - **SC-002**: A user can go from an empty bar to an opened game, using only the keyboard (type, Down, Enter), in
   under 5 seconds, without touching the mouse.
-- **SC-003**: Every row of the panel can be highlighted by the arrow keys and by the mouse hover, and
-  activating it by Enter or by click has the same result, in 100% of the rows checked.
+- **SC-003**: Every item of the panel can be highlighted by the arrow keys and by the mouse hover, and
+  activating it by Enter or by click has the same result, in 100% of the items checked.
 - **SC-004**: After Escape, an outside click, or a loss of focus, the typed text in the bar is unchanged in
-  100% of attempts, and refocusing the bar reopens the panel on that text.
+  100% of attempts, and clicking the bar again reopens the panel on that text.
 - **SC-005**: Resizing a window across 840dp in both directions with a typed query and the bar focused leaves the
   query, caret and search type unchanged in 100% of attempts, and no search is committed by the resize.
 - **SC-006**: On a window narrower than 840dp, the search overlay is indistinguishable from today's in
@@ -335,6 +341,8 @@ full-screen overlay reads.
 - The panel's row heights and hit targets follow the app's existing sizing tokens, comfortable for a mouse and
   at least as large as a tap target.
 - The "back" arrow in the mockup's bar is the bar's existing back behaviour and is not part of this feature.
+- A click on another part of the app while the panel is open (for example the navigation rail) closes the panel and
+  does nothing else; a second click then activates it. That is what FR-022 requires.
 - Escape closes only the panel; a second Escape with the panel already closed does whatever it does today.
 - Keyboard and focus behaviour can only be fully verified on a desktop window, which has not been tried yet for
   Search; those checks are recorded as open in the technical-debt list if they cannot be done before the feature

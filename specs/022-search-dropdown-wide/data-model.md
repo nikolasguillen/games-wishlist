@@ -16,7 +16,7 @@ The panel reads exactly what the full-screen overlay reads today:
 | `SearchUiState` | `suggestions: SearchSuggestionsUiModel` (`historySuggestions`, at most 5; `gameSuggestions`, at most 4; `isLoadingRemote`) | the typing panel |
 | `SearchViewModel` | `textFieldState: TextFieldState` | the query, its caret and selection |
 
-## New: `SearchDropdownItem` (model/SearchDropdownItem.kt)
+## New: `SearchDropdownItemUiModel` (model/SearchDropdownItemUiModel.kt)
 
 A sealed interface, one closed set kept in one file: one actionable item of the wide panel. Each variant's equality
 is its identity, which is what the highlight is keyed by (a data class or data object per variant).
@@ -39,7 +39,7 @@ Not items: section headers, the loading rows and the empty-state message. They a
 
 ## New: the reading order (mapper/SearchDropdownItemMapper.kt)
 
-`searchDropdownItems(query, browseGenres, history, suggestions): List<SearchDropdownItem>`, a pure function that
+`searchDropdownItems(query, browseGenres, history, suggestions): List<SearchDropdownItemUiModel>`, a pure function that
 returns the items in the order the panel draws them:
 
 - **Query blank** (empty or only spaces):
@@ -56,18 +56,18 @@ other, and the order is pinned by `SearchDropdownItemsTest`.
 
 | Element | Type | Owner |
 |---|---|---|
-| highlighted item | `SearchDropdownItem?` (`null` = the text field) | `remember { mutableStateOf(null) }` in `WideSearchLayout` |
+| highlighted item | `SearchDropdownItemUiModel?` (`null` = the text field) | `remember { mutableStateOf(null) }` in `WideSearchLayout` |
 
 Pure rules, tested by `SearchDropdownNavigationTest`:
 
-- `highlightNext(items, current): SearchDropdownItem?` (Down)
+- `highlightNext(items, current): SearchDropdownItemUiModel?` (Down)
   - from `null` → `items.first()` (or `null` when `items` is empty);
   - from item *i* → item *i+1*; from the last item → the last item (no wrap).
-- `highlightPrevious(items, current): SearchDropdownItem?` (Up)
+- `highlightPrevious(items, current): SearchDropdownItemUiModel?` (Up)
   - from item *i* → item *i−1*; from the first item → `null`;
   - from `null` → `null`.
 - In both, a `current` not in `items` is treated as `null`.
-- `reconcileHighlight(items, current): SearchDropdownItem?` → `current` if it is still in `items`, else `null`.
+- `reconcileHighlight(items, current): SearchDropdownItemUiModel?` → `current` if it is still in `items`, else `null`.
 
 State transitions:
 

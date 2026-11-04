@@ -82,7 +82,7 @@ across 840dp is a recomposition with no fetch.
 | **IV. Reuse the shared layer** | The panel is built from the overlay's composables and `:core:ui`'s `CustomFilterChip` and `RecentGameCard`. The dialogs are the existing `CustomAlertDialog`-based ones. Gaps and paddings use `MaterialTheme.spacing`, and colors come from the theme (`appColors` / `colorScheme`). There is no inline `dp` literal and no Material `AlertDialog`. The highlight modifier lives in the feature, its only user; it moves to `core/ui/util/modifiers/` when a second feature needs it. | ✅ Pass |
 | **V. Local verification** | Real commands only (quickstart §1). The new logic gets tests in its module. No CI or lint gate is assumed. | ✅ Pass |
 | **KMP constraints** | `commonMain` only. No `android.*` or `java.*`, no `expect`/`actual` (same Material 3 API on both artifacts, R2), no platform contract, no library swap. iOS is verifiable on this Mac and is listed in the quickstart. | ✅ Pass |
-| **Development workflow** | One composable unit per file in `components/`. `SearchDropdownItem` is one sealed hierarchy in one file, the exception the rules allow. No other new type (two functions instead of a direction enum). `internal` by default, and the own `Res` is imported bare. Previews use `@QuestLogPreviews` plus `@Preview(widthDp = 720)` for the panel. | ✅ Pass |
+| **Development workflow** | One composable unit per file in `components/`. `SearchDropdownItemUiModel` is one sealed hierarchy in one file, the exception the rules allow. No other new type (two functions instead of a direction enum). `internal` by default, and the own `Res` is imported bare. Previews use `@QuestLogPreviews` plus `@Preview(widthDp = 720)` for the panel. | ✅ Pass |
 
 **Guidance check, `feature/CLAUDE.md`**: "A screen with a separate wide layout … receives `isWideWindow` … and
 dispatches on it once, in one place." The current code reads it inside `SearchMainContent` (spec 021). After this
@@ -101,7 +101,7 @@ specs/022-search-dropdown-wide/
 ├── spec.md              # /speckit-specify, owner answers of 2026-11-04, planning refinements
 ├── plan.md              # This file
 ├── research.md          # Phase 0: R1–R11
-├── data-model.md        # Phase 1: SearchDropdownItem, reading order, highlight rules, moved dialog state
+├── data-model.md        # Phase 1: SearchDropdownItemUiModel, reading order, highlight rules, moved dialog state
 ├── quickstart.md        # Phase 1: validation guide
 ├── contracts/
 │   └── ui-contract.md   # Phase 1: composable signatures, keyboard and pointer contracts, :shared boundary
@@ -138,7 +138,7 @@ feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/
 ├── mapper/
 │   └── SearchDropdownItemMapper.kt    # NEW: searchDropdownItems (pure)
 └── model/
-    └── SearchDropdownItem.kt          # NEW: sealed interface + its variants
+    └── SearchDropdownItemUiModel.kt          # NEW: sealed interface + its variants
 
 feature/search/src/androidHostTest/kotlin/com/nikolasguillen/questlog/feature/search/
 ├── mapper/SearchDropdownItemsTest.kt           # NEW
@@ -162,7 +162,7 @@ whose defaults reproduce today's behaviour. `:shared` and every other module are
 2. **Single dispatch, no visible change**: `CompactSearchLayout` (the moved Scaffold) and `WideSearchLayout`, which at
    this step still passes `ExpandedSearchBar` and `WideDiscoverFeed`, so the wide window looks as it does today.
    `SearchScreenContent` dispatches. Run `:androidApp:assembleDebug` here.
-3. **Pure rules and tests**: `SearchDropdownItem`, `searchDropdownItems`, the navigation functions,
+3. **Pure rules and tests**: `SearchDropdownItemUiModel`, `searchDropdownItems`, the navigation functions,
    `SearchDropdownItemsTest`, `SearchDropdownNavigationTest`.
 4. **Wide panel composables with previews**: `SearchPanelItem`, `WideSearchHome`, `WideSearchSuggestions`,
    `WideSearchPanel`, `WideSearchDropdown`. Nothing calls them yet.
@@ -187,6 +187,13 @@ The spec was edited in the same change. Each edit follows a planning finding:
 - **FR-015**: the "Clear all" action is listed among the items the arrow keys reach.
 - **FR-016**: Shift+Delete removes a highlighted recent search (through its dialog) or recently viewed game (R3).
 
+## Owner decisions applied (2026-11-04, after the analysis)
+
+- **Panel items are non-focusable**, so a mouse click or Tab never moves keyboard focus off the text field (research R3, T017).
+- **The 240dp minimum height of the Material panel is accepted** and stated in FR-003 (research R2).
+- **The item type is named `SearchDropdownItemUiModel`**, following the `UiModel` suffix rule literally.
+- **"The bar loses focus" means Tab and Shift+Tab**; the window losing focus keeps the panel open (FR-021, research R5).
+
 ## Decisions the owner may want to revisit
 
 - **Tab-focus does not open the panel** (R4). Flipping it is one `onFocusChanged` on the wide field.
@@ -195,6 +202,8 @@ The spec was edited in the same change. Each edit follows a planning finding:
 - **A click on the rail while the panel is open only closes the panel** (R5). A focusable popup consumes the click
   that dismisses it, which is what FR-022 asks for, but it also means the first click on another tab is spent
   closing the panel.
+
+If a platform lets the closing click through to what is under the panel (T029), the options are a transparent full-window click catcher (it would also catch clicks on the rail), a custom overlay (more code), or accepting it on that platform. The owner decides; nothing is chosen alone.
 
 None of these is hard to undo.
 

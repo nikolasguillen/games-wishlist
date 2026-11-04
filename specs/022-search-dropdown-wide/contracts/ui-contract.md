@@ -172,14 +172,14 @@ internal fun WideSearchDropdown(
     searchBarColors: SearchBarColors,
     uiState: SearchUiState,
     query: String,
-    onActivate: (SearchDropdownItem) -> Unit,
+    onActivate: (SearchDropdownItemUiModel) -> Unit,
     onRemoveRecentGame: (Int) -> Unit,
     queryToRemove: String?, onQueryToRemoveChange: (String?) -> Unit,
     showClearHistoryDialog: Boolean, onShowClearHistoryDialogChange: (Boolean) -> Unit,
     onConfirmRemoveQuery: (String) -> Unit,
     onConfirmClearHistory: () -> Unit,
-    highlighted: SearchDropdownItem? = null,                      // only for the screen-reader announcement
-    itemModifier: (SearchDropdownItem) -> Modifier = { Modifier } // hover, mark and bring-into-view; the layout builds it
+    highlighted: SearchDropdownItemUiModel? = null,                      // only for the screen-reader announcement
+    itemModifier: (SearchDropdownItemUiModel) -> Modifier = { Modifier } // hover, mark and bring-into-view; the layout builds it
 )
 
 // components/WideSearchPanel.kt: chooses the typing or the empty-query content (by the query, not by size),
@@ -187,12 +187,12 @@ internal fun WideSearchDropdown(
 internal fun WideSearchPanel(
     uiState: SearchUiState,
     query: String,
-    onActivate: (SearchDropdownItem) -> Unit,
+    onActivate: (SearchDropdownItemUiModel) -> Unit,
     onRemoveRecentGame: (Int) -> Unit,
     onShowRemovalDialog: (String) -> Unit,
     modifier: Modifier = Modifier,
-    highlighted: SearchDropdownItem? = null,
-    itemModifier: (SearchDropdownItem) -> Modifier = { Modifier }
+    highlighted: SearchDropdownItemUiModel? = null,
+    itemModifier: (SearchDropdownItemUiModel) -> Modifier = { Modifier }
 )
 
 // components/WideSearchHome.kt: before typing. Type chips (wrap), genres (wrap), recent searches (wrap) with
@@ -207,9 +207,9 @@ internal fun WideSearchSuggestions(/* the WideSearchPanel parameters it needs */
 // The mark's shape follows the item's own: MaterialTheme.shapes.small for the chips, "Clear all" and the recent
 // game cards, MaterialTheme.shapes.medium for a row.
 internal fun Modifier.searchPanelItem(
-    item: SearchDropdownItem,
-    highlighted: SearchDropdownItem?,
-    onHighlight: (SearchDropdownItem) -> Unit
+    item: SearchDropdownItemUiModel,
+    highlighted: SearchDropdownItemUiModel?,
+    onHighlight: (SearchDropdownItemUiModel) -> Unit
 ): Modifier
 ```
 
@@ -226,12 +226,12 @@ internal fun searchDropdownItems(
     browseGenres: List<BrowseGenreUiModel>,
     history: SearchHistoryUiModel,
     suggestions: SearchSuggestionsUiModel
-): List<SearchDropdownItem>
+): List<SearchDropdownItemUiModel>
 
 // components/SearchDropdownNavigation.kt
-internal fun highlightNext(items: List<SearchDropdownItem>, current: SearchDropdownItem?): SearchDropdownItem?
-internal fun highlightPrevious(items: List<SearchDropdownItem>, current: SearchDropdownItem?): SearchDropdownItem?
-internal fun reconcileHighlight(items: List<SearchDropdownItem>, current: SearchDropdownItem?): SearchDropdownItem?
+internal fun highlightNext(items: List<SearchDropdownItemUiModel>, current: SearchDropdownItemUiModel?): SearchDropdownItemUiModel?
+internal fun highlightPrevious(items: List<SearchDropdownItemUiModel>, current: SearchDropdownItemUiModel?): SearchDropdownItemUiModel?
+internal fun reconcileHighlight(items: List<SearchDropdownItemUiModel>, current: SearchDropdownItemUiModel?): SearchDropdownItemUiModel?
 ```
 
 ## Keyboard contract (wide panel open; focus in the text field)
