@@ -25,7 +25,7 @@
 
 ### User Story 1 - Search from a dropdown that leaves the page visible (Priority: P1)
 
-A user on a desktop window or a tablet focuses the search bar. Today the whole window is taken over by a
+A user on a desktop window or a tablet clicks into the search bar. Today the whole window is taken over by a
 full-screen overlay: phone content stretched across a wide window, with the screen they were on hidden behind
 it. With this feature, on a wide window a panel opens directly under the bar instead. It is as wide as the bar
 and floats over the page; the navigation rail, the rest of the window and the page behind stay visible. Before
@@ -37,14 +37,15 @@ row to see all results for what they typed.
 crossing) refines how this panel behaves, and the panel alone already replaces the stretched overlay with
 something that fits a wide window.
 
-**Independent Test**: On a window at least 840dp wide, focus the search bar with some history present: confirm a
+**Independent Test**: On a window at least 840dp wide, click the search bar with some history present: confirm a
 panel opens under the bar, no wider than the bar, with the page and the navigation rail still visible around
 it, showing the recent searches and recently viewed games. Type a few letters: confirm it switches to matching
 suggestions ending with the "see all results" row.
 
 **Acceptance Scenarios**:
 
-1. **Given** a window at least 840dp wide, **When** the user focuses the search bar, **Then** a panel opens
+1. **Given** a window at least 840dp wide, **When** the user clicks or taps the search bar, types into it, or
+   presses Down while it has keyboard focus, **Then** a panel opens
    directly under the bar, as wide as the bar, floating over the page, and the navigation rail and the page
    around the panel stay visible.
 2. **Given** the panel is open and the query is empty, **When** the user looks at it, **Then** it shows the
@@ -101,7 +102,8 @@ then click one and confirm it activates.
 7. **Given** a list taller than the panel, **When** the highlight moves with the keyboard, **Then** the
    highlighted row is always scrolled into view.
 8. **Given** a screen reader or assistive tool is in use, **When** the highlight moves, **Then** the
-   highlighted row is announced and the panel's rows are reachable through Tab and the arrow keys.
+   highlighted row is announced, and every item of the panel is reachable with the arrow keys while focus
+   stays in the text field.
 
 ---
 
@@ -127,8 +129,8 @@ focus away with Tab.
    was beneath the panel.
 3. **Given** the panel is open, **When** the search bar loses focus (for example Tab moves focus away),
    **Then** the panel closes and the typed text stays in the bar.
-4. **Given** the panel was closed with text in the bar, **When** the user focuses the bar again, **Then** the
-   panel reopens showing suggestions for that same text.
+4. **Given** the panel was closed with text in the bar, **When** the user clicks the bar again (or types, or
+   presses Down in it), **Then** the panel reopens showing suggestions for that same text.
 5. **Given** the user clicks inside the bar to move the caret while the panel is open, **When** the click
    lands, **Then** the panel stays open.
 6. **Given** a row's remove button or the "clear all" action is used, **When** it fires, **Then** the same
@@ -198,12 +200,14 @@ full-screen overlay is showing with "ember" in the bar. Widen it back to 1000dp:
 
 **Presentation**
 
-- **FR-001**: On a window at least 840dp wide, focusing the search bar MUST open a panel directly under the bar
-  instead of the full-screen overlay.
+- **FR-001**: On a window at least 840dp wide, a click or tap on the search bar, typing into it, or pressing Down
+  while it has keyboard focus MUST open a panel directly under the bar instead of the full-screen overlay. Moving
+  keyboard focus onto the bar with Tab alone shows the bar's focus but does not open the panel (the convention for
+  a search field with suggestions, and what keeps a panel closed with Escape from reopening by itself).
 - **FR-002**: The panel MUST be as wide as the search bar, MUST float over the page, and MUST NOT cover the
   navigation rail, the area beside the bar or the whole window.
-- **FR-003**: The panel's height MUST fit its content up to the space available under the bar, scrolling inside
-  itself beyond that, and MUST NOT extend past the bottom of the window.
+- **FR-003**: The panel's height MUST fit its content up to a maximum that keeps the lower part of the window
+  visible, scrolling inside itself beyond that, and MUST NOT extend past the bottom of the window.
 - **FR-004**: On a window narrower than 840dp, the search bar MUST open the existing full-screen overlay,
   unchanged in appearance, content and behaviour.
 - **FR-005**: The page behind the panel MUST NOT scroll, reflow, reload or lose its state when the panel opens
@@ -243,11 +247,13 @@ full-screen overlay is showing with "ember" in the bar. Widen it back to 1000dp:
 **Keyboard and mouse**
 
 - **FR-015**: The Up and Down arrow keys MUST move the highlight through every row of the panel (the search-type
-  chips, the genres, the recent searches, the games and the final row) in visual order, without wrapping past
+  chips, the genres, the "clear all" action, the recent searches, the games and the final row) in visual order, without wrapping past
   either end, and Up from the first row MUST return focus to the text field with its text
   and caret unchanged.
 - **FR-016**: Enter MUST activate the highlighted row exactly as a click does; with no row highlighted, Enter
-  MUST commit the typed query as it does from the full-screen overlay today.
+  MUST commit the typed query as it does from the full-screen overlay today. Shift+Delete on a highlighted recent
+  search MUST ask to remove it with the same confirmation as today, and on a highlighted recently viewed game MUST
+  remove it as its remove button does.
 - **FR-017**: The highlighted row MUST be visibly marked, distinct from the other rows, and the same mark MUST
   be used for the keyboard's highlight and the mouse's hover.
 - **FR-018**: Hovering a row with the mouse MUST highlight it and clicking it MUST activate it.
@@ -298,7 +304,7 @@ full-screen overlay reads.
 
 ### Measurable Outcomes
 
-- **SC-001**: On a window of 840dp or more, 100% of focus-to-open attempts show a panel under the bar whose
+- **SC-001**: On a window of 840dp or more, 100% of attempts to open it (a click, typing or Down in the bar) show a panel under the bar whose
   width equals the bar's width, with the navigation rail and the page visible around it.
 - **SC-002**: A user can go from an empty bar to an opened game, using only the keyboard (type, Down, Enter), in
   under 5 seconds, without touching the mouse.
