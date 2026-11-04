@@ -92,7 +92,7 @@ internal fun SearchTopBar(
     onEvent: (SearchUiEvent) -> Unit,
     onProfileClick: () -> Unit,
     backgroundColor: Color,
-    expandedContent: @Composable (inputField: @Composable () -> Unit, colors: SearchBarColors) -> Unit,
+    expandedContent: @Composable (inputField: @Composable () -> Unit, colors: SearchBarColors, shape: Shape) -> Unit,
     inputFieldModifier: Modifier = Modifier,       // wide: the key handler
     readOnlyWhenCollapsed: Boolean = true          // wide: false (research R4)
 )
@@ -172,14 +172,14 @@ internal fun WideSearchDropdown(
     searchBarColors: SearchBarColors,
     uiState: SearchUiState,
     query: String,
-    highlighted: SearchDropdownItem?,
-    onHighlight: (SearchDropdownItem) -> Unit,
     onActivate: (SearchDropdownItem) -> Unit,
     onRemoveRecentGame: (Int) -> Unit,
     queryToRemove: String?, onQueryToRemoveChange: (String?) -> Unit,
     showClearHistoryDialog: Boolean, onShowClearHistoryDialogChange: (Boolean) -> Unit,
     onConfirmRemoveQuery: (String) -> Unit,
-    onConfirmClearHistory: () -> Unit
+    onConfirmClearHistory: () -> Unit,
+    highlighted: SearchDropdownItem? = null,                      // only for the screen-reader announcement
+    itemModifier: (SearchDropdownItem) -> Modifier = { Modifier } // hover, mark and bring-into-view; the layout builds it
 )
 
 // components/WideSearchPanel.kt: chooses the typing or the empty-query content (by the query, not by size),
@@ -187,12 +187,12 @@ internal fun WideSearchDropdown(
 internal fun WideSearchPanel(
     uiState: SearchUiState,
     query: String,
-    highlighted: SearchDropdownItem?,
-    onHighlight: (SearchDropdownItem) -> Unit,
     onActivate: (SearchDropdownItem) -> Unit,
     onRemoveRecentGame: (Int) -> Unit,
     onShowRemovalDialog: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    highlighted: SearchDropdownItem? = null,
+    itemModifier: (SearchDropdownItem) -> Modifier = { Modifier }
 )
 
 // components/WideSearchHome.kt: before typing. Type chips (wrap), genres (wrap), recent searches (wrap) with
@@ -204,11 +204,12 @@ internal fun WideSearchHome(/* the WideSearchPanel parameters it needs */)
 internal fun WideSearchSuggestions(/* the WideSearchPanel parameters it needs */)
 
 // components/SearchPanelItem.kt: the one modifier every actionable panel item wears (research R9)
+// The mark's shape follows the item's own: MaterialTheme.shapes.small for the chips, "Clear all" and the recent
+// game cards, MaterialTheme.shapes.medium for a row.
 internal fun Modifier.searchPanelItem(
     item: SearchDropdownItem,
     highlighted: SearchDropdownItem?,
-    onHighlight: (SearchDropdownItem) -> Unit,
-    shape: Shape
+    onHighlight: (SearchDropdownItem) -> Unit
 ): Modifier
 ```
 
