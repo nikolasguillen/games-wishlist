@@ -85,3 +85,19 @@ Unrefined points: bugs, ideas, chores and improvements that are not scheduled. T
 - **Now → Better:** a list is grouped by status only; desired: separate released from not-yet-released games
 - **Why:** see at a glance what can be played now
 - **Notes:** the design has open catches that are still to be discussed; how it fits with the status grouping is undecided
+
+### Anchor the profile button at the bottom of the navigation rail on desktop and tablets
+- **Added:** 2026-11-04
+- **Where:** `shared/.../QuestLogNavigationSuite.kt` (the rail); `core/ui/.../component/MainScreenHeader.kt` (draws `ProfileIconButton` in the header's trailing slot); `shared/.../QuestLogNavDisplay.kt` (passes `onProfileClick` to Search, Radar and Lists)
+- **Platform:** Desktop and tablets
+- **Now → Better:** the profile button, which opens Settings, sits in the header of every top-level screen; desired: where the rail is shown on a large window it is anchored at the bottom of the rail and no longer appears in the header at all
+- **Why:** a fixed position is visually easier to reach
+- **Notes:** `MainScreenHeaderDefaults.Height` and the header's profile slot exist so top-level screens line up, so removing the button from the header on a wide window changes that slot too. Undecided: a phone in landscape also gets the rail, but its header is already crowded, so whether it follows is to be decided. Unverified: the rail comes from `NavigationSuiteScaffold`, whose items may not offer a bottom-anchored slot, so this could need a custom rail layout. Related to "Responsive layouts from the Claude Design mockups (desktop and tablets)"
+
+### Show more cards per Discover row on wide windows (10 to 12 instead of 6)
+- **Added:** 2026-11-04
+- **Where:** `feature/search/.../mapper/DiscoverMapper.kt` (`DISCOVER_SHELF_ROW_SIZE = 6`, applied by `toDiscoverContentState` through `take` and `hasMore`); `DiscoverMapperTest.kt` asserts the value; the wide rows are `WideDiscoverFeed.kt` (spec `specs/021-discover-wide-layout`)
+- **Platform:** Desktop and tablets (windows of at least 840dp)
+- **Now → Better:** every Discover row is capped at 6 games, so on a wide window the row ends well before the edge; desired: a wide window shows more, around 10 to 12
+- **Why:** the width is there to be used
+- **Notes:** the cap is applied in the mapper, which both layouts share and which only sees the games, not the window, so a larger wide-only row means either passing the width class to the mapper or keeping more games in the state and trimming them in the UI; the compact feed must stay at 6. `specs/021-discover-wide-layout/spec.md` deliberately keeps rows at 6 (layout only, no state change), so this needs its own spec. "See all" and its grid would need to keep starting from the row's games. Unverified: how many games each lane actually holds, since the feed fetches the whole lane but its size was not checked
