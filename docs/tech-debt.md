@@ -110,6 +110,13 @@ Last audited: 2026-10-09.
   contracts have no Desktop column, `docs/roadmap.md` says "iOS only", and the constitution is at 1.3.5 (T104,
   T106-T111; the constitution amendment needs the owner's approval). The final gate and spec review (T112, T114)
   also wait for the above. These were held back so they describe what was verified.
+- **The Discover wide layout's keyboard, screen reader and mouse wheel checks were not done**:
+  `specs/021-discover-wide-layout` T022 and T023 are open. Not verified on desktop: Tab moving through the search bar,
+  the hero's two buttons, each shelf's "See all" and each card in screen order with Enter activating them; the
+  "See all: <shelf title>" announcement and the save action's label and state; and the banner and card text staying
+  legible over every cover in light and dark (SC-008, FR-014). Also unchecked is whether the mouse wheel and the
+  trackpad now scroll Discover vertically over the shelf rows. If they do, delete the backlog item "Mouse wheel does
+  not scroll in Discover (and maybe other screens)"; if not, add what was seen to it.
 
 ## Infrastructure
 

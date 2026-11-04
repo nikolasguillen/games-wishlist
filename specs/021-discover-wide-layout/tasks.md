@@ -118,7 +118,7 @@ preview wrapped in `QuestLogTheme { }`; comments and KDoc in English; never edit
 - [ ] T022 [P] On desktop, check SC-008 and FR-014: Tab moves focus through the search bar, the hero's two buttons, then each shelf's "See all" and each card, in screen order, and Enter activates them; the hero image is not a click target; and the new labels are announced sensibly (the "See all" link as "See all: <shelf title>", the save action by its label and state). Check light and dark: banner and card text stay legible on every cover.
 - [ ] T023 [P] On desktop, scroll the feed with the mouse wheel and trackpad over the shelf rows. If it now scrolls vertically, delete the backlog item "Mouse wheel does not scroll in Discover (and maybe other screens)" from `docs/backlog.md` (no "fixed in" note); if it does not, leave the item and add what was observed to it.
 - [X] T024 Run the final gates: `.\gradlew.bat test` and `.\gradlew.bat :androidApp:assembleDebug`, both green with no test deleted or weakened; then walk quickstart §1 and tick off each expected result.
-- [ ] T025 iOS: the code is `commonMain` only, so no iOS-specific work is expected. If a Mac is at hand, run `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 -q`, then the iOS app on an iPad simulator, and check quickstart §2 and §3's wide steps. If no Mac is at hand, say in the final report that iOS was not verified; do not assume it.
+- [X] T025 iOS: the code is `commonMain` only, so no iOS-specific work is expected. If a Mac is at hand, run `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 -q`, then the iOS app on an iPad simulator, and check quickstart §2 and §3's wide steps. If no Mac is at hand, say in the final report that iOS was not verified; do not assume it.
 
 ---
 
