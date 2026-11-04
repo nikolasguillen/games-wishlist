@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Replace the full-screen search overlay with a dropdown under the search bar on wide windows, such as desktop and tablets of 840dp or more. Compact windows keep the current full-screen overlay unchanged. Reference: docs/design/05-search-overlay-preview.png (its preview card is out of scope; its copy is Italian placeholder text, so follow its layout, not its wording or data)."
+**Input**: User description: "Replace the full-screen search overlay with a dropdown under the search bar on wide windows, such as desktop and tablets of 840dp or more. Compact windows keep the current full-screen overlay unchanged. Reference: docs/design/05-search-overlay-preview.png (its expanded game card beside the panel is not wanted; its copy is Italian placeholder text, so follow its layout, not its wording or data)."
 
 ## Clarifications
 
@@ -15,9 +15,11 @@
 - Q: Does the dropdown keep the search-type chips (games, characters, developers)? → A: Yes. They stay as a
   compact row at the top of the panel, above the lists, so characters and developers remain searchable on wide
   windows. This departs from the mockup, which omits them.
-- Q: Does the dropdown keep the genre quick-browse shown before the first keystroke? → A: Yes. It stays as a
-  short section in the empty-query panel, between the recent searches and the recently viewed games. This
-  departs from the mockup, which omits it, and from the compact overlay, which puts genres first.
+- Q: Does the dropdown keep the genre quick-browse shown before the first keystroke? → A: Yes. It sits right
+  below the search-type chips and above the recent searches and the recently viewed games, the same order as
+  the full-screen overlay. This departs from the mockup, which omits it.
+- Q: Does the dropdown get the mockup's expanded game card beside it? → A: No, and not later either. The owner
+  does not want it: the panel is only the list, nothing opens beside it.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -46,8 +48,8 @@ suggestions ending with the "see all results" row.
    directly under the bar, as wide as the bar, floating over the page, and the navigation rail and the page
    around the panel stay visible.
 2. **Given** the panel is open and the query is empty, **When** the user looks at it, **Then** it shows the
-   search-type chips at the top, then the same recent searches, the genre quick-browse and the same recently
-   viewed games the full-screen overlay shows today, each list in the same order.
+   search-type chips at the top, then the genre quick-browse below them, then the same recent searches and
+   recently viewed games the full-screen overlay shows today, in the same order as the full-screen overlay.
 3. **Given** the panel is open, **When** the user types, **Then** it shows the same suggestions the
    full-screen overlay shows for that text: matching recent searches, matching games (title, year, developer)
    and a final row to see all results for the typed text, with the same loading state while games are fetched.
@@ -208,13 +210,13 @@ full-screen overlay is showing with "ember" in the bar. Widen it back to 1000dp:
   or closes.
 - **FR-006**: The panel's layout MUST follow `docs/design/05-search-overlay-preview.png` (a titled list of recent
   searches, a titled list of games with title, year and developer, and a final row to see all results for the
-  typed text), without its wording or placeholder data and without its preview card.
+  typed text), without its wording or placeholder data and without its expanded game card.
 
 **Content**
 
 - **FR-007**: With an empty or blank query, the panel MUST show the same recent searches and recently viewed
   games as the full-screen overlay, each list with the same ordering, the same limits and the same empty-state
-  message (the genre quick-browse between them is FR-010),
+  message (the chips and the genre quick-browse above them are FR-009 and FR-010),
   and with the same ways to remove one recent search and to clear the history.
 - **FR-008**: With a non-blank query, the panel MUST show the same suggestions as the full-screen overlay for
   that query: matching recent searches, then matching games (title, year, developer, with the same loading state
@@ -223,8 +225,9 @@ full-screen overlay is showing with "ember" in the bar. Widen it back to 1000dp:
   top of the panel, above the lists, shown with an empty query and with a typed one. Picking a type MUST behave
   as it does in the full-screen overlay today (it changes the type of the search and nothing else in the
   panel), and the chosen type MUST be the one the suggestions and the committed search use.
-- **FR-010**: With an empty or blank query, the panel MUST keep the genre quick-browse as a short section between
-  the recent searches and the recently viewed games, with the same genres, the same order and the same result
+- **FR-010**: With an empty or blank query, the panel MUST keep the genre quick-browse as a section directly
+  below the search-type chips and above the recent searches and the recently viewed games, so the order from the
+  top is chips, genres, recent searches, recently viewed games, as in the full-screen overlay, with the same genres, the same order and the same result
   when one is chosen as in the full-screen overlay. It is not shown while a query is typed, as today. When there
   is no history, the section still shows, as it does today for a first-time user.
 - **FR-011**: All text in the panel MUST be the app's own localized strings, not the mockup's copy.
@@ -274,8 +277,9 @@ full-screen overlay is showing with "ember" in the bar. Widen it back to 1000dp:
 - **FR-027**: Crossing 840dp in either direction while the bar is focused MUST swap the presentation without
   clearing the typed text, moving the caret, changing the chosen search type or committing a search, and MUST
   keep an open confirmation dialog open.
-- **FR-028**: This feature MUST NOT add the preview card, the side filter panel on results, or any change to the
-  compact layout.
+- **FR-028**: The panel MUST NOT show the mockup's expanded game card (or any preview of the highlighted game)
+  beside or inside it: the owner does not want it. This feature MUST NOT add the side filter panel on results
+  either, or make any change to the compact layout.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -319,7 +323,7 @@ full-screen overlay reads.
 - Only the dropdown's presentation changes. The data behind recents, suggestions and history, the confirmation
   dialogs and the actions chosen from rows are reused as they are.
 - The mockup is followed for layout (a bar-width panel under the bar, titled lists, the final "see all" row, a
-  clearly marked highlighted row), not for its Italian wording, placeholder games or its preview card.
+  clearly marked highlighted row), not for its Italian wording, placeholder games or its expanded game card.
 - Where the mockup and the current overlay differ in what a row shows (the mockup's games show year and
   developer, with a quarter for unreleased games), the panel shows what the current suggestions already carry.
 - The panel's row heights and hit targets follow the app's existing sizing tokens, comfortable for a mouse and
@@ -329,5 +333,5 @@ full-screen overlay reads.
 - Keyboard and focus behaviour can only be fully verified on a desktop window, which has not been tried yet for
   Search; those checks are recorded as open in the technical-debt list if they cannot be done before the feature
   ships, as was done for the Discover wide layout.
-- Out of scope, each its own spec: the side filter panel on results, the preview card, and any compact layout
-  change.
+- The mockup's expanded game card beside the panel is not wanted, now or later, and is not a future spec. Out
+  of scope, the side filter panel on results has its own spec, and so would any compact layout change.
