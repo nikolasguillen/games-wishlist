@@ -5,7 +5,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,14 +23,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
@@ -57,12 +50,9 @@ import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfKey
 import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfUiModel
 import com.nikolasguillen.questlog.feature.search.resources.Res
 import com.nikolasguillen.questlog.feature.search.resources.discover_because_you_like
-import com.nikolasguillen.questlog.feature.search.resources.discover_dismiss_refresh_prompt
 import com.nikolasguillen.questlog.feature.search.resources.discover_more_from
 import com.nikolasguillen.questlog.feature.search.resources.discover_most_anticipated
 import com.nikolasguillen.questlog.feature.search.resources.discover_popular_this_month
-import com.nikolasguillen.questlog.feature.search.resources.discover_refresh_prompt_subtitle
-import com.nikolasguillen.questlog.feature.search.resources.discover_refresh_prompt_title
 import com.nikolasguillen.questlog.feature.search.resources.discover_see_all_shelf
 import org.jetbrains.compose.resources.stringResource
 
@@ -77,9 +67,9 @@ import org.jetbrains.compose.resources.stringResource
  * com.nikolasguillen.questlog.feature.search.mapper.toDiscoverContentState] does that split, this
  * composable only renders what it is given.
  *
- * [isStale] renders [DiscoverRefreshPrompt] as a [androidx.compose.foundation.lazy.LazyListScope.stickyHeader]
- * rather than a regular item, so it pins to the top of the list once the user scrolls past it instead of
- * scrolling away with the hero -- exactly the case a prompt that was just the first item would miss.
+ * [isStale] draws [DiscoverRefreshPrompt] in an [AnimatedVisibility] overlay at the top of the feed rather
+ * than as a list item, so it stays in view once the user scrolls past the hero instead of scrolling away
+ * with it -- exactly the case a prompt that was just the first item would miss.
  */
 @Composable
 internal fun DiscoverFeed(
@@ -114,7 +104,7 @@ internal fun DiscoverFeed(
             modifier = modifier
         ) {
             if (hero != null) {
-                item {
+                item(key = DISCOVER_HERO_KEY) {
                     DiscoverHero(
                         game = hero,
                         onGameClick = onGameClick,
@@ -124,10 +114,8 @@ internal fun DiscoverFeed(
                     )
                 }
             }
-            // Item keys stay strings: on Android a lazy item key has to be storable in a Bundle, which a
-            // shelf's identity (a data class) is not.
             recommended.forEachIndexed { index, shelf ->
-                item(key = "recommended_$index") {
+                item(key = discoverRecommendedKey(index)) {
                     DiscoverShelf(
                         shelf = shelf,
                         onGameClick = onGameClick,
@@ -138,7 +126,7 @@ internal fun DiscoverFeed(
                 }
             }
             if (upcoming != null) {
-                item(key = "upcoming") {
+                item(key = DISCOVER_UPCOMING_KEY) {
                     DiscoverShelf(
                         shelf = upcoming,
                         onGameClick = onGameClick,
@@ -149,7 +137,7 @@ internal fun DiscoverFeed(
                 }
             }
             if (popular != null) {
-                item(key = "popular") {
+                item(key = DISCOVER_POPULAR_KEY) {
                     DiscoverShelf(
                         shelf = popular,
                         onGameClick = onGameClick,
@@ -179,73 +167,6 @@ internal fun DiscoverFeed(
         }
     }
 
-}
-
-/**
- * A full-width bar, not a chip: [androidx.compose.material3.AssistChip] is fixed at Material's own 32.dp height, which leaves no
- * room to make the prompt read as more than a minor annotation, and a sticky header needs to span the
- * list's width anyway so nothing scrolling underneath shows through beside it once it pins. This is
- * hand-rolled so it can be sized and elevated to actually separate from the shelf scrolling under it.
- */
-@Composable
-private fun DiscoverRefreshPrompt(
-    isRefreshing: Boolean,
-    onClick: () -> Unit,
-    onDismissClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        onClick = onClick,
-        enabled = !isRefreshing,
-        modifier = modifier,
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        tonalElevation = MaterialTheme.spacing.medium,
-        shadowElevation = MaterialTheme.spacing.medium,
-        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.onPrimaryContainer)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
-            modifier = Modifier.padding(
-                start = MaterialTheme.spacing.large,
-                end = MaterialTheme.spacing.small,
-                top = MaterialTheme.spacing.medium,
-                bottom = MaterialTheme.spacing.medium
-            )
-        ) {
-            if (isRefreshing) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            } else {
-                Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
-            }
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(Res.string.discover_refresh_prompt_title),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = stringResource(Res.string.discover_refresh_prompt_subtitle),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = LocalContentColor.current.copy(alpha = 0.8f)
-                )
-            }
-
-            IconButton(onClick = onDismissClick, enabled = !isRefreshing) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(Res.string.discover_dismiss_refresh_prompt)
-                )
-            }
-        }
-    }
 }
 
 /**

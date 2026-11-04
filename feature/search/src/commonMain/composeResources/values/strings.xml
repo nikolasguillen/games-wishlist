@@ -25,6 +25,10 @@
     <string name="discover_refresh_prompt_subtitle">Tap to refresh your recommendations</string>
     <string name="discover_dismiss_refresh_prompt">Dismiss</string>
     <string name="discover_see_all_shelf">See all: %1$s</string>
+    <string name="discover_see_all">See all</string>
+    <string name="discover_add_to_wishlist">Add to wishlist</string>
+    <string name="discover_in_wishlist">In wishlist</string>
+    <string name="discover_view_details">View details</string>
     <string name="clear_all">Clear all</string>
     <string name="clear_history_title">Clear search history</string>
     <string name="clear_history_message">Are you sure you want to clear all your recent searches? This action cannot be undone.</string>
