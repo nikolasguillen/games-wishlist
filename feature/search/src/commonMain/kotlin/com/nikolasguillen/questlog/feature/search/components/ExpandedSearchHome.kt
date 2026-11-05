@@ -1,12 +1,7 @@
 package com.nikolasguillen.questlog.feature.search.components
 
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -26,24 +21,15 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.spacing
-import com.nikolasguillen.questlog.core.ui.component.CustomChipRow
-import com.nikolasguillen.questlog.core.ui.component.CustomTextButton
 import com.nikolasguillen.questlog.core.ui.component.gamecard.RecentGameCard
 import com.nikolasguillen.questlog.core.ui.component.gamecard.RecentGameCardDefaults
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
@@ -52,9 +38,7 @@ import com.nikolasguillen.questlog.feature.search.mapper.defaultBrowseGenres
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.SearchHistoryUiModel
 import com.nikolasguillen.questlog.feature.search.resources.Res
-import com.nikolasguillen.questlog.feature.search.resources.clear_all
 import com.nikolasguillen.questlog.feature.search.resources.expanded_search_initial_message
-import com.nikolasguillen.questlog.feature.search.resources.recent_searches
 import com.nikolasguillen.questlog.feature.search.resources.recently_viewed
 import org.jetbrains.compose.resources.stringResource
 
@@ -184,112 +168,6 @@ internal fun InitialMessage() {
             .padding(MaterialTheme.spacing.large)
             .fillMaxWidth()
     )
-}
-
-/**
- * The recent searches, under a heading with a "clear all" button.
- *
- * @param wrap Lay the chips out in a wrapping grid instead of one row that scrolls sideways.
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun RecentSearchesSection(
-    recentSearches: List<String>,
-    wrap: Boolean,
-    onClearRecentSearches: () -> Unit,
-    onHistoryItemClicked: (String) -> Unit,
-    onShowRemovalDialog: (String) -> Unit
-) {
-    Column {
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = MaterialTheme.spacing.large)
-        ) {
-            Text(
-                text = stringResource(Res.string.recent_searches),
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            CustomTextButton(
-                onClick = onClearRecentSearches,
-            ) {
-                Text(stringResource(Res.string.clear_all))
-            }
-        }
-        // A tap runs the search and a long press asks to remove it: neither leaves a chip to bring into view.
-        if (wrap) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = MaterialTheme.spacing.large)
-            ) {
-                recentSearches.forEach { recentSearch ->
-                    RecentSearchChip(
-                        recentSearch = recentSearch,
-                        onClick = { onHistoryItemClicked(recentSearch) },
-                        onLongClick = { onShowRemovalDialog(recentSearch) }
-                    )
-                }
-            }
-        } else {
-            CustomChipRow(
-                items = recentSearches,
-                key = { it.hashCode() }
-            ) { recentSearch, _ ->
-                RecentSearchChip(
-                    recentSearch = recentSearch,
-                    onClick = { onHistoryItemClicked(recentSearch) },
-                    onLongClick = { onShowRemovalDialog(recentSearch) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun RecentSearchChip(
-    recentSearch: String,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit
-) {
-    val inputChipInteractionSource = remember { MutableInteractionSource() }
-    Box {
-        SuggestionChip(
-            onClick = onClick,
-            label = {
-                Text(
-                    text = recentSearch,
-                    maxLines = 1
-                )
-            },
-            icon = {
-                Icon(
-                    imageVector = Icons.Outlined.History,
-                    contentDescription = null
-                )
-            },
-            contentPadding = PaddingValues(all = MaterialTheme.spacing.small),
-            interactionSource = inputChipInteractionSource,
-            colors = SuggestionChipDefaults.suggestionChipColors(
-                iconContentColor = MaterialTheme.colorScheme.primary
-            )
-        )
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .combinedClickable(
-                    onLongClick = onLongClick,
-                    onClick = onClick,
-                    interactionSource = inputChipInteractionSource,
-                    indication = null
-                )
-        )
-    }
 }
 
 @Composable

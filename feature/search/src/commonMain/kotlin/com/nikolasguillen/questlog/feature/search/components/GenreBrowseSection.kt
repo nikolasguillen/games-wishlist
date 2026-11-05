@@ -1,7 +1,11 @@
 package com.nikolasguillen.questlog.feature.search.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
@@ -9,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
@@ -28,12 +33,18 @@ import org.jetbrains.compose.resources.stringResource
  *
  * A tap hands the genre to [onGenreClick] and nothing else -- the overlay closes and the browse starts from
  * there, so no chip has to be scrolled into view afterwards.
+ *
+ * @param wrap Lay the chips out in a wrapping grid instead of one row that scrolls sideways.
+ * @param chipModifier Applied to a box around each chip, given its genre, so a caller can mark or track it.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun GenreBrowseSection(
     genres: List<BrowseGenreUiModel>,
     onGenreClick: (BrowseGenreUiModel) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    wrap: Boolean = false,
+    chipModifier: (BrowseGenreUiModel) -> Modifier = { Modifier }
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
@@ -44,14 +55,35 @@ internal fun GenreBrowseSection(
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large)
         )
-        CustomChipRow(
-            items = genres,
-            key = { it.id }
-        ) { genre, _ ->
-            GenreChip(
-                label = genre.label.asString(),
-                onClick = { onGenreClick(genre) }
-            )
+        if (wrap) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = MaterialTheme.spacing.large)
+            ) {
+                genres.forEach { genre ->
+                    Box(modifier = chipModifier(genre)) {
+                        GenreChip(
+                            label = genre.label.asString(),
+                            onClick = { onGenreClick(genre) }
+                        )
+                    }
+                }
+            }
+        } else {
+            CustomChipRow(
+                items = genres,
+                key = { it.id }
+            ) { genre, _ ->
+                Box(modifier = chipModifier(genre)) {
+                    GenreChip(
+                        label = genre.label.asString(),
+                        onClick = { onGenreClick(genre) }
+                    )
+                }
+            }
         }
     }
 }
@@ -113,6 +145,18 @@ private fun GenreBrowseSectionLongLabelPreview() {
                 BrowseGenreUiModel(3, UiText.DynamicString("A genre IGDB added after this release"))
             ),
             onGenreClick = {}
+        )
+    }
+}
+
+@Preview(widthDp = 720)
+@Composable
+private fun GenreBrowseSectionWidePreview() {
+    QuestLogTheme {
+        GenreBrowseSection(
+            genres = defaultBrowseGenres(),
+            onGenreClick = {},
+            wrap = true
         )
     }
 }
