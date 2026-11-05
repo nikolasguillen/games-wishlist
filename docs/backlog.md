@@ -101,3 +101,15 @@ Unrefined points: bugs, ideas, chores and improvements that are not scheduled. T
 - **Now → Better:** every Discover row is capped at 6 games, so on a wide window the row ends well before the edge; desired: a wide window shows more, around 10 to 12
 - **Why:** the width is there to be used
 - **Notes:** the cap is applied in the mapper, which both layouts share and which only sees the games, not the window, so a larger wide-only row means either passing the width class to the mapper or keeping more games in the state and trimming them in the UI; the compact feed must stay at 6. `specs/021-discover-wide-layout/spec.md` deliberately keeps rows at 6 (layout only, no state change), so this needs its own spec. "See all" and its grid would need to keep starting from the row's games. Unverified: how many games each lane actually holds, since the feed fetches the whole lane but its size was not checked
+
+### Refetch a cached game detail when IGDB has newer data
+- **Added:** 2026-11-05
+- **Where:** `core/data/.../repository/GameRepositoryImpl.kt:628` (`refreshGameDetail`, the `detailsFetchedAt != null` branch), `GameEntity.detailsFetchedAt`
+- **Platform:** all (seen on one device, expected everywhere: the code is shared)
+- **Now → Better:** once a game's detail has been fetched, `refreshGameDetail` never calls the network for it again, so a game seen earlier keeps its old cover, artworks and screenshots. Discover has a 6 h TTL (`DISCOVER_LANE_CACHE_TTL`), so it showed the new image of The Elder Scrolls 6 while game detail showed the old one. Desired: when a cached game is opened, compare IGDB's `updated_at` with the saved one; if IGDB's is newer, clear the cached detail entry so that the next time the user opens the game it is fetched again.
+- **Why:** the two screens disagree about the same game, and a cached detail never heals.
+- **Notes:**
+  - *Check:* a one-field query (`fields updated_at; where id = X;`), not a hash. IGDB's field name is not checked against the current API docs.
+  - *What's missing:* `updated_at` is neither requested nor stored today. Storing it needs a new column on `GameEntity` (Room migration) and probably a field in the backup mapper, since backup stores `detailsFetchedAt`.
+  - *How to clear:* resetting `detailsFetchedAt` to null is the likely way, since `refreshGameDetail` already treats a null as "catalogue result, fetch again". The check runs on open and the refetch on the next open, so the stale detail shows once more first.
+  - *Open question:* whether the check runs on every open or at most once per some interval.
