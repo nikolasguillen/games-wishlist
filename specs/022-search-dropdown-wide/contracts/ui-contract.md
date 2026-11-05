@@ -27,9 +27,10 @@ edit in `:shared`.
 ```kotlin
 // SearchScreen.kt: the only place in Search that reads isWideWindow
 internal fun SearchScreenContent(/* unchanged parameters */) {
-    // shared state: searchBarState, gridState, discoverListState, scrollBehavior, isScrolled, showScrollToTop,
-    // onSearch, onBrowseGenre, onOpenShelf, on*ClickWithCollapse, NavigationBackHandler, backgroundColor,
-    // queryToRemove + showClearHistoryDialog (rememberSaveable, moved here: research R6)
+    // shared state: searchBarState, isScrolled, onSearch, onBrowseGenre, onOpenShelf, on*ClickWithCollapse,
+    // NavigationBackHandler, backgroundColor, and two holders the layouts receive whole:
+    //   scrollState: SearchScrollState (scrollBehavior, gridState, discoverListState, showScrollToTop, onScrollToTop)
+    //   historyDialogs: SearchHistoryDialogState (rememberSaveable, moved here: research R6)
     if (isWideWindow) WideSearchLayout(/* shared state and callbacks */)
     else CompactSearchLayout(/* shared state and callbacks */)
 }
@@ -41,12 +42,9 @@ internal fun CompactSearchLayout(
     uiState: SearchUiState,
     textFieldState: TextFieldState,
     searchBarState: SearchBarState,
-    scrollBehavior: SearchBarScrollBehavior,
-    gridState: LazyGridState,
-    discoverListState: LazyListState,
+    scrollState: SearchScrollState,             // see below
     snackbarHostState: SnackbarHostState,
     backgroundColor: Color,
-    showScrollToTop: Boolean,
     historyDialogs: SearchHistoryDialogState,   // see below
     onEvent: (SearchUiEvent) -> Unit,
     onSearch: (String) -> Unit,
@@ -56,7 +54,6 @@ internal fun CompactSearchLayout(
     onCharacterClick: (Int) -> Unit,
     onDeveloperClick: (Int) -> Unit,
     onProfileClick: () -> Unit,
-    onScrollToTop: () -> Unit,
     modifier: Modifier = Modifier
 )
 
@@ -64,11 +61,12 @@ internal fun CompactSearchLayout(
 internal fun WideSearchLayout(/* same parameters as CompactSearchLayout */)
 ```
 
-`SearchHistoryDialogState` is not a new type: it stands for the two hoisted values and their setters
-(`queryToRemove: String?`, `onQueryToRemoveChange: (String?) -> Unit`, `showClearHistoryDialog: Boolean`,
-`onShowClearHistoryDialogChange: (Boolean) -> Unit`), passed as four parameters. Implementation may group them in one
-`@Stable` holder class in its own file if the parameter lists get unwieldy; that is the only new type the contract
-allows here.
+Two small `@Stable` holders keep the layouts' parameter lists short; each is one class in its own file under
+`components/`, and the screen owns both:
+
+- `SearchHistoryDialogState` (`queryToRemove: String?` and `showClearHistoryDialog: Boolean` as mutable properties,
+  `isAnyOpen`, a `Saver`; created by `rememberSearchHistoryDialogState()`, saved across rotation).
+- `SearchScrollState` (`scrollBehavior`, `gridState`, `discoverListState`, `showScrollToTop`, `onScrollToTop`).
 
 Both layouts render, in the same order: `Scaffold { topBar = SearchTopBar(...), floatingActionButton =
 ScrollToTopFab, content = SearchMainContent(...) + SearchFilterBottomSheet + SearchSortBottomSheet + ListSelectorSheet
@@ -112,8 +110,7 @@ internal fun SearchInputField(
 
 internal fun ExpandedSearchBar(
     /* unchanged parameters */,
-    queryToRemove: String?, onQueryToRemoveChange: (String?) -> Unit,                    // NEW (hoisted, R6)
-    showClearHistoryDialog: Boolean, onShowClearHistoryDialogChange: (Boolean) -> Unit   // NEW (hoisted, R6)
+    historyDialogs: SearchHistoryDialogState                                             // NEW (hoisted, R6)
 )
 
 // components/SearchMainContent.kt: isWideWindow removed; the Discover feed becomes a slot
@@ -128,8 +125,10 @@ internal fun SearchTypeChipRow(
     selected: SearchType,
     onSelected: (SearchType) -> Unit,
     modifier: Modifier = Modifier,
-    wrap: Boolean = false,                                  // NEW: FlowRow instead of the scrolling row
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.SpaceEvenly,  // NEW: the dropdown start-aligns
     chipModifier: (SearchType) -> Modifier = { Modifier }   // NEW: applied to a Box around each chip
+// The type chips are always a single row (three chips; it scrolls if the space is narrower), in the overlay and in
+// the dropdown alike. Only the genres and the recent searches wrap.
 )
 
 // components/GenreBrowseSection.kt
@@ -162,7 +161,7 @@ internal fun RecentSearchesSection(
 // components/WideSearchDropdown.kt
 // ExpandedDockedSearchBarWithGap(state, inputField, shape = <bar pill>, dropdownScrimColor = Color.Unspecified,
 //   dropdownGapSize = <spacing token>, colors, properties = PopupProperties(focusable = true,
-//   clippingEnabled = false, dismissOnClickOutside = queryToRemove == null && !showClearHistoryDialog))
+//   clippingEnabled = false, dismissOnClickOutside = !historyDialogs.isAnyOpen))
 // containing WideSearchPanel, RemoveHistoryItemDialog and ClearHistoryDialog.
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 internal fun WideSearchDropdown(
@@ -174,8 +173,7 @@ internal fun WideSearchDropdown(
     query: String,
     onActivate: (SearchDropdownItemUiModel) -> Unit,
     onRemoveRecentGame: (Int) -> Unit,
-    queryToRemove: String?, onQueryToRemoveChange: (String?) -> Unit,
-    showClearHistoryDialog: Boolean, onShowClearHistoryDialogChange: (Boolean) -> Unit,
+    historyDialogs: SearchHistoryDialogState,
     onConfirmRemoveQuery: (String) -> Unit,
     onConfirmClearHistory: () -> Unit,
     highlighted: SearchDropdownItemUiModel? = null,                      // only for the screen-reader announcement
@@ -195,11 +193,11 @@ internal fun WideSearchPanel(
     itemModifier: (SearchDropdownItemUiModel) -> Modifier = { Modifier }
 )
 
-// components/WideSearchHome.kt: before typing. Type chips (wrap), genres (wrap), recent searches (wrap) with
+// components/WideSearchHome.kt: before typing. Type chips (one row), genres (wrap), recent searches (wrap) with
 // "Clear all", recently viewed games as a FlowRow of RecentGameCard, or InitialMessage when there is no history.
 internal fun WideSearchHome(/* the WideSearchPanel parameters it needs */)
 
-// components/WideSearchSuggestions.kt: while typing. Type chips (wrap), then the overlay's suggestion rows under
+// components/WideSearchSuggestions.kt: while typing. Type chips (one row), then the overlay's suggestion rows under
 // the same headers, then SeeAllResultsRow.
 internal fun WideSearchSuggestions(/* the WideSearchPanel parameters it needs */)
 

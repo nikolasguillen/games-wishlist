@@ -146,7 +146,7 @@ three triggers. Flipping to open-on-keyboard-focus later is one `onFocusChanged`
 ## R6. The history dialogs survive the swap across 840dp
 
 **Decision**: `queryToRemove` and `showClearHistoryDialog` move from inside `ExpandedSearchBar` up to
-`SearchScreenContent`, still `rememberSaveable`. Each presentation receives them and renders the same
+`SearchScreenContent`, held in one `SearchHistoryDialogState` and still saved across rotation. Each presentation receives it and renders the same
 `RemoveHistoryItemDialog` and `ClearHistoryDialog` from inside itself: the compact overlay where it does today, the
 wide dropdown from inside its popup content.
 

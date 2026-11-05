@@ -89,8 +89,8 @@ The highlight is not saved. It resets when the window crosses 840dp, which the s
 
 | Field | Type | Before | After |
 |---|---|---|---|
-| `queryToRemove` | `String?`, `rememberSaveable` | inside `ExpandedSearchBar` | `SearchScreenContent`, passed to both presentations |
-| `showClearHistoryDialog` | `Boolean`, `rememberSaveable` | inside `ExpandedSearchBar` | `SearchScreenContent`, passed to both presentations |
+| `queryToRemove` | `String?`, saved | inside `ExpandedSearchBar` | `SearchHistoryDialogState`, created in `SearchScreenContent`, passed to both presentations |
+| `showClearHistoryDialog` | `Boolean`, saved | inside `ExpandedSearchBar` | `SearchHistoryDialogState`, created in `SearchScreenContent`, passed to both presentations |
 
 Same types, same saver, same dialogs, same events on confirm (`OnHistoryItemRemoved`, `OnClearHistory`). Only the
 owner moves (research R6).

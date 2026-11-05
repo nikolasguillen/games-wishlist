@@ -133,7 +133,7 @@ feature/search/src/commonMain/kotlin/com/nikolasguillen/questlog/feature/search/
 │   ├── RecentSearchesSection.kt       # NEW file, moved out of ExpandedSearchHome.kt (+ RecentSearchChip),
 │   │                                  #   private → internal, + clearAllModifier / chipModifier
 │   ├── ExpandedSearchHome.kt          # uses the moved section; otherwise unchanged
-│   ├── SearchTypeChipRow.kt           # + wrap, chipModifier
+│   ├── SearchTypeChipRow.kt           # + chipModifier (always one row)
 │   └── GenreBrowseSection.kt          # + wrap, chipModifier
 ├── mapper/
 │   └── SearchDropdownItemMapper.kt    # NEW: searchDropdownItems (pure)

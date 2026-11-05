@@ -45,8 +45,8 @@ Desktop window at about 1280×800, with some history (search a few games, open t
 
 | # | Do | Expect |
 |---|---|---|
-| 3.1 | Click the search bar | A panel opens directly under the bar, separated by a small gap, exactly as wide as the bar. The rail and the page stay visible and undimmed around it |
-| 3.2 | Look at it with an empty query | From the top: type chips, "Browse by genre" chips, "Recent searches" with "Clear all", "Recently viewed" cards. Rows wrap, nothing scrolls sideways |
+| 3.1 | Click the search bar | A panel opens directly under the bar, separated by a small gap, exactly as wide as the bar and always as tall as Material allows (half the window), whatever the content. The rail and the page stay visible and undimmed around it |
+| 3.2 | Look at it with an empty query | From the top: type chips, "Browse by genre" chips, "Recent searches" with "Clear all", "Recently viewed" cards. The type chips are one row, start-aligned; the genre and recent-search chips wrap, nothing scrolls sideways |
 | 3.3 | Pick "Characters" | The chip is selected, the panel stays open, the placeholder changes as in the overlay |
 | 3.4 | Type "zel" | Type chips on top, then matching recent searches, shimmer rows, then up to four games and "See all results for "zel"" |
 | 3.5 | Click a game suggestion | The game opens (beside the results when two panes are shown), the panel closes |
