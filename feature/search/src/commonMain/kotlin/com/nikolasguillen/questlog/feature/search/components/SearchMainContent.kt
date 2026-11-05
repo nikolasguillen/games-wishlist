@@ -43,8 +43,9 @@ import org.jetbrains.compose.resources.stringResource
  * a text search, so it only decides which message the empty state shows. [resultsType] is what the committed
  * search looked up, which picks the cards of [SearchContentState.EntityResults] and the empty message.
  *
- * [isWideWindow] is the one switch between the two Discover layouts: the window is at least as wide as the
- * two-pane threshold. Nothing else in the screen reads it.
+ * The Discover feed is a slot, [discoverFeed], so each screen layout supplies its own: the compact layout draws
+ * [DiscoverFeed] and the wide one [WideDiscoverFeed]. This composable keeps the loading and error states of the
+ * feed and hands the loaded content to the slot together with the list state it must scroll with.
  */
 @Composable
 internal fun SearchMainContent(
@@ -54,23 +55,20 @@ internal fun SearchMainContent(
     onGameClick: (Int) -> Unit,
     onCharacterClick: (Int) -> Unit,
     onDeveloperClick: (Int) -> Unit,
-    onSeeAllClick: (DiscoverShelfUiModel) -> Unit,
     gridState: LazyGridState,
     activeBrowse: SearchBrowseUiModel?,
     resultsType: SearchType,
+    discoverFeed: @Composable (content: DiscoverContentState.Content, listState: LazyListState) -> Unit,
     modifier: Modifier = Modifier,
-    discoverListState: LazyListState = rememberLazyListState(),
-    isWideWindow: Boolean = false
+    discoverListState: LazyListState = rememberLazyListState()
 ) {
     Box(modifier = modifier) {
         when (contentState) {
             is SearchContentState.Idle -> DiscoverContent(
                 state = discoverState,
                 onEvent = onEvent,
-                onGameClick = onGameClick,
-                onSeeAllClick = onSeeAllClick,
                 listState = discoverListState,
-                isWideWindow = isWideWindow
+                discoverFeed = discoverFeed
             )
             is SearchContentState.Error -> ErrorPage(
                 message = contentState.message,
@@ -131,10 +129,8 @@ internal fun SearchMainContent(
 private fun DiscoverContent(
     state: DiscoverContentState,
     onEvent: (SearchUiEvent) -> Unit,
-    onGameClick: (Int) -> Unit,
-    onSeeAllClick: (DiscoverShelfUiModel) -> Unit,
     listState: LazyListState,
-    isWideWindow: Boolean
+    discoverFeed: @Composable (content: DiscoverContentState.Content, listState: LazyListState) -> Unit
 ) {
     when (state) {
         is DiscoverContentState.Loading -> LoadingPage()
@@ -142,46 +138,7 @@ private fun DiscoverContent(
             message = state.message,
             onRetryClick = { onEvent(SearchUiEvent.OnRetryDiscover) }
         )
-        is DiscoverContentState.Content -> {
-            val onSaveClick: (Int) -> Unit = { onEvent(SearchUiEvent.OnToggleSave(it)) }
-            val onLongClick: (Int) -> Unit = { onEvent(SearchUiEvent.OnOpenListSelector(it)) }
-            val onRefreshClick = { onEvent(SearchUiEvent.OnRefreshDiscover) }
-            val onDismissRefreshClick = { onEvent(SearchUiEvent.OnDismissDiscoverRefresh) }
-
-            if (isWideWindow) {
-                WideDiscoverFeed(
-                    hero = state.hero,
-                    popular = state.popular,
-                    upcoming = state.upcoming,
-                    onGameClick = onGameClick,
-                    onSaveClick = onSaveClick,
-                    onLongClick = onLongClick,
-                    onSeeAllClick = onSeeAllClick,
-                    recommended = state.recommended,
-                    isStale = state.isStale,
-                    isRefreshing = state.isRefreshing,
-                    onRefreshClick = onRefreshClick,
-                    onDismissRefreshClick = onDismissRefreshClick,
-                    state = listState
-                )
-            } else {
-                DiscoverFeed(
-                    hero = state.hero,
-                    popular = state.popular,
-                    upcoming = state.upcoming,
-                    onGameClick = onGameClick,
-                    onSaveClick = onSaveClick,
-                    onLongClick = onLongClick,
-                    onSeeAllClick = onSeeAllClick,
-                    recommended = state.recommended,
-                    isStale = state.isStale,
-                    isRefreshing = state.isRefreshing,
-                    onRefreshClick = onRefreshClick,
-                    onDismissRefreshClick = onDismissRefreshClick,
-                    state = listState
-                )
-            }
-        }
+        is DiscoverContentState.Content -> discoverFeed(state, listState)
     }
 }
 
@@ -191,7 +148,9 @@ private fun SearchMainContentPreview(
     discoverState: DiscoverContentState = DiscoverContentState.Loading,
     activeBrowse: SearchBrowseUiModel? = null,
     resultsType: SearchType = SearchType.GAMES,
-    isWideWindow: Boolean = false
+    discoverFeed: @Composable (DiscoverContentState.Content, LazyListState) -> Unit = { content, listState ->
+        PreviewDiscoverFeed(content, listState)
+    }
 ) {
     QuestLogTheme {
         SearchMainContent(
@@ -201,11 +160,10 @@ private fun SearchMainContentPreview(
             onGameClick = {},
             onCharacterClick = {},
             onDeveloperClick = {},
-            onSeeAllClick = {},
             gridState = rememberLazyGridState(),
             activeBrowse = activeBrowse,
             resultsType = resultsType,
-            isWideWindow = isWideWindow
+            discoverFeed = discoverFeed
         )
     }
 }
@@ -226,6 +184,44 @@ private val previewDiscoverContent = DiscoverContentState.Content(
     )
 )
 
+@Composable
+private fun PreviewDiscoverFeed(content: DiscoverContentState.Content, listState: LazyListState) {
+    DiscoverFeed(
+        hero = content.hero,
+        popular = content.popular,
+        upcoming = content.upcoming,
+        onGameClick = {},
+        onSaveClick = {},
+        onLongClick = {},
+        onSeeAllClick = {},
+        recommended = content.recommended,
+        isStale = content.isStale,
+        isRefreshing = content.isRefreshing,
+        onRefreshClick = {},
+        onDismissRefreshClick = {},
+        state = listState
+    )
+}
+
+@Composable
+private fun PreviewWideDiscoverFeed(content: DiscoverContentState.Content, listState: LazyListState) {
+    WideDiscoverFeed(
+        hero = content.hero,
+        popular = content.popular,
+        upcoming = content.upcoming,
+        onGameClick = {},
+        onSaveClick = {},
+        onLongClick = {},
+        onSeeAllClick = {},
+        recommended = content.recommended,
+        isStale = content.isStale,
+        isRefreshing = content.isRefreshing,
+        onRefreshClick = {},
+        onDismissRefreshClick = {},
+        state = listState
+    )
+}
+
 @QuestLogPreviews
 @Composable
 private fun SearchMainContentDiscoverPreview() {
@@ -241,7 +237,7 @@ private fun SearchMainContentWideDiscoverPreview() {
     SearchMainContentPreview(
         contentState = SearchContentState.Idle,
         discoverState = previewDiscoverContent,
-        isWideWindow = true
+        discoverFeed = { content, listState -> PreviewWideDiscoverFeed(content, listState) }
     )
 }
 

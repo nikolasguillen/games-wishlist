@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -40,9 +41,6 @@ import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -53,6 +51,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
@@ -80,8 +79,11 @@ import com.nikolasguillen.questlog.feature.search.resources.suggestions_section_
 import com.nikolasguillen.questlog.feature.search.resources.suggestions_section_recent
 import org.jetbrains.compose.resources.stringResource
 
-/** Rows of shimmer while the debounced fetch runs. The remote call caps the real rows at four. */
-private const val LOADING_SUGGESTION_COUNT = 3
+/**
+ * Rows of shimmer while the debounced fetch runs. The remote call caps the real rows at four. The wide search
+ * panel shows the same number.
+ */
+internal const val LOADING_SUGGESTION_COUNT = 3
 
 /**
  * Corner radius that turns a [SearchBarDefaults.InputFieldHeight]-tall shape into a full pill (the
@@ -101,6 +103,15 @@ private val AdjoiningFlatCornerRadius: Dp
     @ReadOnlyComposable
     get() = MaterialTheme.spacing.small
 
+/**
+ * The search bar in its collapsed form, with the expanded form supplied by the caller.
+ *
+ * @param expandedContent What the bar opens into: the full-screen overlay on a compact window, a dropdown under the
+ * bar on a wide one. It receives the shared [inputField] (the same instance the collapsed pill draws, so Material
+ * can carry it through the transition) with the bar's colors and shape.
+ * @param inputFieldModifier Applied to the text field, for a caller that handles keys on it.
+ * @param readOnlyWhenCollapsed See [SearchInputField].
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SearchTopBar(
@@ -109,11 +120,12 @@ internal fun SearchTopBar(
     textFieldState: TextFieldState,
     scrollBehavior: SearchBarScrollBehavior,
     onSearch: (String) -> Unit,
-    onGameClick: (Int) -> Unit,
-    onBrowseGenre: (BrowseGenreUiModel) -> Unit,
     onEvent: (SearchUiEvent) -> Unit,
     onProfileClick: () -> Unit,
-    backgroundColor: Color
+    backgroundColor: Color,
+    expandedContent: @Composable (inputField: @Composable () -> Unit, colors: SearchBarColors, shape: Shape) -> Unit,
+    inputFieldModifier: Modifier = Modifier,
+    readOnlyWhenCollapsed: Boolean = true
 ) {
     val searchBarColors = SearchBarDefaults.containedColors(state = searchBarState).copy(
         dividerColor = SearchBarDefaults.colors().dividerColor.copy(alpha = 0.5f)
@@ -147,8 +159,10 @@ internal fun SearchTopBar(
             shape = searchBarShape,
             onSearch = { onSearch(textFieldState.text.toString()) },
             onClearSearch = { onEvent(SearchUiEvent.OnClearSearch) },
+            modifier = inputFieldModifier,
             browsePlaceholder = uiState.activeBrowse?.toPlaceholder(),
-            searchType = uiState.selectedSearchType
+            searchType = uiState.selectedSearchType,
+            readOnlyWhenCollapsed = readOnlyWhenCollapsed
         )
     }
 
@@ -188,25 +202,17 @@ internal fun SearchTopBar(
         }
     )
 
-    ExpandedSearchBar(
-        searchBarState = searchBarState,
-        inputField = inputField,
-        history = uiState.history,
-        suggestions = uiState.suggestions,
-        browseGenres = uiState.browseGenres,
-        searchQuery = textFieldState.text.toString(),
-        selectedSearchType = uiState.selectedSearchType,
-        searchBarColors = searchBarColors,
-        onSearchTypeSelected = { onEvent(SearchUiEvent.OnSearchTypeSelected(it)) },
-        onCommitSearch = onSearch,
-        onBrowseGenre = onBrowseGenre,
-        onGameClick = onGameClick,
-        onRemoveRecentGame = { onEvent(SearchUiEvent.OnRecentGameRemoved(it)) },
-        onClearRecentSearches = { onEvent(SearchUiEvent.OnClearHistory) },
-        onRemoveRecentSearchItem = { onEvent(SearchUiEvent.OnHistoryItemRemoved(it)) }
-    )
+    expandedContent(inputField, searchBarColors, searchBarShape)
 }
 
+/**
+ * The text field of the search bar, shared by the collapsed pill and the expanded overlay or dropdown.
+ *
+ * @param modifier Applied to the field itself, ahead of the browse semantics.
+ * @param readOnlyWhenCollapsed Whether the field is read-only while the bar is collapsed, so a tap opens the
+ * overlay instead of placing a caret. A window that opens a dropdown under the bar passes false: there the user
+ * types in the collapsed bar and the dropdown opens as they do.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SearchInputField(
@@ -214,9 +220,11 @@ internal fun SearchInputField(
     searchBarState: SearchBarState,
     onSearch: () -> Unit,
     onClearSearch: () -> Unit,
+    modifier: Modifier = Modifier,
     shape: Shape = SearchBarDefaults.inputFieldShape,
     browsePlaceholder: UiText? = null,
-    searchType: SearchType = SearchType.GAMES
+    searchType: SearchType = SearchType.GAMES,
+    readOnlyWhenCollapsed: Boolean = true
 ) {
     val searchInputFieldColor = if (searchBarState.currentValue == SearchBarValue.Collapsed) {
         MaterialTheme.appColors.searchBarInputFieldColor
@@ -232,18 +240,20 @@ internal fun SearchInputField(
     SearchBarDefaults.InputField(
         textFieldState = textFieldState,
         searchBarState = searchBarState,
-        modifier = if (browseText != null) {
-            Modifier.semantics { stateDescription = browseText }
-        } else {
-            Modifier
-        },
+        modifier = modifier.then(
+            if (browseText != null) {
+                Modifier.semantics { stateDescription = browseText }
+            } else {
+                Modifier
+            }
+        ),
         shape = shape,
         colors = TextFieldDefaults.colors(
             focusedContainerColor = searchInputFieldColor,
             unfocusedContainerColor = searchInputFieldColor
         ),
         onSearch = { onSearch() },
-        readOnly = searchBarState.currentValue == SearchBarValue.Collapsed,
+        readOnly = readOnlyWhenCollapsed && searchBarState.currentValue == SearchBarValue.Collapsed,
         placeholder = {
             Text(
                 text = browseText ?: searchType.toPlaceholderUiText().asString(),
@@ -368,11 +378,9 @@ internal fun ExpandedSearchBar(
     onGameClick: (Int) -> Unit,
     onRemoveRecentGame: (Int) -> Unit,
     onClearRecentSearches: () -> Unit,
-    onRemoveRecentSearchItem: (query: String) -> Unit
+    onRemoveRecentSearchItem: (query: String) -> Unit,
+    historyDialogs: SearchHistoryDialogState
 ) {
-    var queryToRemove by rememberSaveable { mutableStateOf<String?>(null) }
-    var showClearHistoryDialog by rememberSaveable { mutableStateOf(false) }
-
     ExpandedFullScreenSearchBar(
         state = searchBarState,
         inputField = inputField,
@@ -384,7 +392,7 @@ internal fun ExpandedSearchBar(
         SearchTypeChipRow(
             selected = selectedSearchType,
             onSelected = onSearchTypeSelected,
-            modifier = Modifier.padding(vertical = MaterialTheme.spacing.small).fillMaxWidth()
+            modifier = Modifier.padding(vertical = MaterialTheme.spacing.small).fillMaxWidth().heightIn(min = 60.dp)
         )
         HorizontalDivider()
 
@@ -409,30 +417,30 @@ internal fun ExpandedSearchBar(
                     onCommitSearch = onCommitSearch,
                     onGameClick = onGameClick,
                     onRemoveRecentGame = onRemoveRecentGame,
-                    onClearRecentSearches = { showClearHistoryDialog = true },
-                    onShowRemovalDialog = { queryToRemove = it }
+                    onClearRecentSearches = { historyDialogs.showClearHistoryDialog = true },
+                    onShowRemovalDialog = { historyDialogs.queryToRemove = it }
                 )
             }
         }
 
-        queryToRemove?.let { query ->
+        historyDialogs.queryToRemove?.let { query ->
             RemoveHistoryItemDialog(
                 query = query,
                 onConfirm = {
                     onRemoveRecentSearchItem(query)
-                    queryToRemove = null
+                    historyDialogs.queryToRemove = null
                 },
-                onDismiss = { queryToRemove = null }
+                onDismiss = { historyDialogs.queryToRemove = null }
             )
         }
 
-        if (showClearHistoryDialog) {
+        if (historyDialogs.showClearHistoryDialog) {
             ClearHistoryDialog(
                 onConfirm = {
                     onClearRecentSearches()
-                    showClearHistoryDialog = false
+                    historyDialogs.showClearHistoryDialog = false
                 },
-                onDismiss = { showClearHistoryDialog = false }
+                onDismiss = { historyDialogs.showClearHistoryDialog = false }
             )
         }
     }
@@ -523,29 +531,50 @@ private val previewSuggestions = SearchSuggestionsUiModel(
 @Composable
 private fun SearchTopBarPreview() {
     QuestLogTheme {
-        SearchTopBar(
-            uiState = SearchUiState(
-                history = previewHistory,
-                contentState = SearchContentState.Success(
-                    games = listOf(GameItemUiModel.getDummy()),
-                    filters = listOf(
-                        GameFilterUiModel.Platform(
-                            id = 0,
-                            label = UiText.DynamicString("PC"),
-                            selected = true
-                        )
+        val uiState = SearchUiState(
+            history = previewHistory,
+            contentState = SearchContentState.Success(
+                games = listOf(GameItemUiModel.getDummy()),
+                filters = listOf(
+                    GameFilterUiModel.Platform(
+                        id = 0,
+                        label = UiText.DynamicString("PC"),
+                        selected = true
                     )
                 )
-            ),
-            searchBarState = rememberContainedSearchBarState(),
-            textFieldState = rememberTextFieldState("The Witcher"),
+            )
+        )
+        val searchBarState = rememberContainedSearchBarState()
+        val textFieldState = rememberTextFieldState("The Witcher")
+        SearchTopBar(
+            uiState = uiState,
+            searchBarState = searchBarState,
+            textFieldState = textFieldState,
             scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(),
             onSearch = {},
-            onGameClick = {},
-            onBrowseGenre = {},
             onEvent = {},
             onProfileClick = {},
-            backgroundColor = Color.Transparent
+            backgroundColor = Color.Transparent,
+            expandedContent = { inputField, colors, _ ->
+                ExpandedSearchBar(
+                    searchBarState = searchBarState,
+                    inputField = inputField,
+                    history = uiState.history,
+                    suggestions = uiState.suggestions,
+                    browseGenres = uiState.browseGenres,
+                    searchQuery = textFieldState.text.toString(),
+                    selectedSearchType = uiState.selectedSearchType,
+                    searchBarColors = colors,
+                    onSearchTypeSelected = {},
+                    onCommitSearch = {},
+                    onBrowseGenre = {},
+                    onGameClick = {},
+                    onRemoveRecentGame = {},
+                    onClearRecentSearches = {},
+                    onRemoveRecentSearchItem = {},
+                    historyDialogs = SearchHistoryDialogState()
+                )
+            }
         )
     }
 }
@@ -670,7 +699,8 @@ private fun ExpandedSearchBarPreview() {
             onGameClick = {},
             onRemoveRecentGame = {},
             onClearRecentSearches = {},
-            onRemoveRecentSearchItem = {}
+            onRemoveRecentSearchItem = {},
+            historyDialogs = SearchHistoryDialogState()
         )
     }
 }
@@ -705,7 +735,8 @@ private fun ExpandedSearchBarFirstTimePreview() {
             onGameClick = {},
             onRemoveRecentGame = {},
             onClearRecentSearches = {},
-            onRemoveRecentSearchItem = {}
+            onRemoveRecentSearchItem = {},
+            historyDialogs = SearchHistoryDialogState()
         )
     }
 }
@@ -740,7 +771,8 @@ private fun ExpandedSearchBarTypingPreview() {
             onGameClick = {},
             onRemoveRecentGame = {},
             onClearRecentSearches = {},
-            onRemoveRecentSearchItem = {}
+            onRemoveRecentSearchItem = {},
+            historyDialogs = SearchHistoryDialogState()
         )
     }
 }
@@ -778,7 +810,8 @@ private fun ExpandedSearchBarLoadingPreview() {
             onGameClick = {},
             onRemoveRecentGame = {},
             onClearRecentSearches = {},
-            onRemoveRecentSearchItem = {}
+            onRemoveRecentSearchItem = {},
+            historyDialogs = SearchHistoryDialogState()
         )
     }
 }

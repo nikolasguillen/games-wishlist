@@ -5,13 +5,6 @@ package com.nikolasguillen.questlog.feature.search
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.displayCutout
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.input.TextFieldState
@@ -19,11 +12,8 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarValue
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.runtime.Composable
@@ -34,7 +24,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,16 +35,13 @@ import androidx.navigationevent.compose.rememberNavigationEventState
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
 import com.nikolasguillen.questlog.core.designsystem.theme.appColors
-import com.nikolasguillen.questlog.core.ui.component.ListSelectorSheet
-import com.nikolasguillen.questlog.core.ui.component.ScrollToTopFab
-import com.nikolasguillen.questlog.core.ui.component.StatusBarProtection
 import com.nikolasguillen.questlog.core.ui.model.GameItemUiModel
 import com.nikolasguillen.questlog.core.ui.model.UiText
 import com.nikolasguillen.questlog.core.ui.util.UiConstants
-import com.nikolasguillen.questlog.feature.search.components.SearchFilterBottomSheet
-import com.nikolasguillen.questlog.feature.search.components.SearchMainContent
-import com.nikolasguillen.questlog.feature.search.components.SearchSortBottomSheet
-import com.nikolasguillen.questlog.feature.search.components.SearchTopBar
+import com.nikolasguillen.questlog.feature.search.components.CompactSearchLayout
+import com.nikolasguillen.questlog.feature.search.components.SearchScrollState
+import com.nikolasguillen.questlog.feature.search.components.WideSearchLayout
+import com.nikolasguillen.questlog.feature.search.components.rememberSearchHistoryDialogState
 import com.nikolasguillen.questlog.feature.search.components.resetToTop
 import com.nikolasguillen.questlog.feature.search.model.BrowseGenreUiModel
 import com.nikolasguillen.questlog.feature.search.model.DiscoverShelfUiModel
@@ -136,6 +123,10 @@ internal fun SearchScreenContent(
     val discoverListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
+    // The confirmation dialogs of the recent searches. They live here, not in the overlay or the dropdown, so a
+    // window that crosses the wide threshold with one open keeps it.
+    val historyDialogs = rememberSearchHistoryDialogState()
+
     // The feed and the results grid are two different list types with their own hoisted state, so
     // scroll-to-top and the FAB visibility must follow whichever one is currently on screen.
     val isDiscoverActive = uiState.contentState is SearchContentState.Idle
@@ -175,6 +166,14 @@ internal fun SearchScreenContent(
             else gridState.animateScrollToItem(0)
         }
     }
+
+    val scrollState = SearchScrollState(
+        scrollBehavior = scrollBehavior,
+        gridState = gridState,
+        discoverListState = discoverListState,
+        showScrollToTop = showScrollToTop,
+        onScrollToTop = { scope.launch { onScrollToTop() } }
+    )
 
     val onResetScroll = remember(scrollBehavior, gridState) {
         suspend {
@@ -254,67 +253,46 @@ internal fun SearchScreenContent(
     )
 
     // 5. Layout
-    Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.background,
-        // Rotated with the camera on the end edge, the last column would sit under it; the start side is already
-        // consumed by the rail.
-        contentWindowInsets = ScaffoldDefaults.contentWindowInsets
-            .union(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal)),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            SearchTopBar(
-                uiState = uiState,
-                searchBarState = searchBarState,
-                textFieldState = textFieldState,
-                scrollBehavior = scrollBehavior,
-                onSearch = onSearch,
-                onGameClick = onGameClickWithCollapse,
-                onBrowseGenre = onBrowseGenre,
-                onEvent = onEvent,
-                onProfileClick = onProfileClick,
-                backgroundColor = backgroundColor
-            )
-        },
-        floatingActionButton = {
-            ScrollToTopFab(
-                visible = showScrollToTop,
-                onClick = { scope.launch { onScrollToTop() } }
-            )
-        }
-    ) { innerPadding ->
-        SearchMainContent(
-            contentState = uiState.contentState,
-            discoverState = uiState.discover,
+    // The one place the window width picks an arrangement. The state both share lives above, so crossing the
+    // threshold with a dialog open or a query typed keeps them.
+    if (isWideWindow) {
+        WideSearchLayout(
+            uiState = uiState,
+            textFieldState = textFieldState,
+            searchBarState = searchBarState,
+            scrollState = scrollState,
+            snackbarHostState = snackbarHostState,
+            backgroundColor = backgroundColor,
+            historyDialogs = historyDialogs,
             onEvent = onEvent,
+            onSearch = onSearch,
+            onBrowseGenre = onBrowseGenre,
+            onOpenShelf = onOpenShelf,
             onGameClick = onGameClickWithCollapse,
             onCharacterClick = onCharacterClickWithCollapse,
             onDeveloperClick = onDeveloperClickWithCollapse,
-            onSeeAllClick = onOpenShelf,
-            gridState = gridState,
-            activeBrowse = uiState.activeBrowse,
-            resultsType = uiState.resultsType,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            discoverListState = discoverListState,
-            isWideWindow = isWideWindow
+            onProfileClick = onProfileClick,
+            modifier = modifier
         )
-
-        SearchFilterBottomSheet(state = uiState.filtersBottomSheetState, onEvent = onEvent)
-        SearchSortBottomSheet(state = uiState.sortBottomSheetState, onEvent = onEvent)
-
-        uiState.listSelectorState?.let { selectorState ->
-            ListSelectorSheet(
-                gameName = UiText.DynamicString(selectorState.gameName),
-                list = selectorState.availableLists,
-                onDismiss = { onEvent(SearchUiEvent.OnDismissListSelector) },
-                onConfirm = { onEvent(SearchUiEvent.OnConfirmListSelection) },
-                onToggleList = { listId -> onEvent(SearchUiEvent.OnToggleListSelection(listId)) }
-            )
-        }
-
-        StatusBarProtection(color = backgroundColor)
+    } else {
+        CompactSearchLayout(
+            uiState = uiState,
+            textFieldState = textFieldState,
+            searchBarState = searchBarState,
+            scrollState = scrollState,
+            snackbarHostState = snackbarHostState,
+            backgroundColor = backgroundColor,
+            historyDialogs = historyDialogs,
+            onEvent = onEvent,
+            onSearch = onSearch,
+            onBrowseGenre = onBrowseGenre,
+            onOpenShelf = onOpenShelf,
+            onGameClick = onGameClickWithCollapse,
+            onCharacterClick = onCharacterClickWithCollapse,
+            onDeveloperClick = onDeveloperClickWithCollapse,
+            onProfileClick = onProfileClick,
+            modifier = modifier
+        )
     }
 }
 
@@ -438,6 +416,33 @@ private fun SearchScreenEmptyPreview() {
             onDeveloperClick = {},
             onProfileClick = {},
             snackbarHostState = remember { SnackbarHostState() }
+        )
+    }
+}
+
+@Preview(widthDp = 1280, heightDp = 800)
+@Composable
+private fun SearchScreenWideWithHistoryPreview() {
+    QuestLogTheme {
+        SearchScreenContent(
+            uiState = SearchUiState(
+                history = SearchHistoryUiModel(
+                    queries = listOf("The Witcher", "Cyberpunk 2077"),
+                    games = listOf(
+                        GameItemUiModel.getDummy(),
+                        GameItemUiModel.getDummy()
+                            .copy(id = 2, name = "Cyberpunk 2077")
+                    )
+                )
+            ),
+            textFieldState = rememberTextFieldState(),
+            onEvent = {},
+            onGameClick = {},
+            onCharacterClick = {},
+            onDeveloperClick = {},
+            onProfileClick = {},
+            snackbarHostState = remember { SnackbarHostState() },
+            isWideWindow = true
         )
     }
 }
