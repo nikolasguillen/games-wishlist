@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -16,6 +18,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogPreviews
 import com.nikolasguillen.questlog.core.designsystem.theme.QuestLogTheme
@@ -66,43 +69,48 @@ internal fun WideSearchPanel(
         .verticalScroll(rememberScrollState())
         .padding(vertical = MaterialTheme.spacing.medium)
 
-    Box {
-        if (query.isNotBlank()) {
-            WideSearchSuggestions(
-                query = query,
-                selectedSearchType = uiState.selectedSearchType,
-                suggestions = uiState.suggestions,
-                onActivate = onActivate,
-                modifier = columnModifier,
-                itemModifier = itemModifier
-            )
-        } else {
-            WideSearchHome(
-                selectedSearchType = uiState.selectedSearchType,
-                browseGenres = uiState.browseGenres,
-                history = uiState.history,
-                onActivate = onActivate,
-                onRemoveRecentGame = onRemoveRecentGame,
-                onShowRemovalDialog = onShowRemovalDialog,
-                modifier = columnModifier,
-                itemModifier = itemModifier
-            )
-        }
+    // Material lays chips and buttons out 48dp tall around a 32dp visible shape, and only the visible shape takes the
+    // mouse. Left as is, the highlight (which wraps the layout box) would show over a strip a click does not reach, so
+    // the panel's controls are laid out at their visible size and the highlight and the click area coincide.
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+        Box {
+            if (query.isNotBlank()) {
+                WideSearchSuggestions(
+                    query = query,
+                    selectedSearchType = uiState.selectedSearchType,
+                    suggestions = uiState.suggestions,
+                    onActivate = onActivate,
+                    modifier = columnModifier,
+                    itemModifier = itemModifier
+                )
+            } else {
+                WideSearchHome(
+                    selectedSearchType = uiState.selectedSearchType,
+                    browseGenres = uiState.browseGenres,
+                    history = uiState.history,
+                    onActivate = onActivate,
+                    onRemoveRecentGame = onRemoveRecentGame,
+                    onShowRemovalDialog = onShowRemovalDialog,
+                    modifier = columnModifier,
+                    itemModifier = itemModifier
+                )
+            }
 
-        if (highlighted != null) {
-            // The highlight is not focus, so a screen reader would say nothing as it moves. A polite live region
-            // reads the label when it changes. It is a 1dp node rather than a zero-size one: a node with no bounds
-            // can be dropped from the accessibility tree. It uses no `selected` semantics, which the type chips
-            // already use for the chosen type.
-            val label = highlighted.announcement(uiState = uiState, query = query)
-            Box(
-                modifier = Modifier
-                    .size(1.dp)
-                    .semantics {
-                        liveRegion = LiveRegionMode.Polite
-                        contentDescription = label
-                    }
-            )
+            if (highlighted != null) {
+                // The highlight is not focus, so a screen reader would say nothing as it moves. A polite live region
+                // reads the label when it changes. It is a 1dp node rather than a zero-size one: a node with no bounds
+                // can be dropped from the accessibility tree. It uses no `selected` semantics, which the type chips
+                // already use for the chosen type.
+                val label = highlighted.announcement(uiState = uiState, query = query)
+                Box(
+                    modifier = Modifier
+                        .size(1.dp)
+                        .semantics {
+                            liveRegion = LiveRegionMode.Polite
+                            contentDescription = label
+                        }
+                )
+            }
         }
     }
 }
