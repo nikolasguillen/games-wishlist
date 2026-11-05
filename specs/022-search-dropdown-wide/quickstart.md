@@ -69,7 +69,7 @@ Panel open, nothing highlighted. Keep the mouse still.
 | 4.4 | Type "ma", Enter with nothing highlighted | The search is committed for "ma" |
 | 4.5 | Highlight a row, then type, Left/Right, Backspace, Cmd/Ctrl+A, C, V | All go to the text field; suggestions update; a highlight whose row disappears clears |
 | 4.6 | Down to a chip, Enter | The type changes, the panel stays open |
-| 4.7 | Highlight a recent search, Shift+Delete | The removal dialog; confirm: the row is gone, the panel is still open |
+| 4.7 | Highlight a recent search, Shift+Delete | The removal dialog; confirm: the row is gone, the panel is still open. On a Mac keyboard without a forward-delete key, Shift+Delete is `Fn`+`Shift`+`Backspace` |
 | 4.8 | Highlight a recent game, Shift+Delete | The game leaves "Recently viewed" |
 | 4.9 | Highlight an item low in a long panel | It is scrolled into view |
 | 4.10 | Tab to the bar from elsewhere (panel closed) | The bar shows focus and does not open; Down or typing opens it |

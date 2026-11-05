@@ -117,6 +117,14 @@ Last audited: 2026-10-09.
   legible over every cover in light and dark (SC-008, FR-014). Also unchecked is whether the mouse wheel and the
   trackpad now scroll Discover vertically over the shelf rows. If they do, delete the backlog item "Mouse wheel does
   not scroll in Discover (and maybe other screens)"; if not, add what was seen to it.
+- **The Search dropdown's other-platform, screen reader and a few keyboard checks were not recorded**:
+  `specs/022-search-dropdown-wide` T032 and T033. Walked and accepted by the owner: the desktop panel, the keyboard,
+  closing, crossing 840dp and an Android tablet with touch. Not run: an iPad simulator (landscape) for quickstart
+  sections 3, 5 and 6, and an Android device with a hardware keyboard for section 4. Not recorded: whether the live
+  region announces the highlighted item under VoiceOver and TalkBack (section 8), Shift+Delete on a Mac keyboard
+  (`Fn`+`Shift`+`Backspace`, row 4.7), where focus lands after Tab (row 5.6), what a second Escape does when the bar
+  is collapsed with text (row 5.9), and the dialogs inside the popup on every platform (row 5.8). Seen and accepted:
+  an outside click closes the panel and is swallowed, so it does not also open what is under it (FR-022).
 
 ## Infrastructure
 

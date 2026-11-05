@@ -181,7 +181,7 @@ full-screen overlay is showing with "ember" in the bar. Widen it back to 1000dp:
 - The page behind the panel is a results grid, a character or developer grid, or the Discover feed: the panel
   floats over it in the same way, and the page does not scroll, reflow or reload when the panel opens or closes.
 - The panel has more content than fits (a short window, or the empty-query panel at its tallest with chips,
-  genres, recent searches and recently viewed games all present): it stops growing at about half the window's
+  genres, recent searches and recently viewed games all present): it is about half the window's
   height, scrolls inside itself, and never runs off the bottom of the window.
 - The panel holds only the three search-type chips (the empty state, or only the loading rows): Down highlights the
   first chip and there is nothing further to move to; the text field keeps focus.
@@ -208,9 +208,10 @@ full-screen overlay is showing with "ember" in the bar. Widen it back to 1000dp:
   a search field with suggestions, and what keeps a panel closed with Escape from reopening by itself).
 - **FR-002**: The panel MUST be as wide as the search bar, MUST float over the page, and MUST NOT cover the
   navigation rail, the area beside the bar or the whole window.
-- **FR-003**: The panel's height MUST fit its content between a minimum of 240dp (a sparse panel keeps blank space
-  under its last row) and a maximum of about half the window's height, scrolling inside itself beyond that, and
-  MUST NOT extend past the bottom of the window.
+- **FR-003**: The panel's height MUST be the maximum the component allows, about half the window's height (a sparse
+  panel keeps blank space under its last row, and the height does not change as the content does), scrolling inside
+  itself beyond that, and MUST NOT extend past the bottom of the window. (Decided by the owner on 2026-11-05;
+  Material's minimum of 240dp therefore never shows.)
 - **FR-004**: On a window narrower than 840dp, the search bar MUST open the existing full-screen overlay,
   unchanged in appearance, content and behaviour.
 - **FR-005**: The page behind the panel MUST NOT scroll, reflow, reload or lose its state when the panel opens
