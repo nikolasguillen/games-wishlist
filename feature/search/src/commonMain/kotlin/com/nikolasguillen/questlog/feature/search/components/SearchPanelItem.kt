@@ -44,13 +44,18 @@ import com.nikolasguillen.questlog.feature.search.model.SearchType
 /** The width of the outline that marks the highlighted item. */
 private val MARK_BORDER_WIDTH = 2.dp
 
+/** How much of the content color tints the highlighted item. */
+private const val MARK_TINT_ALPHA = 0.16f
+
 /**
  * Makes one item of the wide search panel highlightable: it draws the mark while the item is [highlighted], highlights
  * the item when a mouse moves over it, and scrolls it into view when the keyboard highlights it.
  *
- * The mark is a fill with an outline, in the item's own shape. It is the same for the keyboard and for the mouse, so
- * the user always sees one highlight. The fill sits behind the item and the outline over it, because chips and the
- * "See all results" pill are opaque and would otherwise hide a fill drawn behind them.
+ * The mark is a tint with an outline, both in the theme's `onSurface` (light on a dark theme, dark on a light one), in
+ * the item's own shape. It is the same for the keyboard and for the mouse, so the user always sees one highlight. It
+ * is drawn over the item, because chips and the "See all results" pill are opaque and would hide a fill drawn behind
+ * them. It is neutral on purpose: the primary color is also the tint of the genre chips, and a mark in it would not
+ * show on them.
  *
  * Hover moves the highlight only when the pointer really moves: a pointer that rests still sends nothing, so it never
  * takes the highlight back from the keyboard (including when the list scrolls under it), and a touch never highlights.
@@ -85,8 +90,8 @@ internal fun Modifier.searchPanelItem(
         is SearchDropdownItemUiModel.RecentQuery,
         is SearchDropdownItemUiModel.RecentGame -> MaterialTheme.shapes.small
     }
-    val fill = MaterialTheme.colorScheme.surfaceContainerHighest
-    val outline = MaterialTheme.colorScheme.primary
+    val outline = MaterialTheme.colorScheme.onSurface
+    val tint = outline.copy(alpha = MARK_TINT_ALPHA)
     // The "See all results" row keeps its margin inside the modifier chain, so the mark is inset to its visible pill.
     val insetHorizontal = if (item == SearchDropdownItemUiModel.SeeAllResults) MaterialTheme.spacing.large else 0.dp
     val insetVertical = if (item == SearchDropdownItemUiModel.SeeAllResults) MaterialTheme.spacing.medium else 0.dp
@@ -115,13 +120,12 @@ internal fun Modifier.searchPanelItem(
             if (isHighlighted) {
                 val horizontal = insetHorizontal.toPx()
                 val vertical = insetVertical.toPx()
-                inset(horizontal = horizontal, vertical = vertical) {
-                    drawOutline(shape.createOutline(size, layoutDirection, this), color = fill)
-                }
                 drawContent()
                 inset(horizontal = horizontal, vertical = vertical) {
+                    val markShape = shape.createOutline(size, layoutDirection, this)
+                    drawOutline(markShape, color = tint)
                     drawOutline(
-                        outline = shape.createOutline(size, layoutDirection, this),
+                        outline = markShape,
                         color = outline,
                         style = Stroke(width = MARK_BORDER_WIDTH.toPx())
                     )
