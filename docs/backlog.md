@@ -54,6 +54,22 @@ Unrefined points: bugs, ideas, chores and improvements that are not scheduled. T
 - **Where:** `core/database` (`GameListCrossRef`, `DefaultWishlistEntity`, `games.status`), `ToggleWishlistUseCase`, `ListSelectorSheet`, `feature/lists`
 - **Notes:** today `status` and `priority` live on the game itself, so a game in two lists shares them. Status is also read by the wishlist sections, by `TasteProfileBuilder` weights and by the "saved" query in `GameDao`. The cloud backup stores lists, so a schema change touches backup and restore
 
+### Sign-in step in the welcome flow (first launch only, flow no longer skippable there)
+- **Added:** 2026-11-07
+- **Why:** let a new user sign in during first launch, so the cloud backup is available from the start instead of having to be found later in Settings → Account & backup
+- **Scope:**
+  - A new last page in the welcome flow (after `Platforms` and `Reminders`) with the existing sign-in providers.
+  - On first launch the flow can no longer be skipped: the "Skip" button goes away on every page, which changes today's behaviour (`OnboardingScreen.kt:165` shows it on every page, citing FR-004, "a way out from anywhere").
+  - When the flow is replayed from Settings ("Show welcome tour"), the sign-in page is left out and Skip stays available.
+- **Where:** `feature/onboarding` (`OnboardingPage` is the closed set of pages, `buildOnboardingPages` in `mapper/OnboardingPageUiMapper.kt` decides which pages a launch shows, `OnboardingViewModel` handles `SkipClicked`, `OnboardingScreen.kt`); `core/navigation/Routes.kt` (`OnboardingRoute`); `shared/.../QuestLogNavDisplay.kt` (the `OnboardingRoute` entry and the Settings `onShowWelcomeTourClick`)
+- **Notes:**
+  - *Replay is not detectable today:* `OnboardingRoute` is a `data object`, so first launch and replay open the same route. The only difference is in `QuestLogNavDisplay.kt`'s `onFinish`, which checks `backStack.size == 1`. The page list and the Skip button both depend on it, so the feature needs an explicit signal, e.g. a route parameter (`OnboardingRoute` would stop being a `data object`, which affects `RoutesSerializationTest` and `GameNavSavedStateConfiguration`) or a ViewModel argument.
+  - *Reuse:* `SignInUseCase`, `GetSignInProviderUseCase` and `ObserveAccountUseCase` are already in `:core:domain`, so `feature/onboarding` needs no new dependency edge. `ProviderSignInButton` lives in `feature/settings`, which onboarding must not depend on, so it would have to move to `:core:ui`. `AccountBackupViewModel` is the reference for sign-in errors and in-progress states.
+  - *Not skippable means a blocking sign-in:* the last page then has to be completed by signing in, so a failed or cancelled sign-in, being offline, or a platform whose provider is unavailable must not trap the user. Decide what the exit looks like (e.g. a retry with an explanation) before building. Also decide what happens when the account already has cloud data (restore prompt?).
+  - *Platforms:* the providers differ per platform (Google on Android and desktop, Apple on iOS), and the Apple half has never run on a device (see `docs/tech-debt.md`).
+  - *Already signed in:* the owner says a signed-in user should never reach the first-launch flow, so no special case is planned.
+  - *Spec:* dropping Skip reverses a deliberate requirement (FR-004), so this needs its own spec.
+
 ## Tech debt
 
 ## Improvements
